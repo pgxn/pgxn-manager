@@ -1,0 +1,55 @@
+SET search_path = public,contrib,tap;
+
+BEGIN;
+SELECT * FROM no_plan();
+
+SELECT has_table('public', 'users', 'Should have table public.users');
+
+SELECT columns_are('public', 'users', ARRAY[
+    'nickname',
+    'password',
+    'email',
+    'created_at',
+    'updated_at',
+    'visited_at'
+]);
+
+SELECT has_table( 'users' );
+SELECT has_pk(    'users' );
+
+SELECT has_column(        'users', 'nickname' );
+SELECT col_type_is(       'users', 'nickname', 'citext' );
+SELECT col_hasnt_default( 'users', 'nickname' );
+SELECT col_is_pk(         'users', 'nickname' );
+
+SELECT has_column(        'users', 'password' );
+SELECT col_type_is(       'users', 'password', 'text' );
+SELECT col_not_null(      'users', 'password' );
+SELECT col_hasnt_default( 'users', 'password' );
+
+SELECT has_column(        'users', 'email' );
+SELECT col_type_is(       'users', 'email', 'citext' );
+SELECT col_not_null(      'users', 'email' );
+SELECT col_hasnt_default( 'users', 'email' );
+
+SELECT has_column(        'users', 'created_at' );
+SELECT col_type_is(       'users', 'created_at', 'timestamp with time zone' );
+SELECT col_not_null(      'users', 'created_at' );
+SELECT col_has_default(   'users', 'created_at' );
+SELECT col_default_is(    'users', 'created_at', 'now()' );
+
+SELECT has_column(        'users', 'updated_at' );
+SELECT col_type_is(       'users', 'updated_at', 'timestamp with time zone' );
+SELECT col_not_null(      'users', 'updated_at' );
+SELECT col_has_default(   'users', 'updated_at' );
+SELECT col_default_is(    'users', 'updated_at', 'now()' );
+
+SELECT has_column(        'users', 'visited_at' );
+SELECT col_type_is(       'users', 'visited_at', 'timestamp with time zone' );
+SELECT col_not_null(      'users', 'visited_at' );
+SELECT col_has_default(   'users', 'visited_at' );
+SELECT col_default_is(    'users', 'visited_at', 'now()' );
+
+
+SELECT * FROM finish();
+ROLLBACK;

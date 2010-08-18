@@ -1,0 +1,10 @@
+SET search_path = public,contrib,tap;
+
+BEGIN;
+SELECT plan(2);
+
+SELECT has_role('pgxn');
+SELECT isnt_superuser('pgxn');
+
+SELECT * FROM finish();
+ROLLBACK;

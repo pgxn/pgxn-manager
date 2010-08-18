@@ -5,3 +5,4 @@ MANIFEST
 MANIFEST.bak
 *META.*
 Build
+sql/pgtap*

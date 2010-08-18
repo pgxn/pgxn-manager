@@ -5,14 +5,11 @@ use Module::Build::DB;
 Module::Build::DB->new(
     module_name        => 'PGXN::Manager',
     license            => 'perl',
-    script_files       => 'bin',
+#   script_files       => 'bin',
     test_file_exts     => [qw(.t .pg)],
     db_config_key      => 'dbi',
     replace_config     => 'conf/dev.yml',
     db_client          => 'psql',
-    test_env           => {
-        PGOPTIONS       => '--search_path=tap,public,contrib',
-    },
     configure_requires => {
         'Module::Build::DB' => '0.10',
     },

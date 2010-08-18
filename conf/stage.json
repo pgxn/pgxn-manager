@@ -1,0 +1,8 @@
+{
+    "name": "PGXN Manager (STAGE)",
+    "dbi": {
+        "dsn": "dbi:Pg:dbname=pgxn_manager_stage",
+        "username": "postgres",
+        "password": ""
+    }
+}

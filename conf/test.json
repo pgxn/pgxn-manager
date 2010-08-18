@@ -1,0 +1,8 @@
+{
+    "name": "PGXN Manager (TEST)",
+    "dbi": {
+        "dsn": "dbi:Pg:dbname=pgxn_manager_test",
+        "username": "postgres",
+        "password": ""
+    }
+}
