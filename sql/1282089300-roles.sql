@@ -12,5 +12,7 @@ SELECT add_role() WHERE NOT EXISTS (
 
 DROP FUNCTION add_role();
 
+GRANT USAGE ON SCHEMA contrib TO pgxn;
+
 COMMIT;
 

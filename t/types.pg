@@ -1,0 +1,163 @@
+SET search_path = public,contrib,tap;
+
+BEGIN;
+SELECT plan(87);
+--SELECT * FROM no_plan();
+
+-- Test the label data type.
+SELECT is( 'foo'::label, 'FOO'::label, 'labels should be case-insensitive' );
+SELECT is( NULL::label, NULL, 'labels should be NULLable' );
+
+SELECT lives_ok( 'SELECT ''foo''::label', '"foo" is a valid label' );
+SELECT lives_ok( 'SELECT ''bar''::label', '"bar" is a valid label' );
+SELECT lives_ok( 'SELECT ''FOO''::label', '"FOO" is a valid label' );
+SELECT lives_ok( 'SELECT ''b1''::label', '"b1" is a valid label' );
+SELECT lives_ok( 'SELECT ''b-a''::label', '"b-a" is a valid label' );
+SELECT lives_ok( 'SELECT ''ba''::label', '"ba" is a valid label' );
+SELECT lives_ok( 'SELECT ''a''::label', '"a" is a valid label' );
+SELECT lives_ok( 'SELECT ''b-1a''::label', '"b-1a" is a valid label' );
+SELECT lives_ok( 'SELECT ''b----a''::label', '"b----a" is a valid label' );
+
+SELECT throws_ok(
+    'SELECT ''2''::label',
+    '23514',
+    'value for domain label violates check constraint "label_check"',
+    '"2" is not a valid label'
+);
+SELECT throws_ok(
+    'SELECT ''b-''::label',
+    '23514',
+    'value for domain label violates check constraint "label_check"',
+    '"b-" is not a valid label'
+);
+SELECT throws_ok(
+    'SELECT ''-''::label',
+    '23514',
+    'value for domain label violates check constraint "label_check"',
+    '"-" is not a valid label'
+);
+SELECT throws_ok(
+    'SELECT ''f.b''::label',
+    '23514',
+    'value for domain label violates check constraint "label_check"',
+    '"f.b" is not a valid label'
+);
+SELECT throws_ok(
+    'SELECT ''f,b''::label',
+    '23514',
+    'value for domain label violates check constraint "label_check"',
+    '"f,b" is not a valid label'
+);
+SELECT throws_ok(
+    'SELECT ''Bjørn''::label',
+    '23514',
+    'value for domain label violates check constraint "label_check"',
+    'Non-ASCII characters invalid in labels'
+);
+
+-- Test the timezone data type.
+SELECT is( NULL::timezone, NULL, 'time zones should be NULLable' );
+
+SELECT lives_ok(
+    'SELECT ''' || name || '''::timezone',
+    name || ' should be a valid time zone'
+)
+  FROM (SELECT name FROM pg_timezone_names ORDER BY RANDOM() LIMIT 50) AS tz(name);
+
+SELECT is(
+       'Zulu'::timezone,
+       'ZULU'::timezone,
+       'TZs should be case-insensitive'
+);
+
+SELECT throws_ok(
+    'SELECT ''FOO''::timezone',
+    '23514',
+    'value for domain timezone violates check constraint "timezone_check"',
+     'Should die for invalid TZ "FOO"'
+);
+SELECT throws_ok(
+    'SELECT ''BAR''::timezone',
+    '23514',
+    'value for domain timezone violates check constraint "timezone_check"',
+     'Should die for invalid TZ "BAR"'
+);
+SELECT throws_ok(
+    'SELECT ''America/Los_Angelos''::timezone',
+    '23514',
+    'value for domain timezone violates check constraint "timezone_check"',
+     'Should die for invalid TZ "America/Los_Angelos"'
+);
+
+-- Test the email data type.
+SELECT is( NULL::email, NULL, 'emails should be NULLable' );
+SELECT lives_ok(
+    'SELECT ''foo@bar.com''::email',
+    '"foo@bar.com" should be a valid email'
+);
+SELECT lives_ok(
+    'SELECT ''foo@bar.info''::email',
+     '"foo@bar.info" should be a valid email'
+);
+SELECT throws_ok(
+    'SELECT ''foo.info''::email',
+    '23514',
+    'value for domain email violates check constraint "email_check"',
+     '"foo.info" should not be a valid email'
+);
+SELECT is(
+    'foo@bar.com'::email,
+     'FOO@BAR.COM'::email,
+     'Emails should be case-insensitive'
+);
+
+-- Test the uri data type.
+SELECT is( NULL::uri, NULL, 'URIs should be NULLable' );
+SELECT lives_ok(
+    'SELECT ''http://foo.com''::uri',
+    'foo.com should be a valid HTTP URI'
+);
+SELECT lives_ok(
+    'SELECT ''https://foo.com''::uri',
+     'foo.com should be a valid HTTPS URI'
+);
+SELECT lives_ok(
+    'SELECT ''http://foo.com/?id=1''::uri',
+     'foo.com?id=1 should be a valid URI'
+);
+SELECT lives_ok(
+    'SELECT ''http://w3.org/path%20with%20spaces.html''::uri',
+    'URI with encoded spaces should be valid'
+);
+SELECT lives_ok(
+    'SELECT ''http://192.168.0.1/''::uri',
+    'An IP adrress URL is a valid URI'
+);
+
+SELECT throws_ok(
+    'SELECT ''''::uri',
+    '23514',
+    'value for domain uri violates check constraint "uri_check"',
+    'An empty string is not a URI'
+);
+SELECT throws_ok(
+    'SELECT ''ftp://foo.com''::uri',
+    '23514',
+    'value for domain uri violates check constraint "uri_check"',
+    'An FTP URI is not a valid URI'
+);
+SELECT throws_ok(
+    'SELECT ''http:foo.com''::uri',
+    '23514',
+    'value for domain uri violates check constraint "uri_check"',
+    'A broken URI is not valid'
+);
+SELECT throws_ok(
+    'SELECT ''http://w3.org/path with spaces.html''::uri',
+    '23514',
+    'value for domain uri violates check constraint "uri_check"',
+    'URI with unencoded spaces should not be valid'
+);
+
+SELECT * FROM finish();
+ROLLBACK;

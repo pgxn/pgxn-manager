@@ -4,9 +4,9 @@ SET client_min_messages TO warning;
 SET log_min_messages    TO warning;
 
 CREATE TABLE users (
-    nickname   CITEXT      PRIMARY KEY,
+    nickname   LABEL       PRIMARY KEY,
     password   TEXT        NOT NULL,
-    email      CITEXT      NOT NULL,
+    email      EMAIL       NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     visited_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -15,22 +15,23 @@ CREATE TABLE users (
 GRANT SELECT ON users TO pgxn;
 
 CREATE OR REPLACE FUNCTION insert_user(
-    nick  TEXT,
+    nick  LABEL,
     pass  TEXT,
-    email CITEXT
-) RETURNS VOID LANGUAGE SQL SECURITY DEFINER AS $$
+    email EMAIL
+) RETURNS BOOLEAN LANGUAGE SQL SECURITY DEFINER AS $$
     INSERT INTO users (nickname, password, email)
-    VALUES ($1, crypt($2, gen_salt('md5')), $3);
+    VALUES ($1, crypt($2, gen_salt('des')), $3);
+    SELECT TRUE;
 $$;
 
 CREATE OR REPLACE FUNCTION change_password(
-    nick    TEXT,
+    nick    LABEL,
     oldpass TEXT,
     newpass TEXT
 ) RETURNS BOOLEAN LANGUAGE plpgsql SECURITY DEFINER AS $$
 BEGIN
     UPDATE users
-       SET password = crypt($3, gen_salt('md5')),
+       SET password = crypt($3, gen_salt('des')),
            updated_at = NOW()
      WHERE nickname = $1
        AND password = crypt($2, password);
@@ -39,9 +40,9 @@ END;
 $$;
 
 CREATE OR REPLACE FUNCTION change_email(
-    nick    TEXT,
-    oldmail TEXT,
-    newmail TEXT
+    nick    LABEL,
+    oldmail EMAIL,
+    newmail EMAIL
 ) RETURNS BOOLEAN LANGUAGE plpgsql SECURITY DEFINER AS $$
 BEGIN
     UPDATE users
@@ -54,7 +55,7 @@ END;
 $$;
 
 CREATE OR REPLACE FUNCTION log_visit(
-    nick    TEXT
+    nick  LABEL
 ) RETURNS BOOLEAN LANGUAGE plpgsql SECURITY DEFINER AS $$
 BEGIN
     UPDATE users

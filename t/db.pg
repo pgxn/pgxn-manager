@@ -1,0 +1,31 @@
+SET search_path = public,contrib,tap;
+
+BEGIN;
+SELECT plan(9);
+
+-- Check languages.
+SELECT has_language('plpgsql');
+SELECT has_language('plperl');
+SELECT has_language('plperlu');
+
+-- Check schemas.
+SELECT schemas_are(ARRAY['public', 'contrib', 'tap']);
+
+-- Check pgxn role.
+SELECT has_role('pgxn');
+SELECT isnt_superuser('pgxn');
+SELECT ok(
+    has_schema_privilege('pgxn', 'public', 'usage'),
+    'User "pgxn" should be able to use the public schema'
+);
+SELECT ok(
+    has_schema_privilege('pgxn', 'contrib', 'usage'),
+    'User "pgxn" should be able to use the contrib schema'
+);
+SELECT ok(
+    NOT has_schema_privilege('pgxn', 'tap', 'usage'),
+    'User "pgxn" should not be able to use the tap schema'
+);
+
+SELECT * FROM finish();
+ROLLBACK;

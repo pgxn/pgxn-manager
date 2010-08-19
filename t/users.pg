@@ -18,7 +18,7 @@ SELECT has_table( 'users' );
 SELECT has_pk(    'users' );
 
 SELECT has_column(        'users', 'nickname' );
-SELECT col_type_is(       'users', 'nickname', 'citext' );
+SELECT col_type_is(       'users', 'nickname', 'label' );
 SELECT col_hasnt_default( 'users', 'nickname' );
 SELECT col_is_pk(         'users', 'nickname' );
 
@@ -28,7 +28,7 @@ SELECT col_not_null(      'users', 'password' );
 SELECT col_hasnt_default( 'users', 'password' );
 
 SELECT has_column(        'users', 'email' );
-SELECT col_type_is(       'users', 'email', 'citext' );
+SELECT col_type_is(       'users', 'email', 'email' );
 SELECT col_not_null(      'users', 'email' );
 SELECT col_hasnt_default( 'users', 'email' );
 
@@ -50,6 +50,205 @@ SELECT col_not_null(      'users', 'visited_at' );
 SELECT col_has_default(   'users', 'visited_at' );
 SELECT col_default_is(    'users', 'visited_at', 'now()' );
 
+/*****************************************************************************/
+-- Test insert_user().
+SELECT has_function(    'insert_user' );
+SELECT has_function(    'insert_user', ARRAY['label', 'text', 'email'] );
+SELECT function_returns('insert_user', 'boolean' );
+SELECT function_lang_is('insert_user', 'sql' );
+SELECT volatility_is(   'insert_user', 'volatile' );
+
+SELECT is(COUNT(*)::int, 0, 'Should start with no users') FROM users;
+
+SELECT ok(
+    insert_user('theory', 'wet blanket', 'theory@pgxn.org'),
+    'Insert user "theory"'
+);
+
+SELECT is(COUNT(*)::int, 1, 'Should now have one user') FROM users;
+
+SELECT isnt( password, 'wet blanket', 'Password should not be clear text')
+  FROM users WHERE nickname = 'theory';
+
+SELECT isnt( password, 'theory', 'Password should not be nickname' )
+  FROM users WHERE nickname = 'theory';
+
+SELECT ok(
+    insert_user('strongrrl', 'wet blanket', 'strongrrl@pgxn.org'),
+    'Insert user "strongrrl"'
+);
+
+SELECT is(COUNT(*)::int, 2, 'Should now have two users') FROM users;
+
+SELECT isnt(
+    (SELECT password FROM users WHERE nickname = 'strongrrl'),
+    (SELECT password FROM users WHERE nickname = 'theory'),
+    'Same password should not match'
+);
+
+SELECT unalike(
+    password,
+    '%' || nickname || '%',
+    'Password should not contain nickname'
+) FROM users;
+
+SELECT unalike(
+    password,
+    '%wet blanket%',
+    'Password should not contain clear text'
+) FROM users;
+
+SELECT is(
+    password,
+    crypt('wet blanket', password),
+    'Passwords should be crypted'
+ ) FROM users;
+
+/*****************************************************************************/
+-- Test change_password().
+SELECT has_function(    'change_password');
+SELECT has_function(    'change_password', ARRAY['label', 'text', 'text']);
+SELECT function_returns('change_password', 'boolean');
+SELECT function_lang_is('change_password', 'plpgsql');
+SELECT volatility_is(   'change_password', 'volatile' );
+
+SELECT ok(
+    NOT change_password('nobody', 'foo', 'bar'),
+    'change_password() should return false for nonexistent user'
+);
+
+SELECT ok(
+    NOT change_password('theory', 'foo', 'bar'),
+    'change_password() should return false for invalid old pass'
+);
+
+SELECT is(
+    password,
+    crypt('wet blanket', password),
+    'Password should be unchanged'
+) FROM users WHERE nickname = 'theory';
+
+SELECT ok(
+    change_password('theory', 'wet blanket', 'pgtap rulez'),
+    'change_password() should return true for proper args'
+);
+
+SELECT is(
+    password,
+    crypt('pgtap rulez', password),
+    'Password should now be changed'
+) FROM users WHERE nickname = 'theory';
+
+/*****************************************************************************/
+-- Test change_email().
+SELECT has_function(    'change_email');
+SELECT has_function(    'change_email', ARRAY['label', 'email', 'email']);
+SELECT function_returns('change_email', 'boolean');
+SELECT function_lang_is('change_email', 'plpgsql');
+SELECT volatility_is(   'change_email', 'volatile' );
+
+SELECT ok(
+    NOT change_email('nobody', 'foo@bar.com', 'bar@foo.com'),
+    'change_email() should return false for nonexistent user'
+);
+
+SELECT ok(
+    NOT change_email('theory', 'foo@bar.com', 'bar@foo.com'),
+    'change_email() should return false for invalid old email'
+);
+
+SELECT is( email, 'theory@pgxn.org', 'Email should be unchanged' )
+  FROM users WHERE nickname = 'theory';
+
+SELECT ok(
+    change_email('theory', 'theory@pgxn.org', 'david@pgxn.org'),
+    'change_email() should return true for proper args'
+);
+
+SELECT is( email, 'david@pgxn.org', 'Email should now be changed' )
+  FROM users WHERE nickname = 'theory';
+
+/*****************************************************************************/
+-- Test log_visit().
+SELECT has_function(    'log_visit');
+SELECT has_function(    'log_visit', ARRAY['label']);
+SELECT function_returns('log_visit', 'boolean');
+SELECT function_lang_is('log_visit', 'plpgsql');
+SELECT volatility_is(   'log_visit', 'volatile' );
+
+-- Make sure defaults are correct.
+SELECT is( created_at, now(), 'created_at should be now()') FROM users;
+SELECT is( updated_at, now(), 'updated_at should be now()') FROM users;
+SELECT is( visited_at, now(), 'visited_at should be now()') FROM users;
+
+CREATE SCHEMA mock;
+
+CREATE OR REPLACE FUNCTION mock.now(
+) RETURNS timestamptz LANGUAGE SQL AS $$
+    SELECT '2010-08-19 11:01:03.306399+00'::timestamptz;
+$$;
+
+SET search_path = mock,public,contrib,tap,pg_catalog;
+
+-- Log a visit.
+SELECT ok( NOT log_visit('foo'), 'log_visit should return false for non-user');
+SELECT ok( log_visit('theory'), 'But should return true for real user' );
+
+SELECT isnt( created_at, now(), 'created_at should not be updated') FROM users;
+SELECT isnt( updated_at, now(), 'updated_at should not be updated') FROM users;
+SELECT is( visited_at, now(), 'visited_at should be updated for user "theory"')
+  FROM users where nickname = 'theory';
+SELECT isnt( visited_at, now(), 'visited_at should not updated for user "strongrrl"')
+  FROM users where nickname = 'strongrrl';
+
+/*****************************************************************************/
+-- Try with limited permission role.
+GRANT USAGE ON SCHEMA tap TO pgxn;
+SET ROLE pgxn;
+
+SELECT ok(
+    insert_user('anna', 'blue sea', 'anna@pgxn.org'),
+    'Insert user "anna" a from pgxn role'
+);
+
+SELECT is(
+    password,
+    crypt('blue sea', password),
+    'User created by pgxn should exist'
+) FROM users WHERE nickname = 'anna';
+
+SELECT ok(
+    change_password('anna', 'blue sea', 'red sky'),
+    'Change password as pgxn'
+);
+
+SELECT is(
+    password,
+    crypt('red sky', password),
+    'Password updated by pgxn should be correct'
+) FROM users WHERE nickname = 'anna';
+
+
+SELECT throws_ok(
+    $$ INSERT INTO users VALUES ('foo', 'bar') $$,
+    42501, -- permission denied
+    NULL,
+    'User "pgxn" cannot insert into the users table'
+);
+
+SELECT throws_ok(
+    $$ UPDATE users SET password = 'foo' $$,
+    42501, -- permission denied
+    NULL,
+    'User "pgxn" cannot update the users table'
+);
+
+SELECT throws_ok(
+    $$ DELETE FROM users WHERE nickname = 'anna' $$,
+    42501, -- permission denied,
+    NULL,
+    'User "pgxn" cannot delete from the users table'
+);
 
 SELECT * FROM finish();
 ROLLBACK;

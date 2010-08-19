@@ -19,10 +19,12 @@ Module::Build::DB->new(
         'Test::Harness'     => '3.18',
     },
     requires           => {
-        'DBD::Pg'                           => '2.15.1',
-        'DBI'                               => '1.608',
-        'DBIx::Connector'                   => '0.20',
-        'perl'                              => 5.012,
+        'Data::Validate::URI' => '0.05',
+        'DBD::Pg'             => '2.15.1',
+        'DBI'                 => '1.608',
+        'DBIx::Connector'     => '0.20',
+        'Email::Valid'        => '0.184',
+        'perl'                => 5.012,
     },
     recommends         => {
         'Test::Pod'              => '1.20',
