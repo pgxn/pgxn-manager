@@ -1,6 +1,7 @@
 SET search_path = public,contrib,tap;
 
 BEGIN;
+--SELECT plan(104);
 SELECT * FROM no_plan();
 
 SELECT has_table('public', 'users', 'Should have table public.users');
@@ -8,7 +9,9 @@ SELECT has_table('public', 'users', 'Should have table public.users');
 SELECT columns_are('public', 'users', ARRAY[
     'nickname',
     'password',
+    'full_name',
     'email',
+    'uri',
     'created_at',
     'updated_at',
     'visited_at'
@@ -27,10 +30,20 @@ SELECT col_type_is(       'users', 'password', 'text' );
 SELECT col_not_null(      'users', 'password' );
 SELECT col_hasnt_default( 'users', 'password' );
 
+SELECT has_column(        'users', 'full_name' );
+SELECT col_type_is(       'users', 'full_name', 'text' );
+SELECT col_not_null(      'users', 'full_name' );
+SELECT col_hasnt_default( 'users', 'full_name' );
+
 SELECT has_column(        'users', 'email' );
 SELECT col_type_is(       'users', 'email', 'email' );
 SELECT col_not_null(      'users', 'email' );
 SELECT col_hasnt_default( 'users', 'email' );
+
+SELECT has_column(        'users', 'uri' );
+SELECT col_type_is(       'users', 'uri', 'uri' );
+SELECT col_is_null(       'users', 'uri' );
+SELECT col_hasnt_default( 'users', 'uri' );
 
 SELECT has_column(        'users', 'created_at' );
 SELECT col_type_is(       'users', 'created_at', 'timestamp with time zone' );
@@ -53,19 +66,27 @@ SELECT col_default_is(    'users', 'visited_at', 'now()' );
 /*****************************************************************************/
 -- Test insert_user().
 SELECT has_function(    'insert_user' );
-SELECT has_function(    'insert_user', ARRAY['label', 'text', 'email'] );
+SELECT has_function(    'insert_user', ARRAY['label', 'text', 'hstore'] );
 SELECT function_returns('insert_user', 'boolean' );
-SELECT function_lang_is('insert_user', 'sql' );
+SELECT function_lang_is('insert_user', 'plpgsql' );
 SELECT volatility_is(   'insert_user', 'volatile' );
 
 SELECT is(COUNT(*)::int, 0, 'Should start with no users') FROM users;
 
 SELECT ok(
-    insert_user('theory', 'wet blanket', 'theory@pgxn.org'),
+    insert_user('theory', 'wet blanket', 'full_name => "David Wheeler", email => theory@pgxn.org'),
     'Insert user "theory"'
 );
 
 SELECT is(COUNT(*)::int, 1, 'Should now have one user') FROM users;
+
+SELECT row_eq(
+    $$ SELECT nickname, NULL::text, full_name, email, uri, created_at, updated_at, visited_at
+       FROM users WHERE nickname = 'theory' $$,
+    ROW('theory', NULL::text, 'David Wheeler', 'theory@pgxn.org',
+        NULL::uri, now(), now(), now())::users,
+    'That user should have the expected data'
+);
 
 SELECT isnt( password, 'wet blanket', 'Password should not be clear text')
   FROM users WHERE nickname = 'theory';
@@ -74,11 +95,19 @@ SELECT isnt( password, 'theory', 'Password should not be nickname' )
   FROM users WHERE nickname = 'theory';
 
 SELECT ok(
-    insert_user('strongrrl', 'wet blanket', 'strongrrl@pgxn.org'),
+    insert_user('strongrrl', 'wet blanket', 'full_name => "Julie Wheeler", email => strongrrl@pgxn.org, uri => http://www.strongrrl.com/'),
     'Insert user "strongrrl"'
 );
 
 SELECT is(COUNT(*)::int, 2, 'Should now have two users') FROM users;
+
+SELECT row_eq(
+    $$ SELECT nickname, NULL::text, full_name, email, uri, created_at, updated_at, visited_at
+       FROM users WHERE nickname = 'strongrrl' $$,
+    ROW('strongrrl', NULL::text, 'Julie Wheeler', 'strongrrl@pgxn.org',
+        'http://www.strongrrl.com/', now(), now(), now())::users,
+    'User "strongrrl" should have the expected data'
+);
 
 SELECT isnt(
     (SELECT password FROM users WHERE nickname = 'strongrrl'),
@@ -104,6 +133,31 @@ SELECT is(
     'Passwords should be crypted'
  ) FROM users;
 
+-- Try a too-short password.
+SELECT throws_ok(
+    $$ SELECT insert_user('foo', 'as', NULL) $$,
+    'P0001',
+    'Password must be at least four characters long',
+    'Should get exception for a too-short password'
+);
+
+/*****************************************************************************/
+-- Mock NOW().
+CREATE SCHEMA mock;
+
+CREATE FUNCTION set_now(timestamptz) RETURNS SETOF boolean LANGUAGE plperl AS $$
+    $_SHARED{now} = shift;
+    return;
+$$;
+
+-- Won't be used by table defaults, which seem to be linked to
+-- pg_catalog.now() at creation time.
+CREATE FUNCTION mock.now() RETURNS timestamptz LANGUAGE plperl AS '$_SHARED{now}';
+
+SELECT * FROM set_now('2010-08-19 11:01:03.306399+00');
+
+SET search_path = mock,public,contrib,tap,pg_catalog;
+
 /*****************************************************************************/
 -- Test change_password().
 SELECT has_function(    'change_password');
@@ -113,12 +167,12 @@ SELECT function_lang_is('change_password', 'plpgsql');
 SELECT volatility_is(   'change_password', 'volatile' );
 
 SELECT ok(
-    NOT change_password('nobody', 'foo', 'bar'),
+    NOT change_password('nobody', 'foo', 'foobar'),
     'change_password() should return false for nonexistent user'
 );
 
 SELECT ok(
-    NOT change_password('theory', 'foo', 'bar'),
+    NOT change_password('theory', 'foo', 'foobar'),
     'change_password() should return false for invalid old pass'
 );
 
@@ -127,6 +181,9 @@ SELECT is(
     crypt('wet blanket', password),
     'Password should be unchanged'
 ) FROM users WHERE nickname = 'theory';
+
+SELECT isnt(updated_at, '2010-08-19 11:01:03.306399+00', 'updated_at should be default')
+  FROM users WHERE nickname = 'theory';
 
 SELECT ok(
     change_password('theory', 'wet blanket', 'pgtap rulez'),
@@ -139,34 +196,84 @@ SELECT is(
     'Password should now be changed'
 ) FROM users WHERE nickname = 'theory';
 
+SELECT is(updated_at, '2010-08-19 11:01:03.306399+00', 'updated_at should have been udpated')
+  FROM users WHERE nickname = 'theory';
+
+-- Try a too-short password.
+SELECT throws_ok(
+    $$ SELECT change_password('theory', 'pgtap rulez', 'foo') $$,
+    'P0001',
+    'Password must be at least four characters long',
+    'Should get exception for a too-short password'
+);
+
 /*****************************************************************************/
--- Test change_email().
-SELECT has_function(    'change_email');
-SELECT has_function(    'change_email', ARRAY['label', 'email', 'email']);
-SELECT function_returns('change_email', 'boolean');
-SELECT function_lang_is('change_email', 'plpgsql');
-SELECT volatility_is(   'change_email', 'volatile' );
+-- Test update_user().
+SELECT has_function(    'update_user');
+SELECT has_function(    'update_user', ARRAY['label', 'hstore']);
+SELECT function_returns('update_user', 'boolean');
+SELECT function_lang_is('update_user', 'plpgsql');
+SELECT volatility_is(   'update_user', 'volatile' );
 
 SELECT ok(
-    NOT change_email('nobody', 'foo@bar.com', 'bar@foo.com'),
-    'change_email() should return false for nonexistent user'
+    NOT update_user('foo', NULL),
+    'update_user() should return false for non-existent user'
 );
+
+-- Update now().
+SELECT * FROM set_now('2010-08-20 11:01:03.306399+00');
 
 SELECT ok(
-    NOT change_email('theory', 'foo@bar.com', 'bar@foo.com'),
-    'change_email() should return false for invalid old email'
+    update_user('theory', 'full_name => "David E. Wheeler", email => david@pgxn.org, uri => http://justatheory.com/'),
+    'Should get true value for updating a user'
 );
 
-SELECT is( email, 'theory@pgxn.org', 'Email should be unchanged' )
+SELECT is(
+    ARRAY[full_name, email, uri],
+    ARRAY['David E. Wheeler', 'david@pgxn.org', 'http://justatheory.com/'],
+    'User should be updated'
+) FROM users WHERE nickname = 'theory';
+
+SELECT is(updated_at, '2010-08-20 11:01:03.306399+00', 'updated_at should have been udpated, too')
   FROM users WHERE nickname = 'theory';
 
+-- Try updating less and less.
 SELECT ok(
-    change_email('theory', 'theory@pgxn.org', 'david@pgxn.org'),
-    'change_email() should return true for proper args'
+    update_user('theory', 'email => theory@pgxn.org, uri => http://www.justatheory.com/'),
+    'Should get true value for updating a user again'
 );
 
-SELECT is( email, 'david@pgxn.org', 'Email should now be changed' )
-  FROM users WHERE nickname = 'theory';
+SELECT is(
+    ARRAY[full_name, email, uri],
+    ARRAY['David E. Wheeler', 'theory@pgxn.org', 'http://www.justatheory.com/'],
+    'Only specified columns should be updated'
+) FROM users WHERE nickname = 'theory';
+
+SELECT ok(
+    update_user('theory', 'uri => http://justatheory.com/'),
+    'Should get true value for updating just URI'
+);
+
+SELECT is(
+    ARRAY[full_name, email, uri],
+    ARRAY['David E. Wheeler', 'theory@pgxn.org', 'http://justatheory.com/'],
+    'Only URI should be updated'
+) FROM users WHERE nickname = 'theory';
+
+SELECT ok(
+    update_user('theory', 'uri => http://justatheory.com/'),
+    'Should get true value for updating just URI'
+);
+
+SELECT ok(
+    update_user('theory', ''),
+    'Should get true value for updating nothing'
+);
+
+SELECT ok(
+    update_user('theory', NULL),
+    'Should get true value for updating NULL'
+);
 
 /*****************************************************************************/
 -- Test log_visit().
@@ -177,28 +284,20 @@ SELECT function_lang_is('log_visit', 'plpgsql');
 SELECT volatility_is(   'log_visit', 'volatile' );
 
 -- Make sure defaults are correct.
-SELECT is( created_at, now(), 'created_at should be now()') FROM users;
-SELECT is( updated_at, now(), 'updated_at should be now()') FROM users;
-SELECT is( visited_at, now(), 'visited_at should be now()') FROM users;
-
-CREATE SCHEMA mock;
-
-CREATE OR REPLACE FUNCTION mock.now(
-) RETURNS timestamptz LANGUAGE SQL AS $$
-    SELECT '2010-08-19 11:01:03.306399+00'::timestamptz;
-$$;
-
-SET search_path = mock,public,contrib,tap,pg_catalog;
+UPDATE users SET updated_at = pg_catalog.now() WHERE nickname = 'theory';
+SELECT is( created_at, pg_catalog.now(), 'created_at should be now()') FROM users;
+SELECT is( updated_at, pg_catalog.now(), 'updated_at should be now()') FROM users;
+SELECT is( visited_at, pg_catalog.now(), 'visited_at should be now()') FROM users;
 
 -- Log a visit.
 SELECT ok( NOT log_visit('foo'), 'log_visit should return false for non-user');
 SELECT ok( log_visit('theory'), 'But should return true for real user' );
 
-SELECT isnt( created_at, now(), 'created_at should not be updated') FROM users;
-SELECT isnt( updated_at, now(), 'updated_at should not be updated') FROM users;
-SELECT is( visited_at, now(), 'visited_at should be updated for user "theory"')
+SELECT is( created_at, pg_catalog.now(), 'created_at should not be updated') FROM users;
+SELECT is( updated_at, pg_catalog.now(), 'updated_at should not be updated') FROM users;
+SELECT is( visited_at, mock.now(), 'visited_at should be updated for user "theory"')
   FROM users where nickname = 'theory';
-SELECT isnt( visited_at, now(), 'visited_at should not updated for user "strongrrl"')
+SELECT is( visited_at, pg_catalog.now(), 'visited_at should not updated for user "strongrrl"')
   FROM users where nickname = 'strongrrl';
 
 /*****************************************************************************/
@@ -207,7 +306,7 @@ GRANT USAGE ON SCHEMA tap TO pgxn;
 SET ROLE pgxn;
 
 SELECT ok(
-    insert_user('anna', 'blue sea', 'anna@pgxn.org'),
+    insert_user('anna', 'blue sea', 'full_name => "Anna Wheeler", email => anna@pgxn.org'),
     'Insert user "anna" a from pgxn role'
 );
 

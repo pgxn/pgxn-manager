@@ -1,10 +1,11 @@
 SET search_path = public,contrib,tap;
 
 BEGIN;
-SELECT plan(87);
+SELECT plan(88);
 --SELECT * FROM no_plan();
 
 -- Test the label data type.
+SELECT has_type('label');
 SELECT is( 'foo'::label, 'FOO'::label, 'labels should be case-insensitive' );
 SELECT is( NULL::label, NULL, 'labels should be NULLable' );
 

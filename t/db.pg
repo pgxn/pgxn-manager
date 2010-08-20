@@ -1,7 +1,7 @@
 SET search_path = public,contrib,tap;
 
 BEGIN;
-SELECT plan(9);
+SELECT plan(12);
 
 -- Check languages.
 SELECT has_language('plpgsql');
@@ -10,6 +10,11 @@ SELECT has_language('plperlu');
 
 -- Check schemas.
 SELECT schemas_are(ARRAY['public', 'contrib', 'tap']);
+
+-- Check contrib extensions.
+SELECT has_type('contrib', 'hstore', 'Should have contrib.hstore');
+SELECT has_function('contrib', 'crypt', 'Should have contrib.crypt()');
+SELECT has_function('contrib', 'gen_salt', 'Should have contrib.gen_salt()');
 
 -- Check pgxn role.
 SELECT has_role('pgxn');
