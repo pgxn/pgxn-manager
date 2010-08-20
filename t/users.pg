@@ -1,8 +1,8 @@
 SET search_path = public,contrib,tap;
 
 BEGIN;
---SELECT plan(104);
-SELECT * FROM no_plan();
+SELECT plan(116);
+--SELECT * FROM no_plan();
 
 SELECT has_table('public', 'users', 'Should have table public.users');
 
