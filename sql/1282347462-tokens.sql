@@ -14,6 +14,13 @@ CREATE TABLE tokens (
 CREATE OR REPLACE FUNCTION rand_str_of_len(
     string_length INTEGER
 ) RETURNS TEXT LANGUAGE 'plpgsql' STRICT AS $$
+/*
+
+Returns a random string of ASCII alphanumeric characters of the specified
+length. Borrowed [from
+Depesz](http://www.depesz.com/index.php/2007/06/25/random-text-record-identifiers/).
+
+*/
 DECLARE
     chars TEXT = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
     ret   TEXT = '';
@@ -30,6 +37,15 @@ $$;
 CREATE OR REPLACE FUNCTION forgot_password(
     nick LABEL
 ) RETURNS TEXT[] LANGUAGE plpgsql SECURITY DEFINER AS $$
+/*
+
+Creates a password reset token for the specified nickname. The return value is
+a two-element array. The first value is the token, and the second the email
+address of the user. The token will be set to expire 1 day from creation.
+Returns `NULL` if the token cannot be created (because no user exists for the
+specified nickname).
+
+*/
 DECLARE
     len  INTEGER := 5;
     tok  TEXT;
@@ -61,6 +77,14 @@ CREATE OR REPLACE FUNCTION reset_password(
     tok   TEXT,
     pass  TEXT
 ) RETURNS BOOLEAN LANGUAGE plpgsql SECURITY DEFINER AS $$
+/*
+
+Pass in a token and a new password to reset a user password. The token must
+exist and must not have expired. The password must be at least four characters
+long or an exception will be thrown. Returns `true` on success and `false` on
+failure.
+
+*/
 DECLARE
     nick LABEL;
 BEGIN
