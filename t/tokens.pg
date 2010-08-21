@@ -1,0 +1,263 @@
+SET search_path = public,contrib,tap;
+
+BEGIN;
+SELECT plan(106);
+--SELECT * FROM no_plan();
+
+SELECT has_table('public', 'tokens', 'Should have table public.users');
+
+SELECT columns_are('public', 'tokens', ARRAY[
+    'token',
+    'nickname',
+    'expires_at'
+]);
+
+SELECT has_table( 'tokens' );
+SELECT has_pk(    'tokens' );
+
+SELECT has_column(        'tokens', 'token' );
+SELECT col_type_is(       'tokens', 'token', 'text' );
+SELECT col_hasnt_default( 'tokens', 'token' );
+SELECT col_is_pk(         'tokens', 'token' );
+
+SELECT has_column(        'tokens', 'nickname' );
+SELECT col_type_is(       'tokens', 'nickname', 'label' );
+SELECT col_not_null(      'tokens', 'nickname' );
+SELECT col_hasnt_default( 'tokens', 'nickname' );
+SELECT col_is_fk(         'tokens', 'nickname' );
+SELECT fk_ok(             'tokens', 'nickname', 'users', 'nickname' );
+
+SELECT has_column(        'tokens', 'expires_at' );
+SELECT col_type_is(       'tokens', 'expires_at', 'timestamp with time zone' );
+SELECT col_not_null(      'tokens', 'expires_at' );
+SELECT col_has_default(   'tokens', 'expires_at' );
+SELECT col_default_is(    'tokens', 'expires_at', $$(now() + '1 day'::interval)$$ );
+
+-- Check privileges.
+SELECT ok(
+    NOT has_table_privilege('pgxn', 'tokens', priv),
+    'User "pgxn" should not have ' || priv || ' priv on tokens table'
+) FROM unnest(ARRAY[
+    'SELECT',
+    'UPDATE',
+    'INSERT',
+    'DELETE',
+    'TRUNCATE',
+    'REFERENCES',
+    'TRIGGER'
+]) AS priv;
+
+/****************************************************************************/
+-- Test rand_str_of_len()
+SELECT has_function(    'rand_str_of_len' );
+SELECT has_function(    'rand_str_of_len', ARRAY['integer'] );
+SELECT function_returns('rand_str_of_len', 'text' );
+SELECT function_lang_is('rand_str_of_len', 'plpgsql' );
+SELECT volatility_is(   'rand_str_of_len', 'volatile' );
+SELECT is_strict('rand_str_of_len');
+SELECT ok(
+    has_function_privilege(
+        'pgxn',
+        'rand_str_of_len(integer)',
+        'EXECUTE'
+    ),
+    'User "pgxn" should have EXECUTE priv on rand_str_of_len()'
+);
+
+SELECT is(
+    length(rand_str_of_len(i)), i,
+    'get_random_string(' || i || ') should work'
+) FROM generate_series(1, 33) AS i;
+
+/****************************************************************************/
+-- Now mock rand_str_of_len()
+CREATE SCHEMA mock;
+
+CREATE FUNCTION mock.set_rand_str(
+    string TEXT)
+RETURNS SETOF BOOLEAN LANGUAGE plperl AS $$
+    $_SHARED{random_string} = shift;
+    return;
+$$;
+
+CREATE FUNCTION mock.rand_str_of_len(
+    INTEGER
+) RETURNS TEXT LANGUAGE plperl AS $$
+    return $_SHARED{random_string};
+$$;
+
+SET search_path = mock,public,contrib,tap,pg_catalog;
+
+SELECT * FROM set_rand_str('foobar');
+SELECT is(rand_str_of_len(NULL), 'foobar', 'Should get mocked random string');
+
+/****************************************************************************/
+-- Test forgot_password()
+SELECT has_function(    'forgot_password' );
+SELECT has_function(    'forgot_password', ARRAY['label'] );
+SELECT is_definer(      'forgot_password', ARRAY['label'] );
+SELECT function_returns('forgot_password', 'text[]' );
+SELECT function_lang_is('forgot_password', 'plpgsql' );
+SELECT volatility_is(   'forgot_password', 'volatile' );
+SELECT ok(
+    has_function_privilege(
+        'pgxn',
+        'forgot_password(label)',
+        'EXECUTE'
+    ),
+    'User "pgxn" should have EXECUTE priv on forgot_password()'
+);
+
+-- Try to forget password for non-existent user.
+SELECT is(
+    forgot_password('foo'), NULL,
+    'Should get NULL from forgot_password() for non-existent user'
+);
+
+-- Now insert a user.
+SELECT ok(
+    insert_user('theory', 'wet blanket', 'email => theory@pgxn.org'),
+    'Insert user "theory"'
+);
+
+-- Make sure we have no tokens.
+SELECT is(COUNT(*)::int, 0, 'Should start with no tokens') FROM tokens;
+
+SELECT is(
+    forgot_password('theory'),
+    ARRAY['foobar', 'theory@pgxn.org'],
+    'Should get random string and email from forgot_password()'
+);
+
+SELECT is(COUNT(*)::int, 1, 'Should now have 1 token') FROM tokens;
+
+SELECT is(
+    (tokens.*),
+    ROW('foobar', 'theory', NOW() + '1 day'::interval)::tokens,
+    'Should have the token record now'
+) FROM tokens WHERE token = 'foobar';
+
+-- Make sure we control for token overflow.
+SELECT throws_like(
+    $$ SELECT forgot_password('theory') $$,
+    '%30-character id requested; something is wrong%',
+    'Should get an error for token overflow'
+);
+
+-- Try a different user and token.
+SELECT ok(
+    insert_user('strongrrl', 'whatevs', 'email => strongrrl@pgxn.org'),
+    'Insert user "strongrrl"'
+);
+
+SELECT * FROM set_rand_str('howdy');
+SELECT is(
+    forgot_password('strongrrl'),
+    ARRAY['howdy', 'strongrrl@pgxn.org'],
+    'Should get random string from forgot_password() again'
+);
+
+SELECT is(COUNT(*)::int, 2, 'Should now have 2 tokens') FROM tokens;
+
+SELECT is(
+    (tokens.*),
+    ROW('howdy', 'strongrrl', NOW() + '1 day'::interval)::tokens,
+    'Should have the second token record'
+) FROM tokens WHERE token = 'howdy';
+
+-- Create another token for the same user.
+SELECT * FROM set_rand_str('booyah');
+SELECT is(
+    forgot_password('theory'),
+    ARRAY['booyah','theory@pgxn.org'],
+    'Should get random string from forgot_password() for third time'
+);
+
+SELECT is(COUNT(*)::int, 3, 'Should now have 3 tokens') FROM tokens;
+
+SELECT is(
+    (tokens.*),
+    ROW('booyah', 'theory', NOW() + '1 day'::interval)::tokens,
+    'Should have the third token record'
+) FROM tokens WHERE token = 'booyah';
+
+/****************************************************************************/
+-- Test reset_password()
+SELECT has_function(    'reset_password' );
+SELECT has_function(    'reset_password', ARRAY['text', 'text'] );
+SELECT is_definer(      'reset_password', ARRAY['text', 'text'] );
+SELECT function_returns('reset_password', 'boolean' );
+SELECT function_lang_is('reset_password', 'plpgsql' );
+SELECT volatility_is(   'reset_password', 'volatile' );
+SELECT ok(
+    has_function_privilege(
+        'pgxn',
+        'reset_password(text, text)',
+        'EXECUTE'
+    ),
+    'User "pgxn" should have EXECUTE priv on reset_password()'
+);
+
+SELECT is(
+    reset_password('whatevs', '****'),
+    false,
+    'Should get false from reset_password() for invalid token'
+);
+
+SELECT is(
+    reset_password('foobar', '****'),
+    true,
+    'Should get true from reset_password() for valid token'
+);
+
+-- Make sure the token is gone.
+SELECT is( count(*)::int, 0, 'The token should be gone')
+  FROM tokens WHERE token = 'foobar';
+
+SELECT is(
+    password,
+    crypt('****', password),
+    'And the password should have been chnaged'
+) FROM users WHERE nickname = 'theory';
+
+-- Make it fail for an expired token.
+UPDATE tokens SET expires_at = NOW() - '2 days'::interval
+ WHERE token = 'howdy';
+
+SELECT is( count(*)::int, 1, 'We should have a "howdy" token')
+  FROM tokens WHERE token = 'howdy';
+
+SELECT is(
+    reset_password('howdy', '****'),
+    false,
+    'Should get false from reset_password() for expired token'
+);
+
+SELECT is( count(*)::int, 1, 'We should still have a "howdy" token')
+  FROM tokens WHERE token = 'howdy';
+
+SELECT is(
+    password,
+    crypt('whatevs', password),
+    'And the password should have been changed'
+) FROM users WHERE nickname = 'strongrrl';
+
+-- Try a too-short password.
+SELECT throws_ok(
+    $$ SELECT reset_password('booyah', 'hi') $$,
+    'P0001',
+    'Password must be at least four characters long',
+    'Should get exception for a too-short password'
+);
+
+SELECT is( count(*)::int, 1, 'We should still have a "booyah" token')
+  FROM tokens WHERE token = 'booyah';
+
+SELECT is(
+    password,
+    crypt('****', password),
+    'And the password should not have been chnaged'
+) FROM users WHERE nickname = 'theory';
+
+SELECT * FROM finish();
+ROLLBACK;

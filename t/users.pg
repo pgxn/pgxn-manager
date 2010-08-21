@@ -1,7 +1,7 @@
 SET search_path = public,contrib,tap;
 
 BEGIN;
-SELECT plan(116);
+SELECT plan(131);
 --SELECT * FROM no_plan();
 
 SELECT has_table('public', 'users', 'Should have table public.users');
@@ -63,13 +63,40 @@ SELECT col_not_null(      'users', 'visited_at' );
 SELECT col_has_default(   'users', 'visited_at' );
 SELECT col_default_is(    'users', 'visited_at', 'now()' );
 
+-- Check privileges.
+SELECT ok(
+    has_table_privilege('pgxn', 'users', 'SELECT'),
+    'User "pgxn" should have SELECT priv on users table'
+);
+
+SELECT ok(
+    NOT has_table_privilege('pgxn', 'users', priv),
+    'User "pgxn" should not have ' || priv || ' priv on users table'
+) FROM unnest(ARRAY[
+    'UPDATE',
+    'INSERT',
+    'DELETE',
+    'TRUNCATE',
+    'REFERENCES',
+    'TRIGGER'
+]) AS priv;
+
 /*****************************************************************************/
 -- Test insert_user().
 SELECT has_function(    'insert_user' );
 SELECT has_function(    'insert_user', ARRAY['label', 'text', 'hstore'] );
+SELECT is_definer(      'insert_user', ARRAY['label', 'text', 'hstore'] );
 SELECT function_returns('insert_user', 'boolean' );
 SELECT function_lang_is('insert_user', 'plpgsql' );
 SELECT volatility_is(   'insert_user', 'volatile' );
+SELECT ok(
+    has_function_privilege(
+        'pgxn',
+        'insert_user(label, text, hstore)',
+        'EXECUTE'
+    ),
+    'User "pgxn" should have EXECUTE priv on insert_user()'
+);
 
 SELECT is(COUNT(*)::int, 0, 'Should start with no users') FROM users;
 
@@ -162,9 +189,18 @@ SET search_path = mock,public,contrib,tap,pg_catalog;
 -- Test change_password().
 SELECT has_function(    'change_password');
 SELECT has_function(    'change_password', ARRAY['label', 'text', 'text']);
+SELECT is_definer(      'change_password', ARRAY['label', 'text', 'text']);
 SELECT function_returns('change_password', 'boolean');
 SELECT function_lang_is('change_password', 'plpgsql');
 SELECT volatility_is(   'change_password', 'volatile' );
+SELECT ok(
+    has_function_privilege(
+        'pgxn',
+        'change_password(label, text, text)',
+        'EXECUTE'
+    ),
+    'User "pgxn" should have EXECUTE priv on change_passworda()'
+);
 
 SELECT ok(
     NOT change_password('nobody', 'foo', 'foobar'),
@@ -211,9 +247,18 @@ SELECT throws_ok(
 -- Test update_user().
 SELECT has_function(    'update_user');
 SELECT has_function(    'update_user', ARRAY['label', 'hstore']);
+SELECT is_definer(      'update_user', ARRAY['label', 'hstore']);
 SELECT function_returns('update_user', 'boolean');
 SELECT function_lang_is('update_user', 'plpgsql');
 SELECT volatility_is(   'update_user', 'volatile' );
+SELECT ok(
+    has_function_privilege(
+        'pgxn',
+        'update_user(label, hstore)',
+        'EXECUTE'
+    ),
+    'User "pgxn" should have EXECUTE priv on update_user()'
+);
 
 SELECT ok(
     NOT update_user('foo', NULL),
@@ -279,9 +324,18 @@ SELECT ok(
 -- Test log_visit().
 SELECT has_function(    'log_visit');
 SELECT has_function(    'log_visit', ARRAY['label']);
+SELECT is_definer(      'log_visit', ARRAY['label']);
 SELECT function_returns('log_visit', 'boolean');
 SELECT function_lang_is('log_visit', 'plpgsql');
 SELECT volatility_is(   'log_visit', 'volatile' );
+SELECT ok(
+    has_function_privilege(
+        'pgxn',
+        'log_visit(label)',
+        'EXECUTE'
+    ),
+    'User "pgxn" should have EXECUTE priv on log_visit()'
+);
 
 -- Make sure defaults are correct.
 UPDATE users SET updated_at = pg_catalog.now() WHERE nickname = 'theory';
