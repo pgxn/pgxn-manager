@@ -1,7 +1,7 @@
 SET search_path = public,contrib,tap;
 
 BEGIN;
-SELECT plan(106);
+SELECT plan(112);
 --SELECT * FROM no_plan();
 
 SELECT has_table('public', 'tokens', 'Should have table public.users');
@@ -125,8 +125,30 @@ SELECT is(COUNT(*)::int, 0, 'Should start with no tokens') FROM tokens;
 
 SELECT is(
     forgot_password('theory'),
+    NULL,
+    'Should get NULL from forgot_password() for new user'
+);
+
+UPDATE users SET status = 'inactive' WHERE nickname = 'theory';
+SELECT is(
+    forgot_password('theory'),
+    NULL,
+    'Should get NULL from forgot_password() for inactive user'
+);
+
+UPDATE users SET status = 'deleted' WHERE nickname = 'theory';
+SELECT is(
+    forgot_password('theory'),
+    NULL,
+    'Should get NULL from forgot_password() for deleted user'
+);
+
+
+UPDATE users SET status = 'active' WHERE nickname = 'theory';
+SELECT is(
+    forgot_password('theory'),
     ARRAY['foobar', 'theory@pgxn.org'],
-    'Should get random string and email from forgot_password()'
+    'Should get random string and email from forgot_password() for active user'
 );
 
 SELECT is(COUNT(*)::int, 1, 'Should now have 1 token') FROM tokens;
@@ -149,6 +171,7 @@ SELECT ok(
     insert_user('strongrrl', 'whatevs', 'email => strongrrl@pgxn.org'),
     'Insert user "strongrrl"'
 );
+UPDATE users SET status = 'active' WHERE nickname = 'strongrrl';
 
 SELECT * FROM set_rand_str('howdy');
 SELECT is(
@@ -198,16 +221,33 @@ SELECT ok(
     'User "pgxn" should have EXECUTE priv on reset_password()'
 );
 
-SELECT is(
-    reset_password('whatevs', '****'),
-    false,
+SELECT ok(
+    NOT reset_password('whatevs', '****'),
     'Should get false from reset_password() for invalid token'
 );
 
-SELECT is(
+UPDATE users SET status = 'inactive' WHERE nickname = 'theory';
+SELECT ok(
+    NOT reset_password('foobar', '****'),
+    'Should get false from reset_password() for inactive user'
+);
+
+UPDATE users SET status = 'deleted' WHERE nickname = 'theory';
+SELECT ok(
+    NOT reset_password('foobar', '****'),
+    'Should get false from reset_password() for deleted user'
+);
+
+UPDATE users SET status = 'new' WHERE nickname = 'theory';
+SELECT ok(
+    NOT reset_password('foobar', '****'),
+    'Should get false from reset_password() for new user'
+);
+
+UPDATE users SET status = 'active' WHERE nickname = 'theory';
+SELECT ok(
     reset_password('foobar', '****'),
-    true,
-    'Should get true from reset_password() for valid token'
+    'Should get true from reset_password() for valid token and active user'
 );
 
 -- Make sure the token is gone.

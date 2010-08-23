@@ -39,11 +39,11 @@ CREATE OR REPLACE FUNCTION forgot_password(
 ) RETURNS TEXT[] LANGUAGE plpgsql SECURITY DEFINER AS $$
 /*
 
-Creates a password reset token for the specified nickname. The return value is
-a two-element array. The first value is the token, and the second the email
-address of the user. The token will be set to expire 1 day from creation.
-Returns `NULL` if the token cannot be created (because no user exists for the
-specified nickname).
+Creates a password reset token for the specified nickname. The user must be
+active. The return value is a two-element array. The first value is the token,
+and the second the email address of the user. The token will be set to expire
+1 day from creation. Returns `NULL` if the token cannot be created (because no
+user exists for the specified nickname or the user is not ative).
 
 */
 DECLARE
@@ -55,7 +55,8 @@ BEGIN
     SELECT nickname, email
       INTO nick,     mail
       FROM users
-     WHERE nickname = $1;
+     WHERE nickname = $1
+       AND status   = 'active';
 
     IF nick IS NULL THEN RETURN NULL; END IF;
 
@@ -80,9 +81,9 @@ CREATE OR REPLACE FUNCTION reset_password(
 /*
 
 Pass in a token and a new password to reset a user password. The token must
-exist and must not have expired. The password must be at least four characters
-long or an exception will be thrown. Returns `true` on success and `false` on
-failure.
+exist and must not have expired and the associated user must be active. The
+password must be at least four characters long or an exception will be thrown.
+Returns `true` on success and `false` on failure.
 
 */
 DECLARE
@@ -93,20 +94,23 @@ BEGIN
     END IF;
 
     DELETE FROM tokens
-     WHERE token = tok
-       AND expires_at >= NOW()
-    RETURNING nickname INTO nick;
+     USING users
+     WHERE token          = tok
+       AND expires_at    >= NOW()
+       AND users.nickname = tokens.nickname
+       AND users.status   = 'active'
+    RETURNING tokens.nickname INTO nick;
 
     IF nick IS NULL THEN RETURN FALSE; END IF;
 
     UPDATE users
-       SET password = crypt(pass, gen_salt('des')),
+       SET password   = crypt(pass, gen_salt('des')),
            updated_at = NOW()
-     WHERE nickname = nick;
+     WHERE nickname   = nick
+       AND status     = 'active';
 
     RETURN TRUE;
 END;
 $$;
-
 
 COMMIT;

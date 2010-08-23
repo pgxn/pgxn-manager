@@ -1,7 +1,7 @@
 SET search_path = public,contrib,tap;
 
 BEGIN;
-SELECT plan(131);
+SELECT plan(202);
 --SELECT * FROM no_plan();
 
 SELECT has_table('public', 'users', 'Should have table public.users');
@@ -12,6 +12,9 @@ SELECT columns_are('public', 'users', ARRAY[
     'full_name',
     'email',
     'uri',
+    'status',
+    'set_by',
+    'is_admin',
     'created_at',
     'updated_at',
     'visited_at'
@@ -19,6 +22,7 @@ SELECT columns_are('public', 'users', ARRAY[
 
 SELECT has_table( 'users' );
 SELECT has_pk(    'users' );
+SELECT has_fk(    'users' );
 
 SELECT has_column(        'users', 'nickname' );
 SELECT col_type_is(       'users', 'nickname', 'label' );
@@ -44,6 +48,25 @@ SELECT has_column(        'users', 'uri' );
 SELECT col_type_is(       'users', 'uri', 'uri' );
 SELECT col_is_null(       'users', 'uri' );
 SELECT col_hasnt_default( 'users', 'uri' );
+
+SELECT has_column(        'users', 'status' );
+SELECT col_type_is(       'users', 'status', 'status' );
+SELECT col_not_null(      'users', 'status' );
+SELECT col_has_default(   'users', 'status' );
+SELECT col_default_is(    'users', 'status', 'new' );
+
+SELECT has_column(        'users', 'set_by' );
+SELECT col_type_is(       'users', 'set_by', 'label' );
+SELECT col_not_null(      'users', 'set_by' );
+SELECT col_hasnt_default( 'users', 'set_by' );
+SELECT col_is_fk(         'users', 'set_by' );
+SELECT fk_ok(             'users', 'set_by', 'users', 'nickname');
+
+SELECT has_column(        'users', 'is_admin' );
+SELECT col_type_is(       'users', 'is_admin', 'boolean' );
+SELECT col_not_null(      'users', 'is_admin' );
+SELECT col_has_default(   'users', 'is_admin' );
+SELECT col_default_is(    'users', 'is_admin', 'false' );
 
 SELECT has_column(        'users', 'created_at' );
 SELECT col_type_is(       'users', 'created_at', 'timestamp with time zone' );
@@ -108,10 +131,11 @@ SELECT ok(
 SELECT is(COUNT(*)::int, 1, 'Should now have one user') FROM users;
 
 SELECT row_eq(
-    $$ SELECT nickname, NULL::text, full_name, email, uri, created_at, updated_at, visited_at
-       FROM users WHERE nickname = 'theory' $$,
+    $$ SELECT nickname, NULL::text, full_name, email, uri, status, set_by,
+              is_admin, created_at, updated_at, visited_at
+         FROM users WHERE nickname = 'theory' $$,
     ROW('theory', NULL::text, 'David Wheeler', 'theory@pgxn.org',
-        NULL::uri, now(), now(), now())::users,
+        NULL::uri, 'new', 'theory', false, now(), now(), now())::users,
     'That user should have the expected data'
 );
 
@@ -129,10 +153,11 @@ SELECT ok(
 SELECT is(COUNT(*)::int, 2, 'Should now have two users') FROM users;
 
 SELECT row_eq(
-    $$ SELECT nickname, NULL::text, full_name, email, uri, created_at, updated_at, visited_at
-       FROM users WHERE nickname = 'strongrrl' $$,
+    $$ SELECT nickname, NULL::text, full_name, email, uri, status, set_by,
+              is_admin, created_at, updated_at, visited_at
+         FROM users WHERE nickname = 'strongrrl' $$,
     ROW('strongrrl', NULL::text, 'Julie Wheeler', 'strongrrl@pgxn.org',
-        'http://www.strongrrl.com/', now(), now(), now())::users,
+        'http://www.strongrrl.com/', 'new', 'strongrrl', false, now(), now(), now())::users,
     'User "strongrrl" should have the expected data'
 );
 
@@ -186,6 +211,98 @@ SELECT * FROM set_now('2010-08-19 11:01:03.306399+00');
 SET search_path = mock,public,contrib,tap,pg_catalog;
 
 /*****************************************************************************/
+-- Test set_user_status().
+SELECT throws_ok(
+    $$ SELECT set_user_status('nobody', 'nobody', 'active') $$,
+    'P0001',
+    'Permission denied: User “nobody” is not an administrator',
+    'Should get an exception for non-existent setter'
+);
+
+SELECT throws_ok(
+    $$ SELECT set_user_status('theory', 'nobody', 'active') $$,
+    'P0001',
+    'Permission denied: User “theory” is not an administrator',
+    'Should get an exception for non-admin setter'
+);
+
+UPDATE users SET is_admin = true WHERE nickname = 'theory';
+
+SELECT ok(
+    NOT set_user_status('theory', 'nobody', 'active'),
+    'set_user_status() should return false for invalid user'
+);
+
+SELECT throws_ok(
+    $$ SELECT set_user_status('theory', 'strongrrl', 'foo') $$,
+    '22P02',
+    NULL,
+    'Should get error from set_user_status() for invalid status'
+);
+
+SELECT is( status, 'new', 'Status for ' || nickname || ' should be "new"' )
+  FROM users;
+
+SELECT is( set_by, nickname, 'Status for ' || nickname || ' should be set by self' )
+  FROM users;
+
+SELECT isnt(updated_at, '2010-08-19 11:01:03.306399+00', 'updated_at should be default')
+  FROM users WHERE nickname = 'strongrrl';
+
+-- Set a status.
+SELECT ok(
+    set_user_status('theory', 'strongrrl', 'active'),
+    'Set strongrrl status to "active"'
+);
+
+SELECT is( status, 'active', 'Status for strongrrl should now be "active"' )
+  FROM users WHERE nickname = 'strongrrl';
+
+SELECT is( set_by, 'theory', 'Status for strongrrl should be set by theory' )
+  FROM users WHERE nickname = 'strongrrl';
+
+SELECT is(updated_at, '2010-08-19 11:01:03.306399+00', 'updated_at should be updated')
+  FROM users WHERE nickname = 'strongrrl';
+
+SELECT is( status, 'new', 'Status for theory should still be "new"' )
+  FROM users WHERE nickname = 'theory';
+
+SELECT is( set_by, nickname, 'Status for theory should still be set by self' )
+  FROM users WHERE nickname = 'theory';
+
+-- Try setting strongrrl to the same value.
+SELECT ok(
+    NOT set_user_status('theory', 'strongrrl', 'active'),
+    'Setting strongrrl status to "active" again should fail'
+);
+
+-- User cannot change own status.
+SELECT throws_ok(
+    $$ SELECT set_user_status('theory', 'theory', 'active') $$,
+    'P0001',
+    'Permission denied: User cannot modify own status',
+    'User should not be able to change own status'
+);
+
+SELECT is( status, 'new', 'Status for theory should still be "new"' )
+  FROM users WHERE nickname = 'theory';
+
+-- Go ahead and give strongrrl access.
+UPDATE users SET is_admin = true WHERE nickname = 'strongrrl';
+
+SELECT ok(
+    set_user_status('strongrrl', 'theory', 'active'),
+    'Strongrrl should be able to set "theory" to active'
+);
+
+SELECT is( status, 'active', 'Status for theory should now be "active"' )
+  FROM users WHERE nickname = 'theory';
+
+SELECT is( set_by, 'strongrrl', 'Status for theory should now be set by strongrrl' )
+  FROM users WHERE nickname = 'theory';
+
+
+/*****************************************************************************/
 -- Test change_password().
 SELECT has_function(    'change_password');
 SELECT has_function(    'change_password', ARRAY['label', 'text', 'text']);
@@ -218,7 +335,9 @@ SELECT is(
     'Password should be unchanged'
 ) FROM users WHERE nickname = 'theory';
 
-SELECT isnt(updated_at, '2010-08-19 11:01:03.306399+00', 'updated_at should be default')
+SELECT * FROM set_now('2010-08-19 14:01:03.306399+00');
+
+SELECT isnt(updated_at, '2010-08-19 14:01:03.306399+00', 'updated_at should be default')
   FROM users WHERE nickname = 'theory';
 
 SELECT ok(
@@ -232,7 +351,7 @@ SELECT is(
     'Password should now be changed'
 ) FROM users WHERE nickname = 'theory';
 
-SELECT is(updated_at, '2010-08-19 11:01:03.306399+00', 'updated_at should have been udpated')
+SELECT is(updated_at, '2010-08-19 14:01:03.306399+00', 'updated_at should have been udpated')
   FROM users WHERE nickname = 'theory';
 
 -- Try a too-short password.
@@ -242,6 +361,45 @@ SELECT throws_ok(
     'Password must be at least four characters long',
     'Should get exception for a too-short password'
 );
+
+-- Try to change an inacative user's password.
+UPDATE users SET status = 'inactive' WHERE nickname = 'strongrrl';
+SELECT ok(
+    NOT change_password('strongrrl', 'wet blanket', 'wahtever'),
+    'Should get false from change_password() for inactive user'
+);
+
+SELECT is(
+    password,
+    crypt('wet blanket', password),
+    'Password should not be changed'
+) FROM users WHERE nickname = 'strongrrl';
+
+-- Try to change a deleted user's password.
+UPDATE users SET status = 'deleted' WHERE nickname = 'strongrrl';
+SELECT ok(
+    NOT change_password('strongrrl', 'wet blanket', 'wahtever'),
+    'Should get false from change_password() for deleted user'
+);
+
+SELECT is(
+    password,
+    crypt('wet blanket', password),
+    'Password should not be changed'
+) FROM users WHERE nickname = 'strongrrl';
+
+-- Try to change a new user's password.
+UPDATE users SET status = 'new' WHERE nickname = 'strongrrl';
+SELECT ok(
+    NOT change_password('strongrrl', 'wet blanket', 'wahtever'),
+    'Should get false from change_password() for newq user'
+);
+
+SELECT is(
+    password,
+    crypt('wet blanket', password),
+    'Password should not be changed'
+) FROM users WHERE nickname = 'strongrrl';
 
 /*****************************************************************************/
 -- Test update_user().
@@ -266,7 +424,7 @@ SELECT ok(
 );
 
 -- Update now().
-SELECT * FROM set_now('2010-08-20 11:01:03.306399+00');
+SELECT * FROM set_now('2010-08-20 14:01:03.306399+00');
 
 SELECT ok(
     update_user('theory', 'full_name => "David E. Wheeler", email => david@pgxn.org, uri => http://justatheory.com/'),
@@ -279,7 +437,7 @@ SELECT is(
     'User should be updated'
 ) FROM users WHERE nickname = 'theory';
 
-SELECT is(updated_at, '2010-08-20 11:01:03.306399+00', 'updated_at should have been udpated, too')
+SELECT is(updated_at, '2010-08-20 14:01:03.306399+00', 'updated_at should have been udpated, too')
   FROM users WHERE nickname = 'theory';
 
 -- Try updating less and less.
@@ -320,6 +478,36 @@ SELECT ok(
     'Should get true value for updating NULL'
 );
 
+-- Try to update an inacative user.
+UPDATE users SET status = 'inactive' WHERE nickname = 'strongrrl';
+SELECT ok(
+    NOT update_user('strongrrl', 'uri => http://strongrrl.com'),
+    'Should get false from udpate_user() for inactive user'
+);
+
+SELECT is( uri, 'http://www.strongrrl.com/', 'Inactive user should not be modified')
+  FROM users WHERE nickname = 'strongrrl';
+
+-- Try to update an inacative user.
+UPDATE users SET status = 'deleted' WHERE nickname = 'strongrrl';
+SELECT ok(
+    NOT update_user('strongrrl', 'uri => http://strongrrl.com'),
+    'Should get false from udpate_user() for deleted user'
+);
+
+SELECT is( uri, 'http://www.strongrrl.com/', 'Deleted user should not be modified')
+  FROM users WHERE nickname = 'strongrrl';
+
+-- Try to update an inacative user.
+UPDATE users SET status = 'new' WHERE nickname = 'strongrrl';
+SELECT ok(
+    NOT update_user('strongrrl', 'uri => http://strongrrl.com'),
+    'Should get false from udpate_user() for new user'
+);
+
+SELECT is( uri, 'http://www.strongrrl.com/', 'New user should not be modified')
+  FROM users WHERE nickname = 'strongrrl';
+
 /*****************************************************************************/
 -- Test log_visit().
 SELECT has_function(    'log_visit');
@@ -338,7 +526,7 @@ SELECT ok(
 );
 
 -- Make sure defaults are correct.
-UPDATE users SET updated_at = pg_catalog.now() WHERE nickname = 'theory';
+UPDATE users SET updated_at = pg_catalog.now() WHERE nickname IN ('theory', 'strongrrl');
 SELECT is( created_at, pg_catalog.now(), 'created_at should be now()') FROM users;
 SELECT is( updated_at, pg_catalog.now(), 'updated_at should be now()') FROM users;
 SELECT is( visited_at, pg_catalog.now(), 'visited_at should be now()') FROM users;
@@ -354,6 +542,82 @@ SELECT is( visited_at, mock.now(), 'visited_at should be updated for user "theor
 SELECT is( visited_at, pg_catalog.now(), 'visited_at should not updated for user "strongrrl"')
   FROM users where nickname = 'strongrrl';
 
+-- Try to log a visit from an inactive user.
+UPDATE users SET status = 'inactive' WHERE nickname = 'strongrrl';
+SELECT ok( log_visit('strongrrl'), 'Should be able to log visit for inactive user');
+SELECT is( visited_at, mock.now(), 'visited_at should be updated for inactive user')
+  FROM users where nickname = 'strongrrl';
+
+-- Try to log a visit from a deleted user.
+UPDATE users SET status = 'deleted', updated_at = pg_catalog.now() WHERE nickname = 'strongrrl';
+SELECT ok( log_visit('strongrrl'), 'Should be able to log visit for deleted user');
+SELECT is( visited_at, mock.now(), 'visited_at should be updated for deleted user')
+  FROM users where nickname = 'strongrrl';
+
+-- Try to log a visit from a new user.
+UPDATE users SET status = 'new', updated_at = pg_catalog.now() WHERE nickname = 'strongrrl';
+SELECT ok( log_visit('strongrrl'), 'Should be able to log visit for new user');
+SELECT is( visited_at, mock.now(), 'visited_at should be updated for new user')
+  FROM users where nickname = 'strongrrl';
+
+/*****************************************************************************/
+-- Test set_user_admin().
+SELECT throws_ok(
+    $$ SELECT set_user_admin( 'nobody', 'nobody', false ) $$,
+    'P0001',
+    'Permission denied: User “nobody” is not an administrator',
+    'Should get an error from set_user_admin() for non-existent setter'
+);
+
+SELECT throws_ok(
+    $$ SELECT set_user_admin( 'anna', 'nobody', false ) $$,
+    'P0001',
+    'Permission denied: User “anna” is not an administrator',
+    'Should get an error from set_user_admin() for non-admin setter'
+);
+
+SELECT ok(
+    NOT set_user_admin('theory', 'nobody', false ),
+    'Should get false from set_user_admin for non-existent user'
+);
+
+SELECT ok(
+    NOT set_user_admin('theory', 'nobody', false ),
+    'Should get false from set_user_admin for non-existent user'
+);
+
+
+UPDATE users SET updated_at = pg_catalog.now() WHERE nickname IN ('theory', 'strongrrl');
+SELECT * FROM set_now('2010-08-21 22:01:03.306399+00');
+
+SELECT ok(is_admin, nickname || ' should be an admin')
+  FROM users WHERE nickname IN ('theory', 'strongrrl');
+
+SELECT ok(
+    set_user_admin('theory', 'strongrrl', false),
+    'Set strongrrl to non-admin'
+);
+
+SELECT ok( NOT is_admin, 'Strongrrl should no longer be an admin')
+  FROM users WHERE nickname = 'strongrrl';
+SELECT is( updated_at, mock.now(), '... and updated_at should be updated')
+  FROM users WHERE nickname = 'strongrrl';
+
+SELECT ok( is_admin, 'theory should still be an admin')
+  FROM users WHERE nickname = 'theory';
+SELECT is( updated_at, pg_catalog.now(), '... and updated_at should not be updated')
+  FROM users WHERE nickname = 'theory';
+
+-- Try setting strongrrl to false again.
+SELECT ok(
+    NOT set_user_admin('theory', 'strongrrl', false),
+    'Setting strongrrl to non-admin again should fail'
+);
+SELECT ok( NOT is_admin, 'Strongrrl should still not be an admin')
+  FROM users WHERE nickname = 'strongrrl';
+SELECT is( updated_at, mock.now(), '... and updated_at should be unchanged')
+  FROM users WHERE nickname = 'strongrrl';
+
 /*****************************************************************************/
 -- Try with limited permission role.
 GRANT USAGE ON SCHEMA tap TO pgxn;
@@ -362,6 +626,11 @@ SET ROLE pgxn;
 SELECT ok(
     insert_user('anna', 'blue sea', 'full_name => "Anna Wheeler", email => anna@pgxn.org'),
     'Insert user "anna" a from pgxn role'
+);
+
+SELECT ok(
+    set_user_status('theory', 'anna', 'active'),
+    'Activate anna'
 );
 
 SELECT is(
