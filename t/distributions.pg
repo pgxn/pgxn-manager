@@ -1,0 +1,93 @@
+SET search_path = public,contrib,tap;
+
+BEGIN;
+SELECT plan(55);
+--SELECT * FROM no_plan();
+
+SELECT has_table('public', 'distributions', 'Should have table public.distributions');
+
+SELECT columns_are('public', 'distributions', ARRAY[
+    'name',
+    'version',
+    'abstract',
+    'description',
+    'owner',
+    'sha1',
+    'meta',
+    'uploaded_at',
+    'indexed_at'
+]);
+
+SELECT has_table( 'distributions' );
+SELECT has_pk(    'distributions' );
+SELECT has_fk(    'distributions' );
+
+SELECT has_column(        'distributions', 'name' );
+SELECT col_type_is(       'distributions', 'name', 'citext' );
+SELECT col_not_null(      'distributions', 'name' );
+SELECT col_hasnt_default( 'distributions', 'name' );
+
+SELECT has_column(        'distributions', 'version' );
+SELECT col_type_is(       'distributions', 'version', 'semver' );
+SELECT col_not_null(      'distributions', 'version' );
+SELECT col_hasnt_default( 'distributions', 'version' );
+
+SELECT col_is_pk('distributions', ARRAY['name', 'version']);
+
+SELECT has_column(        'distributions', 'abstract' );
+SELECT col_type_is(       'distributions', 'abstract', 'text' );
+SELECT col_not_null(      'distributions', 'abstract' );
+SELECT col_has_default(   'distributions', 'abstract' );
+SELECT col_default_is(    'distributions', 'abstract', '' );
+
+SELECT has_column(        'distributions', 'description' );
+SELECT col_type_is(       'distributions', 'description', 'text' );
+SELECT col_not_null(      'distributions', 'description' );
+SELECT col_has_default(   'distributions', 'description' );
+SELECT col_default_is(    'distributions', 'description', '' );
+
+SELECT has_column(        'distributions', 'owner' );
+SELECT col_type_is(       'distributions', 'owner', 'label' );
+SELECT col_not_null(      'distributions', 'owner' );
+SELECT col_hasnt_default( 'distributions', 'owner' );
+SELECT col_is_fk(         'distributions', 'owner' );
+SELECT fk_ok(             'distributions', 'owner', 'users', 'nickname');
+
+SELECT has_column(        'distributions', 'sha1' );
+SELECT col_type_is(       'distributions', 'sha1', 'citext' );
+SELECT col_not_null(      'distributions', 'sha1' );
+SELECT col_hasnt_default( 'distributions', 'sha1' );
+
+SELECT has_column(        'distributions', 'meta' );
+SELECT col_type_is(       'distributions', 'meta', 'text' );
+SELECT col_not_null(      'distributions', 'meta' );
+SELECT col_hasnt_default( 'distributions', 'meta' );
+
+SELECT has_column(        'distributions', 'uploaded_at' );
+SELECT col_type_is(       'distributions', 'uploaded_at', 'timestamp with time zone' );
+SELECT col_not_null(      'distributions', 'uploaded_at' );
+SELECT col_has_default(   'distributions', 'uploaded_at' );
+SELECT col_default_is(    'distributions', 'uploaded_at', 'now()' );
+
+SELECT has_column(        'distributions', 'indexed_at' );
+SELECT col_type_is(       'distributions', 'indexed_at', 'timestamp with time zone' );
+SELECT col_not_null(      'distributions', 'indexed_at' );
+SELECT col_has_default(   'distributions', 'indexed_at' );
+SELECT col_default_is(    'distributions', 'indexed_at', 'now()' );
+
+-- Check privileges.
+SELECT ok(
+    NOT has_table_privilege('pgxn', 'distributions', priv),
+    'User "pgxn" should not have ' || priv || ' priv on distributions table'
+) FROM unnest(ARRAY[
+    'SELECT',
+    'UPDATE',
+    'INSERT',
+    'DELETE',
+    'TRUNCATE',
+    'REFERENCES',
+    'TRIGGER'
+]) AS priv;
+
+SELECT * FROM finish();
+ROLLBACK;

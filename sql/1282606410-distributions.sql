@@ -1,0 +1,21 @@
+-- sql/1282606410-distributions.sql SQL Migration
+
+SET client_min_messages TO warning;
+SET log_min_messages    TO warning;
+
+BEGIN;
+
+CREATE TABLE distributions (
+    name        CITEXT NOT NULL,
+    version     SEMVER NOT NULL,
+    abstract    TEXT   NOT NULL DEFAULT '',
+    description TEXT   NOT NULL DEFAULT '',
+    owner       LABEL  NOT NULL REFERENCES users(nickname),
+    sha1        CITEXT NOT NULL,
+    meta        TEXT   NOT NULL,
+    uploaded_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    indexed_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    PRIMARY KEY (name, version)
+);
+
+COMMIT;
