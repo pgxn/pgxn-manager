@@ -1,5 +1,8 @@
 -- sql/1282089300-roles.sql SQL Migration
 
+SET client_min_messages TO warning;
+SET log_min_messages    TO warning;
+
 BEGIN;
 
 CREATE FUNCTION add_role() RETURNS VOID LANGUAGE SQL AS $$
