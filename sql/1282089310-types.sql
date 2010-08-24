@@ -102,10 +102,10 @@ DECLARE
     lstr   TEXT;
     rstr   TEXT;
 BEGIN
-    ret := btint4cmp(lparts[1]::int, rparts[1]::int);
+    ret := btint8cmp(lparts[1]::bigint, rparts[1]::bigint);
     IF ret <> 0 THEN RETURN ret; END IF;
 
-    ret := btint4cmp(lparts[2]::int, rparts[2]::int);
+    ret := btint8cmp(lparts[2]::bigint, rparts[2]::bigint);
     IF ret <> 0 THEN RETURN ret; END IF;
 
     lstr = substring(lparts[3] FROM '[a-zA-Z][-0-9A-Za-z]*$');
@@ -114,9 +114,9 @@ BEGIN
     IF lstr IS NULL THEN
         IF rstr IS NULL THEN
             -- No special string, just compare integers.
-            RETURN btint4cmp(lparts[3]::int, rparts[3]::int);
+            RETURN btint8cmp(lparts[3]::bigint, rparts[3]::bigint);
         ELSE
-            ret := btint4cmp(lparts[3]::int, substring(rparts[3], '^[0-9]+')::int);
+            ret := btint8cmp(lparts[3]::bigint, substring(rparts[3], '^[0-9]+')::bigint);
             IF ret = 0 THEN
                 -- NULL is greater than non NULL.
                 RETURN 1;
@@ -127,7 +127,7 @@ BEGIN
         END IF;
     ELSE
         IF rstr IS NULL THEN
-            ret := btint4cmp(substring(lparts[3], '^[0-9]+')::int, rparts[3]::int);
+            ret := btint8cmp(substring(lparts[3], '^[0-9]+')::bigint, rparts[3]::bigint);
             IF ret = 0 THEN
                 -- The string is less than the number.
                 RETURN -1;
@@ -137,7 +137,7 @@ BEGIN
             END IF;
         ELSE
             -- Both numbers have appended strings.
-            ret := btint4cmp(substring(lparts[3], '^[0-9]+')::int, substring(rparts[3], '^[0-9]+')::int);
+            ret := btint8cmp(substring(lparts[3], '^[0-9]+')::bigint, substring(rparts[3], '^[0-9]+')::bigint);
             IF ret = 0 THEN
                 -- Compare the strings case-insensitively.
                 RETURN bttext_pattern_cmp(LOWER(lstr), LOWER(rstr));
@@ -148,6 +148,18 @@ BEGIN
        END IF;
     END IF;
 END;
+$$;
+
+CREATE OR REPLACE FUNCTION clean_semver(
+    to_clean TEXT
+) RETURNS SEMVER IMMUTABLE LANGUAGE sql AS $$
+    SELECT (
+           COALESCE(substring(v[1], '^[[:space:]]*[0-9]+')::bigint, '0') || '.'
+        || COALESCE(substring(v[2], '^[[:space:]]*[0-9]+')::bigint, '0') || '.'
+        || COALESCE(substring(v[3], '^[[:space:]]*[0-9]+')::bigint, '0')
+        || COALESCE(trim(substring($1 FROM '[a-zA-Z][-0-9A-Za-z]*[[:space:]]*$')), '')
+    )::semver
+      FROM string_to_array($1, '.') v;
 $$;
 
 CREATE OR REPLACE FUNCTION semver_eq(

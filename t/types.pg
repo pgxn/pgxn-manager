@@ -1,7 +1,7 @@
 SET search_path = public,contrib,tap;
 
 BEGIN;
-SELECT plan(192);
+SELECT plan(216);
 --SELECT * FROM no_plan();
 
 -- Test the label data type.
@@ -176,7 +176,8 @@ SELECT lives_ok(
     '9999.9999999.823823',
     '1.0.0beta1',
     '1.0.0beta2',
-    '1.0.0'
+    '1.0.0',
+    '999999999999999333333.0.0'
 ]) AS v;
 
 SELECT throws_ok(
@@ -199,7 +200,7 @@ SELECT throws_ok(
 
 -- Test =, <=, and >=.
 SELECT collect_tap(
-    ok( semver_cmp(lv, rv) = 0, 'semver(' || lv || ', ' || rv || ') should = 0'),
+    ok(semver_cmp(lv, rv) = 0, 'semver(' || lv || ', ' || rv || ') should = 0'),
     ok(lv::semver = rv::semver, 'v' || lv || ' should = v' || rv),
     ok(lv::semver <= rv::semver, 'v' || lv || ' should be <= v' || rv),
     ok(lv::semver >= rv::semver, 'v' || lv || ' should be >= v' || rv)
@@ -214,7 +215,7 @@ SELECT collect_tap(
 
 -- Test semver <> semver
 SELECT collect_tap(
-    ok( semver_cmp(lv, rv) <> 0, 'semver(' || lv || ', ' || rv || ') should <> 0'),
+    ok(semver_cmp(lv, rv) <> 0, 'semver(' || lv || ', ' || rv || ') should <> 0'),
     ok(lv::semver <> rv::semver, 'v' || lv || ' should not equal v' || rv)
 ) FROM (VALUES
     ('1.2.2', '1.2.3'),
@@ -244,6 +245,38 @@ SELECT collect_tap(
     ('2.2.2c', '2.2.2b'),
     ('2.2.2rc-2', '2.2.2RC-1')
   ) AS f(lv, rv);
+
+-- Test clean_semver().
+SELECT has_function('clean_semver');
+SELECT has_function('clean_semver', ARRAY['text']);
+SELECT function_returns('clean_semver', 'semver');
+
+SELECT is(
+    clean_semver(dirty),
+    clean::semver,
+    'clean_semver(' || dirty || ') should return ' || clean
+) FROM (VALUES
+    ('1.2.2',          '1.2.2'),
+    ('01.2.2',         '1.2.2'),
+    ('1.02.2',         '1.2.2'),
+    ('1.2.02',         '1.2.2'),
+    ('1.2.02b',        '1.2.2b'),
+    ('1.2.02beta-3  ', '1.2.2beta-3'),
+    ('1.02.02rc1',     '1.2.2rc1'),
+    ('1.0',            '1.0.0'),
+    ('.0.02',          '0.0.2'),
+    ('1..02',          '1.0.2'),
+    ('1..',            '1.0.0'),
+    ('1.1',            '1.1.0'),
+    ('1.2.b1',         '1.2.0b1'),
+    ('9.0beta4',       '9.0.0beta4'), -- PostgreSQL format.
+    ('9b',             '9.0.0b'),
+    ('rc1',            '0.0.0rc1'),
+    ('',               '0.0.0'),
+    ('..2',            '0.0.2'),
+    ('  012.2.2',      '12.2.2'),
+    ('9999999999988',  '9999999999988.0.0')
+) v(dirty, clean);
 
 SELECT * FROM finish();
 ROLLBACK;
