@@ -1,0 +1,169 @@
+SET search_path = public,contrib,tap;
+
+BEGIN;
+SELECT plan(93);
+--SELECT * FROM no_plan();
+
+SELECT has_table('public', 'extensions', 'Should have table public.extensions');
+
+SELECT columns_are('public', 'extensions', ARRAY[
+    'name',
+    'owner',
+    'created_at',
+    'updated_at'
+]);
+
+SELECT has_table( 'extensions' );
+SELECT has_pk(    'extensions' );
+SELECT has_fk(    'extensions' );
+
+SELECT has_column(        'extensions', 'name' );
+SELECT col_type_is(       'extensions', 'name', 'citext' );
+SELECT col_hasnt_default( 'extensions', 'name' );
+SELECT col_is_pk(         'extensions', 'name' );
+
+SELECT has_column(        'extensions', 'owner' );
+SELECT col_type_is(       'extensions', 'owner', 'label' );
+SELECT col_not_null(      'extensions', 'owner' );
+SELECT col_hasnt_default( 'extensions', 'owner' );
+SELECT col_is_fk(         'extensions', 'owner' );
+SELECT fk_ok(             'extensions', 'owner', 'users', 'nickname');
+
+SELECT has_column(        'extensions', 'created_at' );
+SELECT col_type_is(       'extensions', 'created_at', 'timestamp with time zone' );
+SELECT col_not_null(      'extensions', 'created_at' );
+SELECT col_has_default(   'extensions', 'created_at' );
+SELECT col_default_is(    'extensions', 'created_at', 'now()' );
+
+SELECT has_column(        'extensions', 'updated_at' );
+SELECT col_type_is(       'extensions', 'updated_at', 'timestamp with time zone' );
+SELECT col_not_null(      'extensions', 'updated_at' );
+SELECT col_has_default(   'extensions', 'updated_at' );
+SELECT col_default_is(    'extensions', 'updated_at', 'now()' );
+
+-- Check privileges.
+SELECT ok(
+    NOT has_table_privilege('pgxn', 'extensions', priv),
+    'User "pgxn" should not have ' || priv || ' priv on extensions table'
+) FROM unnest(ARRAY[
+    'SELECT',
+    'UPDATE',
+    'INSERT',
+    'DELETE',
+    'TRUNCATE',
+    'REFERENCES',
+    'TRIGGER'
+]) AS priv;
+
+/****************************************************************************/
+-- Test coowners.
+SELECT has_table('public', 'coowners', 'Should have table public.coowners');
+
+SELECT columns_are('public', 'coowners', ARRAY[
+    'extension',
+    'nickname',
+    'created_at'
+]);
+
+SELECT has_table( 'coowners' );
+SELECT has_pk(    'coowners' );
+SELECT has_fk(    'coowners' );
+
+SELECT has_column(        'coowners', 'extension' );
+SELECT col_type_is(       'coowners', 'extension', 'citext' );
+SELECT col_not_null(      'coowners', 'extension' );
+SELECT col_hasnt_default( 'coowners', 'extension' );
+SELECT col_is_fk(         'coowners', 'extension' );
+SELECT fk_ok(             'coowners', 'extension', 'extensions', 'name' );
+
+SELECT has_column(        'coowners', 'nickname' );
+SELECT col_type_is(       'coowners', 'nickname', 'label' );
+SELECT col_not_null(      'coowners', 'nickname' );
+SELECT col_hasnt_default( 'coowners', 'nickname' );
+SELECT col_is_fk(         'coowners', 'nickname' );
+SELECT fk_ok(             'coowners', 'nickname', 'users', 'nickname');
+
+SELECT has_column(        'coowners', 'created_at' );
+SELECT col_type_is(       'coowners', 'created_at', 'timestamp with time zone' );
+SELECT col_not_null(      'coowners', 'created_at' );
+SELECT col_has_default(   'coowners', 'created_at' );
+SELECT col_default_is(    'coowners', 'created_at', 'now()' );
+
+-- Check privileges.
+SELECT ok(
+    NOT has_table_privilege('pgxn', 'coowners', priv),
+    'User "pgxn" should not have ' || priv || ' priv on coowners table'
+) FROM unnest(ARRAY[
+    'SELECT',
+    'UPDATE',
+    'INSERT',
+    'DELETE',
+    'TRUNCATE',
+    'REFERENCES',
+    'TRIGGER'
+]) AS priv;
+
+/****************************************************************************/
+-- Test distribution_extensions.
+SELECT has_table('public', 'distribution_extensions', 'Should have table public.distribution_extensions');
+
+    -- extension    CITEXT NOT NULL REFERENCES extensions(name),
+    -- ext_version  SEMVER NOT NULL,
+    -- distribution CITEXT NOT NULL,
+    -- dist_version SEMVER NOT NULL,
+
+SELECT columns_are('public', 'distribution_extensions', ARRAY[
+    'extension',
+    'ext_version',
+    'distribution',
+    'dist_version'
+]);
+
+SELECT has_table( 'distribution_extensions' );
+SELECT has_pk(    'distribution_extensions' );
+SELECT has_fk(    'distribution_extensions' );
+
+SELECT has_column(        'distribution_extensions', 'extension' );
+SELECT col_type_is(       'distribution_extensions', 'extension', 'citext' );
+SELECT col_not_null(      'distribution_extensions', 'extension' );
+SELECT col_hasnt_default( 'distribution_extensions', 'extension' );
+SELECT col_is_fk(         'distribution_extensions', 'extension' );
+SELECT fk_ok(             'distribution_extensions', 'extension', 'extensions', 'name' );
+
+SELECT has_column(        'distribution_extensions', 'ext_version' );
+SELECT col_type_is(       'distribution_extensions', 'ext_version', 'semver' );
+SELECT col_not_null(      'distribution_extensions', 'ext_version' );
+SELECT col_hasnt_default( 'distribution_extensions', 'ext_version' );
+
+SELECT has_column(        'distribution_extensions', 'distribution' );
+SELECT col_type_is(       'distribution_extensions', 'distribution', 'citext' );
+SELECT col_not_null(      'distribution_extensions', 'distribution' );
+SELECT col_hasnt_default( 'distribution_extensions', 'distribution' );
+
+SELECT has_column(        'distribution_extensions', 'dist_version' );
+SELECT col_type_is(       'distribution_extensions', 'dist_version', 'semver' );
+SELECT col_not_null(      'distribution_extensions', 'dist_version' );
+SELECT col_hasnt_default( 'distribution_extensions', 'dist_version' );
+
+SELECT col_is_fk('distribution_extensions', ARRAY['distribution', 'dist_version'] );
+SELECT fk_ok(
+    'distribution_extensions', ARRAY['distribution', 'dist_version'],
+    'distributions',           ARRAY['name',         'version']
+);
+
+-- Check privileges.
+SELECT ok(
+    NOT has_table_privilege('pgxn', 'distribution_extensions', priv),
+    'User "pgxn" should not have ' || priv || ' priv on distribution_extensions table'
+) FROM unnest(ARRAY[
+    'SELECT',
+    'UPDATE',
+    'INSERT',
+    'DELETE',
+    'TRUNCATE',
+    'REFERENCES',
+    'TRIGGER'
+]) AS priv;
+
+SELECT * FROM finish();
+ROLLBACK;
