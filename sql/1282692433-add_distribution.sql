@@ -56,7 +56,7 @@ CREATE OR REPLACE FUNCTION setup_meta(
     $_SHARED{meta} = $idx_meta;
 
     # Return the base distribution metadata.
-    return [ @{$idx_meta}{qw(name version license release_status abstract description)} ];
+    return [ @{$idx_meta}{qw(name version release_status abstract description)} ];
 $$;
 
 -- Disallow end-user from using this function.

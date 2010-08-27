@@ -123,7 +123,7 @@ SELECT is(
         }
     }'),
     ARRAY[
-        'pair', '0.0.1', 'postgresql', 'testing', 'Ordered pair',
+        'pair', '0.0.1', 'testing', 'Ordered pair',
         'An ordered pair for PostgreSQL'
     ],
     'Should get expected values from setup_meta()'
@@ -172,7 +172,7 @@ select ok( NOT has_meta(), 'Should no longer have cached meta');
 -- Make sure that the "provides" and "release_status" get defaults.
 SELECT is(
     setup_meta('nobody', 'pshaw', '{"name": "pair", "version": "0.0.1", "license": "postgresql","maintainer": "theory", "abstract": "whatever"}'),
-    ARRAY['pair', '0.0.1', 'postgresql', 'stable', 'whatever', NULL],
+    ARRAY['pair', '0.0.1', 'stable', 'whatever', NULL],
     'Should get expected default release_status from setup_meta()'
 );
 
@@ -197,13 +197,6 @@ SELECT ok( json_eq( get_meta(), $${
 }$$), 'Metadata should have default release status and provides');
 
 select ok( NOT has_meta(), 'Should once again not have cached meta');
-
-/*
- + Remove license from array returned by setup_meta().
- + Test record_ownership()
- + Test add_distribution()
- + Update Capistrano build's stored postgresql.conf file.
-*/
 
 SELECT * FROM finish();
 ROLLBACK;
