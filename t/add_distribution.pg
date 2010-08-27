@@ -1,7 +1,7 @@
 SET search_path = public,contrib,tap;
 
 BEGIN;
-SELECT plan(28);
+SELECT plan(33);
 --SELECT * FROM no_plan();
 
 -- Check that we have the functions we think we have.
@@ -48,6 +48,10 @@ CREATE OR REPLACE FUNCTION json_eq(
     elog(INFO, Dumper($have));
     elog(INFO, Dumper($want));
     return 0;
+$$;
+
+CREATE FUNCTION has_meta() RETURNS BOOLEAN LANGUAGE plperl AS $$
+    return $_SHARED{meta} ? 'true' : 'false';
 $$;
 
 /****************************************************************************/
@@ -132,6 +136,8 @@ SELECT is(
     'Should get expected values from get_provided()'
 );    
 
+select ok( has_meta(), 'Should have cached meta');
+
 -- See that we get the metadata back.
 SELECT ok( json_eq( get_meta(), $${
     "name":        "pair",
@@ -161,6 +167,7 @@ SELECT ok( json_eq( get_meta(), $${
     "resources":      { "homepage": "http://pgxn.org/dist/pair/" }
 }$$), 'Should have the expected cached metadata with normalized version strings');
 
+select ok( NOT has_meta(), 'Should no longer have cached meta');
 
 -- Make sure that the "provides" and "release_status" get defaults.
 SELECT is(
@@ -168,6 +175,14 @@ SELECT is(
     ARRAY['pair', '0.0.1', 'postgresql', 'stable', 'whatever', NULL],
     'Should get expected default release_status from setup_meta()'
 );
+
+SELECT is(
+    get_provided(),
+    ARRAY[['pair', '0.0.1']],
+    'Should get default values from get_provided()'
+);    
+
+select ok( has_meta(), 'Should have cached meta again');
 
 SELECT ok( json_eq( get_meta(), $${
     "name":        "pair",
@@ -180,6 +195,8 @@ SELECT ok( json_eq( get_meta(), $${
     "sha1":        "pshaw",
     "provides": { "pair": { "version": "0.0.1" } }
 }$$), 'Metadata should have default release status and provides');
+
+select ok( NOT has_meta(), 'Should once again not have cached meta');
 
 
 
