@@ -1,7 +1,7 @@
 SET search_path = public,contrib,tap;
 
 BEGIN;
-SELECT plan(55);
+SELECT plan(60);
 --SELECT * FROM no_plan();
 
 SELECT has_table('public', 'distributions', 'Should have table public.distributions');
@@ -11,6 +11,7 @@ SELECT columns_are('public', 'distributions', ARRAY[
     'version',
     'abstract',
     'description',
+    'relstatus',
     'owner',
     'sha1',
     'meta',
@@ -39,6 +40,12 @@ SELECT col_type_is(       'distributions', 'abstract', 'text' );
 SELECT col_not_null(      'distributions', 'abstract' );
 SELECT col_has_default(   'distributions', 'abstract' );
 SELECT col_default_is(    'distributions', 'abstract', '' );
+
+SELECT has_column(        'distributions', 'relstatus' );
+SELECT col_type_is(       'distributions', 'relstatus', 'relstatus' );
+SELECT col_not_null(      'distributions', 'relstatus' );
+SELECT col_has_default(   'distributions', 'relstatus' );
+SELECT col_default_is(    'distributions', 'relstatus', 'stable' );
 
 SELECT has_column(        'distributions', 'description' );
 SELECT col_type_is(       'distributions', 'description', 'text' );

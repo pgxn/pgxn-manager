@@ -5,14 +5,21 @@ SET log_min_messages    TO warning;
 
 BEGIN;
 
+CREATE TYPE relstatus AS ENUM(
+    'stable',
+    'testing',
+    'unstable'
+);
+
 CREATE TABLE distributions (
-    name        CITEXT NOT NULL,
-    version     SEMVER NOT NULL,
-    abstract    TEXT   NOT NULL DEFAULT '',
-    description TEXT   NOT NULL DEFAULT '',
-    owner       LABEL  NOT NULL REFERENCES users(nickname),
-    sha1        CITEXT NOT NULL,
-    meta        TEXT   NOT NULL,
+    name        CITEXT      NOT NULL,
+    version     SEMVER      NOT NULL,
+    abstract    TEXT        NOT NULL DEFAULT '',
+    description TEXT        NOT NULL DEFAULT '',
+    relstatus   RELSTATUS   NOT NULL DEFAULT 'stable',
+    owner       LABEL       NOT NULL REFERENCES users(nickname),
+    sha1        CITEXT      NOT NULL,
+    meta        TEXT        NOT NULL,
     uploaded_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     indexed_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     PRIMARY KEY (name, version)
