@@ -1,8 +1,11 @@
 SET search_path = public,contrib,tap;
 
 BEGIN;
-SELECT plan(202);
+SELECT plan(204);
 --SELECT * FROM no_plan();
+
+SELECT has_enum('status');
+SELECT enum_has_labels('status', ARRAY['new', 'active', 'inactive', 'deleted']);
 
 SELECT has_table('public', 'users', 'Should have table public.users');
 

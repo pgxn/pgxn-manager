@@ -198,7 +198,12 @@ SELECT ok( json_eq( get_meta(), $${
 
 select ok( NOT has_meta(), 'Should once again not have cached meta');
 
-
+/*
+ + Remove license from array returned by setup_meta().
+ + Test record_ownership()
+ + Test add_distribution()
+ + Update Capistrano build's stored postgresql.conf file.
+*/
 
 SELECT * FROM finish();
 ROLLBACK;
