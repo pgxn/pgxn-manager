@@ -11,66 +11,65 @@ CREATE OR REPLACE FUNCTION setup_meta(
     # Check required keys.
     for my $key qw(name version license maintainer abstract) {
         $idx_meta->{$key} = $dist_meta->{$key} or elog(
-            EXCEPTION, qq{Metadata is missing the required "$key" key}
+            ERROR, qq{Metadata is missing the required "$key" key}
         );
     }
 
     # Grab optional fields.
     for my $key qw(description tags no_index prereqs provides release_status resources) {
-        $idx_meta->{$key} = $dist_meta->{$key} if $dist_meta->{$key};
+        $idx_meta->{$key} = $dist_meta->{$key} if exists $dist_meta->{$key};
     }
 
-    # Normalize version string.
-    my $fmt = 'SELECT clean_semver(%s)';
-    $idx_meta->{version} = spi_exec_query(
-        sprintf $fmt, quote_nullable($idx_meta->{version})
-    )->{rows}[0];
+    # Set default release status.
+    $idx_meta->{release_status} ||= 'stable';
 
-    # Normalize prereq version strings.
+    # Normalize version string.
+    my $semverify = sub { spi_exec_query(
+        sprintf 'SELECT clean_semver(%s)', quote_nullable(shift)
+    )->{rows}[0]{clean_semver} };
+    $idx_meta->{version} = $semverify->($idx_meta->{version});
+
+    # Normalize "prereq" version strings.
     if (my $prereqs = $idx_meta->{prereqs}) {
         for my $phase (values %{ $prereqs }) {
             for my $type ( values %{ $phase }) {
                 for my $prereq (keys %{ $type }) {
-                    $type->{$prereq} = spi_exec_query(
-                        sprintf $fmt, quote_nullable($type->{$prereq})
-                    )->{rows}[0];
+                    $type->{$prereq} = $semverify->($type->{$prereq});
                 }
             }
         }
     }
 
-    # Normalize provides version strings.
     if (my $provides = $idx_meta->{provides}) {
+        # Normalize "provides" version strings.
         for my $ext (values %{ $provides }) {
-            $ext->{version} = spi_exec_query(
-                sprintf $fmt, quote_nullable($ext->{version})
-            )->{rows}[0];
+            $ext->{version} = $semverify->($ext->{version});
         }
     } else {
         # Default to using the distribution name as the extension.
-        $idx_meta{provides} = {
+        $idx_meta->{provides} = {
             $idx_meta->{name} => { version => $idx_meta->{version} }
         };
     }
 
     # Cache it for get_provided() and get_meta().
-    $SHARED{meta} = $idx_meta;
+    $_SHARED{meta} = $idx_meta;
 
     # Return the base distribution metadata.
-    return [ @{$idx_meta}{qw(name version abstract description)} ];
+    return [ @{$idx_meta}{qw(name version license release_status abstract description)} ];
 $$;
 
 -- Disallow end-user from using this function.
-REVOKE ALL ON FUNCTION setup_meta(LABEL, TEXT, TEXT) FROM pgxn;
+REVOKE ALL ON FUNCTION setup_meta(LABEL, TEXT, TEXT) FROM PUBLIC;
 
 CREATE OR REPLACE FUNCTION get_provided(
 ) RETURNS text[][] LANGUAGE plperl AS $$
     my $p = $_SHARED{meta}->{provides};
-    return [ map { [ $_ => $p->{$_}{version} ] } keys %{ $p } ];
+    return [ map { [ $_ => $p->{$_}{version} ] } sort keys %{ $p } ];
 $$;
 
 -- Disallow end-user from using this function.
-REVOKE ALL ON FUNCTION get_provided() FROM pgxn;
+REVOKE ALL ON FUNCTION get_provided() FROM PUBLIC;
 
 CREATE OR REPLACE FUNCTION get_meta(
 ) RETURNS TEXT LANGUAGE plperl AS $$
@@ -78,7 +77,7 @@ CREATE OR REPLACE FUNCTION get_meta(
 $$;
 
 -- Disallow end-user from using this function.
-REVOKE ALL ON FUNCTION get_meta() FROM pgxn;
+REVOKE ALL ON FUNCTION get_meta() FROM PUBLIC;
 
 CREATE OR REPLACE FUNCTION record_ownership(
     nick  LABEL,
@@ -112,7 +111,7 @@ END;
 $$;
 
 -- Disallow end-user from using this function.
-REVOKE ALL ON FUNCTION record_ownership(LABEL, CITEXT[][]) FROM pgxn;
+REVOKE ALL ON FUNCTION record_ownership(LABEL, CITEXT[][]) FROM PUBLIC;
 
 CREATE OR REPLACE FUNCTION add_distribution(
     nick LABEL,
@@ -179,6 +178,7 @@ With this data, `add_distribution()` does the following things:
 
 */
 DECLARE
+    -- Parse and normalize the metadata.
     distmeta TEXT[]   := setup_meta(nickname, sha1, meta);
     provided TEXT[][] := get_provided();
     idx_meta TEXT     := get_meta();

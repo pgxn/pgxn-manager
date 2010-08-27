@@ -1,0 +1,187 @@
+SET search_path = public,contrib,tap;
+
+BEGIN;
+SELECT plan(28);
+--SELECT * FROM no_plan();
+
+-- Check that we have the functions we think we have.
+SELECT has_function(f)
+  FROM unnest(ARRAY[
+      'setup_meta', 'get_provided', 'get_meta', 'record_ownership', 'add_distribution'
+  ]) AS f;
+
+SELECT has_function('setup_meta', ARRAY['label', 'text', 'text']);
+SELECT has_function('get_meta', '{}'::text[]);
+SELECT has_function('get_provided', '{}'::text[]);
+SELECT has_function('record_ownership', ARRAY['label', 'citext[]']);
+SELECT has_function('add_distribution', ARRAY['label', 'text', 'text']);
+
+-- User "pgxn" should not have access to most of them.
+SELECT ok(
+    NOT has_function_privilege('pgxn', f, 'EXECUTE'),
+    'User "pgxn" should not have EXECUTE priv on ' || f
+) FROM unnest(ARRAY[
+    'setup_meta(label, text, text)',
+    'get_provided()',
+    'get_meta()',
+    'record_ownership(label, citext[])'
+]) AS f;
+
+-- User "pgxn" only has access to add_distribution().
+SELECT ok(
+    has_function_privilege(
+        'pgxn', 'add_distribution(label, text, text)', 'EXECUTE'
+    ),
+    'User "pgxn" should hve EXECUTE priv on add_distribution()'
+);
+
+CREATE OR REPLACE FUNCTION json_eq(
+    have TEXT,
+    want TEXT
+) RETURNS BOOLEAN LANGUAGE plperlu AS $$
+    my $have = JSON::XS::decode_json shift;
+    my $want = JSON::XS::decode_json shift;
+    use Data::Dumper;
+    local $Data::Dumper::Indent   = 1;
+    local $Data::Dumper::Sortkeys = 1;
+    return 1 if Dumper($have) eq Dumper($want);
+    elog(INFO, Dumper($have));
+    elog(INFO, Dumper($want));
+    return 0;
+$$;
+
+/****************************************************************************/
+-- Test setup_meta().
+SELECT function_returns('setup_meta', 'text[]' );
+SELECT function_lang_is('setup_meta', 'plperl' );
+SELECT volatility_is(   'setup_meta', 'volatile' );
+
+-- Validate that missing required fields throw an exception.
+SELECT throws_like(
+    $$ SELECT setup_meta('nobody', 'pshaw', '{"foo": "whatever"}') $$,
+    '%Metadata is missing the required "name" key%',
+    'Should get error from setup_meta for messing name'
+);
+
+SELECT throws_like(
+    $$ SELECT setup_meta('nobody', 'pshaw', '{"name": "pair"}') $$,
+    '%Metadata is missing the required "version" key%',
+    'Should get error from setup_meta for messing version'
+);
+
+SELECT throws_like(
+    $$ SELECT setup_meta('nobody', 'pshaw', '{"name": "pair", "version": "0.0.1"}') $$,
+    '%Metadata is missing the required "license" key%',
+    'Should get error from setup_meta for messing license'
+);
+
+SELECT throws_like(
+    $$ SELECT setup_meta('nobody', 'pshaw', '{"name": "pair", "version": "0.0.1", "license": "postgresql"}') $$,
+    '%Metadata is missing the required "maintainer" key%',
+    'Should get error from setup_meta for messing maintainer'
+);
+
+SELECT throws_like(
+    $$ SELECT setup_meta('nobody', 'pshaw', '{"name": "pair", "version": "0.0.1", "license": "postgresql", "maintainer": "theory"}') $$,
+    '%Metadata is missing the required "abstract" key%',
+    'Should get error from setup_meta for messing abstract'
+);
+
+-- Pass everything.
+SELECT is(
+    setup_meta('nobody', 'pshaw', '{
+        "name": "pair",
+        "version": "0.0.01",
+        "license": "postgresql",
+        "maintainer": "theory",
+        "abstract": "Ordered pair",
+        "description": "An ordered pair for PostgreSQL",
+        "tags": ["foo", "bar", "baz"],
+        "no_index": null,
+        "prereqs": {
+          "runtime": {
+            "requires": {
+              "PostgreSQL": "8.0.0",
+              "PostGIS": "1.5.0"
+            },
+            "recommends": {
+              "PostgreSQL": "8.04.0"
+            }
+          }
+        },
+        "provides": {
+            "pair": { "file": "pair.sql.in", "version": "0.02.02" },
+            "trip": { "file": "trip.sql.in", "version": "0.02.01" }
+        },
+        "release_status": "testing",
+        "resources": {
+          "homepage": "http://pgxn.org/dist/pair/"
+        }
+    }'),
+    ARRAY[
+        'pair', '0.0.1', 'postgresql', 'testing', 'Ordered pair',
+        'An ordered pair for PostgreSQL'
+    ],
+    'Should get expected values from setup_meta()'
+);
+
+-- Should get expected provides values.
+SELECT is(
+    get_provided(),
+    ARRAY[['pair', '0.2.2'], ['trip', '0.2.1']],
+    'Should get expected values from get_provided()'
+);    
+
+-- See that we get the metadata back.
+SELECT ok( json_eq( get_meta(), $${
+    "name":        "pair",
+    "version":     "0.0.1",
+    "license":     "postgresql",
+    "maintainer":  "theory",
+    "abstract":    "Ordered pair",
+    "description": "An ordered pair for PostgreSQL",
+    "tags":        ["foo", "bar", "baz"],
+    "no_index":    null,
+    "owner":       "nobody",
+    "sha1":        "pshaw",
+    "prereqs":     {
+        "runtime": {
+            "requires": {
+                "PostgreSQL": "8.0.0",
+                "PostGIS":    "1.5.0"
+            },
+            "recommends": { "PostgreSQL": "8.4.0" }
+        }
+    },
+    "provides":     {
+      "pair": {"file": "pair.sql.in", "version": "0.2.2" },
+      "trip": {"file": "trip.sql.in", "version": "0.2.1" }
+    },
+    "release_status": "testing",
+    "resources":      { "homepage": "http://pgxn.org/dist/pair/" }
+}$$), 'Should have the expected cached metadata with normalized version strings');
+
+
+-- Make sure that the "provides" and "release_status" get defaults.
+SELECT is(
+    setup_meta('nobody', 'pshaw', '{"name": "pair", "version": "0.0.1", "license": "postgresql","maintainer": "theory", "abstract": "whatever"}'),
+    ARRAY['pair', '0.0.1', 'postgresql', 'stable', 'whatever', NULL],
+    'Should get expected default release_status from setup_meta()'
+);
+
+SELECT ok( json_eq( get_meta(), $${
+    "name":        "pair",
+    "version":     "0.0.1",
+    "license":     "postgresql",
+    "maintainer":  "theory",
+    "owner":       "nobody",
+    "abstract":    "whatever",
+    "release_status": "stable",
+    "sha1":        "pshaw",
+    "provides": { "pair": { "version": "0.0.1" } }
+}$$), 'Metadata should have default release status and provides');
+
+
+
+SELECT * FROM finish();
+ROLLBACK;
