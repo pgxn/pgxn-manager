@@ -45,10 +45,9 @@ CREATE DOMAIN label AS CITEXT
 --
 CREATE OR REPLACE FUNCTION is_email(
     email CITEXT
-) RETURNS BOOLEAN LANGUAGE 'plperlu' IMMUTABLE AS $$
-    use Email::Valid;
-    return TRUE if Email::Valid->address( $_[0] );
-    return FALSE;
+) RETURNS BOOLEAN LANGUAGE 'plperl' IMMUTABLE AS $$
+    return 'true' if Email::Valid->address( $_[0] );
+    return 'false';
 $$;
 
 CREATE DOMAIN email AS CITEXT CHECK ( VALUE IS NULL OR is_email( VALUE ) );
@@ -60,10 +59,9 @@ CREATE DOMAIN email AS CITEXT CHECK ( VALUE IS NULL OR is_email( VALUE ) );
 
 CREATE OR REPLACE FUNCTION is_uri(
     uri CITEXT
-)RETURNS BOOLEAN LANGUAGE 'plperlu' IMMUTABLE AS $$
-    use Data::Validate::URI;
-    return TRUE if Data::Validate::URI::is_web_uri( $_[0] );
-    return FALSE;
+)RETURNS BOOLEAN LANGUAGE 'plperl' IMMUTABLE AS $$
+    return 'true' if Data::Validate::URI::is_web_uri( $_[0] );
+    return 'false';
 $$;
 
 CREATE DOMAIN uri AS CITEXT CHECK ( VALUE IS NULL OR is_uri( VALUE ) );
