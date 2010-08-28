@@ -116,7 +116,7 @@ SELECT is(
 
 -- Now insert a user.
 SELECT ok(
-    insert_user('theory', 'wet blanket', 'email => theory@pgxn.org'),
+    insert_user('theory', 'wet blanket', email := 'theory@pgxn.org'),
     'Insert user "theory"'
 );
 
@@ -168,7 +168,7 @@ SELECT throws_like(
 
 -- Try a different user and token.
 SELECT ok(
-    insert_user('strongrrl', 'whatevs', 'email => strongrrl@pgxn.org'),
+    insert_user('strongrrl', 'whatevs', email := 'strongrrl@pgxn.org'),
     'Insert user "strongrrl"'
 );
 UPDATE users SET status = 'active' WHERE nickname = 'strongrrl';

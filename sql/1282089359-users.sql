@@ -29,19 +29,27 @@ CREATE TABLE users (
 GRANT SELECT ON users TO pgxn;
 
 CREATE OR REPLACE FUNCTION insert_user(
-    nick LABEL,
-    pass TEXT,
-    p    HSTORE
+    nick  LABEL,
+    pass  TEXT,
+    name  TEXT  DEFAULT '',
+    email EMAIL DEFAULT NULL,
+    uri   URI   DEFAULT NULL
 ) RETURNS BOOLEAN LANGUAGE plpgsql SECURITY DEFINER AS $$
 /*
+
+    SELECT insert_user(
+        'theory', '***',
+        name  := 'David Wheeler',
+        email := 'theory@pgxn.org',
+        uri   := 'http://justatheory.com/'
+    );
 
 Inserts a new user into the database. The nickname must not already exist or
 an exception will be thrown. The password must be at least four characters
 long or an exception will be thrown. The status will be set to "new" and the
-`set_by` set to the user's nickname. Pass other attributes via the `hstore`
-parameters:
+`set_by` set to the user's nickname. The other arguments are:
 
-full_name
+name
 : The full name of the user.
 
 email
@@ -55,12 +63,15 @@ uri
 Returns true if the user was inserted, and false if not.
 
 */
+DECLARE
+    _email ALIAS FOR email;
+    _uri   ALIAS FOR uri;
 BEGIN
     IF char_length(pass) < 4 THEN
        RAISE EXCEPTION 'Password must be at least four characters long';
     END IF;
     INSERT INTO users (nickname, password, full_name, email, uri, set_by)
-    VALUES (nick, crypt(pass, gen_salt('des')), COALESCE(p->'full_name', ''), p->'email', p->'uri', nick);
+    VALUES (nick, crypt(pass, gen_salt('des')), COALESCE(name, ''), _email, _uri, nick);
     RETURN FOUND;
 END;
 $$;
@@ -83,26 +94,28 @@ BEGIN
        RAISE EXCEPTION 'Password must be at least four characters long';
     END IF;
     UPDATE users
-       SET password = crypt($3, gen_salt('des')),
+       SET password = crypt(newpass, gen_salt('des')),
            updated_at = NOW()
-     WHERE nickname = $1
-       AND password = crypt($2, password)
+     WHERE nickname = nick
+       AND password = crypt(oldpass, password)
        AND status   = 'active';
     RETURN FOUND;
 END;
 $$;
 
 CREATE OR REPLACE FUNCTION update_user(
-    nick LABEL,
-    p    HSTORE
+    nick  LABEL,
+    name  TEXT  DEFAULT NULL,
+    email EMAIL DEFAULT NULL,
+    uri   URI   DEFAULT NULL
 ) RETURNS BOOLEAN LANGUAGE plpgsql SECURITY DEFINER AS $$
 /*
 
-Update the specivied user. The user must be active. The nickname cannot be
+Update the specified user. The user must be active. The nickname cannot be
 changed. The password can only be changed via `change_password()` or
-`reset_password()`. Pass other attributes via the `hstore` parameters:
+`reset_password()`. Pass other attributes as:
 
-full_name
+name
 : The full name of the user.
 
 email
@@ -116,11 +129,14 @@ uri
 Returns true if the user was updated, and false if not.
 
 */
+DECLARE
+    _email ALIAS FOR email;
+    _uri   ALIAS FOR uri;
 BEGIN
     UPDATE users
-       SET full_name  = COALESCE(p->'full_name', full_name),
-           email      = COALESCE(p->'email',     email),
-           uri        = COALESCE(p->'uri',       uri),
+       SET full_name  = COALESCE(name,   full_name),
+           email      = COALESCE(_email, users.email),
+           uri        = COALESCE(_uri,   users.uri),
            updated_at = NOW()
      WHERE nickname   = nick
        AND status     = 'active';

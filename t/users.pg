@@ -110,15 +110,15 @@ SELECT ok(
 /*****************************************************************************/
 -- Test insert_user().
 SELECT has_function(    'insert_user' );
-SELECT has_function(    'insert_user', ARRAY['label', 'text', 'hstore'] );
-SELECT is_definer(      'insert_user', ARRAY['label', 'text', 'hstore'] );
+SELECT has_function(    'insert_user', ARRAY['label', 'text', 'text', 'email', 'uri'] );
+SELECT is_definer(      'insert_user', ARRAY['label', 'text', 'text', 'email', 'uri'] );
 SELECT function_returns('insert_user', 'boolean' );
 SELECT function_lang_is('insert_user', 'plpgsql' );
 SELECT volatility_is(   'insert_user', 'volatile' );
 SELECT ok(
     has_function_privilege(
         'pgxn',
-        'insert_user(label, text, hstore)',
+        'insert_user(label, text, text, email, uri)',
         'EXECUTE'
     ),
     'User "pgxn" should have EXECUTE priv on insert_user()'
@@ -127,8 +127,11 @@ SELECT ok(
 SELECT is(COUNT(*)::int, 0, 'Should start with no users') FROM users;
 
 SELECT ok(
-    insert_user('theory', 'wet blanket', 'full_name => "David Wheeler", email => theory@pgxn.org'),
-    'Insert user "theory"'
+    insert_user(
+        'theory', 'wet blanket',
+        name  := 'David Wheeler',
+        email := 'theory@pgxn.org'
+    ), 'Insert user "theory"'
 );
 
 SELECT is(COUNT(*)::int, 1, 'Should now have one user') FROM users;
@@ -149,8 +152,12 @@ SELECT isnt( password, 'theory', 'Password should not be nickname' )
   FROM users WHERE nickname = 'theory';
 
 SELECT ok(
-    insert_user('strongrrl', 'wet blanket', 'full_name => "Julie Wheeler", email => strongrrl@pgxn.org, uri => http://www.strongrrl.com/'),
-    'Insert user "strongrrl"'
+    insert_user(
+        'strongrrl', 'wet blanket',
+        name   := 'Julie Wheeler',
+        email  := 'strongrrl@pgxn.org',
+        uri    := 'http://www.strongrrl.com/'
+    ), 'Insert user "strongrrl"'
 );
 
 SELECT is(COUNT(*)::int, 2, 'Should now have two users') FROM users;
@@ -407,15 +414,15 @@ SELECT is(
 /*****************************************************************************/
 -- Test update_user().
 SELECT has_function(    'update_user');
-SELECT has_function(    'update_user', ARRAY['label', 'hstore']);
-SELECT is_definer(      'update_user', ARRAY['label', 'hstore']);
+SELECT has_function(    'update_user', ARRAY['label', 'text', 'email', 'uri']);
+SELECT is_definer(      'update_user', ARRAY['label', 'text', 'email', 'uri']);
 SELECT function_returns('update_user', 'boolean');
 SELECT function_lang_is('update_user', 'plpgsql');
 SELECT volatility_is(   'update_user', 'volatile' );
 SELECT ok(
     has_function_privilege(
         'pgxn',
-        'update_user(label, hstore)',
+        'update_user(label, text, email, uri)',
         'EXECUTE'
     ),
     'User "pgxn" should have EXECUTE priv on update_user()'
@@ -430,8 +437,12 @@ SELECT ok(
 SELECT * FROM set_now('2010-08-20 14:01:03.306399+00');
 
 SELECT ok(
-    update_user('theory', 'full_name => "David E. Wheeler", email => david@pgxn.org, uri => http://justatheory.com/'),
-    'Should get true value for updating a user'
+    update_user(
+        nick   := 'theory',
+        name   := 'David E. Wheeler',
+        email  := 'david@pgxn.org',
+        uri    := 'http://justatheory.com/'
+    ), 'Should get true value for updating a user'
 );
 
 SELECT is(
@@ -445,8 +456,11 @@ SELECT is(updated_at, '2010-08-20 14:01:03.306399+00', 'updated_at should have b
 
 -- Try updating less and less.
 SELECT ok(
-    update_user('theory', 'email => theory@pgxn.org, uri => http://www.justatheory.com/'),
-    'Should get true value for updating a user again'
+    update_user(
+        'theory',
+        email := 'theory@pgxn.org',
+        uri   := 'http://www.justatheory.com/'
+    ), 'Should get true value for updating a user again'
 );
 
 SELECT is(
@@ -456,7 +470,7 @@ SELECT is(
 ) FROM users WHERE nickname = 'theory';
 
 SELECT ok(
-    update_user('theory', 'uri => http://justatheory.com/'),
+    update_user('theory', uri := 'http://justatheory.com/'),
     'Should get true value for updating just URI'
 );
 
@@ -467,7 +481,7 @@ SELECT is(
 ) FROM users WHERE nickname = 'theory';
 
 SELECT ok(
-    update_user('theory', 'uri => http://justatheory.com/'),
+    update_user('theory', uri := 'http://justatheory.com/'),
     'Should get true value for updating just URI'
 );
 
@@ -484,7 +498,7 @@ SELECT ok(
 -- Try to update an inacative user.
 UPDATE users SET status = 'inactive' WHERE nickname = 'strongrrl';
 SELECT ok(
-    NOT update_user('strongrrl', 'uri => http://strongrrl.com'),
+    NOT update_user('strongrrl', uri := 'http://strongrrl.com'),
     'Should get false from udpate_user() for inactive user'
 );
 
@@ -494,7 +508,7 @@ SELECT is( uri, 'http://www.strongrrl.com/', 'Inactive user should not be modifi
 -- Try to update an inacative user.
 UPDATE users SET status = 'deleted' WHERE nickname = 'strongrrl';
 SELECT ok(
-    NOT update_user('strongrrl', 'uri => http://strongrrl.com'),
+    NOT update_user('strongrrl', uri := 'http://strongrrl.com'),
     'Should get false from udpate_user() for deleted user'
 );
 
@@ -504,7 +518,7 @@ SELECT is( uri, 'http://www.strongrrl.com/', 'Deleted user should not be modifie
 -- Try to update an inacative user.
 UPDATE users SET status = 'new' WHERE nickname = 'strongrrl';
 SELECT ok(
-    NOT update_user('strongrrl', 'uri => http://strongrrl.com'),
+    NOT update_user('strongrrl', uri := 'http://strongrrl.com'),
     'Should get false from udpate_user() for new user'
 );
 
@@ -627,8 +641,11 @@ GRANT USAGE ON SCHEMA tap TO pgxn;
 SET ROLE pgxn;
 
 SELECT ok(
-    insert_user('anna', 'blue sea', 'full_name => "Anna Wheeler", email => anna@pgxn.org'),
-    'Insert user "anna" a from pgxn role'
+    insert_user(
+        'anna', 'blue sea',
+        name  := 'Anna Wheeler',
+        email := 'anna@pgxn.org'
+    ), 'Insert user "anna" a from pgxn role'
 );
 
 SELECT ok(
