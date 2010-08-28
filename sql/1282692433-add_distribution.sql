@@ -179,25 +179,43 @@ With this data, `add_distribution()` does the following things:
 */
 DECLARE
     -- Parse and normalize the metadata.
-    distmeta TEXT[]   := setup_meta(nickname, sha1, meta);
+    distmeta TEXT[]   := setup_meta(nick, sha1, meta);
     provided TEXT[][] := get_provided();
     idx_meta TEXT     := get_meta();
 BEGIN
     -- Check permissions for provided extensions.
-    IF NOT does_own(nick, ARRAY(
-        SELECT provided[i][1] FROM generate_subscripts(provided, 1)
+    IF NOT record_ownership(nick, ARRAY(
+        SELECT provided[i][1] FROM generate_subscripts(provided, 1) AS i
     )) THEN
-        RAISE EXCEPTION '% does not own all provided extensions', nick;
+        RAISE EXCEPTION 'User "%" does not own all provided extensions', nick;
     END IF;
 
     -- Create the distribution.
-    INSERT INTO distributions (name, version, abstract, description, sha1, owner, meta)
-    VALUES (distmeta[1], distmeta[2], distmeata[3], COALESCE(distmeta[4], ''), sha1, nick, idx_meta);
+    BEGIN
+        INSERT INTO distributions (name, version, relstatus, abstract, description, sha1, owner, meta)
+        VALUES (distmeta[1], distmeta[2], COALESCE(distmeta[3], 'stable')::relstatus, distmeta[4], COALESCE(distmeta[5], ''), sha1, nick, idx_meta);
+    EXCEPTION WHEN unique_violation THEN
+       RAISE EXCEPTION 'Distribution % % already exists', distmeta[1], distmeta[2];
+    END;
 
     -- Record the extensions in this distribution.
-    INSERT INTO distribution_extensions (extension, ext_version, distribution, dist_version)
-    SELECT provided[i][1], provided[i][2], distmeta[1], distmeta[2]
-      FROM generate_subscripts(provided, 1) AS i;
+    BEGIN
+        INSERT INTO distribution_extensions (extension, ext_version, distribution, dist_version)
+        SELECT provided[i][1], provided[i][2], distmeta[1], distmeta[2]
+          FROM generate_subscripts(provided, 1) AS i;
+    EXCEPTION WHEN unique_violation THEN
+       IF array_length(provided, 1) = 1 THEN
+           RAISE EXCEPTION 'Extension % version % already exists', provided[1][1], provided[1][2];
+       ELSE
+           provided := ARRAY(
+               SELECT provided[i][1] || ' ' || provided[i][2]
+                 FROM generate_subscripts(provided, 1) AS i
+           );
+           RAISE EXCEPTION 'One or more versions of the provided extensions already exist:
+  %', array_to_string(provided, '
+  ');
+       END IF;
+    END;
 
     RETURN idx_meta;
 END;

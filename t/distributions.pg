@@ -1,7 +1,7 @@
 SET search_path = public,contrib,tap;
 
 BEGIN;
-SELECT plan(62);
+SELECT plan(57);
 --SELECT * FROM no_plan();
 
 SELECT has_enum('relstatus');
@@ -18,8 +18,7 @@ SELECT columns_are('public', 'distributions', ARRAY[
     'owner',
     'sha1',
     'meta',
-    'uploaded_at',
-    'indexed_at'
+    'created_at'
 ]);
 
 SELECT has_table( 'distributions' );
@@ -73,17 +72,11 @@ SELECT col_type_is(       'distributions', 'meta', 'text' );
 SELECT col_not_null(      'distributions', 'meta' );
 SELECT col_hasnt_default( 'distributions', 'meta' );
 
-SELECT has_column(        'distributions', 'uploaded_at' );
-SELECT col_type_is(       'distributions', 'uploaded_at', 'timestamp with time zone' );
-SELECT col_not_null(      'distributions', 'uploaded_at' );
-SELECT col_has_default(   'distributions', 'uploaded_at' );
-SELECT col_default_is(    'distributions', 'uploaded_at', 'now()' );
-
-SELECT has_column(        'distributions', 'indexed_at' );
-SELECT col_type_is(       'distributions', 'indexed_at', 'timestamp with time zone' );
-SELECT col_not_null(      'distributions', 'indexed_at' );
-SELECT col_has_default(   'distributions', 'indexed_at' );
-SELECT col_default_is(    'distributions', 'indexed_at', 'now()' );
+SELECT has_column(        'distributions', 'created_at' );
+SELECT col_type_is(       'distributions', 'created_at', 'timestamp with time zone' );
+SELECT col_not_null(      'distributions', 'created_at' );
+SELECT col_has_default(   'distributions', 'created_at' );
+SELECT col_default_is(    'distributions', 'created_at', 'now()' );
 
 -- Check privileges.
 SELECT ok(

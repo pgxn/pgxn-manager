@@ -20,8 +20,7 @@ CREATE TABLE distributions (
     owner       LABEL       NOT NULL REFERENCES users(nickname),
     sha1        CITEXT      NOT NULL,
     meta        TEXT        NOT NULL,
-    uploaded_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    indexed_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     PRIMARY KEY (name, version)
 );
 

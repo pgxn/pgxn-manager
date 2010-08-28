@@ -1,7 +1,7 @@
 SET search_path = public,contrib,tap;
 
 BEGIN;
-SELECT plan(93);
+SELECT plan(95);
 --SELECT * FROM no_plan();
 
 SELECT has_table('public', 'extensions', 'Should have table public.extensions');
@@ -82,6 +82,7 @@ SELECT col_not_null(      'coowners', 'nickname' );
 SELECT col_hasnt_default( 'coowners', 'nickname' );
 SELECT col_is_fk(         'coowners', 'nickname' );
 SELECT fk_ok(             'coowners', 'nickname', 'users', 'nickname');
+SELECT col_is_pk(         'coowners', ARRAY['extension', 'nickname'] );
 
 SELECT has_column(        'coowners', 'created_at' );
 SELECT col_type_is(       'coowners', 'created_at', 'timestamp with time zone' );
@@ -107,11 +108,6 @@ SELECT ok(
 -- Test distribution_extensions.
 SELECT has_table('public', 'distribution_extensions', 'Should have table public.distribution_extensions');
 
-    -- extension    CITEXT NOT NULL REFERENCES extensions(name),
-    -- ext_version  SEMVER NOT NULL,
-    -- distribution CITEXT NOT NULL,
-    -- dist_version SEMVER NOT NULL,
-
 SELECT columns_are('public', 'distribution_extensions', ARRAY[
     'extension',
     'ext_version',
@@ -134,6 +130,7 @@ SELECT has_column(        'distribution_extensions', 'ext_version' );
 SELECT col_type_is(       'distribution_extensions', 'ext_version', 'semver' );
 SELECT col_not_null(      'distribution_extensions', 'ext_version' );
 SELECT col_hasnt_default( 'distribution_extensions', 'ext_version' );
+SELECT col_is_pk(         'distribution_extensions', ARRAY['extension', 'ext_version'] );
 
 SELECT has_column(        'distribution_extensions', 'distribution' );
 SELECT col_type_is(       'distribution_extensions', 'distribution', 'citext' );

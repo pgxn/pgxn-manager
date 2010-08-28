@@ -1,7 +1,7 @@
 SET search_path = public,contrib,tap;
 
 BEGIN;
-SELECT plan(71);
+SELECT plan(101);
 --SELECT * FROM no_plan();
 
 -- Check that we have the functions we think we have.
@@ -359,6 +359,348 @@ SELECT is(
 
 /****************************************************************************/
 -- Test add_distribution().
+SELECT throws_ok(
+    $_$ SELECT add_distribution('nobody', 'pshaw', $${
+        "name":        "pair",
+        "version":     "0.0.1",
+        "license":     "postgresql",
+        "maintainer":  "theory",
+        "abstract":    "whatever"
+    }$$) $_$,
+    'P0001',
+    'User "nobody" does not own all provided extensions',
+    'Should get an exception for non-existent user'
+);
+
+DELETE FROM coowners;
+
+SELECT throws_ok(
+    $_$ SELECT add_distribution('theory', 'pshaw', $${
+        "name":        "triple",
+        "version":     "0.0.1",
+        "license":     "postgresql",
+        "maintainer":  "theory",
+        "abstract":    "whatever"
+    }$$) $_$,
+    'P0001',
+    'User "theory" does not own all provided extensions',
+    'Should get an exception for user without permission'
+);
+
+DELETE FROM extensions;
+-- Add a distribution.
+SELECT ok(json_eq(
+    add_distribution('theory', 'pshaw', '{
+        "name": "pair",
+        "version": "0.0.01",
+        "license": "postgresql",
+        "maintainer": "theory",
+        "abstract": "Ordered pair",
+        "description": "An ordered pair for PostgreSQL",
+        "tags": ["foo", "bar", "baz"],
+        "no_index": null,
+        "prereqs": {
+          "runtime": {
+            "requires": {
+              "PostgreSQL": "8.0.0",
+              "PostGIS": "1.5.0"
+            },
+            "recommends": {
+              "PostgreSQL": "8.04.0"
+            }
+          }
+        },
+        "provides": {
+            "pair": { "file": "pair.sql.in", "version": "0.02.02" },
+            "trip": { "file": "trip.sql.in", "version": "0.02.01" }
+        },
+        "release_status": "testing",
+        "resources": {
+          "homepage": "http://pgxn.org/dist/pair/"
+        }
+    }'), '{
+    "name":        "pair",
+    "version":     "0.0.1",
+    "license":     "postgresql",
+    "maintainer":  "theory",
+    "abstract":    "Ordered pair",
+    "description": "An ordered pair for PostgreSQL",
+    "tags":        ["foo", "bar", "baz"],
+    "no_index":    null,
+    "owner":       "theory",
+    "sha1":        "pshaw",
+    "prereqs":     {
+        "runtime": {
+            "requires": {
+                "PostgreSQL": "8.0.0",
+                "PostGIS":    "1.5.0"
+            },
+            "recommends": { "PostgreSQL": "8.4.0" }
+        }
+    },
+    "provides":     {
+      "pair": {"file": "pair.sql.in", "version": "0.2.2" },
+      "trip": {"file": "trip.sql.in", "version": "0.2.1" }
+    },
+    "release_status": "testing",
+    "resources":      { "homepage": "http://pgxn.org/dist/pair/" }
+    }'
+), 'Add a distribution for user "theory"');
+
+SELECT is(COUNT(*)::int, 1, 'Should have one distribution') FROM distributions;
+SELECT row_eq(
+    $$ SELECT name, version, abstract, description, relstatus, owner, sha1, NULL::text, created_at FROM distributions $$,
+    ROW('pair', '0.0.1', 'Ordered pair', 'An ordered pair for PostgreSQL', 'testing', 'theory', 'pshaw', NULL, NOW())::distributions,
+    'It should look as expected'
+);
+
+SELECT ok(json_eq(meta, '{
+    "name":        "pair",
+    "version":     "0.0.1",
+    "license":     "postgresql",
+    "maintainer":  "theory",
+    "abstract":    "Ordered pair",
+    "description": "An ordered pair for PostgreSQL",
+    "tags":        ["foo", "bar", "baz"],
+    "no_index":    null,
+    "owner":       "theory",
+    "sha1":        "pshaw",
+    "prereqs":     {
+        "runtime": {
+            "requires": {
+                "PostgreSQL": "8.0.0",
+                "PostGIS":    "1.5.0"
+            },
+            "recommends": { "PostgreSQL": "8.4.0" }
+        }
+    },
+    "provides":     {
+      "pair": {"file": "pair.sql.in", "version": "0.2.2" },
+      "trip": {"file": "trip.sql.in", "version": "0.2.1" }
+    },
+    "release_status": "testing",
+    "resources":      { "homepage": "http://pgxn.org/dist/pair/" }
+}'), '...including the metadata')
+  FROM distributions
+ WHERE name = 'pair' AND version = '0.0.1';
+
+SELECT is(COUNT(*)::int, 2, 'Should now have two extensions') FROM extensions;
+SELECT bag_eq(
+    $$ SELECT * FROM extensions ORDER BY name $$,
+    $$ VALUES
+       ('pair', 'theory', NOW(), NOW()),
+       ('trip', 'theory', NOW(), NOW())
+    $$,
+    'We should have the expected extensions'
+);
+
+SELECT is(COUNT(*)::int, 2, 'Should now have two distribution extensions')
+  FROM distribution_extensions;
+SELECT bag_eq(
+    $$ SELECT * FROM distribution_extensions $$,
+    $$ VALUES
+       ('pair', '0.2.2', 'pair', '0.0.1'),
+       ('trip', '0.2.1', 'pair', '0.0.1')
+    $$,
+    'We should have the expected distribution extensions'
+);
+
+SELECT throws_ok(
+    $$ SELECT add_distribution('theory', 'foo', '{
+        "name":        "pair",
+        "version":     "0.0.1",
+        "license":     "postgresql",
+        "maintainer":  "theory",
+        "abstract":    "whatever"
+    }') $$,
+    'P0001',
+    'Distribution pair 0.0.1 already exists',
+    'Should get an exception for a duplicate distribution and version'
+);
+
+SELECT throws_ok(
+    $$ SELECT add_distribution('theory', 'foo', '{
+        "name":        "pair",
+        "version":     "0.0.2",
+        "license":     "postgresql",
+        "maintainer":  "theory",
+        "abstract":    "whatever",
+        "provides":     {
+          "pair": {"file": "pair.sql.in", "version": "0.2.2" },
+          "trip": {"file": "trip.sql.in", "version": "0.2.1" }
+        }
+    }') $$,
+    'P0001',
+    'One or more versions of the provided extensions already exist:
+  pair 0.2.2
+  trip 0.2.1',
+    'Should get an exception for duplicate extensions and versions'
+);
+
+SELECT throws_ok(
+    $$ SELECT add_distribution('theory', 'foo', '{
+        "name":        "pair",
+        "version":     "0.0.2",
+        "license":     "postgresql",
+        "maintainer":  "theory",
+        "abstract":    "whatever",
+        "provides":     {
+          "pair": {"file": "pair.sql.in", "version": "0.2.2" }
+        }
+    }') $$,
+    'P0001',
+    'Extension pair version 0.2.2 already exists',
+    'Should get an exception for a single duplicate extension and versions'
+);
+
+-- Have strongrrl add a distribution with one extension.
+SELECT ok(json_eq(
+    add_distribution('strongrrl', 'ick', '{
+        "name":        "foo",
+        "version":     "0.0.2",
+        "license":     "postgresql",
+        "maintainer":  "strongrrl",
+        "abstract":    "whatever"
+    }'),
+    '{
+        "name":           "foo",
+        "version":        "0.0.2",
+        "license":        "postgresql",
+        "maintainer":     "strongrrl",
+        "abstract":       "whatever",
+        "owner":          "strongrrl",
+        "provides":       { "foo": { "version": "0.0.2" } },
+        "release_status": "stable",
+        "sha1":           "ick"
+    }'
+), 'Should get proper JSON for strongrrl upload');
+
+SELECT is(COUNT(*)::int, 2, 'Should now have two distributions') FROM distributions;
+SELECT row_eq(
+    $$ SELECT name, version, abstract, description, relstatus, owner, sha1, NULL::text, created_at FROM distributions WHERE owner = 'strongrrl' $$,
+    ROW('foo', '0.0.2', 'whatever', '', 'stable', 'strongrrl', 'ick', NULL, NOW())::distributions,
+    'The new one should look as expected'
+);
+
+SELECT ok(json_eq(meta, '{
+        "name":           "foo",
+        "version":        "0.0.2",
+        "license":        "postgresql",
+        "maintainer":     "strongrrl",
+        "abstract":       "whatever",
+        "owner":          "strongrrl",
+        "provides":       { "foo": { "version": "0.0.2" } },
+        "release_status": "stable",
+        "sha1":           "ick"
+}'), '...including the metadata')
+  FROM distributions
+ WHERE name = 'foo' AND version = '0.0.2';
+
+SELECT is(COUNT(*)::int, 3, 'Should now have three extensions') FROM extensions;
+SELECT bag_eq(
+    $$ SELECT * FROM extensions ORDER BY name $$,
+    $$ VALUES
+       ('pair', 'theory', NOW(), NOW()),
+       ('trip', 'theory', NOW(), NOW()),
+       ('foo', 'strongrrl', NOW(), NOW())
+    $$,
+    'We should have the expected extensions'
+);
+
+SELECT is(COUNT(*)::int, 3, 'Should now have three distribution extensions')
+  FROM distribution_extensions;
+SELECT bag_eq(
+    $$ SELECT * FROM distribution_extensions $$,
+    $$ VALUES
+       ('pair', '0.2.2', 'pair', '0.0.1'),
+       ('trip', '0.2.1', 'pair', '0.0.1'),
+       ('foo', '0.0.2',  'foo',  '0.0.2')
+    $$,
+    'We should have the expected distribution extensions'
+);
+
+-- Strongrrl shouldn't be able to upload new pair.
+SELECT throws_ok(
+    $_$ SELECT add_distribution('strongrrl', 'howdy', $${
+        "name":        "pair",
+        "version":     "0.0.3",
+        "license":     "postgresql",
+        "maintainer":  "theory",
+        "abstract":    "whatever"
+    }$$) $_$,
+    'P0001',
+    'User "strongrrl" does not own all provided extensions',
+    'Should get an exception for non-existent user'
+);
+
+-- Give strongrrl co-ownership of pair and try again.
+INSERT INTO coowners (extension, nickname) VALUES ('pair', 'strongrrl');
+
+SELECT ok(json_eq(
+    add_distribution('strongrrl', 'howdy', '{
+        "name":        "pair",
+        "version":     "0.0.3",
+        "license":     "postgresql",
+        "maintainer":  "theory",
+        "abstract":    "whatever"
+    }'),
+    '{
+        "name":           "pair",
+        "version":        "0.0.3",
+        "license":        "postgresql",
+        "maintainer":     "theory",
+        "abstract":       "whatever",
+        "owner":          "strongrrl",
+        "provides":       { "pair": { "version": "0.0.3" } },
+        "release_status": "stable",
+        "sha1":           "howdy"
+    }'
+), 'Should get proper JSON for strongrrl pair upload');
+
+SELECT is(COUNT(*)::int, 3, 'Should now have three distributions') FROM distributions;
+SELECT row_eq(
+    $$ SELECT name, version, abstract, description, relstatus, owner, sha1, NULL::text, created_at FROM distributions WHERE owner = 'strongrrl' AND name = 'pair' $$,
+    ROW('pair', '0.0.3', 'whatever', '', 'stable', 'strongrrl', 'howdy', NULL, NOW())::distributions,
+    'The new one for strongrrl pair should look as expected'
+);
+
+SELECT ok(json_eq(meta, '{
+        "name":           "pair",
+        "version":        "0.0.3",
+        "license":        "postgresql",
+        "maintainer":     "theory",
+        "abstract":       "whatever",
+        "owner":          "strongrrl",
+        "provides":       { "pair": { "version": "0.0.3" } },
+        "release_status": "stable",
+        "sha1":           "howdy"
+}'), '...including the metadata')
+  FROM distributions
+ WHERE name = 'pair' AND version = '0.0.3';
+
+SELECT is(COUNT(*)::int, 3, 'Should now have three extensions') FROM extensions;
+SELECT bag_eq(
+    $$ SELECT * FROM extensions ORDER BY name $$,
+    $$ VALUES
+       ('pair', 'theory', NOW(), NOW()),
+       ('trip', 'theory', NOW(), NOW()),
+       ('foo', 'strongrrl', NOW(), NOW())
+    $$,
+    'We should have the expected extensions'
+);
+
+SELECT is(COUNT(*)::int, 4, 'Should now have four distribution extensions')
+  FROM distribution_extensions;
+SELECT bag_eq(
+    $$ SELECT * FROM distribution_extensions $$,
+    $$ VALUES
+       ('pair', '0.2.2', 'pair', '0.0.1'),
+       ('trip', '0.2.1', 'pair', '0.0.1'),
+       ('foo', '0.0.2',  'foo',  '0.0.2'),
+       ('pair', '0.0.3', 'pair', '0.0.3')
+    $$,
+    'We should have the expected distribution extensions'
+);
 
 SELECT * FROM finish();
 ROLLBACK;

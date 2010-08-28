@@ -24,7 +24,7 @@ CREATE TABLE distribution_extensions (
     ext_version  SEMVER NOT NULL,
     distribution CITEXT NOT NULL,
     dist_version SEMVER NOT NULL,
-    PRIMARY KEY (extension, ext_version, distribution, dist_version),
+    PRIMARY KEY (extension, ext_version),
     FOREIGN KEY (distribution, dist_version) REFERENCES distributions(name, version)
 );
 
