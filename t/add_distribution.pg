@@ -1,7 +1,7 @@
 SET search_path = public,contrib,tap;
 
 BEGIN;
-SELECT plan(33);
+SELECT plan(71);
 --SELECT * FROM no_plan();
 
 -- Check that we have the functions we think we have.
@@ -13,7 +13,7 @@ SELECT has_function(f)
 SELECT has_function('setup_meta', ARRAY['label', 'text', 'text']);
 SELECT has_function('get_meta', '{}'::text[]);
 SELECT has_function('get_provided', '{}'::text[]);
-SELECT has_function('record_ownership', ARRAY['label', 'citext[]']);
+SELECT has_function('record_ownership', ARRAY['label', 'text[]']);
 SELECT has_function('add_distribution', ARRAY['label', 'text', 'text']);
 
 -- User "pgxn" should not have access to most of them.
@@ -24,7 +24,7 @@ SELECT ok(
     'setup_meta(label, text, text)',
     'get_provided()',
     'get_meta()',
-    'record_ownership(label, citext[])'
+    'record_ownership(label, text[])'
 ]) AS f;
 
 -- User "pgxn" only has access to add_distribution().
@@ -55,7 +55,7 @@ CREATE FUNCTION has_meta() RETURNS BOOLEAN LANGUAGE plperl AS $$
 $$;
 
 /****************************************************************************/
--- Test setup_meta().
+-- Test setup_meta(), get_provided(), and get_meta().
 SELECT function_returns('setup_meta', 'text[]' );
 SELECT function_lang_is('setup_meta', 'plperl' );
 SELECT volatility_is(   'setup_meta', 'volatile' );
@@ -197,6 +197,168 @@ SELECT ok( json_eq( get_meta(), $${
 }$$), 'Metadata should have default release status and provides');
 
 select ok( NOT has_meta(), 'Should once again not have cached meta');
+
+/****************************************************************************/
+-- Test record_ownership().
+SELECT throws_ok(
+    $$ SELECT record_ownership('nobody', ARRAY['foo']) $$,
+    '23503', -- FK constraint violation 
+    NULL,
+    'Should get exception from record_ownership() for non-existent user'
+);
+
+-- We need a user.
+SELECT ok(
+    insert_user('theory', 'wet blanket', 'email => theory@pgxn.org'),
+    'Insert user "theory"'
+);
+
+-- Make sure we have no extensions.
+SELECT is(COUNT(*)::int, 0, 'Should start with no extensions') FROM extensions;
+
+-- Create some extensions for this user.
+SELECT ok(
+    record_ownership('theory', ARRAY['pair']),
+    'Create ownership of "pair" for theory'
+);
+
+SELECT is(COUNT(*)::int, 1, 'Should now have one extension') FROM extensions;
+
+SELECT row_eq(
+    $$ SELECT * FROM extensions $$,
+    ROW('pair', 'theory', NOW(), NOW())::extensions,
+    'It should be the expected extension'
+);
+
+SELECT is(COUNT(*)::int, 0, 'Should have no co-owners') FROM coowners;
+
+-- Now check for the same extension for the same user.
+SELECT ok(
+    record_ownership('theory', ARRAY['pair']),
+    'Theory should still own "pair"'
+);
+
+SELECT is(COUNT(*)::int, 1, 'Should still have one extension') FROM extensions;
+SELECT is(COUNT(*)::int, 0, 'Should still have no co-owners') FROM coowners;
+
+-- Create another user to mess with.
+SELECT ok(
+    insert_user('strongrrl', 'wet blanket', 'email => strongrrl@pgxn.org'),
+    'Insert user "strongrrl"'
+);
+
+SELECT ok(
+    NOT record_ownership('strongrrl', ARRAY['pair']),
+    'Strongrrl should not own "pair"'
+);
+
+SELECT is(COUNT(*)::int, 1, 'Should still have one extension') FROM extensions;
+SELECT is(COUNT(*)::int, 0, 'Should still have no co-owners') FROM coowners;
+
+SELECT row_eq(
+    $$ SELECT * FROM extensions $$,
+    ROW('pair', 'theory', NOW(), NOW())::extensions,
+    'Theory should still own it'
+);
+
+-- Grant strongrrl co-ownership.
+INSERT INTO coowners (extension, nickname) VALUES ('pair', 'strongrrl');
+
+SELECT ok(
+    record_ownership('strongrrl', ARRAY['pair']),
+    'Strongrrl should now have co-ownership of "pair"'
+);
+
+SELECT is(COUNT(*)::int, 1, 'Should still have one extension') FROM extensions;
+SELECT is(COUNT(*)::int, 1, 'Should have one co-owner') FROM coowners;
+
+SELECT row_eq(
+    $$ SELECT * FROM extensions $$,
+    ROW('pair', 'theory', NOW(), NOW())::extensions,
+    'Theory should still own it'
+);
+
+-- Now have strongrrl register two.
+SELECT ok(
+    record_ownership('strongrrl', ARRAY['pair', 'triple']),
+    'Strongrrl should own "pair" and "triple"'
+);
+
+SELECT is(COUNT(*)::int, 2, 'Should now have two extensions') FROM extensions;
+SELECT is(COUNT(*)::int, 1, 'Should still have one co-owner') FROM coowners;
+
+SELECT row_eq(
+    $$ SELECT * FROM extensions WHERE owner = 'strongrrl' $$,
+    ROW('triple', 'strongrrl', NOW(), NOW())::extensions,
+    'Strongrrl should now own "triple"'
+);
+
+SELECT row_eq(
+    $$ SELECT * FROM extensions $$,
+    ROW('pair', 'theory', NOW(), NOW())::extensions,
+    'But theory should still own "pair"'
+);
+
+-- Have theory upload pair and triple.
+SELECT ok(
+    NOT record_ownership('theory', ARRAY['pair', 'triple']),
+    'Theory should not own both "pair" and "triple"'
+);
+
+SELECT is(COUNT(*)::int, 2, 'Should still have two extensions') FROM extensions;
+SELECT is(COUNT(*)::int, 1, 'Should still have one co-owner') FROM coowners;
+
+SELECT row_eq(
+    $$ SELECT * FROM extensions WHERE owner = 'strongrrl' $$,
+    ROW('triple', 'strongrrl', NOW(), NOW())::extensions,
+    'Strongrrl should still own "triple"'
+);
+
+SELECT row_eq(
+    $$ SELECT * FROM extensions $$,
+    ROW('pair', 'theory', NOW(), NOW())::extensions,
+    'And theory should still own "pair"'
+);
+
+-- Give theory co-ownership.
+INSERT INTO coowners (extension, nickname) VALUES ('triple', 'theory');
+SELECT ok(
+    record_ownership('theory', ARRAY['pair', 'triple']),
+    'Theory should now have ownership of both "pair" and "triple"'
+);
+
+SELECT is(COUNT(*)::int, 2, 'Should still have two extensions') FROM extensions;
+SELECT is(COUNT(*)::int, 2, 'Should now have two co-owners') FROM coowners;
+
+SELECT row_eq(
+    $$ SELECT * FROM extensions WHERE owner = 'strongrrl' $$,
+    ROW('triple', 'strongrrl', NOW(), NOW())::extensions,
+    'Strongrrl should still own "triple"'
+);
+
+SELECT row_eq(
+    $$ SELECT * FROM extensions $$,
+    ROW('pair', 'theory', NOW(), NOW())::extensions,
+    'And theory should still own "pair"'
+);
+
+-- Have theory record to other extensions.
+SELECT ok(
+    record_ownership('theory', ARRAY['foo', 'bar']),
+    'Have theory own "foo" and "bar"'
+);
+
+SELECT is(COUNT(*)::int, 4, 'Should now have four extensions') FROM extensions;
+SELECT is(COUNT(*)::int, 2, 'Should still have two co-owners') FROM coowners;
+
+SELECT is(
+    ARRAY(SELECT name FROM extensions WHERE owner = 'theory' ORDER BY name),
+    ARRAY['bar', 'foo', 'pair']::citext[],
+    'Theory should have ownership of three extensions'
+);
+
+/****************************************************************************/
+-- Test add_distribution().
 
 SELECT * FROM finish();
 ROLLBACK;

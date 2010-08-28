@@ -81,7 +81,7 @@ REVOKE ALL ON FUNCTION get_meta() FROM PUBLIC;
 
 CREATE OR REPLACE FUNCTION record_ownership(
     nick  LABEL,
-    exts  CITEXT[]
+    exts  TEXT[]
 ) RETURNS BOOLEAN LANGUAGE plpgsql AS $$
 DECLARE
     owned    CITEXT[];
@@ -91,18 +91,18 @@ BEGIN
     SELECT array_agg(e.name), bool_and(e.owner = nick OR co.nickname IS NOT NULL)
       INTO owned, is_owner
       FROM extensions e
-      LEFT JOIN coowners co ON e.name = de.extension AND de.nickname = nick
+      LEFT JOIN coowners co ON e.name = co.extension AND co.nickname = nick
      WHERE e.name = ANY(exts);
 
     -- If nick is not owner or cowowner of any extension, return false.
     IF NOT is_owner THEN RETURN FALSE; END IF;
 
-    IF array_length(owned, 1) <> array_length(exts, 1) THEN
+    IF owned IS NULL OR array_length(owned, 1) <> array_length(exts, 1) THEN
         -- There are some other extensions. Make nick the owner.
         INSERT INTO extensions (name, owner)
         SELECT e, nick
           FROM unnest(exts) AS e
-         WHERE e <> ALL(owned);
+         WHERE e <> ALL(COALESCE(owned, '{}'));
     END IF;
 
     -- Good to go.
@@ -111,7 +111,7 @@ END;
 $$;
 
 -- Disallow end-user from using this function.
-REVOKE ALL ON FUNCTION record_ownership(LABEL, CITEXT[][]) FROM PUBLIC;
+REVOKE ALL ON FUNCTION record_ownership(LABEL, TEXT[]) FROM PUBLIC;
 
 CREATE OR REPLACE FUNCTION add_distribution(
     nick LABEL,
