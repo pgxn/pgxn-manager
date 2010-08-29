@@ -1,7 +1,7 @@
 SET search_path = public,contrib,tap;
 
 BEGIN;
-SELECT plan(204);
+SELECT plan(205);
 --SELECT * FROM no_plan();
 
 SELECT has_enum('status');
@@ -46,6 +46,7 @@ SELECT has_column(        'users', 'email' );
 SELECT col_type_is(       'users', 'email', 'email' );
 SELECT col_not_null(      'users', 'email' );
 SELECT col_hasnt_default( 'users', 'email' );
+SELECT col_is_unique(     'users', 'email' );
 
 SELECT has_column(        'users', 'uri' );
 SELECT col_type_is(       'users', 'uri', 'uri' );

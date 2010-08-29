@@ -16,7 +16,7 @@ CREATE TABLE users (
     nickname   LABEL       PRIMARY KEY,
     password   TEXT        NOT NULL,
     full_name  TEXT        NOT NULL,
-    email      EMAIL       NOT NULL,
+    email      EMAIL       NOT NULL UNIQUE,
     uri        URI         NULL,
     status     STATUS      NOT NULL DEFAULT 'new',
     set_by     LABEL       NOT NULL REFERENCES users(nickname),
