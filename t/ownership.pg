@@ -1,18 +1,18 @@
 SET search_path = public,contrib,tap;
 
 BEGIN;
-SELECT plan(56);
+SELECT plan(74);
 --SELECT * FROM no_plan();
 
 -- Check that we have the functions we think we have.
 SELECT has_function(f)
   FROM unnest(ARRAY[
-      'is_admin_or_owns', 'add_coowner', 'remove_coowner', 'transfer_ownership'
+      'is_admin_or_owns', 'grant_coownership', 'revoke_coownership', 'transfer_ownership'
   ]) AS f;
 
-SELECT has_function('is_admin_or_owns', ARRAY['label', 'text[]']);
-SELECT has_function('add_coowner', ARRAY['label', 'label', 'text[]']);
-SELECT has_function('remove_coowner', ARRAY['label', 'label', 'text[]']);
+SELECT has_function('is_admin_or_owns',   ARRAY['label', 'text[]']);
+SELECT has_function('grant_coownership',  ARRAY['label', 'label', 'text[]']);
+SELECT has_function('revoke_coownership', ARRAY['label', 'label', 'text[]']);
 SELECT has_function('transfer_ownership', ARRAY['label', 'label', 'text[]']);
 
 -- User "pgxn" should not have access to is_admin_or_owns.
@@ -25,8 +25,8 @@ SELECT ok(
     has_function_privilege('pgxn', f, 'EXECUTE'),
     'User "pgxn" should have EXECUTE priv on ' || f
 ) FROM unnest(ARRAY[
-    'add_coowner(label, label, text[])',
-    'remove_coowner(label, label, text[])',
+    'grant_coownership(label, label, text[])',
+    'revoke_coownership(label, label, text[])',
     'transfer_ownership(label, label, text[])'
 ]) AS f;
 
@@ -108,55 +108,55 @@ SELECT ok(
 SELECT ok(
     is_admin_or_owns('strongrrl', '{}'),
     'Should get true from is_admin_or_owns() for admin user an no extension'
-)
-;UPDATE users SET is_admin = FALSE where nickname = 'strongrrl';
+);
+UPDATE users SET is_admin = FALSE where nickname = 'strongrrl';
 
 /****************************************************************************/
--- Test add_coowner().
-SELECT function_returns('add_coowner', 'boolean' );
-SELECT function_lang_is('add_coowner', 'plpgsql' );
-SELECT volatility_is(   'add_coowner', 'volatile' );
+-- Test grant_coownership().
+SELECT function_returns('grant_coownership', 'boolean' );
+SELECT function_lang_is('grant_coownership', 'plpgsql' );
+SELECT volatility_is(   'grant_coownership', 'volatile' );
 
 SELECT throws_ok(
-    $$ SELECT add_coowner('nobody', 'nobody', '{}') $$,
+    $$ SELECT grant_coownership('nobody', 'nobody', '{}') $$,
     'P0001',
     'User “nobody” does not have permission to grant co-ownership to “”',
-    'Should get error from add_coowner() for non-existent owner'
+    'Should get error from grant_coownership() for non-existent owner'
 );
 
 SELECT throws_ok(
-    $$ SELECT add_coowner('nobody', 'nobody', ARRAY['nothing']) $$,
+    $$ SELECT grant_coownership('nobody', 'nobody', ARRAY['nothing']) $$,
     'P0001',
     'User “nobody” does not have permission to grant co-ownership to “nothing”',
-    'Should get error from add_coowner() for non-existent owner and extension'
+    'Should get error from grant_coownership() for non-existent owner and extension'
 );
 
 SELECT throws_ok(
-    $$ SELECT add_coowner('nobody', 'nobody', ARRAY['nothing', 'nohow']) $$,
+    $$ SELECT grant_coownership('nobody', 'nobody', ARRAY['nothing', 'nohow']) $$,
     'P0001',
     'User “nobody” does not have permission to grant co-ownership to “nothing”, “nohow”',
-    'Should get error from add_coowner() for non-existent owner and extensions'
+    'Should get error from grant_coownership() for non-existent owner and extensions'
 );
 
 SELECT throws_ok(
-    $$ SELECT add_coowner('theory', 'nobody', ARRAY['nothing', 'nohow']) $$,
+    $$ SELECT grant_coownership('theory', 'nobody', ARRAY['nothing', 'nohow']) $$,
     'P0001',
     'User “theory” does not have permission to grant co-ownership to “nothing”, “nohow”',
-    'Should get error from add_coowner() for non-existent extensions'
+    'Should get error from grant_coownership() for non-existent extensions'
 );
 
 SELECT throws_ok(
-    $$ SELECT add_coowner('strongrrl', 'nobody', ARRAY['foo']) $$,
+    $$ SELECT grant_coownership('strongrrl', 'nobody', ARRAY['foo']) $$,
     'P0001',
     'User “strongrrl” does not have permission to grant co-ownership to “foo”',
-    'Should get error from add_coowner() for non-owner'
+    'Should get error from grant_coownership() for non-owner'
 );
 
 SELECT is(COUNT(0)::int, 0, 'Should start with no co-owners') FROM coowners;
 
 -- Let theory give co-ownerhip of foo to strongrrl.
 SELECT ok(
-    add_coowner('theory', 'strongrrl', ARRAY['bar']),
+    grant_coownership('theory', 'strongrrl', ARRAY['bar']),
     'Let theory give co-ownership of "bar" to strongrrl'
 );
 
@@ -168,7 +168,7 @@ SELECT row_eq(
 );
 
 SELECT ok(
-    add_coowner('theory', 'strongrrl', ARRAY['foo', 'bar']),
+    grant_coownership('theory', 'strongrrl', ARRAY['foo', 'bar']),
     'Let theory give co-ownership of "bar" and "foo" to strongrrl'
 );
 
@@ -184,15 +184,15 @@ SELECT bag_eq(
 
 -- Do it again.
 SELECT ok(
-    NOT add_coowner('theory', 'strongrrl', ARRAY['foo', 'bar']),
-    'Should get false from add_coowner() if user is already coowner'
+    NOT grant_coownership('theory', 'strongrrl', ARRAY['foo', 'bar']),
+    'Should get false from grant_coownership() if user is already coowner'
 );
 SELECT is(COUNT(0)::int, 2, 'Should still have two co-owners') FROM coowners;
 
 -- Grant to self.
 SELECT ok(
-    NOT add_coowner('theory', 'theory', ARRAY['foo', 'bar']),
-    'Should get false from add_coowner() if user is already owner'
+    NOT grant_coownership('theory', 'theory', ARRAY['foo', 'bar']),
+    'Should get false from grant_coownership() if user is already owner'
 );
 SELECT is(COUNT(0)::int, 2, 'Should still have two co-owners') FROM coowners;
 
@@ -204,17 +204,17 @@ SELECT ok(
 
 -- Have strongrrl try to grant co-ownership.
 SELECT throws_ok(
-    $$ SELECT add_coowner('strongrrl', 'anna', ARRAY['foo']) $$,
+    $$ SELECT grant_coownership('strongrrl', 'anna', ARRAY['foo']) $$,
     'P0001',
     'User “strongrrl” does not have permission to grant co-ownership to “foo”',
-    'Should get error from add_coowner() for co-owner but not-owner'
+    'Should get error from grant_coownership() for co-owner but not-owner'
 );
 
 -- Make strongrrl an admin and try again.
 UPDATE users SET is_admin = TRUE where nickname = 'strongrrl';
 
 SELECT ok(
-    add_coowner('strongrrl', 'anna', ARRAY['foo']),
+    grant_coownership('strongrrl', 'anna', ARRAY['foo']),
     'Add co-owner as admin'
 );
 
@@ -230,14 +230,14 @@ SELECT bag_eq(
 );
 
 SELECT ok(
-    NOT add_coowner('strongrrl', 'strongrrl', ARRAY['foo', 'bar']),
-    'Should get false from add_coowner() when admin tries to add existing co-owner'
+    NOT grant_coownership('strongrrl', 'strongrrl', ARRAY['foo', 'bar']),
+    'Should get false from grant_coownership() when admin tries to add existing co-owner'
 );
 
 -- Remove strongrrl's co-ownership and try again.
 DELETE FROM coowners WHERE nickname = 'strongrrl';
 SELECT ok(
-    add_coowner('strongrrl', 'strongrrl', ARRAY['foo', 'bar']),
+    grant_coownership('strongrrl', 'strongrrl', ARRAY['foo', 'bar']),
     'Admmin should be able to add self as co-owner'
 );
 
@@ -251,6 +251,98 @@ SELECT bag_eq(
     $$,
     'They should be the right rows'
 );
+UPDATE users SET is_admin = FALSE where nickname = 'strongrrl';
+
+/****************************************************************************/
+-- Test revoke_coownership().
+SELECT function_returns('revoke_coownership', 'boolean' );
+SELECT function_lang_is('revoke_coownership', 'plpgsql' );
+SELECT volatility_is(   'revoke_coownership', 'volatile' );
+
+SELECT throws_ok(
+    $$ SELECT revoke_coownership('nobody', 'anna', '{}') $$,
+    'P0001',
+    'User “nobody” does not have permission to revoke co-ownership from “”',
+    'Should get error from revoke_coownership() for non-existent owner'
+);
+
+SELECT throws_ok(
+    $$ SELECT revoke_coownership('nobody', 'anna', '{whatevs}') $$,
+    'P0001',
+    'User “nobody” does not have permission to revoke co-ownership from “whatevs”',
+    'Should get error from revoke_coownership() for non-existent owner and extension'
+);
+
+SELECT throws_ok(
+    $$ SELECT revoke_coownership('nobody', 'anna', '{whatevs,yo}') $$,
+    'P0001',
+    'User “nobody” does not have permission to revoke co-ownership from “whatevs”, “yo”',
+    'Should get error from revoke_coownership() for non-existent owner and extensions'
+);
+
+SELECT throws_ok(
+    $$ SELECT revoke_coownership('anna', 'strongrrl', '{yo}') $$,
+    'P0001',
+    'User “anna” does not have permission to revoke co-ownership from “yo”',
+    'Should get error from revoke_coownership() for non-admin and non-owner'
+);
+
+SELECT throws_ok(
+    $$ SELECT revoke_coownership('strongrrl', 'anna', '{foo}') $$,
+    'P0001',
+    'User “strongrrl” does not have permission to revoke co-ownership from “foo”',
+    'Should get error from revoke_coownership() for non-owner'
+);
+
+SELECT ok(
+    NOT revoke_coownership('anna', 'anna', '{bar}'),
+    'Co-owner cannot remove self from extensions self does not own'
+);
+
+SELECT is(COUNT(0)::int, 3, 'Should still have three co-owners') FROM coowners;
+SELECT bag_eq(
+    $$ SELECT * FROM coowners $$,
+    $$ VALUES
+        ('foo', 'strongrrl', NOW()),
+        ('bar', 'strongrrl', NOW()),
+        ('foo', 'anna', NOW())
+    $$,
+    'They should be the right rows'
+);
+
+SELECT ok(
+    revoke_coownership('anna', 'anna', '{foo}'),
+    'Let co-owner remove self'
+);
+
+SELECT is(COUNT(0)::int, 2, 'Should now have two co-owners') FROM coowners;
+SELECT bag_eq(
+    $$ SELECT * FROM coowners $$,
+    $$ VALUES
+        ('foo', 'strongrrl', NOW()),
+        ('bar', 'strongrrl', NOW())
+    $$,
+    'They should be the right rows'
+);
+
+-- Let the owner remove co-ownership.
+SELECT ok(
+    revoke_coownership('theory', 'strongrrl', ARRAY['foo', 'bar']),
+    'Let owner remove co-ownership'
+);
+SELECT is(COUNT(0)::int, 0, 'Should now have no co-owners') FROM coowners;
+
+-- Create a few co-ownersips again.
+INSERT INTO coowners (extension, nickname)
+VALUES ('foo', 'anna'), ('bar', 'anna');
+
+-- Let admin user revoke co-ownership.
+UPDATE users SET is_admin = TRUE where nickname = 'strongrrl';
+SELECT ok(
+    revoke_coownership('strongrrl', 'anna', ARRAY['foo', 'bar']),
+    'Let admin remove co-ownership'
+);
+SELECT is(COUNT(0)::int, 0, 'Should again have no co-owners') FROM coowners;
 
 SELECT * FROM finish();
 ROLLBACK;

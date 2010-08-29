@@ -23,14 +23,14 @@ $$;
 -- Disallow end-user from using this function.
 REVOKE ALL ON FUNCTION is_admin_or_owns(LABEL, TEXT[]) FROM PUBLIC;
 
-CREATE OR REPLACE FUNCTION add_coowner(
+CREATE OR REPLACE FUNCTION grant_coownership(
     nick    LABEL,
     coowner LABEL,
     exts    TEXT[]
 ) RETURNS BOOLEAN LANGUAGE PLPGSQL SECURITY DEFINER AS $$
 /*
 
-    SELECT insert_cowoner('theory', 'strongrrl', ARRAY['pair', 'pgtap']);
+    SELECT grant_coownership('theory', 'strongrrl', ARRAY['pair', 'pgtap']);
 
 Grants co-ownership to one or more extensions. The first argument is the
 nickname of the uesr inserting the co-owner. Said user must either be and
@@ -59,13 +59,34 @@ BEGIN
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION remove_coowner(
-    owner   LABEL,
+CREATE OR REPLACE FUNCTION revoke_coownership(
+    nick    LABEL,
     coowner LABEL,
     exts    TEXT[]
 ) RETURNS BOOLEAN LANGUAGE PLPGSQL SECURITY DEFINER AS $$
+/*
+
+    SELECT revoke_coownership('theory', 'strongrrl', ARRAY['pair', 'pgtap']);
+
+Remove co-ownership permission to the specified extensions. The first argument
+is the nickname of the user removing co-ownership. Said user must either be
+and admin, own *all* of the specified extensions, or be removing co-ownership
+from itself. The second argument is the nickname of the user being for whom
+co-ownership is being removed. The third argument is an array of the names of
+the extensions from which co-ownership is to be removed.
+
+*/
 BEGIN
--- Can be done by admin, owner, or coowner (to self)
+    IF NOT is_admin_or_owns(nick, exts) AND nick <> coowner THEN
+        RAISE EXCEPTION 'User “%” does not have permission to revoke co-ownership from “%”',
+            nick, array_to_string(exts, '”, “');
+    END IF;
+
+    DELETE FROM coowners
+     WHERE nickname = coowner
+       AND extension = ANY(exts);
+
+    RETURN FOUND;
 END;
 $$;
 
