@@ -368,7 +368,7 @@ SELECT throws_ok(
         "abstract":    "whatever"
     }$$) $_$,
     'P0001',
-    'User "nobody" does not own all provided extensions',
+    'User “nobody” does not own all provided extensions',
     'Should get an exception for non-existent user'
 );
 
@@ -383,7 +383,7 @@ SELECT throws_ok(
         "abstract":    "whatever"
     }$$) $_$,
     'P0001',
-    'User "theory" does not own all provided extensions',
+    'User “theory” does not own all provided extensions',
     'Should get an exception for user without permission'
 );
 
@@ -629,7 +629,7 @@ SELECT throws_ok(
         "abstract":    "whatever"
     }$$) $_$,
     'P0001',
-    'User "strongrrl" does not own all provided extensions',
+    'User “strongrrl” does not own all provided extensions',
     'Should get an exception for non-existent user'
 );
 

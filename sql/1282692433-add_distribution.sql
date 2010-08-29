@@ -187,7 +187,7 @@ BEGIN
     IF NOT record_ownership(nick, ARRAY(
         SELECT provided[i][1] FROM generate_subscripts(provided, 1) AS i
     )) THEN
-        RAISE EXCEPTION 'User "%" does not own all provided extensions', nick;
+        RAISE EXCEPTION 'User “%” does not own all provided extensions', nick;
     END IF;
 
     -- Create the distribution.
