@@ -1,0 +1,114 @@
+SET search_path = public,contrib,tap;
+
+BEGIN;
+SELECT plan(28);
+--SELECT * FROM no_plan();
+
+-- Check that we have the functions we think we have.
+SELECT has_function(f)
+  FROM unnest(ARRAY[
+      'is_admin_or_owns', 'insert_coowner', 'delete_coowner', 'transfer_ownership'
+  ]) AS f;
+
+SELECT has_function('is_admin_or_owns', ARRAY['label', 'text[]']);
+SELECT has_function('insert_coowner', ARRAY['label', 'label', 'text[]']);
+SELECT has_function('delete_coowner', ARRAY['label', 'label', 'text[]']);
+SELECT has_function('transfer_ownership', ARRAY['label', 'label', 'text[]']);
+
+-- User "pgxn" should not have access to is_admin_or_owns.
+SELECT ok(
+    NOT has_function_privilege('pgxn', 'is_admin_or_owns(label, text[])', 'EXECUTE'),
+    'User "pgxn" should not have EXECUTE priv on is_admin_or_owns()'
+);
+
+SELECT ok(
+    has_function_privilege('pgxn', f, 'EXECUTE'),
+    'User "pgxn" should have EXECUTE priv on ' || f
+) FROM unnest(ARRAY[
+    'insert_coowner(label, label, text[])',
+    'delete_coowner(label, label, text[])',
+    'transfer_ownership(label, label, text[])'
+]) AS f;
+
+/****************************************************************************/
+-- Test is_admin_or_owns().
+SELECT function_returns('is_admin_or_owns', 'boolean' );
+SELECT function_lang_is('is_admin_or_owns', 'plpgsql' );
+SELECT volatility_is(   'is_admin_or_owns', 'stable' );
+
+SELECT ok(
+    NOT is_admin_or_owns('nobody', NULL),
+    'Should get false from is_admin_or_owns() for nonexistent user'
+);
+
+SELECT ok(
+    NOT is_admin_or_owns('nobody', 'foo'),
+    'Should get false from is_admin_or_owns() for non-existent user and extension'
+);
+
+-- We need a user.
+SELECT ok(
+    insert_user('theory', 'wet blanket', email := 'theory@pgxn.org'),
+    'Insert user "theory"'
+);
+
+SELECT ok(
+    NOT is_admin_or_owns('theory', NULL),
+    'Should get false from is_admin_or_owns() for user and no extensions'
+);
+
+SELECT ok(
+    NOT is_admin_or_owns('theory', 'foo'),
+    'Should get false from is_admin_or_owns() for user and non-existent extension'
+);
+
+-- Create an extension for this user.
+INSERT INTO extensions (owner, name) VALUES ('theory', 'foo');
+
+SELECT ok(
+    is_admin_or_owns('theory', 'foo'),
+    'Should get true from is_admin_or_owns() for user and extension'
+);
+
+SELECT ok(
+    NOT is_admin_or_owns('theory', 'foo', 'bar'),
+    'Should get false from is_admin_or_owns() for user one owned and one unowned extension'
+);
+
+-- Give the user that extension, too.
+INSERT INTO extensions (owner, name) VALUES ('theory', 'bar');
+SELECT ok(
+    is_admin_or_owns('theory', 'foo', 'bar'),
+    'Should get true from is_admin_or_owns() for user with two owned extensions'
+);
+
+
+SELECT ok(
+    insert_user('strongrrl', 'wet blanket', email := 'strongrrl@pgxn.org'),
+    'Insert user "strongrrl"'
+);
+
+SELECT ok(
+    NOT is_admin_or_owns('strongrrl', 'foo'),
+    'Should get false from is_admin_or_owns() for strongrrl and a theory extension'
+);
+
+-- Make strongrrl an admin.
+UPDATE users SET is_admin = TRUE where nickname = 'strongrrl';
+SELECT ok(
+    is_admin_or_owns('strongrrl', 'foo'),
+    'Should get true from is_admin_or_owns() for admin user'
+);
+
+SELECT ok(
+    is_admin_or_owns('strongrrl', 'whatevs'),
+    'Should get true from is_admin_or_owns() for admin user an non-existent extension'
+);
+
+SELECT ok(
+    is_admin_or_owns('strongrrl', NULL),
+    'Should get true from is_admin_or_owns() for admin user an no extension'
+);
+
+SELECT * FROM finish();
+ROLLBACK;
