@@ -132,7 +132,12 @@ SELECT lives_ok(
 );
 SELECT lives_ok(
     'SELECT ''http://192.168.0.1/''::uri',
-    'An IP adrress URL is a valid URI'
+    'An IP address URL is a valid URI'
+);
+
+SELECT lives_ok(
+    'SELECT ''mailto:pgxn@kineticode.com''::uri',
+    'A mailto: URL is a valid URI'
 );
 
 SELECT throws_ok(
@@ -142,16 +147,10 @@ SELECT throws_ok(
     'An empty string is not a URI'
 );
 SELECT throws_ok(
-    'SELECT ''ftp://foo.com''::uri',
+    'SELECT ''hey me://foo.com''::uri',
     '23514',
     'value for domain uri violates check constraint "uri_check"',
-    'An FTP URI is not a valid URI'
-);
-SELECT throws_ok(
-    'SELECT ''http:foo.com''::uri',
-    '23514',
-    'value for domain uri violates check constraint "uri_check"',
-    'A broken URI is not valid'
+    'A URI witn an invalid scheme should not be valid'
 );
 SELECT throws_ok(
     'SELECT ''http://w3.org/path with spaces.html''::uri',

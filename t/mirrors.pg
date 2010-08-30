@@ -1,0 +1,292 @@
+SET search_path = public,contrib,tap;
+
+BEGIN;
+SELECT plan(108);
+--SELECT * FROM no_plan();
+
+SELECT has_table('public', 'mirrors', 'Should have table public.mirrors');
+
+SELECT columns_are('public', 'mirrors', ARRAY[
+    'uri',
+    'frequency',
+    'location',
+    'organization',
+    'timezone',
+    'contact',
+    'bandwidth',
+    'src',
+    'rsync',
+    'notes',
+    'created_by',
+    'created_at',
+    'updated_at'
+]);
+
+SELECT has_table( 'mirrors' );
+SELECT has_pk(    'mirrors' );
+SELECT has_fk(    'mirrors' );
+
+SELECT has_column(        'mirrors', 'uri' );
+SELECT col_type_is(       'mirrors', 'uri', 'uri' );
+SELECT col_hasnt_default( 'mirrors', 'uri' );
+SELECT col_is_pk(         'mirrors', 'uri' );
+
+SELECT has_column(        'mirrors', 'frequency' );
+SELECT col_type_is(       'mirrors', 'frequency', 'text' );
+SELECT col_not_null(      'mirrors', 'frequency' );
+SELECT col_hasnt_default( 'mirrors', 'frequency' );
+
+SELECT has_column(        'mirrors', 'location' );
+SELECT col_type_is(       'mirrors', 'location', 'text' );
+SELECT col_not_null(      'mirrors', 'location' );
+SELECT col_hasnt_default( 'mirrors', 'location' );
+
+SELECT has_column(        'mirrors', 'organization' );
+SELECT col_type_is(       'mirrors', 'organization', 'text' );
+SELECT col_not_null(      'mirrors', 'organization' );
+SELECT col_hasnt_default( 'mirrors', 'organization' );
+
+SELECT has_column(        'mirrors', 'timezone' );
+SELECT col_type_is(       'mirrors', 'timezone', 'timezone' );
+SELECT col_not_null(      'mirrors', 'timezone' );
+SELECT col_hasnt_default( 'mirrors', 'timezone' );
+
+SELECT has_column(        'mirrors', 'contact' );
+SELECT col_type_is(       'mirrors', 'contact', 'email' );
+SELECT col_not_null(      'mirrors', 'contact' );
+SELECT col_hasnt_default( 'mirrors', 'contact' );
+
+SELECT has_column(        'mirrors', 'bandwidth' );
+SELECT col_type_is(       'mirrors', 'bandwidth', 'text' );
+SELECT col_not_null(      'mirrors', 'bandwidth' );
+SELECT col_hasnt_default( 'mirrors', 'bandwidth' );
+
+SELECT has_column(        'mirrors', 'src' );
+SELECT col_type_is(       'mirrors', 'src', 'uri' );
+SELECT col_not_null(      'mirrors', 'src' );
+SELECT col_hasnt_default( 'mirrors', 'src' );
+
+SELECT has_column(        'mirrors', 'rsync' );
+SELECT col_type_is(       'mirrors', 'rsync', 'uri' );
+SELECT col_is_null(       'mirrors', 'rsync' );
+SELECT col_hasnt_default( 'mirrors', 'rsync' );
+
+SELECT has_column(        'mirrors', 'notes' );
+SELECT col_type_is(       'mirrors', 'notes', 'text' );
+SELECT col_not_null(      'mirrors', 'notes' );
+SELECT col_has_default(   'mirrors', 'notes' );
+SELECT col_default_is(    'mirrors', 'notes', '' );
+
+SELECT has_column(        'mirrors', 'created_by' );
+SELECT col_type_is(       'mirrors', 'created_by', 'label' );
+SELECT col_not_null(      'mirrors', 'created_by' );
+SELECT col_hasnt_default( 'mirrors', 'created_by' );
+SELECT col_is_fk(         'mirrors', 'created_by' );
+SELECT fk_ok('mirrors', 'created_by', 'users', 'nickname' );
+
+SELECT has_column(        'mirrors', 'created_at' );
+SELECT col_type_is(       'mirrors', 'created_at', 'timestamp with time zone' );
+SELECT col_not_null(      'mirrors', 'created_at' );
+SELECT col_has_default(   'mirrors', 'created_at' );
+SELECT col_default_is(    'mirrors', 'created_at', 'now()' );
+
+SELECT has_column(        'mirrors', 'updated_at' );
+SELECT col_type_is(       'mirrors', 'updated_at', 'timestamp with time zone' );
+SELECT col_not_null(      'mirrors', 'updated_at' );
+SELECT col_has_default(   'mirrors', 'updated_at' );
+SELECT col_default_is(    'mirrors', 'updated_at', 'now()' );
+
+-- Check index.
+SELECT has_index('mirrors', 'idx_mirrors_created_at');
+SELECT index_is_type('mirrors', 'idx_mirrors_created_at', 'btree');
+
+-- Check privileges.
+SELECT ok(
+    has_table_privilege('pgxn', 'mirrors', 'SELECT'),
+    'User "pgxn" should have SELECT priv on mirrors table'
+);
+
+SELECT ok(
+    NOT has_table_privilege('pgxn', 'mirrors', priv),
+    'User "pgxn" should not have ' || priv || ' priv on mirrors table'
+) FROM unnest(ARRAY[
+    'UPDATE',
+    'INSERT',
+    'DELETE',
+    'TRUNCATE',
+    'REFERENCES',
+    'TRIGGER'
+]) AS priv;
+
+/****************************************************************************/
+-- Test is_admin().
+SELECT has_function(    'is_admin' );
+SELECT has_function(    'is_admin', ARRAY['label'] );
+SELECT function_returns('is_admin', 'boolean' );
+SELECT function_lang_is('is_admin', 'sql' );
+SELECT volatility_is(   'is_admin', 'stable' );
+SELECT ok(
+    has_function_privilege('pgxn', 'is_admin(label)', 'EXECUTE'),
+    'Mirror "pgxn" should have EXECUTE priv on is_admin()'
+);
+
+SELECT ok(
+    NOT is_admin('nobody'),
+    'Should get false from is_admin(non-existent user)'
+);
+
+-- Now insert a user.
+SELECT ok(
+    insert_user('theory', 'wet blanket', email := 'theory@pgxn.org'),
+    'Insert user "theory"'
+);
+
+SELECT ok(
+    NOT is_admin('theory'),
+    'Should get false from is_admin(non-admin user)'
+);
+
+UPDATE users SET is_admin = true WHERE nickname = 'theory';
+SELECT ok(
+    is_admin('theory'),
+    'Should get false from is_admin(admin user)'
+);
+
+/****************************************************************************/
+-- Test insert_mirror().
+SELECT has_function(    'insert_mirror' );
+SELECT has_function(    'insert_mirror', ARRAY['label', 'uri', 'text', 'text', 'text', 'timezone', 'email', 'text', 'uri', 'uri', 'text'] );
+SELECT is_definer(      'insert_mirror', ARRAY['label', 'uri', 'text', 'text', 'text', 'timezone', 'email', 'text', 'uri', 'uri', 'text'] );
+SELECT function_returns('insert_mirror', 'boolean' );
+SELECT function_lang_is('insert_mirror', 'plpgsql' );
+SELECT volatility_is(   'insert_mirror', 'volatile' );
+SELECT ok(
+    has_function_privilege(
+        'pgxn',
+        'insert_mirror(label, uri, text, text, text, timezone, email, text, uri, uri, text)',
+        'EXECUTE'
+    ),
+    'Mirror "pgxn" should have EXECUTE priv on insert_mirror()'
+);
+
+SELECT is(COUNT(*)::int, 0, 'Should start with no mirrors') FROM mirrors;
+
+SELECT throws_ok(
+    $$ SELECT insert_mirror('nobody') $$,
+    'P0001',
+    'Permission denied: User “nobody” is not an administrator',
+    'Should get error from insert_mirror() for non-existent user'
+);
+
+UPDATE users SET is_admin = false WHERE nickname = 'theory';
+SELECT throws_ok(
+    $$ SELECT insert_mirror('theory') $$,
+    'P0001',
+    'Permission denied: User “theory” is not an administrator',
+    'Should get error from insert_mirror() for non-admin user'
+);
+
+UPDATE users SET is_admin = true WHERE nickname = 'theory';
+SELECT throws_ok(
+    $$ SELECT insert_mirror('theory') $$,
+    '23502',
+    NULL, -- null value in column "uri" violates not-null constraint
+    'Should get error from insert_mirror() for invalid data'
+);
+
+SELECT ok(
+    insert_mirror(
+        'theory',
+        uri          := 'http://kineticode.com/pgxn/',
+        frequency    := 'hourly',
+        location     := 'Portland, OR, USA',
+        bandwidth    := '10MBps',
+        organization := 'Kineticode, Inc.',
+        timezone     := 'America/Los_Angeles',
+        contact      := 'pgxn@kineticode.com',
+        src          := 'rsync://master.pgxn.org/pgxn/',
+        rsync        := 'rsync://pgxn.kineticode.com/pgxn/',
+        notes        := 'This is a note'
+    ), 'Insert a mirror'
+);
+
+SELECT row_eq(
+    $$ SELECT * FROM mirrors $$,
+    ROW('http://kineticode.com/pgxn/','hourly', 'Portland, OR, USA',
+        'Kineticode, Inc.', 'America/Los_Angeles', 'pgxn@kineticode.com',
+        '10MBps', 'rsync://master.pgxn.org/pgxn/',
+        'rsync://pgxn.kineticode.com/pgxn/', 'This is a note', 'theory',
+        NOW(), NOW())::mirrors,
+    'The row should have been inserted'
+);
+
+SELECT throws_ok(
+    $$ SELECT insert_mirror(
+        'theory',
+        uri          := 'http://kineticode.com/pgxn/',
+        frequency    := 'hourly',
+        location     := 'Portland, OR, USA',
+        bandwidth    := '10MBps',
+        organization := 'Kineticode, Inc.',
+        timezone     := 'America/Los_Angeles',
+        contact      := 'pgxn@kineticode.com',
+        src          := 'rsync://master.pgxn.org/pgxn/'
+    ) $$,
+    '23505', -- duplicate key value violates unique constraint "mirrors_pkey"
+    NULL,
+    'Should get error for duplicate mirror URI'
+);
+
+/****************************************************************************/
+-- Test delete_mirror().
+SELECT has_function(    'delete_mirror' );
+SELECT has_function(    'delete_mirror', ARRAY['label', 'uri'] );
+SELECT is_definer(      'delete_mirror', ARRAY['label', 'uri'] );
+SELECT function_returns('delete_mirror', 'boolean' );
+SELECT function_lang_is('delete_mirror', 'plpgsql' );
+SELECT volatility_is(   'delete_mirror', 'volatile' );
+SELECT ok(
+    has_function_privilege(
+        'pgxn',
+        'delete_mirror(label, uri)',
+        'EXECUTE'
+    ),
+    'Mirror "pgxn" should have EXECUTE priv on delete_mirror()'
+);
+
+SELECT throws_ok(
+    $$ SELECT delete_mirror('nobody', 'http://foo.com/') $$,
+    'P0001',
+    'Permission denied: User “nobody” is not an administrator',
+    'Should get error from delete_mirror() for non-existent user'
+);
+
+UPDATE users SET is_admin = false WHERE nickname = 'theory';
+SELECT throws_ok(
+    $$ SELECT delete_mirror('theory', 'http://foo.com/') $$,
+    'P0001',
+    'Permission denied: User “theory” is not an administrator',
+    'Should get error from delete_mirror() for non-admin user'
+);
+
+UPDATE users SET is_admin = true WHERE nickname = 'theory';
+
+SELECT ok(
+    NOT delete_mirror('theory', NULL),
+    'Should get false from delete_mirror() for NULL URI'
+);
+
+SELECT ok(
+    NOT delete_mirror('theory', 'http://foo.com/'),
+    'Should get false from delete_mirror() for non-existent URI'
+);
+
+SELECT ok(
+    delete_mirror('theory', 'http://kineticode.com/pgxn/'),
+    'Should get true from delete_mirror() for actual mirror'
+);
+
+SELECT is(COUNT(*)::int, 0, 'Should again have no mirrors') FROM mirrors;
+
+SELECT * FROM finish();
+ROLLBACK;
