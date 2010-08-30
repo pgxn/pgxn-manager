@@ -91,12 +91,40 @@ END;
 $$;
 
 CREATE OR REPLACE FUNCTION transfer_ownership(
-    owner   LABEL,
-    coowner LABEL,
-    exts    TEXT[]
+    nick     LABEL,
+    newowner LABEL,
+    exts     TEXT[]
 ) RETURNS BOOLEAN LANGUAGE PLPGSQL SECURITY DEFINER AS $$
+/*
+
+    SELECT transfer_ownership('theory', 'strongrrl', ARRAY['pair', 'pgtap']);
+
+Transfer ownership of the specified extensions to a new owner. The first
+argument is the nickname of the uesr performing the transfer. Said user must
+either be and admin or own *all* of the specified extensions. The second
+argument is the nickname of the user being given ownership. This name must not
+be the same name as the owner. The third argument is an array of the names of
+the extensions to which ownership is to be transfered.
+
+*/
 BEGIN
--- Can be done by admin or owner.
+    IF NOT is_admin_or_owns(nick, exts) THEN
+        RAISE EXCEPTION 'User “%” does not have permission to transfer ownership of “%”',
+            nick, array_to_string(exts, '”, “');
+    END IF;
+
+    -- Remove any co-ownerships.
+    DELETE FROM coowners
+     WHERE nickname  = newowner
+       AND extension = ANY(exts);
+
+    -- Make the new guy the boss.
+    UPDATE extensions
+       SET owner      = newowner,
+           updated_at = NOW()
+     WHERE name       = ANY(exts)
+       AND owner     <> newowner;
+
+    RETURN FOUND;
 END;
 $$;
-

@@ -1,7 +1,7 @@
 SET search_path = public,contrib,tap;
 
 BEGIN;
-SELECT plan(74);
+SELECT plan(90);
 --SELECT * FROM no_plan();
 
 -- Check that we have the functions we think we have.
@@ -343,6 +343,102 @@ SELECT ok(
     'Let admin remove co-ownership'
 );
 SELECT is(COUNT(0)::int, 0, 'Should again have no co-owners') FROM coowners;
+UPDATE users SET is_admin = FALSE where nickname = 'strongrrl';
+
+/****************************************************************************/
+-- Test transfer_coownership().
+SELECT function_returns('transfer_ownership', 'boolean' );
+SELECT function_lang_is('transfer_ownership', 'plpgsql' );
+SELECT volatility_is(   'transfer_ownership', 'volatile' );
+
+SELECT throws_ok(
+    $$ SELECT transfer_ownership('nobody', 'nobody', '{}') $$,
+    'P0001',
+    'User “nobody” does not have permission to transfer ownership of “”',
+    'Should get error from transfer_ownership() for non-existent owner'
+);
+
+SELECT throws_ok(
+    $$ SELECT transfer_ownership('nobody', 'nobody', '{foo}') $$,
+    'P0001',
+    'User “nobody” does not have permission to transfer ownership of “foo”',
+    'Should get error from transfer_ownership() for non-existent owner and extension'
+);
+
+SELECT throws_ok(
+    $$ SELECT transfer_ownership('nobody', 'nobody', '{foo,bar}') $$,
+    'P0001',
+    'User “nobody” does not have permission to transfer ownership of “foo”, “bar”',
+    'Should get error from transfer_ownership() for non-existent owner and extensions'
+);
+
+SELECT throws_ok(
+    $$ SELECT transfer_ownership('strongrrl', 'nobody', '{foo}') $$,
+    'P0001',
+    'User “strongrrl” does not have permission to transfer ownership of “foo”',
+    'Should get error from transfer_ownership() for non-owner'
+);
+
+INSERT INTO coowners (extension, nickname)
+VALUES ('foo', 'strongrrl'), ('bar', 'strongrrl');
+
+-- Theory should currently own foo and bar.
+SELECT is(
+    ARRAY(SELECT owner::text FROM extensions WHERE name in ('foo', 'bar')),
+    ARRAY['theory', 'theory'],
+    'User "theory" should currently own "foo" and "bar"'
+);
+
+-- Set updated_at in the past.
+UPDATE extensions SET updated_at = NOW() - '1 day'::interval;
+
+-- Have theory transfer them to strongrrl.
+SELECT ok(
+    transfer_ownership('theory', 'strongrrl', ARRAY['foo', 'bar']),
+    'Transfer two extensions to strongrrl'
+);
+
+SELECT is(
+    ARRAY(SELECT owner::text FROM extensions WHERE name in ('foo', 'bar')),
+    ARRAY['strongrrl', 'strongrrl'],
+    'Now "strongrrl" should own "foo" and "bar"'
+);
+
+SELECT is(
+    ARRAY(SELECT updated_at FROM extensions WHERE name in ('foo', 'bar')),
+    ARRAY[NOW(), NOW()],
+    'And updated_at should have been updated'
+);
+
+SELECT is(COUNT(0)::int, 0, 'And her co-ownerships should have been deleted') FROM coowners;
+
+-- Try transfering to strongrrl again.
+SELECT throws_ok(
+    $$ SELECT transfer_ownership('theory', 'strongrrl', '{foo,bar}') $$,
+    'P0001',
+    'User “theory” does not have permission to transfer ownership of “foo”, “bar”',
+    'Should get error from transfer_ownership() for old owner'
+);
+
+-- Have strongrrl try to transfer to herself.
+UPDATE extensions SET updated_at = NOW() - '1 day'::interval;
+
+SELECT ok(
+    NOT transfer_ownership('strongrrl', 'strongrrl', ARRAY['foo', 'bar']),
+    'Transfer from strongrrl to strongrrl should return false'
+);
+
+SELECT is(
+    ARRAY(SELECT owner::text FROM extensions WHERE name in ('foo', 'bar')),
+    ARRAY['strongrrl', 'strongrrl'],
+    'Now "strongrrl" should still own "foo" and "bar"'
+);
+
+SELECT is(
+    ARRAY(SELECT updated_at FROM extensions WHERE name in ('foo', 'bar')),
+    ARRAY[NOW() - '1 day'::INTERVAL, NOW() - '1 day'::interval],
+    'And updated_at should not have been updated'
+);
 
 SELECT * FROM finish();
 ROLLBACK;
