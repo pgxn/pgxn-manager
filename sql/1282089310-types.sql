@@ -264,5 +264,43 @@ CREATE OPERATOR > (
     JOIN       = scalargtjoinsel
 );
 
+CREATE OPERATOR CLASS semver_ops
+DEFAULT FOR TYPE SEMVER USING btree AS
+    OPERATOR    1   <  (semver, semver),
+    OPERATOR    2   <= (semver, semver),
+    OPERATOR    3   =  (semver, semver),
+    OPERATOR    4   >= (semver, semver),
+    OPERATOR    5   >  (semver, semver),
+    FUNCTION    1   semver_cmp(semver, semver);
+
+CREATE FUNCTION semver_smaller(
+    semver,
+    semver
+) RETURNS SEMVER LANGUAGE plpgsql IMMUTABLE STRICT AS $$
+BEGIN
+    IF semver_cmp($1, $2) < 0 THEN RETURN $1; ELSE RETURN $2; END IF;
+END;
+$$;
+
+CREATE FUNCTION semver_larger(
+    semver,
+    semver
+) RETURNS SEMVER LANGUAGE plpgsql IMMUTABLE STRICT AS $$
+BEGIN
+    IF semver_cmp($1, $2) > 0 THEN RETURN $1; ELSE RETURN $2; END IF;
+END;
+$$;
+
+CREATE AGGREGATE min(semver)  (
+    SFUNC = semver_smaller,
+    STYPE = semver,
+    SORTOP = <
+);
+
+CREATE AGGREGATE max(semver)  (
+    SFUNC = semver_larger,
+    STYPE = semver,
+    SORTOP = >
+);
 
 COMMIT;

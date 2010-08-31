@@ -1,7 +1,7 @@
 SET search_path = public,contrib,tap;
 
 BEGIN;
-SELECT plan(216);
+SELECT plan(226);
 --SELECT * FROM no_plan();
 
 -- Test the label data type.
@@ -242,7 +242,8 @@ SELECT collect_tap(
     ('2.2.2b', '2.2.1'),
     ('2.2.2', '2.2.2b'),
     ('2.2.2c', '2.2.2b'),
-    ('2.2.2rc-2', '2.2.2RC-1')
+    ('2.2.2rc-2', '2.2.2RC-1'),
+    ('0.9.10', '0.9.9')
   ) AS f(lv, rv);
 
 -- Test clean_semver().
@@ -276,6 +277,31 @@ SELECT is(
     ('  012.2.2',      '12.2.2'),
     ('9999999999988',  '9999999999988.0.0')
 ) v(dirty, clean);
+
+-- Test sort ordering
+CREATE TABLE vs (
+    version semver
+);
+
+INSERT INTO vs VALUES ('1.2.0'), ('1.0.0'), ('0.9.9'), ('0.9.10');
+
+SELECT is(max(version), '1.2.0', 'max(semver) should work')
+  FROM vs;
+
+SELECT is(min(version), '0.9.9', 'min(semver) should work')
+  FROM vs;
+
+SELECT results_eq(
+    $$ SELECT version FROM vs ORDER BY version USING < $$,
+    $$ VALUES ('0.9.9'::semver), ('0.9.10'::semver), ('1.0.0'::semver), ('1.2.0'::semver) $$,
+    'ORDER BY semver USING < should work'
+);
+
+SELECT results_eq(
+    $$ SELECT version FROM vs ORDER BY version USING > $$,
+    $$ VALUES ('1.2.0'::semver), ('1.0.0'::semver), ('0.9.10'::semver), ('0.9.9'::semver) $$,
+    'ORDER BY semver USING > should work'
+);
 
 SELECT * FROM finish();
 ROLLBACK;
