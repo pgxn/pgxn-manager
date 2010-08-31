@@ -15,7 +15,7 @@ CREATE TABLE mirrors (
     bandwidth    TEXT        NOT NULL,
     src          URI         NOT NULL,
     rsync        URI             NULL,
-    notes        TEXT        NOT NULL DEFAULT '',
+    notes        TEXT            NULL,
     created_by   LABEL       NOT NULL REFERENCES users(nickname),
     created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at   TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -50,7 +50,7 @@ CREATE OR REPLACE FUNCTION insert_mirror(
     bandwidth    TEXT      DEFAULT NULL,
     src          URI       DEFAULT NULL,
     rsync        URI       DEFAULT NULL,
-    notes        TEXT      DEFAULT ''
+    notes        TEXT      DEFAULT NULL
 ) RETURNS BOOLEAN LANGUAGE plpgsql SECURITY DEFINER AS $$
 /*
 

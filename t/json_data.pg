@@ -1,0 +1,131 @@
+SET search_path = public,contrib,tap;
+
+BEGIN;
+SELECT plan(21);
+--SELECT * FROM no_plan();
+
+/****************************************************************************/
+-- Test munge_email().
+
+SELECT has_function(    'munge_email' );
+SELECT has_function(    'munge_email', ARRAY['email'] );
+SELECT function_returns('munge_email', ARRAY['email'], 'text' );
+SELECT function_lang_is('munge_email', ARRAY['email'], 'plpgsql' );
+SELECT is_strict(       'munge_email', ARRAY['email'] );
+SELECT volatility_is(   'munge_email', ARRAY['email'], 'immutable' );
+SELECT ok(
+    has_function_privilege('pgxn', 'munge_email(email)', 'EXECUTE'),
+    'User "pgxn" should have EXECUTE priv on munge_email()'
+);
+
+SELECT is( munge_email('foo@bar.com'), 'bar.com|foo', 'munge_email(email)');
+SELECT is( munge_email(NULL), NULL, 'munge_email(NULL)');
+
+/****************************************************************************/
+-- Test get_mirrors_json().
+
+SELECT has_function(    'get_mirrors_json' );
+SELECT has_function(    'get_mirrors_json', '{}'::text[] );
+SELECT function_returns('get_mirrors_json', 'text' );
+SELECT function_lang_is('get_mirrors_json', 'sql' );
+SELECT volatility_is(   'get_mirrors_json', 'stable' );
+SELECT ok(
+    has_function_privilege('pgxn', 'get_mirrors_json()', 'EXECUTE'),
+    'User "pgxn" should have EXECUTE priv on get_mirrors_json()'
+);
+
+SELECT is(
+    get_mirrors_json(),
+    E'[\n  \n]\n',
+    'Should get empty JSON array with no mirrors'
+);
+
+SELECT ok(
+    insert_user('theory', 'wet blanket', email := 'theory@pgxn.org'),
+    'Insert user "theory"'
+);
+UPDATE users SET is_admin = true WHERE nickname = 'theory';
+
+SELECT ok(
+    insert_mirror(
+        'theory',
+        uri          := 'http://example.com/pgxn/',
+        frequency    := 'hourly',
+        location     := 'Portland, OR, USA',
+        bandwidth    := '10MBps',
+        organization := 'Kineticode, Inc.',
+        timezone     := 'America/Los_Angeles',
+        contact      := 'pgxn@example.com',
+        src          := 'rsync://master.pgxn.org/pgxn/'
+    ), 'Insert a mirror'
+);
+
+SELECT is(
+    get_mirrors_json(),
+    '[
+  {
+    "uri": "http://example.com/pgxn/",
+    "frequency": "hourly",
+    "location": "Portland, OR, USA",
+    "organization": "Kineticode, Inc.",
+    "timezone": "America/Los_Angeles",
+    "contact": "example.com|pgxn",
+    "bandwidth": "10MBps",
+    "src": "rsync://master.pgxn.org/pgxn/"
+  }
+]
+',
+    'Should get single-item JSON array with one mirror'
+);
+
+-- Add another mirror with rsync and notes keys.
+
+SELECT ok(
+    insert_mirror(
+        'theory',
+        uri          := 'http://pgxn.example.net/',
+        frequency    := 'daily',
+        location     := 'Portland, OR, USA',
+        bandwidth    := 'Cable',
+        organization := 'David E. Wheeler',
+        timezone     := 'America/Los_Angeles',
+        contact      := 'pgxn@example.net',
+        src          := 'rsync://master.pgxn.org/pgxn/',
+        rsync        := 'rsync://master.pgxn.org/pgxn/',
+        notes        := 'These be some notes, yo'
+    ), 'Insert a mirror'
+);
+
+SELECT is(
+    get_mirrors_json(),
+    '[
+  {
+    "uri": "http://example.com/pgxn/",
+    "frequency": "hourly",
+    "location": "Portland, OR, USA",
+    "organization": "Kineticode, Inc.",
+    "timezone": "America/Los_Angeles",
+    "contact": "example.com|pgxn",
+    "bandwidth": "10MBps",
+    "src": "rsync://master.pgxn.org/pgxn/"
+  },
+  {
+    "uri": "http://pgxn.example.net/",
+    "frequency": "daily",
+    "location": "Portland, OR, USA",
+    "organization": "David E. Wheeler",
+    "timezone": "America/Los_Angeles",
+    "contact": "example.net|pgxn",
+    "bandwidth": "Cable",
+    "src": "rsync://master.pgxn.org/pgxn/",
+    "rsync": "rsync://master.pgxn.org/pgxn/",
+    "notes": "These be some notes, yo"
+  }
+]
+',
+    'Should get two-item-item JSON array with two mirrors'
+);
+
+
+SELECT * FROM finish();
+ROLLBACK;

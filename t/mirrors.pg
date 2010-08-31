@@ -1,7 +1,7 @@
 SET search_path = public,contrib,tap;
 
 BEGIN;
-SELECT plan(108);
+SELECT plan(107);
 --SELECT * FROM no_plan();
 
 SELECT has_table('public', 'mirrors', 'Should have table public.mirrors');
@@ -73,9 +73,8 @@ SELECT col_hasnt_default( 'mirrors', 'rsync' );
 
 SELECT has_column(        'mirrors', 'notes' );
 SELECT col_type_is(       'mirrors', 'notes', 'text' );
-SELECT col_not_null(      'mirrors', 'notes' );
-SELECT col_has_default(   'mirrors', 'notes' );
-SELECT col_default_is(    'mirrors', 'notes', '' );
+SELECT col_is_null(       'mirrors', 'notes' );
+SELECT col_hasnt_default( 'mirrors', 'notes' );
 
 SELECT has_column(        'mirrors', 'created_by' );
 SELECT col_type_is(       'mirrors', 'created_by', 'label' );

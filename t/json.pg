@@ -1,0 +1,90 @@
+SET search_path = public,contrib,tap;
+
+BEGIN;
+SELECT plan(46);
+--SELECT * FROM no_plan();
+
+/****************************************************************************/
+-- Test json_key().
+
+SELECT has_function(    'json_key' );
+SELECT has_function(    'json_key', ARRAY['text'] );
+SELECT function_returns('json_key', 'text' );
+SELECT function_lang_is('json_key', 'plperl' );
+SELECT volatility_is(   'json_key', 'immutable' );
+SELECT ok(
+    has_function_privilege('pgxn', 'json_key(text)', 'EXECUTE'),
+    'User "pgxn" should have EXECUTE priv on json_key()'
+);
+
+SELECT is( json_key('foo'), '"foo"', 'json_key(foo)' );
+SELECT is( json_key(E'fo\no'), E'"fo\\no"', E'json_key(fo\\no)' );
+SELECT throws_like(
+    $$ SELECT json_key(NULL) $$,
+    '%JSON object keys cannot be NULL%',
+    'Should get an exception from json_key(NULL)'
+);
+
+/****************************************************************************/
+-- Test json_value(text).
+
+SELECT has_function(    'json_value' );
+SELECT has_function(    'json_value', ARRAY['text', 'text'] );
+SELECT function_returns('json_value', ARRAY['text', 'text'], 'text' );
+SELECT function_lang_is('json_value', ARRAY['text', 'text'], 'plperl' );
+SELECT volatility_is(   'json_value', ARRAY['text', 'text'], 'immutable' );
+SELECT ok(
+    has_function_privilege('pgxn', 'json_value(text, text)', 'EXECUTE'),
+    'User "pgxn" should have EXECUTE priv on json_value()'
+);
+
+SELECT is( json_value('foo'), '"foo"', 'json_value(foo)' );
+SELECT is( json_value(E'fo\no'), E'"fo\\no"', E'json_value(fo\\no)' );
+SELECT is( json_value('http://foo.com'::uri), '"http://foo.com"', 'json_value(uri)' );
+SELECT is( json_value('foo', 'bar'), '"foo"', 'json_value(text, text)');
+SELECT is( json_value(NULL::text), 'null', 'json_value(NULL::text)');
+SELECT is( json_value(NULL::text, 'foo'), 'foo', 'json_value(NULL::text, text)');
+SELECT is( json_value(NULL::text, NULL::text), NULL, 'json_value(NULL::text, NULL::text)');
+
+/****************************************************************************/
+-- Test json_value(numeric).
+
+SELECT has_function(    'json_value' );
+SELECT has_function(    'json_value', ARRAY['numeric', 'text'] );
+SELECT function_returns('json_value', ARRAY['numeric', 'text'], 'text' );
+SELECT function_lang_is('json_value', ARRAY['numeric', 'text'], 'sql' );
+SELECT volatility_is(   'json_value', ARRAY['numeric', 'text'], 'immutable' );
+SELECT ok(
+    has_function_privilege('pgxn', 'json_value(numeric, text)', 'EXECUTE'),
+    'User "pgxn" should have EXECUTE priv on json_value()'
+);
+
+SELECT is( json_value(1), '1', 'json_value(1)' );
+SELECT is( json_value(1.2), '1.2', 'json_value(1.2)' );
+SELECT is( json_value(1::bigint), '1', 'json_value(1::bigint)' );
+SELECT is( json_value(NULL::int), 'null', 'json_value(NULL::int)');
+SELECT is( json_value(NULL::int, 'foo'), 'foo', 'json_value(NULL::int, text)');
+SELECT is( json_value(NULL::int, NULL::text), NULL, 'json_value(NULL::int, NULL::text)');
+
+/****************************************************************************/
+-- Test json_value(boolean).
+
+SELECT has_function(    'json_value' );
+SELECT has_function(    'json_value', ARRAY['boolean', 'text'] );
+SELECT function_returns('json_value', ARRAY['boolean', 'text'], 'text' );
+SELECT function_lang_is('json_value', ARRAY['boolean', 'text'], 'sql' );
+SELECT volatility_is(   'json_value', ARRAY['boolean', 'text'], 'immutable' );
+SELECT ok(
+    has_function_privilege('pgxn', 'json_value(boolean, text)', 'EXECUTE'),
+    'User "pgxn" should have EXECUTE priv on json_value()'
+);
+
+SELECT is( json_value(true), 'true', 'json_value(true)' );
+SELECT is( json_value(false), 'false', 'json_value(false)' );
+SELECT is( json_value(NULL::bool), 'null', 'json_value(NULL)' );
+SELECT is( json_value(NULL::bool), 'null', 'json_value(NULL::bool)');
+SELECT is( json_value(NULL::bool, 'foo'), 'foo', 'json_value(NULL::bool, text)');
+SELECT is( json_value(NULL::bool, NULL::text), NULL, 'json_value(NULL::bool, NULL::text)');
+
+SELECT * FROM finish();
+ROLLBACK;
