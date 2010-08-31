@@ -79,7 +79,6 @@ SELECT is(
 );
 
 -- Add another mirror with rsync and notes keys.
-
 SELECT ok(
     insert_mirror(
         'theory',
@@ -95,6 +94,10 @@ SELECT ok(
         notes        := 'These be some notes, yo'
     ), 'Insert a mirror'
 );
+
+-- Ensure the display order.
+UPDATE mirrors SET created_at = NOW() - '1 day'::interval
+ WHERE uri = 'http://example.com/pgxn/';
 
 SELECT is(
     get_mirrors_json(),
