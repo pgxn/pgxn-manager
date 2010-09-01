@@ -1,8 +1,32 @@
 SET search_path = public,contrib,tap;
 
 BEGIN;
-SELECT plan(37);
+SELECT plan(43);
 --SELECT * FROM no_plan();
+
+/****************************************************************************/
+-- Assertion function for validating JSON.
+CREATE OR REPLACE FUNCTION json_ok(
+    json  TEXT,
+    descr TEXT
+) RETURNS TEXT LANGUAGE plperl AS $$
+    eval { JSON::XS->new->decode(shift) };
+    my $ok = sub {
+        my ($bool, $descr, $diag) = @_;
+        my $ret = spi_exec_query(
+            sprintf 'SELECT ok(%s, %s)', $bool, quote_nullable($descr)
+        )->{rows}[0]{ok};
+        $ret .= "\n" . spi_exec_query(
+            sprintf 'SELECT diag(%s)', quote_nullable("    Error: $diag")
+        )->{rows}[0]{diag} if $diag;
+        return $ret;
+    };
+    if (my $e = $@) {
+        return $ok->('false', shift, $e);
+    } else {
+        return $ok->('true', shift);
+    }
+$$;
 
 /****************************************************************************/
 -- Test munge_email().
@@ -39,6 +63,8 @@ SELECT is(
     E'[\n   \n]\n',
     'Should get empty JSON array with no mirrors'
 );
+
+SELECT json_ok(get_mirrors_json(), 'Empty JSON array should be valid');
 
 SELECT ok(
     insert_user('theory', 'wet blanket', email := 'theory@pgxn.org'),
@@ -77,6 +103,8 @@ SELECT is(
 ',
     'Should get single-item JSON array with one mirror'
 );
+
+SELECT json_ok(get_mirrors_json(), 'Single-item mirror JSON should be valid');
 
 -- Add another mirror with rsync and notes keys.
 SELECT ok(
@@ -128,6 +156,8 @@ SELECT is(
 ',
     'Should get two-item-item JSON array with two mirrors'
 );
+
+SELECT json_ok(get_mirrors_json(), 'Two-item mirror JSON should be valid');
 
 /****************************************************************************/
 -- Test by_extension_json().
@@ -272,6 +302,9 @@ SELECT results_eq(
     'Should get proper data for extensions in multiple distributions'
 );
 
+SELECT json_ok(json, 'JSON for extension ' || extension || ' should be valid')
+  FROM by_extension_json('pair', '0.0.2');
+
 -- Now have strongrrl do a release with only the "trip" type.
 SELECT ok(
     insert_user('strongrrl', 'wet blanket', email := 'strongrrl@pgxn.org'),
@@ -310,6 +343,9 @@ SELECT results_eq(
     $$,
     'Should get proper data for extensions in the "trip" distribution'
 );
+
+SELECT json_ok(json, 'JSON for extension ' || extension || ' should be valid')
+  FROM by_extension_json('trip', '0.2.5');
 
 SELECT * FROM finish();
 ROLLBACK;
