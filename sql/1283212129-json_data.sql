@@ -136,7 +136,6 @@ for every released version in descending by extension version number.
             ON d.name     = de.distribution
            AND d.version  = de.dist_version
          GROUP BY de.extension
-         ORDER BY de.extension
     )
     SELECT e.extension, E'{\n   '
         || CASE WHEN stable   IS NULL THEN '' ELSE '"stable": '   || json_value(stable)   || E',\n   ' END
@@ -217,26 +216,54 @@ CREATE OR REPLACE FUNCTION by_tag_json(
      GROUP BY tag;
 $$;
 
-COMMIT;
-
+CREATE OR REPLACE FUNCTION by_owner_json(
+   owner LABEL
+) RETURNS TEXT LANGUAGE sql STABLE AS $$
 /*
 
-// owner.json
-{
-   "nickname": "theory",
-   "full_name": "David E. Wheeler",
-   "email": theory@pgxn.com",
-   "uri": "http://justatheory.com/",
-   "releases": {
-      "pair": {
-         "stable": ["0.2.2", "0.1.1"],
-         "testing": ["0.2.2a"],
-      },
-      "pair": {
-         "stable": ["0.2.2", "0.1.1"],
-         "testing": ["0.2.2a"],
-      }
-   }
-}
 
 */
+    WITH dv AS (
+        SELECT name AS distribution, owner,
+       '[' || string_agg(
+           CASE relstatus WHEN 'stable'
+           THEN '"' || version || '"'
+           ELSE NULL
+       END, ', ' ORDER BY version USING >) || ']' AS stable,
+       '[' || string_agg(
+           CASE relstatus
+           WHEN 'testing'
+           THEN '"' || version || '"'
+           ELSE NULL
+       END, ', ' ORDER BY version USING >) || ']' AS testing,
+       '[' || string_agg(
+           CASE relstatus
+           WHEN 'unstable'
+           THEN '"' || version || '"'
+           ELSE NULL
+       END, ', ' ORDER BY version USING >) || ']' AS unstable
+         FROM distributions
+        GROUP BY name, owner
+    )
+    SELECT E'{\n   ' || array_to_string(ARRAY[
+        '"nickname": ' || json_value(u.nickname),
+        '"name": '     || json_value(u.full_name),
+        '"email": '    || json_value(u.email),
+        '"uri": '      || json_value(uri, NULL)
+    ], E',\n   ') || COALESCE(E',\n   "releases": {\n' ||
+           string_agg(
+                 '      "' || dv.distribution
+                   || E'": {\n         ' ||  array_to_string(ARRAY[
+                       '"stable": '   || stable,
+                       '"testing": '  || testing,
+                       '"unstable": ' || unstable
+                   ], E',\n         ') || E'\n      }',
+              E',\n')
+           || E'\n   }\n}\n', E'\n}\n')
+      FROM users u
+      LEFT JOIN dv ON u.nickname = dv.owner
+     WHERE u.nickname = $1
+     GROUP BY u.nickname, u.full_name, u.email, u.uri;
+$$;
+
+COMMIT;
