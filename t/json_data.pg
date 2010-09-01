@@ -1,8 +1,8 @@
 SET search_path = public,contrib,tap;
 
 BEGIN;
---SELECT plan(43);
-SELECT * FROM no_plan();
+SELECT plan(78);
+--SELECT * FROM no_plan();
 
 /****************************************************************************/
 -- Assertion function for validating JSON.
@@ -348,6 +348,47 @@ SELECT results_eq(
 
 SELECT json_ok(json, 'JSON for extension ' || extension || ' should be valid')
   FROM by_extension_json('trip', '0.2.5');
+
+/****************************************************************************/
+-- Test the distribution_versions view.
+SELECT has_view(
+    'public', 'distribution_versions',
+    'Should have view public.distribution_versions'
+);
+
+SELECT columns_are('public', 'distribution_versions', ARRAY[
+    'distribution',
+    'stable',
+    'testing',
+    'unstable'
+]);
+
+SELECT has_column(  'distribution_versions', 'distribution' );
+SELECT col_type_is( 'distribution_versions', 'distribution', 'citext' );
+SELECT has_column(  'distribution_versions', 'stable' );
+SELECT col_type_is( 'distribution_versions', 'stable', 'text' );
+SELECT has_column(  'distribution_versions', 'testing' );
+SELECT col_type_is( 'distribution_versions', 'testing', 'text' );
+SELECT has_column(  'distribution_versions', 'unstable' );
+SELECT col_type_is( 'distribution_versions', 'unstable', 'text' );
+
+-- Check privileges.
+SELECT ok(
+    has_table_privilege('pgxn', 'distribution_versions', 'SELECT'),
+    'User "pgxn" should have SELECT priv on disribution_verions view'
+);
+
+SELECT ok(
+    NOT has_table_privilege('pgxn', 'distribution_versions', priv),
+    'User "pgxn" should not have ' || priv || ' priv on distribution_versions view'
+) FROM unnest(ARRAY[
+    'UPDATE',
+    'INSERT',
+    'DELETE',
+    'TRUNCATE',
+    'REFERENCES',
+    'TRIGGER'
+]) AS priv;
 
 /****************************************************************************/
 -- Test by_dist_json().
