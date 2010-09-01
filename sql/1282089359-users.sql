@@ -37,12 +37,15 @@ CREATE OR REPLACE FUNCTION insert_user(
 ) RETURNS BOOLEAN LANGUAGE plpgsql SECURITY DEFINER AS $$
 /*
 
-    SELECT insert_user(
+    % SELECT insert_user(
         'theory', '***',
         name  := 'David Wheeler',
         email := 'theory@pgxn.org',
         uri   := 'http://justatheory.com/'
     );
+     insert_user 
+    ─────────────
+     t
 
 Inserts a new user into the database. The nickname must not already exist or
 an exception will be thrown. The password must be at least four characters
@@ -83,6 +86,11 @@ CREATE OR REPLACE FUNCTION change_password(
 ) RETURNS BOOLEAN LANGUAGE plpgsql SECURITY DEFINER AS $$
 /*
 
+    % SELECT change_password('strongrrl', '****', 'whatever');
+     change_password 
+    ─────────────────
+     t
+
 Changes a user's password. The user must be active, and the old password must
 match the existing password for the nickname or the password will not be set.
 The password must be at least four charcters long or an exception will be
@@ -110,6 +118,16 @@ CREATE OR REPLACE FUNCTION update_user(
     uri   URI   DEFAULT NULL
 ) RETURNS BOOLEAN LANGUAGE plpgsql SECURITY DEFINER AS $$
 /*
+
+    % SELECT update_user(
+        'theory',
+        name  := 'David E. Wheeler',
+        email := 'justatheory@pgxn.org',
+        uri   := 'http://www.justatheory.com/'
+    );
+     update_user 
+    ─────────────
+     t
 
 Update the specified user. The user must be active. The nickname cannot be
 changed. The password can only be changed via `change_password()` or
@@ -149,6 +167,11 @@ CREATE OR REPLACE FUNCTION log_visit(
 ) RETURNS BOOLEAN LANGUAGE plpgsql SECURITY DEFINER AS $$
 /*
 
+    % SELECT log_visit('theory');
+     log_visit 
+    ───────────
+     t
+
 Log the visit for the specified user. At this point, that just means that
 `users.visited_at` gets set to the current time.
 
@@ -167,6 +190,11 @@ CREATE OR REPLACE FUNCTION set_user_status(
     stat   STATUS
 ) RETURNS BOOLEAN LANGUAGE plpgsql SECURITY DEFINER AS $$
 /*
+
+    % SELECT set_user_status('admin', 'strongrrl', 'active');
+     set_user_status 
+    ─────────────────
+     t
 
 Sets a user's status. The status may be one of "active", "inactive", or
 "deleted". The nickname of the user who sets the status must be passed as the
@@ -207,6 +235,11 @@ CREATE OR REPLACE FUNCTION set_user_admin(
     setto  BOOLEAN
 ) RETURNS BOOLEAN LANGUAGE plpgsql SECURITY DEFINER AS $$
 /*
+
+    % select set_user_admin('admin', 'strongrrl', true);
+     set_user_admin 
+    ────────────────
+     t
 
 Sets a user's administrator flag. The nickname of the user who does so must be
 passed as the first argument, and that user must be an administrator.
