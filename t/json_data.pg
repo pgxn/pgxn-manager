@@ -1,7 +1,7 @@
 SET search_path = public,contrib,tap;
 
 BEGIN;
-SELECT plan(21);
+SELECT plan(37);
 --SELECT * FROM no_plan();
 
 /****************************************************************************/
@@ -129,6 +129,187 @@ SELECT is(
     'Should get two-item-item JSON array with two mirrors'
 );
 
+/****************************************************************************/
+-- Test by_extension_json().
+
+SELECT has_function(    'by_extension_json' );
+SELECT has_function(    'by_extension_json', ARRAY['text', 'semver'] );
+SELECT function_returns('by_extension_json', ARRAY['text', 'semver'], 'setof record' );
+SELECT function_lang_is('by_extension_json', ARRAY['text', 'semver'], 'sql' );
+SELECT volatility_is(   'by_extension_json', ARRAY['text', 'semver'], 'stable' );
+SELECT ok(
+    has_function_privilege('pgxn', 'by_extension_json(text, semver)', 'EXECUTE'),
+    'User "pgxn" should have EXECUTE priv on by_extension_json()'
+);
+
+SELECT is_empty(
+    $$ SELECT * FROM by_extension_json(NULL, NULL) $$,
+    'Should get no results from by_extension_json() when no extensions'
+);
+
+-- Let's create a distribution.
+SELECT ok(
+     add_distribution('theory', 'pshaw', '{
+        "name": "pair",
+        "version": "0.0.01",
+        "license": "postgresql",
+        "maintainer": "theory",
+        "abstract": "Ordered pair",
+        "provides": {
+            "pair": { "file": "pair.sql.in", "version": "0.02.02" },
+            "trip": { "file": "trip.sql.in", "version": "0.02.01" }
+        },
+        "release_status": "testing"
+    }') IS NOT NULL,
+    'Add a testing distribution'
+);
+
+SELECT results_eq(
+    $$ SELECT * FROM by_extension_json('pair', '0.0.1') $$,
+    $$ VALUES
+        ('pair'::citext, '{
+  "testing": "0.2.2",
+  "releases": {
+    "0.2.2": { "dist": "pair", "version": "0.0.1", "status": "testing" }
+  }
+}
+'),
+        ('trip', '{
+  "testing": "0.2.1",
+  "releases": {
+    "0.2.1": { "dist": "pair", "version": "0.0.1", "status": "testing" }
+  }
+}
+')
+    $$,
+    'Should get proper data for extensions in a single distribution'
+);
+
+-- Add an unstable distribution.
+SELECT ok(
+     add_distribution('theory', 'pshaw', '{
+        "name": "pair",
+        "version": "0.0.2a1",
+        "license": "postgresql",
+        "maintainer": "theory",
+        "abstract": "Ordered pair",
+        "provides": {
+            "pair": { "file": "pair.sql.in", "version": "0.02.03" },
+            "trip": { "file": "trip.sql.in", "version": "0.02.02" }
+        },
+        "release_status": "unstable"
+    }') IS NOT NULL,
+    'Add an unstable distribution'
+);
+
+SELECT results_eq(
+    $$ SELECT * FROM by_extension_json('pair', '0.0.2a1') $$,
+    $$ VALUES
+        ('pair'::citext, '{
+  "testing": "0.2.2",
+  "unstable": "0.2.3",
+  "releases": {
+    "0.2.3": { "dist": "pair", "version": "0.0.2a1", "status": "unstable" },
+    "0.2.2": { "dist": "pair", "version": "0.0.1", "status": "testing" }
+  }
+}
+'),
+        ('trip', '{
+  "testing": "0.2.1",
+  "unstable": "0.2.2",
+  "releases": {
+    "0.2.2": { "dist": "pair", "version": "0.0.2a1", "status": "unstable" },
+    "0.2.1": { "dist": "pair", "version": "0.0.1", "status": "testing" }
+  }
+}
+')
+    $$,
+    'Should get proper data for extensions in a testing and unstable distributions'
+);
+
+-- Add an stable distribution.
+SELECT ok(
+     add_distribution('theory', 'pshaw', '{
+        "name": "pair",
+        "version": "0.0.2",
+        "license": "postgresql",
+        "maintainer": "theory",
+        "abstract": "Ordered pair",
+        "provides": {
+            "pair": { "file": "pair.sql.in", "version": "0.2.4" },
+            "trip": { "file": "trip.sql.in", "version": "0.2.3" }
+        }
+    }') IS NOT NULL,
+    'Add a stable distribution'
+);
+
+SELECT results_eq(
+    $$ SELECT * FROM by_extension_json('pair', '0.0.2') $$,
+    $$ VALUES
+        ('pair'::citext, '{
+  "stable": "0.2.4",
+  "testing": "0.2.2",
+  "unstable": "0.2.3",
+  "releases": {
+    "0.2.4": { "dist": "pair", "version": "0.0.2" },
+    "0.2.3": { "dist": "pair", "version": "0.0.2a1", "status": "unstable" },
+    "0.2.2": { "dist": "pair", "version": "0.0.1", "status": "testing" }
+  }
+}
+'),
+        ('trip', '{
+  "stable": "0.2.3",
+  "testing": "0.2.1",
+  "unstable": "0.2.2",
+  "releases": {
+    "0.2.3": { "dist": "pair", "version": "0.0.2" },
+    "0.2.2": { "dist": "pair", "version": "0.0.2a1", "status": "unstable" },
+    "0.2.1": { "dist": "pair", "version": "0.0.1", "status": "testing" }
+  }
+}
+')
+    $$,
+    'Should get proper data for extensions in multiple distributions'
+);
+
+-- Now have strongrrl do a release with only the "trip" type.
+SELECT ok(
+    insert_user('strongrrl', 'wet blanket', email := 'strongrrl@pgxn.org'),
+    'Insert user "strongrrl"'
+);
+
+UPDATE users SET status = 'active';
+INSERT INTO coowners (extension, nickname) VALUES ('trip', 'strongrrl');
+
+SELECT ok(
+     add_distribution('strongrrl', 'pshaw', '{
+        "name": "trip",
+        "version": "0.2.5",
+        "license": "postgresql",
+        "maintainer": "theory",
+        "abstract": "Ordered triplet"
+    }') IS NOT NULL,
+    'Add a trip distribution'
+);
+
+SELECT results_eq(
+    $$ SELECT * FROM by_extension_json('trip', '0.2.5') $$,
+    $$ VALUES
+        ('trip'::citext, '{
+  "stable": "0.2.5",
+  "testing": "0.2.1",
+  "unstable": "0.2.2",
+  "releases": {
+    "0.2.5": { "dist": "trip", "version": "0.2.5" },
+    "0.2.3": { "dist": "pair", "version": "0.0.2" },
+    "0.2.2": { "dist": "pair", "version": "0.0.2a1", "status": "unstable" },
+    "0.2.1": { "dist": "pair", "version": "0.0.1", "status": "testing" }
+  }
+}
+')
+    $$,
+    'Should get proper data for extensions in the "trip" distribution'
+);
 
 SELECT * FROM finish();
 ROLLBACK;
