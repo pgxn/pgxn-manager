@@ -29,7 +29,7 @@ CREATE OR REPLACE FUNCTION get_mirrors_json(
 ) RETURNS TEXT LANGUAGE sql STABLE AS $$
 /*
 
-    pgxn_manager_dev=# SELECT get_mirrors_json();
+    % SELECT get_mirrors_json();
                     get_mirrors_json                 
     ─────────────────────────────────────────────────
      [                                              ↵
