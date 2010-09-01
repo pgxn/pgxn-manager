@@ -1,8 +1,8 @@
 SET search_path = public,contrib,tap;
 
 BEGIN;
-SELECT plan(43);
---SELECT * FROM no_plan();
+--SELECT plan(43);
+SELECT * FROM no_plan();
 
 /****************************************************************************/
 -- Assertion function for validating JSON.
@@ -53,6 +53,7 @@ SELECT has_function(    'get_mirrors_json', '{}'::text[] );
 SELECT function_returns('get_mirrors_json', 'text' );
 SELECT function_lang_is('get_mirrors_json', 'sql' );
 SELECT volatility_is(   'get_mirrors_json', 'stable' );
+SELECT is_strict(       'get_mirrors_json', 'stable' );
 SELECT ok(
     has_function_privilege('pgxn', 'get_mirrors_json()', 'EXECUTE'),
     'User "pgxn" should have EXECUTE priv on get_mirrors_json()'
@@ -167,6 +168,7 @@ SELECT has_function(    'by_extension_json', ARRAY['text', 'semver'] );
 SELECT function_returns('by_extension_json', ARRAY['text', 'semver'], 'setof record' );
 SELECT function_lang_is('by_extension_json', ARRAY['text', 'semver'], 'sql' );
 SELECT volatility_is(   'by_extension_json', ARRAY['text', 'semver'], 'stable' );
+SELECT is_strict(       'by_extension_json', ARRAY['text', 'semver'] );
 SELECT ok(
     has_function_privilege('pgxn', 'by_extension_json(text, semver)', 'EXECUTE'),
     'User "pgxn" should have EXECUTE priv on by_extension_json()'
@@ -346,6 +348,85 @@ SELECT results_eq(
 
 SELECT json_ok(json, 'JSON for extension ' || extension || ' should be valid')
   FROM by_extension_json('trip', '0.2.5');
+
+/****************************************************************************/
+-- Test by_dist_json().
+
+SELECT has_function(    'by_dist_json' );
+SELECT has_function(    'by_dist_json', ARRAY['text'] );
+SELECT function_returns('by_dist_json', ARRAY['text'], 'text' );
+SELECT function_lang_is('by_dist_json', ARRAY['text'], 'sql' );
+SELECT volatility_is(   'by_dist_json', ARRAY['text'], 'stable' );
+SELECT is_strict(       'by_dist_json', ARRAY['text'] );
+SELECT ok(
+    has_function_privilege('pgxn', 'by_dist_json(text)', 'EXECUTE'),
+    'User "pgxn" should have EXECUTE priv on by_dist_json()'
+);
+
+SELECT is(
+    by_dist_json(NULL), NULL,
+    'Should get NULL value from by_dist_json() for NULL distribution'
+);
+
+SELECT is(
+    by_dist_json('nothing'), NULL,
+    'Should get NULL value from by_dist_json() for non-existent distribution'
+);
+
+SELECT is(
+    by_dist_json('pair'), '{
+   "name": "pair",
+   "releases": {
+      "stable": ["0.0.2"],
+      "testing": ["0.0.1"],
+      "unstable": ["0.0.2a1"]
+   }
+}
+', 'Should get expected JSON for distribution "pair"');
+
+SELECT json_ok(by_dist_json('pair'), '...And the JSON should be valid');
+
+-- Add version 0.0.10.
+SELECT ok(
+     add_distribution('theory', 'pshaw', '{
+        "name": "pair",
+        "version": "0.0.10",
+        "license": "postgresql",
+        "maintainer": "theory",
+        "abstract": "Ordered pair",
+        "provides": {
+            "pair": { "file": "pair.sql.in", "version": "0.02.10" },
+            "trip": { "file": "trip.sql.in", "version": "0.02.10" }
+        }
+    }') IS NOT NULL,
+    'Add a stable distribution pair 0.0.10'
+);
+
+SELECT is(
+    by_dist_json('pair'), '{
+   "name": "pair",
+   "releases": {
+      "stable": ["0.0.10", "0.0.2"],
+      "testing": ["0.0.1"],
+      "unstable": ["0.0.2a1"]
+   }
+}
+', '0.0.10 should be greater than 0.0.2 in the "pair" JSON');
+
+SELECT json_ok(by_dist_json('pair'), '...And that JSON should be valid');
+
+-- Select another distribution.
+SELECT is(
+    by_dist_json('trip'), '{
+   "name": "trip",
+   "releases": {
+      "stable": ["0.2.5"]
+   }
+}
+', 'Should get expected JSON for distribution "trip"');
+
+SELECT json_ok(by_dist_json('trip'), '...And its JSON should be valid');
+
 
 SELECT * FROM finish();
 ROLLBACK;

@@ -26,7 +26,7 @@ END;
 $$;
 
 CREATE OR REPLACE FUNCTION get_mirrors_json(
-) RETURNS TEXT LANGUAGE sql STABLE AS $$
+) RETURNS TEXT LANGUAGE sql STABLE STRICT AS $$
 /*
 
     % SELECT get_mirrors_json();
@@ -86,7 +86,7 @@ CREATE OR REPLACE FUNCTION by_extension_json(
 ) RETURNS TABLE (
     extension CITEXT,
     json      TEXT
-) LANGUAGE sql STABLE AS $$
+) LANGUAGE sql STABLE STRICT AS $$
 /*
 
     % SELECT * FROM by_extension_json('pair', '1.0.0');
@@ -172,7 +172,7 @@ SELECT name AS distribution,
 
 CREATE OR REPLACE FUNCTION by_dist_json(
    dist      TEXT
-) RETURNS TEXT LANGUAGE sql STABLE AS $$
+) RETURNS TEXT LANGUAGE sql STABLE STRICT AS $$
 /*
 
     % SELECT * from by_dist_json('pair');
@@ -189,12 +189,13 @@ Returns a JSON string describing a distribution, including all of its released
 versions.
 
 */
-    SELECT E'{\n   "name": ' || json_value(distribution) || E'\n   "releases": {\n      '
+    SELECT E'{\n   "name": ' || json_value(distribution)
+           || E',\n   "releases": {\n      '
            || array_to_string(ARRAY[
                '"stable": '   || stable,
                '"testing": '  || testing,
                '"unstable": ' || unstable
-           ], E',\n      ') || E'   }\n}\n'
+           ], E',\n      ') || E'\n   }\n}\n'
       FROM distribution_versions
      WHERE distribution = $1;
 $$;
@@ -205,7 +206,7 @@ CREATE OR REPLACE FUNCTION by_tag_json(
 ) RETURNS TABLE (
     tag  CITEXT,
     json TEXT
-) LANGUAGE sql STABLE AS $$
+) LANGUAGE sql STABLE STRICT AS $$
 /*
 
     % SELECT * from by_tag_json('pgtap', '0.0.1');
@@ -264,7 +265,7 @@ $$;
 
 CREATE OR REPLACE FUNCTION by_owner_json(
    owner LABEL
-) RETURNS TEXT LANGUAGE sql STABLE AS $$
+) RETURNS TEXT LANGUAGE sql STABLE STRICT AS $$
 /*
 
     % SELECT by_owner_json('theory');
