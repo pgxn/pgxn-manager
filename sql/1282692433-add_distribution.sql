@@ -10,6 +10,7 @@ CREATE OR REPLACE FUNCTION setup_meta(
     OUT abstract    TEXT,
     OUT description TEXT,
     OUT provided    TEXT[][],
+    OUT tags        CITEXT[],
     OUT json        TEXT
 ) LANGUAGE plperl IMMUTABLE AS $$
     my $idx_meta  = { owner => shift, sha1 => shift };
@@ -84,6 +85,7 @@ CREATE OR REPLACE FUNCTION setup_meta(
         abstract    => $idx_meta->{abstract},
         description => $idx_meta->{description},
         json        => $json,
+        tags        => encode_array_literal( $idx_meta->{tags} || []),
         provided    => encode_array_literal([
             map { [ $_ => $p->{$_}{version} ] } sort keys %{ $p }
         ]),
@@ -215,6 +217,8 @@ With this data, `add_distribution()` does the following things:
 * Inserts records for all included exentions into the
   `distribution_extensions` table.
 
+* Inserts records for all associated tags into the `distribution_tags` table.
+
 * Returns the index metadata as a JSON string. If any argument is `NULL`,
   returns `NULL`, in which case the distribution will not have been added.
 
@@ -259,6 +263,11 @@ BEGIN
   ');
        END IF;
     END;
+
+    -- Record the tags for this distribution.
+    INSERT INTO distribution_tags (distribution, version, tag)
+    SELECT DISTINCT distmeta.name, distmeta.version, tag
+      FROM unnest(distmeta.tags) AS tag;
 
     RETURN distmeta.json;
 END;

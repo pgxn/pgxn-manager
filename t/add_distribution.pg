@@ -1,7 +1,7 @@
 SET search_path = public,contrib,tap;
 
 BEGIN;
-SELECT plan(87);
+SELECT plan(91);
 --SELECT * FROM no_plan();
 
 -- Check that we have the functions we think we have.
@@ -101,7 +101,8 @@ SELECT results_eq(
     }') $$,
     $$ VALUES('pair'::citext, '0.0.1'::semver, 'testing'::relstatus, 'Ordered pair',
     'An ordered pair for PostgreSQL',
-    ARRAY[['pair', '0.2.2'], ['trip', '0.2.1']], '{
+    ARRAY[['pair', '0.2.2'], ['trip', '0.2.1']],
+    ARRAY['foo'::citext, 'bar', 'baz'], '{
    "name": "pair",
    "abstract": "Ordered pair",
    "description": "An ordered pair for PostgreSQL",
@@ -141,12 +142,12 @@ SELECT results_eq(
     'Should get expected record from setup_meta()'
 );
 
--- Make sure that the "provided" and "relstatus" get defaults.
+-- Make sure that the "provided", "relstatus", and "tags" columns get defaults.
 SELECT results_eq(
-    $$ SELECT provided, relstatus
+    $$ SELECT provided, relstatus, tags
          FROM setup_meta('nobody', 'pshaw', '{"name": "pair", "version": "0.0.1", "license": "postgresql","maintainer": "theory", "abstract": "whatever"}') $$,
-    $$ VALUES (ARRAY[['pair', '0.0.1']], 'stable'::relstatus) $$,
-    'Should get expected default provides and release_status from setup_meta()'
+    $$ VALUES (ARRAY[['pair', '0.0.1']], 'stable'::relstatus, '{}'::citext[]) $$,
+    'Should get expected default provided, release_status, and tags from setup_meta()'
 );
 
 /****************************************************************************/
@@ -475,6 +476,19 @@ SELECT bag_eq(
     'We should have the expected distribution extensions'
 );
 
+SELECT is(COUNT(*)::int, 3, 'Should now have three distribution tags')
+  FROM distribution_tags;
+SELECT is(
+    ARRAY(
+        SELECT tag
+          FROM distribution_tags
+         WHERE distribution = 'pair'
+           AND VERSION = '0.0.1' ORDER BY tag
+    ),
+    ARRAY['bar'::citext, 'baz', 'foo'],
+    'And they should be the expected tags'
+);
+
 SELECT throws_ok(
     $$ SELECT add_distribution('theory', 'foo', '{
         "name":        "pair",
@@ -530,7 +544,8 @@ SELECT is(
         "version":     "0.0.2",
         "license":     "postgresql",
         "maintainer":  "strongrrl",
-        "abstract":    "whatever"
+        "abstract":    "whatever",
+        "tags": ["Foo", "PAIR", "pair"]
     }'),
     '{
    "name": "foo",
@@ -545,7 +560,8 @@ SELECT is(
       "foo": {
          "version": "0.0.2"
       }
-   }
+   },
+   "tags": ["Foo", "PAIR", "pair"]
 }
 ', 'Should get proper JSON for strongrrl upload');
 
@@ -569,7 +585,8 @@ SELECT is(meta, '{
       "foo": {
          "version": "0.0.2"
       }
-   }
+   },
+   "tags": ["Foo", "PAIR", "pair"]
 }
 ', '...including the metadata')
   FROM distributions
@@ -596,6 +613,19 @@ SELECT bag_eq(
        ('foo', '0.0.2',  'foo',  '0.0.2')
     $$,
     'We should have the expected distribution extensions'
+);
+
+SELECT is(COUNT(*)::int, 5, 'Should now have five distribution tags')
+  FROM distribution_tags;
+SELECT is(
+    ARRAY(
+        SELECT tag
+          FROM distribution_tags
+         WHERE distribution = 'foo'
+           AND VERSION = '0.0.2' ORDER BY tag
+    ),
+    ARRAY['foo'::citext, 'PAIR'],
+    'And they should be the expected tags'
 );
 
 -- Strongrrl shouldn't be able to upload new pair.
