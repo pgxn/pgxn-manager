@@ -12,6 +12,8 @@ CREATE TABLE extensions (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+GRANT SELECT ON extensions TO pgxn;
+
 CREATE TABLE coowners (
     extension  CITEXT      NOT NULL REFERENCES extensions(name),
     nickname   LABEL       NOT NULL REFERENCES users(nickname),
@@ -27,5 +29,7 @@ CREATE TABLE distribution_extensions (
     PRIMARY KEY (extension, ext_version),
     FOREIGN KEY (distribution, dist_version) REFERENCES distributions(name, version)
 );
+
+GRANT SELECT ON distribution_extensions TO pgxn;
 
 COMMIT;

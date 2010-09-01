@@ -170,6 +170,8 @@ SELECT name AS distribution,
   FROM distributions
  GROUP BY name;
 
+GRANT SELECT ON distribution_versions TO pgxn;
+
 CREATE OR REPLACE FUNCTION by_dist_json(
    dist      TEXT
 ) RETURNS TEXT LANGUAGE sql STABLE STRICT AS $$

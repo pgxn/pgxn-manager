@@ -1,7 +1,7 @@
 SET search_path = public,contrib,tap;
 
 BEGIN;
-SELECT plan(79);
+SELECT plan(86);
 --SELECT * FROM no_plan();
 
 SELECT has_enum('relstatus');
@@ -80,10 +80,14 @@ SELECT col_default_is(    'distributions', 'created_at', 'now()' );
 
 -- Check privileges.
 SELECT ok(
+    has_table_privilege('pgxn', 'distributions', 'SELECT'),
+    'User "pgxn" should have SELECT priv on distributions table'
+);
+
+SELECT ok(
     NOT has_table_privilege('pgxn', 'distributions', priv),
     'User "pgxn" should not have ' || priv || ' priv on distributions table'
 ) FROM unnest(ARRAY[
-    'SELECT',
     'UPDATE',
     'INSERT',
     'DELETE',
@@ -130,6 +134,23 @@ SELECT fk_ok(
 
 SELECT has_index('distribution_tags', 'idx_distribution_tags_tag');
 SELECT index_is_type('distribution_tags', 'idx_distribution_tags_tag', 'btree');
+-- Check privileges.
+SELECT ok(
+    has_table_privilege('pgxn', 'distribution_tags', 'SELECT'),
+    'User "pgxn" should have SELECT priv on distributions table'
+);
+
+SELECT ok(
+    NOT has_table_privilege('pgxn', 'distribution_tags', priv),
+    'User "pgxn" should not have ' || priv || ' priv on distribution_tags table'
+) FROM unnest(ARRAY[
+    'UPDATE',
+    'INSERT',
+    'DELETE',
+    'TRUNCATE',
+    'REFERENCES',
+    'TRIGGER'
+]) AS priv;
 
 SELECT * FROM finish();
 ROLLBACK;

@@ -43,10 +43,14 @@ SELECT col_default_is(    'extensions', 'updated_at', 'now()' );
 
 -- Check privileges.
 SELECT ok(
+    has_table_privilege('pgxn', 'extensions', 'SELECT'),
+    'User "pgxn" should have SELECT priv on extensions table'
+);
+
+SELECT ok(
     NOT has_table_privilege('pgxn', 'extensions', priv),
     'User "pgxn" should not have ' || priv || ' priv on extensions table'
 ) FROM unnest(ARRAY[
-    'SELECT',
     'UPDATE',
     'INSERT',
     'DELETE',
@@ -150,10 +154,14 @@ SELECT fk_ok(
 
 -- Check privileges.
 SELECT ok(
+    has_table_privilege('pgxn', 'distribution_extensions', 'SELECT'),
+    'User "pgxn" should have SELECT priv on distribution_extensions table'
+);
+
+SELECT ok(
     NOT has_table_privilege('pgxn', 'distribution_extensions', priv),
     'User "pgxn" should not have ' || priv || ' priv on distribution_extensions table'
 ) FROM unnest(ARRAY[
-    'SELECT',
     'UPDATE',
     'INSERT',
     'DELETE',

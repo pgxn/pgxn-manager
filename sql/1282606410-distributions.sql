@@ -24,6 +24,8 @@ CREATE TABLE distributions (
     PRIMARY KEY (name, version)
 );
 
+GRANT SELECT ON distributions TO pgxn;
+
 CREATE TABLE distribution_tags (
     distribution CITEXT,
     version      SEMVER,
@@ -33,5 +35,6 @@ CREATE TABLE distribution_tags (
 );
 
 CREATE INDEX idx_distribution_tags_tag ON distribution_tags(tag);
+GRANT SELECT ON distribution_tags TO pgxn;
 
 COMMIT;
