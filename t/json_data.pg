@@ -1,7 +1,7 @@
 SET search_path = public,contrib,tap;
 
 BEGIN;
-SELECT plan(98);
+SELECT plan(114);
 --SELECT * FROM no_plan();
 
 /****************************************************************************/
@@ -68,7 +68,7 @@ SELECT is(
 SELECT json_ok(get_mirrors_json(), 'Empty JSON array should be valid');
 
 SELECT ok(
-    insert_user('theory', 'wet blanket', email := 'theory@pgxn.org'),
+    insert_user('theory', 'wet blanket', email := 'theory@pgxn.org', uri := 'http://justatheory.com/'),
     'Insert user "theory"'
 );
 UPDATE users SET is_admin = true WHERE nickname = 'theory';
@@ -625,6 +625,93 @@ SELECT is_empty(
     $$ SELECT * FROM by_tag_json('dowop', '0.50.1') $$,
     'Should get no results from by_tag_json() for tagless distribution'
 );
+
+/****************************************************************************/
+-- Test by_owner_json().
+
+SELECT has_function(    'by_owner_json' );
+SELECT has_function(    'by_owner_json', ARRAY['label'] );
+SELECT function_returns('by_owner_json', ARRAY['label'], 'text' );
+SELECT function_lang_is('by_owner_json', ARRAY['label'], 'sql' );
+SELECT volatility_is(   'by_owner_json', ARRAY['label'], 'stable' );
+SELECT is_strict(       'by_owner_json', ARRAY['label'] );
+SELECT ok(
+    has_function_privilege('pgxn', 'by_owner_json(label)', 'EXECUTE'),
+    'User "pgxn" should have EXECUTE priv on by_owner_json()'
+);
+
+SELECT is(
+    by_owner_json(NULL), NULL,
+    'Should get NULL value from by_owner_json() for NULL owner'
+);
+
+SELECT is(
+    by_owner_json('nobody'), NULL,
+    'Should get NULL value from by_owner_json() for non-existent owner'
+);
+
+-- Insert a new user who will have no distributions.
+SELECT ok(
+    insert_user('anna', 'wet blanket', email := 'anna@pgxn.org'),
+    'Insert user "anna"'
+);
+
+SELECT is(
+    by_owner_json('anna'),
+    '{
+   "nickname": "anna",
+   "name": "",
+   "email": "anna@pgxn.org"
+}
+',
+    'Should get proper JSON for user without distribution or URI'
+);
+
+SELECT json_ok(by_owner_json('anna'), '...And that JSON should be valid');
+
+-- See about user with one distribution.
+SELECT is(
+    by_owner_json('strongrrl'),
+    '{
+   "nickname": "strongrrl",
+   "name": "",
+   "email": "strongrrl@pgxn.org",
+   "releases": {
+      "trip": {
+         "stable": ["0.2.5"]
+      }
+   }
+}
+',
+    'Should get proper JSON for user with one distribution'
+);
+
+SELECT json_ok(by_owner_json('strongrrl'), '...And that JSON should be valid');
+
+-- See about user with many distributions.
+SELECT is(
+    by_owner_json('theory'),
+    '{
+   "nickname": "theory",
+   "name": "",
+   "email": "theory@pgxn.org",
+   "uri": "http://justatheory.com/",
+   "releases": {
+      "duwop": {
+         "stable": ["0.50.1"]
+      },
+      "pair": {
+         "stable": ["0.0.10", "0.0.2"],
+         "testing": ["0.0.1"],
+         "unstable": ["0.0.2a1"]
+      }
+   }
+}
+',
+    'Should get proper JSON for user with many distributions'
+);
+
+SELECT json_ok(by_owner_json('theory'), '...And that JSON should be valid');
 
 SELECT * FROM finish();
 ROLLBACK;
