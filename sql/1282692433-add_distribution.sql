@@ -120,9 +120,37 @@ CREATE OR REPLACE FUNCTION add_distribution(
 ) RETURNS TEXT LANGUAGE plpgsql STRICT SECURITY DEFINER AS $$
 /*
 
-    SELECT add_distribution(nickname, sha1, json_string);
+    % SELECT add_distribution('theory', 'ebf381e2e1e5767fb068d1c4423a9d9f122c2dc6', '{
+        "name": "pair",
+        "version": "0.0.01",
+        "license": "postgresql",
+        "maintainer": "theory",
+        "abstract": "Ordered pair",
+        "provides": {
+            "pair": { "file": "pair.sql.in", "version": "0.02.02" },
+            "trip": { "file": "trip.sql.in", "version": "0.02.01" }
+        },
+        "release_status": "testing"
+    }');
+                           add_distribution                                                                                                                                                   
+    ─────────────────────────────────────────────────────────────
+     {
+       "maintainer": "theory",
+       "owner": "theory",
+       "sha1": "ebf381e2e1e5767fb068d1c4423a9d9f122c2dc6",
+       "version": "0.0.1",
+       "name": "pair",
+       "license": "postgresql",
+       "provides": {
+         "pair": { "version": "0.2.2", "file": "pair.sql.in" },
+         "trip": { "version": "0.2.1", "file": "trip.sql.in" }
+       },
+       "abstract": "Ordered pair",
+       "release_status": "testing"
+     }
 
-Creates a new distribution. The nickname of the uploading user (owner) must be
+Creates a new distribution, returning the JSON to be used in the metadata file
+for the distribution. The nickname of the uploading user (owner) must be
 passed as the first argument. The SHA1 of the distribution file must be passed
 as the second argument. All other metadata is parsed from the JSON string,
 which should contain the complete contents of the distribution's `META.json`

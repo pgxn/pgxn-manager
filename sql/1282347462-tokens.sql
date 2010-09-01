@@ -16,9 +16,15 @@ CREATE OR REPLACE FUNCTION rand_str_of_len(
 ) RETURNS TEXT LANGUAGE 'plpgsql' STRICT AS $$
 /*
 
+    % SELECT rand_str_of_len(12);
+     rand_str_of_len 
+    ─────────────────
+     i5cvbMF849hp
+
 Returns a random string of ASCII alphanumeric characters of the specified
 length. Borrowed [from
 Depesz](http://www.depesz.com/index.php/2007/06/25/random-text-record-identifiers/).
+Used internally by `forgot_password()` to generate tokens.
 
 */
 DECLARE
@@ -34,10 +40,16 @@ BEGIN
 END;
 $$;
 
+-- XXX Change to return two columns via OUT params?
 CREATE OR REPLACE FUNCTION forgot_password(
     nick LABEL
 ) RETURNS TEXT[] LANGUAGE plpgsql SECURITY DEFINER AS $$
 /*
+
+    % SELECT forgot_password('theory');
+           forgot_password        
+    ──────────────────────────────
+     {G8Gxz,justatheory@pgxn.org}
 
 Creates a password reset token for the specified nickname. The user must be
 active. The return value is a two-element array. The first value is the token,
@@ -79,6 +91,11 @@ CREATE OR REPLACE FUNCTION reset_password(
     pass  TEXT
 ) RETURNS BOOLEAN LANGUAGE plpgsql SECURITY DEFINER AS $$
 /*
+
+    % SELECT reset_password('G8Gxz', 'whatever');
+     reset_password 
+    ────────────────
+     t
 
 Pass in a token and a new password to reset a user password. The token must
 exist and must not have expired and the associated user must be active. The

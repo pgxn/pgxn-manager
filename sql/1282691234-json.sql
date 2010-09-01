@@ -12,7 +12,7 @@ CREATE OR REPLACE FUNCTION json_key(
 
     % SELECT json_key('foo');
      json_key 
-    -------------
+    ──────────
      "foo"
 
 Like `json_string()`, this function encodes a text value as a JSON string and
@@ -34,10 +34,9 @@ CREATE OR REPLACE FUNCTION json_value(
 
     % SELECT json_value('foo'), json_value(NULL), json_value(NULL, 'default'),
              json_value(NULL, NULL);
-
-     json_value | json_value | json_value | json_value 
-    ------------+------------+------------+------------
-     "foo"      | null       | default    | 
+     json_value │ json_value │ json_value │ json_value 
+    ────────────┼────────────┼────────────┼────────────
+     "foo"      │ null       │ default    │ 
 
 Encodes a text value as a JSON string. If the string is `NULL`, the second
 argument will be used as a fallback. If there is no second argument, it will
@@ -56,11 +55,10 @@ CREATE OR REPLACE FUNCTION json_value(
 /*
 
     % SELECT json_value(1.2), json_value(NULL::int),
-      json_value(NULL::int, 'default'), json_value(NULL::int, NULL);
-
-     json_value | json_value | json_value | json_value 
-    ------------+------------+------------+------------
-     1.2        | null       | default    | 
+             json_value(NULL::int, 'default'), json_value(NULL::int, NULL);
+     json_value │ json_value │ json_value │ json_value 
+    ────────────┼────────────┼────────────┼────────────
+     1.2        │ null       │ default    │ 
 
 Encodes a numeric value as a JSON number. If the number is `NULL`, the second
 argument will be used as a fallback. If there is no second argument, it will
@@ -77,12 +75,10 @@ CREATE OR REPLACE FUNCTION json_value(
 /*
 
     % SELECT json_value(TRUE), json_value(NULL::bool),
-      json_value(NULL::bool, 'default'), json_value(NULL::bool, NULL);
-
-     json_value | json_value | json_value | json_value 
-    ------------+------------+------------+------------
-     true       | null       | default    | 
-    (1 row)
+             json_value(NULL::bool, 'default'), json_value(NULL::bool, NULL);
+     json_value │ json_value │ json_value │ json_value 
+    ────────────┼────────────┼────────────┼────────────
+     true       │ null       │ default    │ [null]
 
 Encodes a boolean value as a JSON boolean ("true" or "false"). If the boolean
 is `NULL`, the second argument will be used as a fallback. If there is no

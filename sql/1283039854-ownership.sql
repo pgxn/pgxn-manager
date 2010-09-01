@@ -30,7 +30,10 @@ CREATE OR REPLACE FUNCTION grant_coownership(
 ) RETURNS BOOLEAN LANGUAGE PLPGSQL SECURITY DEFINER AS $$
 /*
 
-    SELECT grant_coownership('theory', 'strongrrl', ARRAY['pair', 'pgtap']);
+    % SELECT grant_coownership('theory', 'strongrrl', ARRAY['pair', 'pgtap']);
+     grant_coownership 
+    ───────────────────
+     t
 
 Grants co-ownership to one or more extensions. The first argument is the
 nickname of the uesr inserting the co-owner. Said user must either be and
@@ -66,7 +69,10 @@ CREATE OR REPLACE FUNCTION revoke_coownership(
 ) RETURNS BOOLEAN LANGUAGE PLPGSQL SECURITY DEFINER AS $$
 /*
 
-    SELECT revoke_coownership('theory', 'strongrrl', ARRAY['pair', 'pgtap']);
+    % SELECT revoke_coownership('theory', 'strongrrl', ARRAY['pair', 'pgtap']);
+     revoke_coownership 
+    ────────────────────
+     t
 
 Remove co-ownership permission to the specified extensions. The first argument
 is the nickname of the user removing co-ownership. Said user must either be
@@ -97,7 +103,10 @@ CREATE OR REPLACE FUNCTION transfer_ownership(
 ) RETURNS BOOLEAN LANGUAGE PLPGSQL SECURITY DEFINER AS $$
 /*
 
-    SELECT transfer_ownership('theory', 'strongrrl', ARRAY['pair', 'pgtap']);
+    % SELECT transfer_ownership('theory', 'strongrrl', ARRAY['pair', 'pgtap']);
+     transfer_ownership 
+    ────────────────────
+     t
 
 Transfer ownership of the specified extensions to a new owner. The first
 argument is the nickname of the uesr performing the transfer. Said user must

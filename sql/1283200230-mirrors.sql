@@ -54,7 +54,7 @@ CREATE OR REPLACE FUNCTION insert_mirror(
 ) RETURNS BOOLEAN LANGUAGE plpgsql SECURITY DEFINER AS $$
 /*
 
-    SELECT insert_mirror(
+    % SELECT insert_mirror(
         'theory',
         uri          := 'http://kineticode.com/pgxn/',
         frequency    := 'hourly',
@@ -67,8 +67,12 @@ CREATE OR REPLACE FUNCTION insert_mirror(
         rsync        := 'rsync://pgxn.kineticode.com/pgxn/',
         notes        := 'This is a note'
     );
+     insert_mirror 
+    ───────────────
+     t
+    (1 row)
 
-Insert a new mirror. The user specified as the first parameter must be an
+Inserts a mirror. The user specified as the first parameter must be an
 administrator or else an exception will be thrown. All arguments are required
 except `rsync` and `notes`. Returns true on succesful insert and false on
 failure (probably impossible, normally an exception will be thrown on
@@ -109,9 +113,12 @@ CREATE OR REPLACE FUNCTION delete_mirror(
 ) RETURNS BOOLEAN LANGUAGE plpgsql SECURITY DEFINER AS $$
 /*
 
-    SELECT delete_mirror('theory', 'http://kineticode.com/pgxn/');
+    % SELECT delete_mirror('theory', 'http://kineticode.com/pgxn/');
+     delete_mirror 
+    ───────────────
+     t
 
-Delete a mirror. The user specified as the first parameter must be an
+Deletes a mirror. The user specified as the first parameter must be an
 administrator or else an exception will be thrown. Returns true if the
 specified mirror was deleted and false if not.
 
