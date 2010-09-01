@@ -1,7 +1,7 @@
 SET search_path = public,contrib,tap;
 
 BEGIN;
-SELECT plan(78);
+SELECT plan(98);
 --SELECT * FROM no_plan();
 
 /****************************************************************************/
@@ -468,6 +468,163 @@ SELECT is(
 
 SELECT json_ok(by_dist_json('trip'), '...And its JSON should be valid');
 
+/****************************************************************************/
+-- Test by_tag_json().
+
+SELECT has_function(    'by_tag_json' );
+SELECT has_function(    'by_tag_json', ARRAY['text', 'semver'] );
+SELECT function_returns('by_tag_json', ARRAY['text', 'semver'], 'setof record' );
+SELECT function_lang_is('by_tag_json', ARRAY['text', 'semver'], 'sql' );
+SELECT volatility_is(   'by_tag_json', ARRAY['text', 'semver'], 'stable' );
+SELECT is_strict(       'by_tag_json', ARRAY['text', 'semver'] );
+SELECT ok(
+    has_function_privilege('pgxn', 'by_tag_json(text, semver)', 'EXECUTE'),
+    'User "pgxn" should have EXECUTE priv on by_tag_json()'
+);
+
+SELECT is_empty(
+    $$ SELECT * FROM by_tag_json(NULL, NULL) $$,
+    'Should get no results from by_tag_json() when no tags'
+);
+
+-- We'll need some tags.
+INSERT INTO distribution_tags
+VALUES
+       -- foo for all.
+       ('pair', '0.0.1',   'foo'),
+       ('pair', '0.0.2a1', 'foo'),
+       ('pair', '0.0.2',   'foo'),
+       ('trip', '0.2.5',   'foo'),
+       ('pair', '0.0.10',  'foo'),
+
+       -- bar for two latest pairs.
+       ('pair', '0.0.2',   'bar'),
+       ('pair', '0.0.10',  'bar')
+;
+
+SELECT is_empty(
+    $$ SELECT * FROM by_tag_json('foo', '1.1.1') $$,
+    'Should get no results from by_tag_json() for non-existent distribution'
+);
+
+-- Chck distribution with one tag.
+SELECT results_eq(
+    $$ SELECT * FROM by_tag_json('trip', '0.2.5') $$,
+    $$ VALUES ('foo'::citext, '{
+   "tag": "foo",
+   "releases": {
+      "pair": {
+         "stable": ["0.0.10", "0.0.2"],
+         "testing": ["0.0.1"],
+         "unstable": ["0.0.2a1"]
+      },
+      "trip": {
+         "stable": ["0.2.5"]
+      }
+   }
+}
+') $$, 'Should have proper JSON for single-tag distribution');
+
+-- Add another tag to the "trip" distribution.
+INSERT INTO distribution_tags VALUES('trip', '0.2.5', 'baz');
+SELECT results_eq(
+    $$ SELECT * FROM by_tag_json('trip', '0.2.5') ORDER BY tag $$,
+    $$ VALUES ('baz'::citext, '{
+   "tag": "baz",
+   "releases": {
+      "trip": {
+         "stable": ["0.2.5"]
+      }
+   }
+}
+'), ('foo', '{
+   "tag": "foo",
+   "releases": {
+      "pair": {
+         "stable": ["0.0.10", "0.0.2"],
+         "testing": ["0.0.1"],
+         "unstable": ["0.0.2a1"]
+      },
+      "trip": {
+         "stable": ["0.2.5"]
+      }
+   }
+}
+') $$, 'Should have proper JSON for double-tag distribution');
+
+SELECT json_ok(json, 'JSON for tag ' || tag || ' should be valid')
+  FROM by_tag_json('trip', '0.2.5');
+
+SELECT is_empty(
+    $$ SELECT * FROM by_tag_json('dowop', '9.50.1') $$,
+    'Should get no results from by_tag_json() for invalid version'
+);
+
+-- Now see how things look for pair's tags.
+SELECT results_eq(
+    $$ SELECT * FROM by_tag_json('pair', '0.0.1') ORDER BY tag $$,
+    $$ VALUES ('foo'::citext, '{
+   "tag": "foo",
+   "releases": {
+      "pair": {
+         "stable": ["0.0.10", "0.0.2"],
+         "testing": ["0.0.1"],
+         "unstable": ["0.0.2a1"]
+      },
+      "trip": {
+         "stable": ["0.2.5"]
+      }
+   }
+}
+') $$, 'Should have proper JSON for early version of pair');
+
+SELECT results_eq(
+    $$ SELECT * FROM by_tag_json('pair', '0.0.10') ORDER BY tag $$,
+    $$ VALUES ('bar'::citext, '{
+   "tag": "bar",
+   "releases": {
+      "pair": {
+         "stable": ["0.0.10", "0.0.2"],
+         "testing": ["0.0.1"],
+         "unstable": ["0.0.2a1"]
+      }
+   }
+}
+'), ('foo'::citext, '{
+   "tag": "foo",
+   "releases": {
+      "pair": {
+         "stable": ["0.0.10", "0.0.2"],
+         "testing": ["0.0.1"],
+         "unstable": ["0.0.2a1"]
+      },
+      "trip": {
+         "stable": ["0.2.5"]
+      }
+   }
+}
+') $$, 'Should have proper JSON for later version of pair');
+
+SELECT json_ok(json, 'JSON for tag ' || tag || ' should be valid')
+  FROM by_tag_json('pair', '0.0.10');
+
+-- Insert a new distribution with no tags.
+SELECT ok(
+     add_distribution('theory', 'pshaw', '{
+        "name": "duwop",
+        "version": "0.50.1",
+        "license": "postgresql",
+        "maintainer": "theory",
+        "abstract": "Do wa, p-diddy"
+    }') IS NOT NULL,
+    'Add another distribution'
+);
+
+-- Check tags for distribution with no tags.
+SELECT is_empty(
+    $$ SELECT * FROM by_tag_json('dowop', '0.50.1') $$,
+    'Should get no results from by_tag_json() for tagless distribution'
+);
 
 SELECT * FROM finish();
 ROLLBACK;
