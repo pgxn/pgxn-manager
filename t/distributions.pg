@@ -1,7 +1,7 @@
 SET search_path = public,contrib,tap;
 
 BEGIN;
-SELECT plan(57);
+SELECT plan(79);
 --SELECT * FROM no_plan();
 
 SELECT has_enum('relstatus');
@@ -91,6 +91,45 @@ SELECT ok(
     'REFERENCES',
     'TRIGGER'
 ]) AS priv;
+
+/****************************************************************************/
+-- Test distribution_tags.
+SELECT has_table('public', 'distribution_tags', 'Should have table public.distribution_tags');
+
+SELECT columns_are('public', 'distribution_tags', ARRAY[
+    'distribution',
+    'version',
+    'tag'
+]);
+
+SELECT has_table( 'distribution_tags' );
+SELECT has_pk(    'distribution_tags' );
+SELECT has_fk(    'distribution_tags' );
+
+SELECT has_column(        'distribution_tags', 'distribution' );
+SELECT col_type_is(       'distribution_tags', 'distribution', 'citext' );
+SELECT col_not_null(      'distribution_tags', 'distribution' );
+SELECT col_hasnt_default( 'distribution_tags', 'distribution' );
+
+SELECT has_column(        'distribution_tags', 'version' );
+SELECT col_type_is(       'distribution_tags', 'version', 'semver' );
+SELECT col_not_null(      'distribution_tags', 'version' );
+SELECT col_hasnt_default( 'distribution_tags', 'version' );
+
+SELECT has_column(        'distribution_tags', 'tag' );
+SELECT col_type_is(       'distribution_tags', 'tag', 'citext' );
+SELECT col_not_null(      'distribution_tags', 'tag' );
+SELECT col_hasnt_default( 'distribution_tags', 'tag' );
+
+SELECT col_is_pk( 'distribution_tags', ARRAY['distribution', 'version', 'tag'] );
+SELECT col_is_fk( 'distribution_tags', ARRAY['distribution', 'version'] );
+SELECT fk_ok(
+    'distribution_tags', ARRAY['distribution', 'version'],
+    'distributions',     ARRAY['name',         'version']
+);
+
+SELECT has_index('distribution_tags', 'idx_distribution_tags_tag');
+SELECT index_is_type('distribution_tags', 'idx_distribution_tags_tag', 'btree');
 
 SELECT * FROM finish();
 ROLLBACK;

@@ -24,4 +24,14 @@ CREATE TABLE distributions (
     PRIMARY KEY (name, version)
 );
 
+CREATE TABLE distribution_tags (
+    distribution CITEXT,
+    version      SEMVER,
+    tag          CITEXT,
+    PRIMARY KEY (distribution, version, tag),
+    FOREIGN KEY (distribution, version) REFERENCES distributions(name, version)
+);
+
+CREATE INDEX idx_distribution_tags_tag ON distribution_tags(tag);
+
 COMMIT;
