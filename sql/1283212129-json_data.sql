@@ -149,4 +149,94 @@ for every released version in descending by extension version number.
        AND de.dist_version = $2;
 $$;
 
+CREATE OR REPLACE VIEW distribution_versions AS
+SELECT name AS distribution,
+       '[' || string_agg(
+           CASE relstatus WHEN 'stable'
+           THEN '"' || version || '"'
+           ELSE NULL
+       END, ', ' ORDER BY version USING >) || ']' AS stable,
+       '[' || string_agg(
+           CASE relstatus
+           WHEN 'testing'
+           THEN '"' || version || '"'
+           ELSE NULL
+       END, ', ' ORDER BY version USING >) || ']' AS testing,
+       '[' || string_agg(
+           CASE relstatus
+           WHEN 'unstable'
+           THEN '"' || version || '"'
+           ELSE NULL
+       END, ', ' ORDER BY version USING >) || ']' AS unstable
+  FROM distributions
+ GROUP BY name;
+
+CREATE OR REPLACE FUNCTION by_dist_json(
+   dist      TEXT
+) RETURNS TEXT LANGUAGE sql STABLE AS $$
+    SELECT E'{\n   "name": ' || json_value(distribution) || E'\n   "releases": {\n      '
+           || array_to_string(ARRAY[
+               '"stable": '   || stable,
+               '"testing": '  || testing,
+               '"unstable": ' || unstable
+           ], E',\n      ') || E'   }\n}\n'
+      FROM distribution_versions
+     WHERE distribution = $1;
+$$;
+
+CREATE OR REPLACE FUNCTION by_tag_json(
+   dist      TEXT,
+   version   SEMVER
+) RETURNS TABLE (
+    tag  CITEXT,
+    json TEXT
+) LANGUAGE sql STABLE AS $$
+/*
+
+
+*/
+    SELECT tag, E'{\n   "tag": ' || json_value(tag) || E',\n   "releases": {\n'
+           || string_agg(
+               DISTINCT '      "' || dv.distribution
+                   || E'": {\n         ' ||  array_to_string(ARRAY[
+                       '"stable": '   || stable,
+                       '"testing": '  || testing,
+                       '"unstable": ' || unstable
+                   ], E',\n         ') || E'\n      }',
+              E',\n')
+           || E'\n   }\n}\n'
+      FROM distribution_tags dt
+      JOIN distribution_versions dv
+        ON dt.distribution = dv.distribution
+     WHERE dt.tag IN (
+        SELECT tag
+          FROM distribution_tags
+         WHERE distribution = $1
+           AND version      = $2
+     )
+     GROUP BY tag;
+$$;
+
 COMMIT;
+
+/*
+
+// owner.json
+{
+   "nickname": "theory",
+   "full_name": "David E. Wheeler",
+   "email": theory@pgxn.com",
+   "uri": "http://justatheory.com/",
+   "releases": {
+      "pair": {
+         "stable": ["0.2.2", "0.1.1"],
+         "testing": ["0.2.2a"],
+      },
+      "pair": {
+         "stable": ["0.2.2", "0.1.1"],
+         "testing": ["0.2.2a"],
+      }
+   }
+}
+
+*/
