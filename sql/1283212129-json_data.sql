@@ -181,10 +181,11 @@ CREATE OR REPLACE FUNCTION by_dist_json(
                   by_dist_json               
     ─────────────────────────────────────────
      {                                      ↵
-        "name": "pair"                      ↵
+        "name": "pair",                     ↵
         "releases": {                       ↵
            "stable": ["1.0.0"],             ↵
-           "testing": ["1.2.0", "0.0.1"]   }↵
+           "testing": ["1.2.0", "0.0.1"]    ↵
+        }                                   ↵
      }                                      ↵
 
 Returns a JSON string describing a distribution, including all of its released
