@@ -1,18 +1,16 @@
 SET search_path = public,contrib,tap;
 
 BEGIN;
-SELECT plan(101);
+SELECT plan(87);
 --SELECT * FROM no_plan();
 
 -- Check that we have the functions we think we have.
 SELECT has_function(f)
   FROM unnest(ARRAY[
-      'setup_meta', 'get_provided', 'get_meta', 'record_ownership', 'add_distribution'
+      'setup_meta', 'record_ownership', 'add_distribution'
   ]) AS f;
 
 SELECT has_function('setup_meta', ARRAY['label', 'text', 'text']);
-SELECT has_function('get_meta', '{}'::text[]);
-SELECT has_function('get_provided', '{}'::text[]);
 SELECT has_function('record_ownership', ARRAY['label', 'text[]']);
 SELECT has_function('add_distribution', ARRAY['label', 'text', 'text']);
 
@@ -22,8 +20,6 @@ SELECT ok(
     'User "pgxn" should not have EXECUTE priv on ' || f
 ) FROM unnest(ARRAY[
     'setup_meta(label, text, text)',
-    'get_provided()',
-    'get_meta()',
     'record_ownership(label, text[])'
 ]) AS f;
 
@@ -35,30 +31,11 @@ SELECT ok(
     'User "pgxn" should have EXECUTE priv on add_distribution()'
 );
 
-CREATE OR REPLACE FUNCTION json_eq(
-    have TEXT,
-    want TEXT
-) RETURNS BOOLEAN LANGUAGE plperlu AS $$
-    my $have = JSON::XS::decode_json shift;
-    my $want = JSON::XS::decode_json shift;
-    use Data::Dumper;
-    local $Data::Dumper::Indent   = 1;
-    local $Data::Dumper::Sortkeys = 1;
-    return 1 if Dumper($have) eq Dumper($want);
-    elog(INFO, Dumper($have));
-    elog(INFO, Dumper($want));
-    return 0;
-$$;
-
-CREATE FUNCTION has_meta() RETURNS BOOLEAN LANGUAGE plperl AS $$
-    return $_SHARED{meta} ? 'true' : 'false';
-$$;
-
 /****************************************************************************/
--- Test setup_meta(), get_provided(), and get_meta().
-SELECT function_returns('setup_meta', 'text[]' );
+-- Test setup_meta().
+SELECT function_returns('setup_meta', 'record' );
 SELECT function_lang_is('setup_meta', 'plperl' );
-SELECT volatility_is(   'setup_meta', 'volatile' );
+SELECT volatility_is(   'setup_meta', 'immutable' );
 
 -- Validate that missing required fields throw an exception.
 SELECT throws_like(
@@ -92,8 +69,8 @@ SELECT throws_like(
 );
 
 -- Pass everything.
-SELECT is(
-    setup_meta('nobody', 'pshaw', '{
+SELECT results_eq(
+    $$ SELECT * FROM setup_meta('nobody', 'pshaw', '{
         "name": "pair",
         "version": "0.0.01",
         "license": "postgresql",
@@ -121,82 +98,56 @@ SELECT is(
         "resources": {
           "homepage": "http://pgxn.org/dist/pair/"
         }
-    }'),
-    ARRAY[
-        'pair', '0.0.1', 'testing', 'Ordered pair',
-        'An ordered pair for PostgreSQL'
-    ],
-    'Should get expected values from setup_meta()'
+    }') $$,
+    $$ VALUES('pair'::citext, '0.0.1'::semver, 'testing'::relstatus, 'Ordered pair',
+    'An ordered pair for PostgreSQL',
+    ARRAY[['pair', '0.2.2'], ['trip', '0.2.1']], '{
+   "name": "pair",
+   "abstract": "Ordered pair",
+   "description": "An ordered pair for PostgreSQL",
+   "version": "0.0.1",
+   "maintainer": "theory",
+   "release_status": "testing",
+   "owner": "nobody",
+   "sha1": "pshaw",
+   "license": "postgresql",
+   "prereqs": {
+      "runtime": {
+         "recommends": {
+            "PostgreSQL": "8.4.0"
+         },
+         "requires": {
+            "PostGIS": "1.5.0",
+            "PostgreSQL": "8.0.0"
+         }
+      }
+   },
+   "provides": {
+      "pair": {
+         "file": "pair.sql.in",
+         "version": "0.2.2"
+      },
+      "trip": {
+         "file": "trip.sql.in",
+         "version": "0.2.1"
+      }
+   },
+   "tags": ["foo", "bar", "baz"],
+   "resources": {
+      "homepage": "http://pgxn.org/dist/pair/"
+   }
+}
+') $$,
+    'Should get expected record from setup_meta()'
 );
 
--- Should get expected provides values.
-SELECT is(
-    get_provided(),
-    ARRAY[['pair', '0.2.2'], ['trip', '0.2.1']],
-    'Should get expected values from get_provided()'
-);    
-
-select ok( has_meta(), 'Should have cached meta');
-
--- See that we get the metadata back.
-SELECT ok( json_eq( get_meta(), $${
-    "name":        "pair",
-    "version":     "0.0.1",
-    "license":     "postgresql",
-    "maintainer":  "theory",
-    "abstract":    "Ordered pair",
-    "description": "An ordered pair for PostgreSQL",
-    "tags":        ["foo", "bar", "baz"],
-    "no_index":    null,
-    "owner":       "nobody",
-    "sha1":        "pshaw",
-    "prereqs":     {
-        "runtime": {
-            "requires": {
-                "PostgreSQL": "8.0.0",
-                "PostGIS":    "1.5.0"
-            },
-            "recommends": { "PostgreSQL": "8.4.0" }
-        }
-    },
-    "provides":     {
-      "pair": {"file": "pair.sql.in", "version": "0.2.2" },
-      "trip": {"file": "trip.sql.in", "version": "0.2.1" }
-    },
-    "release_status": "testing",
-    "resources":      { "homepage": "http://pgxn.org/dist/pair/" }
-}$$), 'Should have the expected cached metadata with normalized version strings');
-
-select ok( NOT has_meta(), 'Should no longer have cached meta');
-
--- Make sure that the "provides" and "release_status" get defaults.
-SELECT is(
-    setup_meta('nobody', 'pshaw', '{"name": "pair", "version": "0.0.1", "license": "postgresql","maintainer": "theory", "abstract": "whatever"}'),
-    ARRAY['pair', '0.0.1', 'stable', 'whatever', NULL],
-    'Should get expected default release_status from setup_meta()'
+-- Make sure that the "provided" and "relstatus" get defaults.
+SELECT results_eq(
+    $$ SELECT provided, relstatus
+         FROM setup_meta('nobody', 'pshaw', '{"name": "pair", "version": "0.0.1", "license": "postgresql","maintainer": "theory", "abstract": "whatever"}') $$,
+    $$ VALUES (ARRAY[['pair', '0.0.1']], 'stable'::relstatus) $$,
+    'Should get expected default provides and release_status from setup_meta()'
 );
-
-SELECT is(
-    get_provided(),
-    ARRAY[['pair', '0.0.1']],
-    'Should get default values from get_provided()'
-);    
-
-select ok( has_meta(), 'Should have cached meta again');
-
-SELECT ok( json_eq( get_meta(), $${
-    "name":        "pair",
-    "version":     "0.0.1",
-    "license":     "postgresql",
-    "maintainer":  "theory",
-    "owner":       "nobody",
-    "abstract":    "whatever",
-    "release_status": "stable",
-    "sha1":        "pshaw",
-    "provides": { "pair": { "version": "0.0.1" } }
-}$$), 'Metadata should have default release status and provides');
-
-select ok( NOT has_meta(), 'Should once again not have cached meta');
 
 /****************************************************************************/
 -- Test record_ownership().
@@ -389,7 +340,7 @@ SELECT throws_ok(
 
 DELETE FROM extensions;
 -- Add a distribution.
-SELECT ok(json_eq(
+SELECT is(
     add_distribution('theory', 'pshaw', '{
         "name": "pair",
         "version": "0.0.01",
@@ -419,33 +370,42 @@ SELECT ok(json_eq(
           "homepage": "http://pgxn.org/dist/pair/"
         }
     }'), '{
-    "name":        "pair",
-    "version":     "0.0.1",
-    "license":     "postgresql",
-    "maintainer":  "theory",
-    "abstract":    "Ordered pair",
-    "description": "An ordered pair for PostgreSQL",
-    "tags":        ["foo", "bar", "baz"],
-    "no_index":    null,
-    "owner":       "theory",
-    "sha1":        "pshaw",
-    "prereqs":     {
-        "runtime": {
-            "requires": {
-                "PostgreSQL": "8.0.0",
-                "PostGIS":    "1.5.0"
-            },
-            "recommends": { "PostgreSQL": "8.4.0" }
-        }
-    },
-    "provides":     {
-      "pair": {"file": "pair.sql.in", "version": "0.2.2" },
-      "trip": {"file": "trip.sql.in", "version": "0.2.1" }
-    },
-    "release_status": "testing",
-    "resources":      { "homepage": "http://pgxn.org/dist/pair/" }
-    }'
-), 'Add a distribution for user "theory"');
+   "name": "pair",
+   "abstract": "Ordered pair",
+   "description": "An ordered pair for PostgreSQL",
+   "version": "0.0.1",
+   "maintainer": "theory",
+   "release_status": "testing",
+   "owner": "theory",
+   "sha1": "pshaw",
+   "license": "postgresql",
+   "prereqs": {
+      "runtime": {
+         "recommends": {
+            "PostgreSQL": "8.4.0"
+         },
+         "requires": {
+            "PostGIS": "1.5.0",
+            "PostgreSQL": "8.0.0"
+         }
+      }
+   },
+   "provides": {
+      "pair": {
+         "file": "pair.sql.in",
+         "version": "0.2.2"
+      },
+      "trip": {
+         "file": "trip.sql.in",
+         "version": "0.2.1"
+      }
+   },
+   "tags": ["foo", "bar", "baz"],
+   "resources": {
+      "homepage": "http://pgxn.org/dist/pair/"
+   }
+}
+', 'Add a distribution for user "theory"');
 
 SELECT is(COUNT(*)::int, 1, 'Should have one distribution') FROM distributions;
 SELECT row_eq(
@@ -454,33 +414,43 @@ SELECT row_eq(
     'It should look as expected'
 );
 
-SELECT ok(json_eq(meta, '{
-    "name":        "pair",
-    "version":     "0.0.1",
-    "license":     "postgresql",
-    "maintainer":  "theory",
-    "abstract":    "Ordered pair",
-    "description": "An ordered pair for PostgreSQL",
-    "tags":        ["foo", "bar", "baz"],
-    "no_index":    null,
-    "owner":       "theory",
-    "sha1":        "pshaw",
-    "prereqs":     {
-        "runtime": {
-            "requires": {
-                "PostgreSQL": "8.0.0",
-                "PostGIS":    "1.5.0"
-            },
-            "recommends": { "PostgreSQL": "8.4.0" }
-        }
-    },
-    "provides":     {
-      "pair": {"file": "pair.sql.in", "version": "0.2.2" },
-      "trip": {"file": "trip.sql.in", "version": "0.2.1" }
-    },
-    "release_status": "testing",
-    "resources":      { "homepage": "http://pgxn.org/dist/pair/" }
-}'), '...including the metadata')
+SELECT is(meta, '{
+   "name": "pair",
+   "abstract": "Ordered pair",
+   "description": "An ordered pair for PostgreSQL",
+   "version": "0.0.1",
+   "maintainer": "theory",
+   "release_status": "testing",
+   "owner": "theory",
+   "sha1": "pshaw",
+   "license": "postgresql",
+   "prereqs": {
+      "runtime": {
+         "recommends": {
+            "PostgreSQL": "8.4.0"
+         },
+         "requires": {
+            "PostGIS": "1.5.0",
+            "PostgreSQL": "8.0.0"
+         }
+      }
+   },
+   "provides": {
+      "pair": {
+         "file": "pair.sql.in",
+         "version": "0.2.2"
+      },
+      "trip": {
+         "file": "trip.sql.in",
+         "version": "0.2.1"
+      }
+   },
+   "tags": ["foo", "bar", "baz"],
+   "resources": {
+      "homepage": "http://pgxn.org/dist/pair/"
+   }
+}
+', '...including the metadata')
   FROM distributions
  WHERE name = 'pair' AND version = '0.0.1';
 
@@ -554,7 +524,7 @@ SELECT throws_ok(
 );
 
 -- Have strongrrl add a distribution with one extension.
-SELECT ok(json_eq(
+SELECT is(
     add_distribution('strongrrl', 'ick', '{
         "name":        "foo",
         "version":     "0.0.2",
@@ -563,17 +533,21 @@ SELECT ok(json_eq(
         "abstract":    "whatever"
     }'),
     '{
-        "name":           "foo",
-        "version":        "0.0.2",
-        "license":        "postgresql",
-        "maintainer":     "strongrrl",
-        "abstract":       "whatever",
-        "owner":          "strongrrl",
-        "provides":       { "foo": { "version": "0.0.2" } },
-        "release_status": "stable",
-        "sha1":           "ick"
-    }'
-), 'Should get proper JSON for strongrrl upload');
+   "name": "foo",
+   "abstract": "whatever",
+   "version": "0.0.2",
+   "maintainer": "strongrrl",
+   "release_status": "stable",
+   "owner": "strongrrl",
+   "sha1": "ick",
+   "license": "postgresql",
+   "provides": {
+      "foo": {
+         "version": "0.0.2"
+      }
+   }
+}
+', 'Should get proper JSON for strongrrl upload');
 
 SELECT is(COUNT(*)::int, 2, 'Should now have two distributions') FROM distributions;
 SELECT row_eq(
@@ -582,17 +556,22 @@ SELECT row_eq(
     'The new one should look as expected'
 );
 
-SELECT ok(json_eq(meta, '{
-        "name":           "foo",
-        "version":        "0.0.2",
-        "license":        "postgresql",
-        "maintainer":     "strongrrl",
-        "abstract":       "whatever",
-        "owner":          "strongrrl",
-        "provides":       { "foo": { "version": "0.0.2" } },
-        "release_status": "stable",
-        "sha1":           "ick"
-}'), '...including the metadata')
+SELECT is(meta, '{
+   "name": "foo",
+   "abstract": "whatever",
+   "version": "0.0.2",
+   "maintainer": "strongrrl",
+   "release_status": "stable",
+   "owner": "strongrrl",
+   "sha1": "ick",
+   "license": "postgresql",
+   "provides": {
+      "foo": {
+         "version": "0.0.2"
+      }
+   }
+}
+', '...including the metadata')
   FROM distributions
  WHERE name = 'foo' AND version = '0.0.2';
 
@@ -636,7 +615,7 @@ SELECT throws_ok(
 -- Give strongrrl co-ownership of pair and try again.
 INSERT INTO coowners (extension, nickname) VALUES ('pair', 'strongrrl');
 
-SELECT ok(json_eq(
+SELECT is(
     add_distribution('strongrrl', 'howdy', '{
         "name":        "pair",
         "version":     "0.0.3",
@@ -645,17 +624,21 @@ SELECT ok(json_eq(
         "abstract":    "whatever"
     }'),
     '{
-        "name":           "pair",
-        "version":        "0.0.3",
-        "license":        "postgresql",
-        "maintainer":     "theory",
-        "abstract":       "whatever",
-        "owner":          "strongrrl",
-        "provides":       { "pair": { "version": "0.0.3" } },
-        "release_status": "stable",
-        "sha1":           "howdy"
-    }'
-), 'Should get proper JSON for strongrrl pair upload');
+   "name": "pair",
+   "abstract": "whatever",
+   "version": "0.0.3",
+   "maintainer": "theory",
+   "release_status": "stable",
+   "owner": "strongrrl",
+   "sha1": "howdy",
+   "license": "postgresql",
+   "provides": {
+      "pair": {
+         "version": "0.0.3"
+      }
+   }
+}
+', 'Should get proper JSON for strongrrl pair upload');
 
 SELECT is(COUNT(*)::int, 3, 'Should now have three distributions') FROM distributions;
 SELECT row_eq(
@@ -664,17 +647,22 @@ SELECT row_eq(
     'The new one for strongrrl pair should look as expected'
 );
 
-SELECT ok(json_eq(meta, '{
-        "name":           "pair",
-        "version":        "0.0.3",
-        "license":        "postgresql",
-        "maintainer":     "theory",
-        "abstract":       "whatever",
-        "owner":          "strongrrl",
-        "provides":       { "pair": { "version": "0.0.3" } },
-        "release_status": "stable",
-        "sha1":           "howdy"
-}'), '...including the metadata')
+SELECT is(meta, '{
+   "name": "pair",
+   "abstract": "whatever",
+   "version": "0.0.3",
+   "maintainer": "theory",
+   "release_status": "stable",
+   "owner": "strongrrl",
+   "sha1": "howdy",
+   "license": "postgresql",
+   "provides": {
+      "pair": {
+         "version": "0.0.3"
+      }
+   }
+}
+', '...including the metadata')
   FROM distributions
  WHERE name = 'pair' AND version = '0.0.3';
 

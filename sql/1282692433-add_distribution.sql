@@ -1,10 +1,17 @@
 -- sql/1282692433-add_distribution.sql SQL Migration
 
 CREATE OR REPLACE FUNCTION setup_meta(
-    nick LABEL,
-    sha1 TEXT,
-    json TEXT
-) RETURNS TEXT[] LANGUAGE plperl AS $$
+    IN  nick        LABEL,
+    IN  sha1        TEXT,
+    IN  json        TEXT,
+    OUT name        CITEXT,
+    OUT VERSION     SEMVER,
+    OUT relstatus   RELSTATUS,
+    OUT abstract    TEXT,
+    OUT description TEXT,
+    OUT provided    TEXT[][],
+    OUT json        TEXT
+) LANGUAGE plperl IMMUTABLE AS $$
     my $idx_meta  = { owner => shift, sha1 => shift };
     my $dist_meta = JSON::XS::decode_json shift;
 
@@ -52,32 +59,39 @@ CREATE OR REPLACE FUNCTION setup_meta(
         };
     }
 
-    # Cache it for get_provided() and get_meta().
-    $_SHARED{meta} = $idx_meta;
+    # Recreate the JSON.
+    my $encoder = JSON::XS->new->space_after->allow_nonref->indent->canonical;
+    my $json = "{\n   " . join(",\n   ", map {
+        $encoder->indent( $_ ne 'tags');
+        my $v = $encoder->encode($idx_meta->{$_});
+        chomp $v;
+        $v =~ s/^(?![[{])/   /gm if ref $idx_meta->{$_} && $_ ne 'tags';
+        qq{"$_": $v}
+    } grep {
+        defined $idx_meta->{$_}
+    } qw(
+        name abstract description version maintainer release_status owner sha1
+        license prereqs provides tags resources generated_by no_index
+        meta-spec
+    )) . "\n}\n";
 
-    # Return the base distribution metadata.
-    return [ @{$idx_meta}{qw(name version release_status abstract description)} ];
+    # Return the distribution metadata.
+    my $p = $idx_meta->{provides};
+    return {
+        name        => $idx_meta->{name},
+        version     => $idx_meta->{version},
+        relstatus   => $idx_meta->{release_status},
+        abstract    => $idx_meta->{abstract},
+        description => $idx_meta->{description},
+        json        => $json,
+        provided    => encode_array_literal([
+            map { [ $_ => $p->{$_}{version} ] } sort keys %{ $p }
+        ]),
+    };
 $$;
 
 -- Disallow end-user from using this function.
 REVOKE ALL ON FUNCTION setup_meta(LABEL, TEXT, TEXT) FROM PUBLIC;
-
-CREATE OR REPLACE FUNCTION get_provided(
-) RETURNS text[][] LANGUAGE plperl AS $$
-    my $p = $_SHARED{meta}->{provides};
-    return [ map { [ $_ => $p->{$_}{version} ] } sort keys %{ $p } ];
-$$;
-
--- Disallow end-user from using this function.
-REVOKE ALL ON FUNCTION get_provided() FROM PUBLIC;
-
-CREATE OR REPLACE FUNCTION get_meta(
-) RETURNS TEXT LANGUAGE plperl AS $$
-    return JSON::XS::encode_json delete $_SHARED{meta};
-$$;
-
--- Disallow end-user from using this function.
-REVOKE ALL ON FUNCTION get_meta() FROM PUBLIC;
 
 CREATE OR REPLACE FUNCTION record_ownership(
     nick  LABEL,
@@ -207,13 +221,12 @@ With this data, `add_distribution()` does the following things:
 */
 DECLARE
     -- Parse and normalize the metadata.
-    distmeta TEXT[]   := setup_meta(nick, sha1, meta);
-    provided TEXT[][] := get_provided();
-    idx_meta TEXT     := get_meta();
+    distmeta record;
 BEGIN
+    distmeta  := setup_meta(nick, sha1, meta);
     -- Check permissions for provided extensions.
     IF NOT record_ownership(nick, ARRAY(
-        SELECT provided[i][1] FROM generate_subscripts(provided, 1) AS i
+        SELECT distmeta.provided[i][1] FROM generate_subscripts(distmeta.provided, 1) AS i
     )) THEN
         RAISE EXCEPTION 'User “%” does not own all provided extensions', nick;
     END IF;
@@ -221,30 +234,32 @@ BEGIN
     -- Create the distribution.
     BEGIN
         INSERT INTO distributions (name, version, relstatus, abstract, description, sha1, owner, meta)
-        VALUES (distmeta[1], distmeta[2], COALESCE(distmeta[3], 'stable')::relstatus, distmeta[4], COALESCE(distmeta[5], ''), sha1, nick, idx_meta);
+        VALUES (distmeta.name, distmeta.version, COALESCE(distmeta.relstatus, 'stable'),
+                distmeta.abstract, COALESCE(distmeta.description, ''), sha1, nick, distmeta.json);
     EXCEPTION WHEN unique_violation THEN
-       RAISE EXCEPTION 'Distribution % % already exists', distmeta[1], distmeta[2];
+       RAISE EXCEPTION 'Distribution % % already exists', distmeta.name, distmeta.version;
     END;
 
     -- Record the extensions in this distribution.
     BEGIN
         INSERT INTO distribution_extensions (extension, ext_version, distribution, dist_version)
-        SELECT provided[i][1], provided[i][2], distmeta[1], distmeta[2]
-          FROM generate_subscripts(provided, 1) AS i;
+        SELECT distmeta.provided[i][1], distmeta.provided[i][2], distmeta.name, distmeta.version
+          FROM generate_subscripts(distmeta.provided, 1) AS i;
     EXCEPTION WHEN unique_violation THEN
-       IF array_length(provided, 1) = 1 THEN
-           RAISE EXCEPTION 'Extension % version % already exists', provided[1][1], provided[1][2];
+       IF array_length(distmeta.provided, 1) = 1 THEN
+           RAISE EXCEPTION 'Extension % version % already exists',
+               distmeta.provided[1][1], distmeta.provided[1][2];
        ELSE
-           provided := ARRAY(
-               SELECT provided[i][1] || ' ' || provided[i][2]
-                 FROM generate_subscripts(provided, 1) AS i
+           distmeta.provided := ARRAY(
+               SELECT distmeta.provided[i][1] || ' ' || distmeta.provided[i][2]
+                 FROM generate_subscripts(distmeta.provided, 1) AS i
            );
            RAISE EXCEPTION 'One or more versions of the provided extensions already exist:
-  %', array_to_string(provided, '
+  %', array_to_string(distmeta.provided, '
   ');
        END IF;
     END;
 
-    RETURN idx_meta;
+    RETURN distmeta.json;
 END;
 $$;
