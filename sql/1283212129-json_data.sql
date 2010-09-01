@@ -173,6 +173,22 @@ SELECT name AS distribution,
 CREATE OR REPLACE FUNCTION by_dist_json(
    dist      TEXT
 ) RETURNS TEXT LANGUAGE sql STABLE AS $$
+/*
+
+    % SELECT * from by_dist_json('pair');
+                  by_dist_json               
+    ─────────────────────────────────────────
+     {                                      ↵
+        "name": "pair"                      ↵
+        "releases": {                       ↵
+           "stable": ["1.0.0"],             ↵
+           "testing": ["1.2.0", "0.0.1"]   }↵
+     }                                      ↵
+
+Returns a JSON string describing a distribution, including all of its released
+versions.
+
+*/
     SELECT E'{\n   "name": ' || json_value(distribution) || E'\n   "releases": {\n      '
            || array_to_string(ARRAY[
                '"stable": '   || stable,
@@ -192,6 +208,36 @@ CREATE OR REPLACE FUNCTION by_tag_json(
 ) LANGUAGE sql STABLE AS $$
 /*
 
+    % SELECT * from by_tag_json('pgtap', '0.0.1');
+       tag   │                  json                  
+    ─────────┼────────────────────────────────────────
+     schema  │ {                                     ↵
+             │    "tag": "schema",                   ↵
+             │    "releases": {                      ↵
+             │       "pair": {                       ↵
+             │          "stable": ["1.0.0"],         ↵
+             │          "testing": ["1.2.0", "0.0.1"]↵
+             │       },                              ↵
+             │       "pgtap": {                      ↵
+             │          "testing": ["0.0.1"]         ↵
+             │       }                               ↵
+             │    }                                  ↵
+             │ }                                     ↵
+             │ 
+     testing │ {                                     ↵
+             │    "tag": "testing",                  ↵
+             │    "releases": {                      ↵
+             │       "pgtap": {                      ↵
+             │          "testing": ["0.0.1"]         ↵
+             │       }                               ↵
+             │    }                                  ↵
+             │ }                                     ↵
+             │ 
+
+For a given distribution and version, returns a set of tags and the JSON to
+describe them. In this example, pgtap 0.0.1 has two tags. The tag "testing" is
+only associated with pgtap 0.0.1. The tag "schema", on the other hand, is
+associcated with three versions of the "pair" distribution, as well.
 
 */
     SELECT tag, E'{\n   "tag": ' || json_value(tag) || E',\n   "releases": {\n'
@@ -221,6 +267,30 @@ CREATE OR REPLACE FUNCTION by_owner_json(
 ) RETURNS TEXT LANGUAGE sql STABLE AS $$
 /*
 
+    % SELECT by_owner_json('theory');
+                  by_owner_json               
+    ──────────────────────────────────────────
+     {                                       ↵
+        "nickname": "theory",                ↵
+        "name": "David E. Wheeler",          ↵
+        "email": "justatheory@pgxn.org",     ↵
+        "uri": "http://www.justatheory.com/",↵
+        "releases": {                        ↵
+           "pair": {                         ↵
+              "stable": ["1.0.0"],           ↵
+              "testing": ["0.0.1"]           ↵
+           },                                ↵
+           "pgtap": {                        ↵
+              "testing": ["0.0.1"]           ↵
+           }                                 ↵
+        }                                    ↵
+     }                                       ↵
+
+Returns a JSON string describing the given user, including all of the
+distributions the user owns. The included distribution versions are only the
+versions owned by the user; if someone else uploaded a different version of
+the distribution, that version will not be owned by this user and thus not
+included in the JSON.
 
 */
     WITH dv AS (
