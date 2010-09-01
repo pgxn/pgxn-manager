@@ -30,40 +30,40 @@ CREATE OR REPLACE FUNCTION get_mirrors_json(
 /*
 
     pgxn_manager_dev=# SELECT get_mirrors_json();
-                   get_mirrors_json                
-    ───────────────────────────────────────────────
-     [                                            ↵
-       {                                          ↵
-         "uri": "http://example.com/pgxn/",       ↵
-         "frequency": "hourly",                   ↵
-         "location": "Portland, OR, USA",         ↵
-         "organization": "Kineticode, Inc.",      ↵
-         "timezone": "America/Los_Angeles",       ↵
-         "contact": "example.com|pgxn",           ↵
-         "bandwidth": "10MBps",                   ↵
-         "src": "rsync://master.pgxn.org/pgxn/"   ↵
-       },                                         ↵
-       {                                          ↵
-         "uri": "http://pgxn.example.net/",       ↵
-         "frequency": "daily",                    ↵
-         "location": "Portland, OR, USA",         ↵
-         "organization": "David E. Wheeler",      ↵
-         "timezone": "America/Los_Angeles",       ↵
-         "contact": "example.net|pgxn",           ↵
-         "bandwidth": "Cable",                    ↵
-         "src": "rsync://master.pgxn.org/pgxn/",  ↵
-         "rsync": "rsync://master.pgxn.org/pgxn/",↵
-         "notes": "These be some notes, yo"       ↵
-       }                                          ↵
-     ]                                            ↵
+                    get_mirrors_json                 
+    ─────────────────────────────────────────────────
+     [                                              ↵
+        {                                           ↵
+           "uri": "http://example.com/pgxn/",       ↵
+           "frequency": "hourly",                   ↵
+           "location": "Portland, OR, USA",         ↵
+           "organization": "Kineticode, Inc.",      ↵
+           "timezone": "America/Los_Angeles",       ↵
+           "contact": "example.com|pgxn",           ↵
+           "bandwidth": "10MBps",                   ↵
+           "src": "rsync://master.pgxn.org/pgxn/"   ↵
+        },                                          ↵
+        {                                           ↵
+           "uri": "http://pgxn.example.net/",       ↵
+           "frequency": "daily",                    ↵
+           "location": "Portland, OR, USA",         ↵
+           "organization": "David E. Wheeler",      ↵
+           "timezone": "America/Los_Angeles",       ↵
+           "contact": "example.net|pgxn",           ↵
+           "bandwidth": "Cable",                    ↵
+           "src": "rsync://master.pgxn.org/pgxn/",  ↵
+           "rsync": "rsync://master.pgxn.org/pgxn/",↵
+           "notes": "These be some notes, yo"       ↵
+        }                                           ↵
+     ]                                              ↵
 
 Returns the JSON for the `mirrors.json` file. The format is an array of JSON
 objects. All the required fields will be present, and the optional fields
 "rsync" and "notes" will be present only if they have values.
 
 */
-    SELECT E'[\n  ' || array_to_string(ARRAY(
-        SELECT E'{\n    ' || array_to_string(ARRAY[
+    SELECT E'[\n   ' || array_to_string(ARRAY(
+        SELECT E'{\n      ' || array_to_string(ARRAY[
             json_key('uri')          || ': ' || json_value(uri),
             json_key('frequency')    || ': ' || json_value(frequency),
             json_key('location')     || ': ' || json_value(location),
@@ -74,10 +74,10 @@ objects. All the required fields will be present, and the optional fields
             json_key('src')          || ': ' || json_value(src),
             json_key('rsync')        || ': ' || json_value(rsync, NULL),
             json_key('notes')        || ': ' || json_value(notes, NULL)
-        ], E',\n    '
-        ) || E'\n  }' FROM mirrors
+        ], E',\n      '
+        ) || E'\n   }' FROM mirrors
          ORDER BY created_at
-    ), E',\n  ') || E'\n]\n';
+    ), E',\n   ') || E'\n]\n';
 $$;
 
 CREATE OR REPLACE FUNCTION by_extension_json(
@@ -90,25 +90,27 @@ CREATE OR REPLACE FUNCTION by_extension_json(
 /*
 
     % SELECT * FROM by_extension_json('pair', '1.0.0');
-     extension │                                    json                                    
-    ───────────┼────────────────────────────────────────────────────────────────────────────
-     pair      │ {                                                                         ↵
-               │   "stable": "1.0.0",                                                      ↵
-               │   "testing": "1.2.0",                                                     ↵
-               │   "releases": {                                                           ↵
-               │     "1.2.0": { "dist": "pair", "version": "1.2.0", "status": "testing" }  ↵
-               │     "1.0.0": { "dist": "pair", "version": "1.0.0" },                      ↵
-               │   }                                                                       ↵
-               │ }                                                                         ↵
+     extension │                                     json                                     
+    ───────────┼──────────────────────────────────────────────────────────────────────────────
+     pair      │ {                                                                           ↵
+               │    "stable": "1.0.0",                                                       ↵
+               │    "testing": "1.2.0",                                                      ↵
+               │    "releases": {                                                            ↵
+               │       "1.2.0": { "dist": "pair", "version": "1.2.0", "status": "testing" }, ↵
+               │       "1.0.0": { "dist": "pair", "version": "1.0.0" },                      ↵
+               │       "0.2.2": { "dist": "pair", "version": "0.0.1", "status": "testing" }  ↵
+               │    }                                                                        ↵
+               │ }                                                                           ↵
                │ 
-     trip      │ {                                                                         ↵
-               │   "stable": "0.9.9",                                                      ↵
-               │   "testing": "0.9.10",                                                    ↵
-               │   "releases": {                                                           ↵
-               │     "0.9.10": { "dist": "pair", "version": "1.2.0", "status": "testing" },↵
-               │     "0.9.9": { "dist": "pair", "version": "1.0.0" }                       ↵
-               │   }                                                                       ↵
-               │ }                                                                         ↵
+     trip      │ {                                                                           ↵
+               │    "stable": "0.9.9",                                                       ↵
+               │    "testing": "0.9.10",                                                     ↵
+               │    "releases": {                                                            ↵
+               │       "0.9.10": { "dist": "pair", "version": "1.2.0", "status": "testing" },↵
+               │       "0.9.9": { "dist": "pair", "version": "1.0.0" },                      ↵
+               │       "0.2.1": { "dist": "pair", "version": "0.0.1", "status": "testing" }  ↵
+               │    }                                                                        ↵
+               │ }                                                                           ↵
                │ 
 
 Returns a set of extensions and their JSON metadata for a given distribution
@@ -136,11 +138,11 @@ for every released version in descending by extension version number.
          GROUP BY de.extension
          ORDER BY de.extension
     )
-    SELECT e.extension, E'{\n  '
-        || CASE WHEN stable   IS NULL THEN '' ELSE '"stable": '   || json_value(stable)   || E',\n  ' END
-        || CASE WHEN testing  IS NULL THEN '' ELSE '"testing": '  || json_value(testing)  || E',\n  ' END
-        || CASE WHEN unstable IS NULL THEN '' ELSE '"unstable": ' || json_value(unstable) || E',\n  ' END
-        || E'"releases": {\n    ' || array_to_string(releases, E',\n    ') || E'\n  }\n}\n'
+    SELECT e.extension, E'{\n   '
+        || CASE WHEN stable   IS NULL THEN '' ELSE '"stable": '   || json_value(stable)   || E',\n   ' END
+        || CASE WHEN testing  IS NULL THEN '' ELSE '"testing": '  || json_value(testing)  || E',\n   ' END
+        || CASE WHEN unstable IS NULL THEN '' ELSE '"unstable": ' || json_value(unstable) || E',\n   ' END
+        || E'"releases": {\n      ' || array_to_string(releases, E',\n      ') || E'\n   }\n}\n'
       FROM extmap e
       JOIN distribution_extensions de ON e.extension = de.extension
      WHERE de.distribution = $1

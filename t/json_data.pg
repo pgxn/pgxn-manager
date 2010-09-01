@@ -36,7 +36,7 @@ SELECT ok(
 
 SELECT is(
     get_mirrors_json(),
-    E'[\n  \n]\n',
+    E'[\n   \n]\n',
     'Should get empty JSON array with no mirrors'
 );
 
@@ -63,16 +63,16 @@ SELECT ok(
 SELECT is(
     get_mirrors_json(),
     '[
-  {
-    "uri": "http://example.com/pgxn/",
-    "frequency": "hourly",
-    "location": "Portland, OR, USA",
-    "organization": "Kineticode, Inc.",
-    "timezone": "America/Los_Angeles",
-    "contact": "example.com|pgxn",
-    "bandwidth": "10MBps",
-    "src": "rsync://master.pgxn.org/pgxn/"
-  }
+   {
+      "uri": "http://example.com/pgxn/",
+      "frequency": "hourly",
+      "location": "Portland, OR, USA",
+      "organization": "Kineticode, Inc.",
+      "timezone": "America/Los_Angeles",
+      "contact": "example.com|pgxn",
+      "bandwidth": "10MBps",
+      "src": "rsync://master.pgxn.org/pgxn/"
+   }
 ]
 ',
     'Should get single-item JSON array with one mirror'
@@ -102,28 +102,28 @@ UPDATE mirrors SET created_at = NOW() - '1 day'::interval
 SELECT is(
     get_mirrors_json(),
     '[
-  {
-    "uri": "http://example.com/pgxn/",
-    "frequency": "hourly",
-    "location": "Portland, OR, USA",
-    "organization": "Kineticode, Inc.",
-    "timezone": "America/Los_Angeles",
-    "contact": "example.com|pgxn",
-    "bandwidth": "10MBps",
-    "src": "rsync://master.pgxn.org/pgxn/"
-  },
-  {
-    "uri": "http://pgxn.example.net/",
-    "frequency": "daily",
-    "location": "Portland, OR, USA",
-    "organization": "David E. Wheeler",
-    "timezone": "America/Los_Angeles",
-    "contact": "example.net|pgxn",
-    "bandwidth": "Cable",
-    "src": "rsync://master.pgxn.org/pgxn/",
-    "rsync": "rsync://master.pgxn.org/pgxn/",
-    "notes": "These be some notes, yo"
-  }
+   {
+      "uri": "http://example.com/pgxn/",
+      "frequency": "hourly",
+      "location": "Portland, OR, USA",
+      "organization": "Kineticode, Inc.",
+      "timezone": "America/Los_Angeles",
+      "contact": "example.com|pgxn",
+      "bandwidth": "10MBps",
+      "src": "rsync://master.pgxn.org/pgxn/"
+   },
+   {
+      "uri": "http://pgxn.example.net/",
+      "frequency": "daily",
+      "location": "Portland, OR, USA",
+      "organization": "David E. Wheeler",
+      "timezone": "America/Los_Angeles",
+      "contact": "example.net|pgxn",
+      "bandwidth": "Cable",
+      "src": "rsync://master.pgxn.org/pgxn/",
+      "rsync": "rsync://master.pgxn.org/pgxn/",
+      "notes": "These be some notes, yo"
+   }
 ]
 ',
     'Should get two-item-item JSON array with two mirrors'
@@ -168,17 +168,17 @@ SELECT results_eq(
     $$ SELECT * FROM by_extension_json('pair', '0.0.1') $$,
     $$ VALUES
         ('pair'::citext, '{
-  "testing": "0.2.2",
-  "releases": {
-    "0.2.2": { "dist": "pair", "version": "0.0.1", "status": "testing" }
-  }
+   "testing": "0.2.2",
+   "releases": {
+      "0.2.2": { "dist": "pair", "version": "0.0.1", "status": "testing" }
+   }
 }
 '),
         ('trip', '{
-  "testing": "0.2.1",
-  "releases": {
-    "0.2.1": { "dist": "pair", "version": "0.0.1", "status": "testing" }
-  }
+   "testing": "0.2.1",
+   "releases": {
+      "0.2.1": { "dist": "pair", "version": "0.0.1", "status": "testing" }
+   }
 }
 ')
     $$,
@@ -206,21 +206,21 @@ SELECT results_eq(
     $$ SELECT * FROM by_extension_json('pair', '0.0.2a1') $$,
     $$ VALUES
         ('pair'::citext, '{
-  "testing": "0.2.2",
-  "unstable": "0.2.3",
-  "releases": {
-    "0.2.3": { "dist": "pair", "version": "0.0.2a1", "status": "unstable" },
-    "0.2.2": { "dist": "pair", "version": "0.0.1", "status": "testing" }
-  }
+   "testing": "0.2.2",
+   "unstable": "0.2.3",
+   "releases": {
+      "0.2.3": { "dist": "pair", "version": "0.0.2a1", "status": "unstable" },
+      "0.2.2": { "dist": "pair", "version": "0.0.1", "status": "testing" }
+   }
 }
 '),
         ('trip', '{
-  "testing": "0.2.1",
-  "unstable": "0.2.2",
-  "releases": {
-    "0.2.2": { "dist": "pair", "version": "0.0.2a1", "status": "unstable" },
-    "0.2.1": { "dist": "pair", "version": "0.0.1", "status": "testing" }
-  }
+   "testing": "0.2.1",
+   "unstable": "0.2.2",
+   "releases": {
+      "0.2.2": { "dist": "pair", "version": "0.0.2a1", "status": "unstable" },
+      "0.2.1": { "dist": "pair", "version": "0.0.1", "status": "testing" }
+   }
 }
 ')
     $$,
@@ -247,25 +247,25 @@ SELECT results_eq(
     $$ SELECT * FROM by_extension_json('pair', '0.0.2') $$,
     $$ VALUES
         ('pair'::citext, '{
-  "stable": "0.2.4",
-  "testing": "0.2.2",
-  "unstable": "0.2.3",
-  "releases": {
-    "0.2.4": { "dist": "pair", "version": "0.0.2" },
-    "0.2.3": { "dist": "pair", "version": "0.0.2a1", "status": "unstable" },
-    "0.2.2": { "dist": "pair", "version": "0.0.1", "status": "testing" }
-  }
+   "stable": "0.2.4",
+   "testing": "0.2.2",
+   "unstable": "0.2.3",
+   "releases": {
+      "0.2.4": { "dist": "pair", "version": "0.0.2" },
+      "0.2.3": { "dist": "pair", "version": "0.0.2a1", "status": "unstable" },
+      "0.2.2": { "dist": "pair", "version": "0.0.1", "status": "testing" }
+   }
 }
 '),
         ('trip', '{
-  "stable": "0.2.3",
-  "testing": "0.2.1",
-  "unstable": "0.2.2",
-  "releases": {
-    "0.2.3": { "dist": "pair", "version": "0.0.2" },
-    "0.2.2": { "dist": "pair", "version": "0.0.2a1", "status": "unstable" },
-    "0.2.1": { "dist": "pair", "version": "0.0.1", "status": "testing" }
-  }
+   "stable": "0.2.3",
+   "testing": "0.2.1",
+   "unstable": "0.2.2",
+   "releases": {
+      "0.2.3": { "dist": "pair", "version": "0.0.2" },
+      "0.2.2": { "dist": "pair", "version": "0.0.2a1", "status": "unstable" },
+      "0.2.1": { "dist": "pair", "version": "0.0.1", "status": "testing" }
+   }
 }
 ')
     $$,
@@ -296,15 +296,15 @@ SELECT results_eq(
     $$ SELECT * FROM by_extension_json('trip', '0.2.5') $$,
     $$ VALUES
         ('trip'::citext, '{
-  "stable": "0.2.5",
-  "testing": "0.2.1",
-  "unstable": "0.2.2",
-  "releases": {
-    "0.2.5": { "dist": "trip", "version": "0.2.5" },
-    "0.2.3": { "dist": "pair", "version": "0.0.2" },
-    "0.2.2": { "dist": "pair", "version": "0.0.2a1", "status": "unstable" },
-    "0.2.1": { "dist": "pair", "version": "0.0.1", "status": "testing" }
-  }
+   "stable": "0.2.5",
+   "testing": "0.2.1",
+   "unstable": "0.2.2",
+   "releases": {
+      "0.2.5": { "dist": "trip", "version": "0.2.5" },
+      "0.2.3": { "dist": "pair", "version": "0.0.2" },
+      "0.2.2": { "dist": "pair", "version": "0.0.2a1", "status": "unstable" },
+      "0.2.1": { "dist": "pair", "version": "0.0.1", "status": "testing" }
+   }
 }
 ')
     $$,
