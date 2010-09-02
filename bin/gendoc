@@ -1,0 +1,181 @@
+#!/usr/local/bin/perl -w
+
+use 5.12.0;;
+use Getopt::Long;
+our $VERSION = '0.01';
+
+my %opts = (title => 'Database API Documentation');
+GetOptions(
+    'title|t=s' => \$opts{title},
+    'help|h'    => \$opts{help},
+    'man|m'     => \$opts{man},
+    'version|v' => \$opts{version},
+);
+
+if (delete $opts{version}) {
+    print "$0 ", __PACKAGE__->VERSION, $/;
+    exit;
+}
+require Pod::Usage && Pod::Usage::pod2usage(
+    '-verbose'  => 99,
+    '-sections' => '(?i:(Usage|Options))',
+    '-exitval'  => 0,
+) if delete $opts{help};
+
+require Pod::Usage && Pod::Usage::pod2usage(
+    '-verbose'  => 99,
+    '-sections' => '.+',
+    '-exitval'  => 0,
+) if delete $opts{man};
+
+my %seen;
+my $in_doc = 0;
+my $schema = 'public';
+my @schemas = ($schema);
+my %output_for = ( $schema => '' );
+
+my $ident   = qr/"(?:""|[^"])+"|\w+/;
+my $literal = qr/'(?:''|[^'])+'/;
+my $type    = qr/$ident(?:[\[\]]+|[(]\d+[)])?/;
+
+while (<>) {
+    if (/^\s*SET\s+search_path\s*=\s*([^,;]+)/) {
+        $schema = $1;
+        push @schemas, $schema unless exists $output_for{$schema};
+        $output_for{$schema} ||= '';
+        next;
+    }
+    if (/CREATE\s+(?:OR\s+REPLACE\s+)?FUNCTION\s+(?:($ident)[.])?($ident)/) {
+
+        $in_doc = $seen{$2}++ ? 0 : 1;
+        if ($1) {
+            $schema = $1;
+            push @schemas, $schema unless exists $output_for{$schema};
+            $output_for{$schema} ||= '';
+        }
+
+        next unless $in_doc;
+        my $buf = "\n### `$2` ###\n";
+
+        # Find everything up to the start of the function body
+        my @sig;
+        while (<>) {
+            push @sig, $_;
+            last if /\bAS\s+\$(?:BODY|_)?\$/i;
+        }
+
+        # Parse the signature.
+        my @args;
+        my $got_out;
+        for (@sig) {
+            last if /^[)]/;
+            next unless m{
+                 (?:(?<mode>IN(?:OUT)|OUT|VARIADIC)\s+)? (?:
+                        (?<name>$ident)\s+(?<type>$type)\s+DEFAULT\s+(?<default>($literal|[^,]+))
+                     || (?<type>$type)\s+DEFAULT\s+(?<default>$literal|[^,]+)
+                     || (?<name>$ident)\s+(?<type>$type)
+                     || (?<type>$type)
+                 )(?:\s*,)?\s*$
+            }ix;
+
+            if ($+{mode} && !$got_out) { $got_out = $+{mode} =~ /OUT/i }
+            push @args, join(' ',
+                '  *',
+                uc($+{mode} || 'IN'),
+                $+{name} || '$' . (@args + 1),
+                uc $+{type},
+                ($+{default} ? "DEFAULT $+{default}" : ())
+            );
+        }
+
+        if (@args) {
+            $args[0] =~ s/^ /:/;
+            $buf .= "\nParameters\n" . join($/, @args) . $/;
+        }
+
+        # Find the security, immutable, language, etc.
+
+        unless ($got_out) {
+            $buf .= "\nReturns\n: ";
+            # Parse the return value.
+            while (@sig) {
+                my $line = shift @sig;
+                if ($line =~ /RETURNS\s+($ident)/i) {
+                    if (lc $1 eq 'table') {
+                        $buf .= "TABLE (\n";
+                        # Parse till we get to the end of the table.
+                        while (@sig) {
+                            my $tline = shift @sig;
+                            last unless $tline =~ /^\s*(?<name>$ident)\s+(?<type>$ident)(?:\s*(?<comma>,))?$/;
+                            $buf .= "      $+{name}" . ' ' . uc($+{type}) . ($+{comma} || '') . $/;
+                            last unless $+{comma}
+                        }
+                        $buf .= '  )' . $/;
+                    } else {
+                        $buf .= uc $1 . $/;
+                    }
+                }
+            }
+        }
+
+        # Find any documntation.
+        while (<>) {
+            last if /\bAS\s+\$(?:BODY|_)?\$/i;
+            if (m{^(?:/[*]|=begin markdown)}i) {
+                while (<>) {
+                    last if m{^[*]/|=end markdown|=cut};
+                    $buf .= $_;
+                }
+            }
+        }
+
+        $output_for{$schema} .= $buf;
+    }
+}
+
+print $opts{title}, $/, ('=' x length $opts{title}), $/, $/;
+
+for (@schemas) {
+    print $_, $/, ('-' x length), $/, $output_for{$_}, $/ if $output_for{$_};
+}
+
+1;
+
+__END__
+
+=head1 Name
+
+gendoc - Parse PostgrSQL SQL files to generate Markdown function documentation
+
+=head1 Usage
+
+  gendoc sql/*.sql
+
+=head1 Description
+
+This program reads in one or more SQL files, looking for function
+declarations. It parses their signatures to generate documentation. If a
+function starts with an extended line comment (beginning with `/*` in SQL and
+PL/pgSQL functions or `=begin markdown` in PL/Perl functions), it will append
+the contents of that comment to the documentation. The output will be
+MultieMarkdown-compatible.
+
+=head1 Options
+
+  -t --title    Title to use in the C<< <h1> >> tag.
+  -h --help     Print this usage statement and exit.
+  -m --man      Print the complete documentation and exit.
+  -v --version  Print the version number and exit.
+
+=head1 Author
+
+David E. Wheeler <david.wheeler@pgexperts.com>
+
+=head1 Copyright and License
+
+Copyright (c) 2010 David E. Wheeler. Some Rights Reserved.
+
+This module is free software; you can redistribute it and/or modify it under
+the same terms as Perl itself.
+
+=cut
