@@ -158,7 +158,7 @@ declarations. It parses their signatures to generate documentation. If a
 function starts with an extended line comment (beginning with `/*` in SQL and
 PL/pgSQL functions or `=begin markdown` in PL/Perl functions), it will append
 the contents of that comment to the documentation. The output will be
-`MultiMarkdown`-compatible.
+C<MultiMarkdown>-compatible.
 
 =head1 Options
 
