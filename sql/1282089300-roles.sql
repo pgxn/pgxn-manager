@@ -5,15 +5,14 @@ SET log_min_messages    TO warning;
 
 BEGIN;
 
-CREATE FUNCTION add_role() RETURNS VOID LANGUAGE SQL AS $$
-    CREATE ROLE pgxn WITH LOGIN;
+DO $$
+BEGIN
+    PERFORM true FROM pg_roles WHERE rolname = 'pgxn';
+    IF NOT FOUND THEN
+        CREATE ROLE pgxn WITH LOGIN;
+    END IF;
+END;
 $$;
-
-SELECT add_role() WHERE NOT EXISTS (
-    SELECT true FROM pg_roles WHERE rolname = 'pgxn'
-);
-
-DROP FUNCTION add_role();
 
 GRANT USAGE ON SCHEMA contrib TO pgxn;
 
