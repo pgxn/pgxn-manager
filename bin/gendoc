@@ -1,12 +1,13 @@
 #!/usr/local/bin/perl -w
 
-use 5.12.0;;
+use 5.12.0;
 use Getopt::Long;
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 my %opts = (title => 'Database API Documentation');
 GetOptions(
     'title|t=s' => \$opts{title},
+    'all|a'     => \$opts{all},
     'help|h'    => \$opts{help},
     'man|m'     => \$opts{man},
     'version|v' => \$opts{version},
@@ -119,17 +120,18 @@ while (<>) {
         }
 
         # Find any documntation.
+        my $doc = '';
         while (<>) {
             last if /\bAS\s+\$(?:BODY|_)?\$/i;
             if (m{^(?:/[*]|=begin markdown)}i) {
                 while (<>) {
                     last if m{^[*]/|=end markdown|=cut};
-                    $buf .= $_;
+                    $doc .= $_;
                 }
             }
         }
 
-        $output_for{$schema} .= $buf;
+        $output_for{$schema} .= $buf . $doc if $doc || $opts{all};
     }
 }
 
@@ -163,6 +165,7 @@ C<MultiMarkdown>-compatible.
 =head1 Options
 
   -t --title    Title to use in the C<< <h1> >> tag.
+  -a --all      Include all functions, documented and undocumented.
   -h --help     Print this usage statement and exit.
   -m --man      Print the complete documentation and exit.
   -v --version  Print the version number and exit.
