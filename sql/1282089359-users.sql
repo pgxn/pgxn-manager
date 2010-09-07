@@ -29,19 +29,20 @@ CREATE TABLE users (
 GRANT SELECT ON users TO pgxn;
 
 CREATE OR REPLACE FUNCTION insert_user(
-    nick  LABEL,
-    pass  TEXT,
-    name  TEXT  DEFAULT '',
-    email EMAIL DEFAULT NULL,
-    uri   URI   DEFAULT NULL
+    nickname   LABEL,
+    password   TEXT,
+    full_name  TEXT  DEFAULT '',
+    email      EMAIL DEFAULT NULL,
+    uri        URI   DEFAULT NULL
 ) RETURNS BOOLEAN LANGUAGE plpgsql SECURITY DEFINER AS $$
 /*
 
     % SELECT insert_user(
-        'theory', '***',
-        name  := 'David Wheeler',
-        email := 'theory@pgxn.org',
-        uri   := 'http://justatheory.com/'
+        nickname  := 'theory',
+        password  := '***',
+        full_name := 'David Wheeler',
+        email     := 'theory@pgxn.org',
+        uri       := 'http://justatheory.com/'
     );
      insert_user 
     ─────────────
@@ -50,9 +51,9 @@ CREATE OR REPLACE FUNCTION insert_user(
 Inserts a new user into the database. The nickname must not already exist or
 an exception will be thrown. The password must be at least four characters
 long or an exception will be thrown. The status will be set to "new" and the
-`set_by` set to the user's nickname. The other arguments are:
+`set_by` set to the new user's nickname. The other parameters are:
 
-name
+full_name
 : The full name of the user.
 
 email
@@ -67,19 +68,33 @@ Returns true if the user was inserted, and false if not.
 
 */
 BEGIN
-    IF char_length(pass) < 4 THEN
+    IF char_length(password) < 4 THEN
        RAISE EXCEPTION 'Password must be at least four characters long';
     END IF;
-    INSERT INTO users (nickname, password, full_name, email, uri, set_by)
-    VALUES (nick, crypt(pass, gen_salt('des')), COALESCE(name, ''), insert_user.email, insert_user.uri, nick);
+    INSERT INTO users (
+        nickname,
+        password,
+        full_name,
+        email,
+        uri,
+        set_by
+    )
+    VALUES (
+        insert_user.nickname,
+        crypt(insert_user.password, gen_salt('des')),
+        COALESCE(insert_user.full_name, ''),
+        insert_user.email,
+        insert_user.uri,
+        insert_user.nickname
+    );
     RETURN FOUND;
 END;
 $$;
 
 CREATE OR REPLACE FUNCTION change_password(
-    nick    LABEL,
-    oldpass TEXT,
-    newpass TEXT
+    nickname LABEL,
+    oldpass  TEXT,
+    newpass  TEXT
 ) RETURNS BOOLEAN LANGUAGE plpgsql SECURITY DEFINER AS $$
 /*
 
@@ -99,28 +114,28 @@ BEGIN
        RAISE EXCEPTION 'Password must be at least four characters long';
     END IF;
     UPDATE users
-       SET password = crypt(newpass, gen_salt('des')),
-           updated_at = NOW()
-     WHERE nickname = nick
-       AND password = crypt(oldpass, password)
-       AND status   = 'active';
+       SET password       = crypt(newpass, gen_salt('des')),
+           updated_at     = NOW()
+     WHERE users.nickname = change_password.nickname
+       AND users.password = crypt(oldpass, password)
+       AND users.status   = 'active';
     RETURN FOUND;
 END;
 $$;
 
 CREATE OR REPLACE FUNCTION update_user(
-    nick  LABEL,
-    name  TEXT  DEFAULT NULL,
-    email EMAIL DEFAULT NULL,
-    uri   URI   DEFAULT NULL
+    nickname   LABEL,
+    full_name  TEXT  DEFAULT NULL,
+    email      EMAIL DEFAULT NULL,
+    uri        URI   DEFAULT NULL
 ) RETURNS BOOLEAN LANGUAGE plpgsql SECURITY DEFINER AS $$
 /*
 
     % SELECT update_user(
-        'theory',
-        name  := 'David E. Wheeler',
-        email := 'justatheory@pgxn.org',
-        uri   := 'http://www.justatheory.com/'
+        nickname  := 'theory',
+        full_name := 'David E. Wheeler',
+        email     := 'justatheory@pgxn.org',
+        uri       := 'http://www.justatheory.com/'
     );
      update_user 
     ─────────────
@@ -130,7 +145,7 @@ Update the specified user. The user must be active. The nickname cannot be
 changed. The password can only be changed via `change_password()` or
 `reset_password()`. Pass other attributes as:
 
-name
+full_name
 : The full name of the user.
 
 email
@@ -146,18 +161,18 @@ Returns true if the user was updated, and false if not.
 */
 BEGIN
     UPDATE users
-       SET full_name  = COALESCE(name,   full_name),
-           email      = COALESCE(update_user.email, users.email),
-           uri        = COALESCE(update_user.uri,   users.uri),
-           updated_at = NOW()
-     WHERE nickname   = nick
-       AND status     = 'active';
+       SET full_name      = COALESCE(update_user.full_name, users.full_name),
+           email          = COALESCE(update_user.email,     users.email),
+           uri            = COALESCE(update_user.uri,       users.uri),
+           updated_at     = NOW()
+     WHERE users.nickname = update_user.nickname
+       AND users.status   = 'active';
     RETURN FOUND;
 END;
 $$;
 
 CREATE OR REPLACE FUNCTION log_visit(
-    nick  LABEL
+    nickname  LABEL
 ) RETURNS BOOLEAN LANGUAGE plpgsql SECURITY DEFINER AS $$
 /*
 
@@ -172,16 +187,16 @@ Log the visit for the specified user. At this point, that just means that
 */
 BEGIN
     UPDATE users
-       SET visited_at = NOW()
-     WHERE nickname = $1;
+       SET visited_at     = NOW()
+     WHERE users.nickname = $1;
     RETURN FOUND;
 END;
 $$;
 
 CREATE OR REPLACE FUNCTION set_user_status(
-    setter LABEL,
-    nick   LABEL,
-    stat   STATUS
+    setter    LABEL,
+    nickname  LABEL,
+    status    STATUS
 ) RETURNS BOOLEAN LANGUAGE plpgsql SECURITY DEFINER AS $$
 /*
 
@@ -202,31 +217,31 @@ and `false` will be returned.
 */
 BEGIN
     -- Make sure we have an admin.
-    PERFORM TRUE FROM users WHERE nickname = setter AND is_admin;
+    PERFORM TRUE FROM users WHERE users.nickname = setter AND is_admin;
     IF NOT FOUND THEN
         RAISE EXCEPTION 'Permission denied: User “%” is not an administrator', setter;
     END IF;
 
     -- Prevent user from changing own status.
-    IF setter = nick THEN
+    IF setter = nickname THEN
         RAISE EXCEPTION 'Permission denied: User cannot modify own status';
     END IF;
 
     -- Go ahead and do it.
     UPDATE users
-       SET status     = stat,
-           set_by     = setter,
-           updated_at = NOW()
-     WHERE nickname   = nick
-       AND status    <> stat;
+       SET status         = set_user_status.status,
+           set_by         = setter,
+           updated_at     = NOW()
+     WHERE users.nickname = set_user_status.nickname
+       AND users.status  <> set_user_status.status;
     RETURN FOUND;
 END;
 $$;
 
 CREATE OR REPLACE FUNCTION set_user_admin(
-    setter LABEL,
-    nick   LABEL,
-    setto  BOOLEAN
+    setter   LABEL,
+    nickname LABEL,
+    set_to   BOOLEAN
 ) RETURNS BOOLEAN LANGUAGE plpgsql SECURITY DEFINER AS $$
 /*
 
@@ -244,17 +259,17 @@ be updated and `false` will be returned.
 */
 BEGIN
     -- Make sure we have an admin.
-    PERFORM TRUE FROM users WHERE nickname = setter AND is_admin;
+    PERFORM TRUE FROM users WHERE users.nickname = setter AND is_admin;
     IF NOT FOUND THEN
         RAISE EXCEPTION 'Permission denied: User “%” is not an administrator', setter;
     END IF;
 
     -- Go ahead and do it.
     UPDATE users
-       SET is_admin   = setto,
-           updated_at = NOW()
-     WHERE nickname   = nick
-       AND is_admin  <> setto;
+       SET is_admin       = set_to,
+           updated_at     = NOW()
+     WHERE users.nickname = set_user_admin.nickname
+       AND is_admin      <> set_to;
     RETURN FOUND;
 END;
 $$;

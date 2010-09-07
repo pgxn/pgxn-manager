@@ -129,9 +129,10 @@ SELECT is(COUNT(*)::int, 0, 'Should start with no users') FROM users;
 
 SELECT ok(
     insert_user(
-        'theory', 'wet blanket',
-        name  := 'David Wheeler',
-        email := 'theory@pgxn.org'
+        nickname   := 'theory',
+        password   := 'wet blanket',
+        full_name  := 'David Wheeler',
+        email      := 'theory@pgxn.org'
     ), 'Insert user "theory"'
 );
 
@@ -154,10 +155,11 @@ SELECT isnt( password, 'theory', 'Password should not be nickname' )
 
 SELECT ok(
     insert_user(
-        'strongrrl', 'wet blanket',
-        name   := 'Julie Wheeler',
-        email  := 'strongrrl@pgxn.org',
-        uri    := 'http://www.strongrrl.com/'
+        nickname  := 'strongrrl',
+        password  := 'wet blanket',
+        full_name := 'Julie Wheeler',
+        email     := 'strongrrl@pgxn.org',
+        uri       := 'http://www.strongrrl.com/'
     ), 'Insert user "strongrrl"'
 );
 
@@ -439,10 +441,10 @@ SELECT * FROM set_now('2010-08-20 14:01:03.306399+00');
 
 SELECT ok(
     update_user(
-        nick   := 'theory',
-        name   := 'David E. Wheeler',
-        email  := 'david@pgxn.org',
-        uri    := 'http://justatheory.com/'
+        nickname  := 'theory',
+        full_name := 'David E. Wheeler',
+        email     := 'david@pgxn.org',
+        uri       := 'http://justatheory.com/'
     ), 'Should get true value for updating a user'
 );
 
@@ -458,9 +460,9 @@ SELECT is(updated_at, '2010-08-20 14:01:03.306399+00', 'updated_at should have b
 -- Try updating less and less.
 SELECT ok(
     update_user(
-        'theory',
-        email := 'theory@pgxn.org',
-        uri   := 'http://www.justatheory.com/'
+        nickname := 'theory',
+        email    := 'theory@pgxn.org',
+        uri      := 'http://www.justatheory.com/'
     ), 'Should get true value for updating a user again'
 );
 
@@ -643,9 +645,10 @@ SET ROLE pgxn;
 
 SELECT ok(
     insert_user(
-        'anna', 'blue sea',
-        name  := 'Anna Wheeler',
-        email := 'anna@pgxn.org'
+        nickname  := 'anna',
+        password  := 'blue sea',
+        full_name := 'Anna Wheeler',
+        email     := 'anna@pgxn.org'
     ), 'Insert user "anna" a from pgxn role'
 );
 
