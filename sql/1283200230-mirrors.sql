@@ -55,7 +55,7 @@ CREATE OR REPLACE FUNCTION insert_mirror(
 /*
 
     % SELECT insert_mirror(
-        'theory',
+        creator      := 'theory',
         uri          := 'http://kineticode.com/pgxn/',
         frequency    := 'hourly',
         location     := 'Portland, OR, USA',
@@ -79,28 +79,35 @@ failure (probably impossible, normally an exception will be thrown on
 failure).
 
 */
-DECLARE
-    _uri          ALIAS FOR uri;
-    _frequency    ALIAS FOR frequency;
-    _location     ALIAS FOR location;
-    _organization ALIAS FOR organization;
-    _timezone     ALIAS FOR timezone;
-    _contact      ALIAS FOR contact;
-    _bandwidth    ALIAS FOR bandwidth;
-    _src          ALIAS FOR src;
-    _rsync        ALIAS FOR rsync;
-    _notes        ALIAS FOR notes;
 BEGIN
     IF NOT is_admin(creator) THEN
         RAISE EXCEPTION 'Permission denied: User “%” is not an administrator', creator;
     END IF;
 
     INSERT INTO mirrors (
-        uri, frequency, location, organization, timezone, contact, bandwidth,
-        src, rsync, notes, created_by
+        uri,
+        frequency,
+        location,
+        organization,
+        timezone,
+        contact,
+        bandwidth,
+        src,
+        rsync,
+        notes,
+        created_by
     ) VALUES (
-        _uri, _frequency, _location, _organization, _timezone, _contact, _bandwidth,
-       _src, _rsync, _notes, creator
+        insert_mirror.uri,
+        insert_mirror.frequency,
+        insert_mirror.location,
+        insert_mirror.organization,
+        insert_mirror.timezone,
+        insert_mirror.contact,
+        insert_mirror.bandwidth,
+        insert_mirror.src,
+        insert_mirror.rsync,
+        insert_mirror.notes,
+        creator
     );
       
     RETURN FOUND;
@@ -123,14 +130,12 @@ administrator or else an exception will be thrown. Returns true if the
 specified mirror was deleted and false if not.
 
 */
-DECLARE
-    _uri ALIAS FOR uri;
 BEGIN
     IF NOT is_admin(deleter) THEN
         RAISE EXCEPTION 'Permission denied: User “%” is not an administrator', deleter;
     END IF;
 
-    DELETE FROM mirrors WHERE mirrors.uri = _uri;
+    DELETE FROM mirrors WHERE mirrors.uri = delete_mirror.uri;
     RETURN FOUND;
 END;
 $$;

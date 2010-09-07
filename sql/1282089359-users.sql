@@ -144,14 +144,11 @@ uri
 Returns true if the user was updated, and false if not.
 
 */
-DECLARE
-    _email ALIAS FOR email;
-    _uri   ALIAS FOR uri;
 BEGIN
     UPDATE users
        SET full_name  = COALESCE(name,   full_name),
-           email      = COALESCE(_email, users.email),
-           uri        = COALESCE(_uri,   users.uri),
+           email      = COALESCE(update_user.email, users.email),
+           uri        = COALESCE(update_user.uri,   users.uri),
            updated_at = NOW()
      WHERE nickname   = nick
        AND status     = 'active';
