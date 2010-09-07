@@ -66,15 +66,12 @@ uri
 Returns true if the user was inserted, and false if not.
 
 */
-DECLARE
-    _email ALIAS FOR email;
-    _uri   ALIAS FOR uri;
 BEGIN
     IF char_length(pass) < 4 THEN
        RAISE EXCEPTION 'Password must be at least four characters long';
     END IF;
     INSERT INTO users (nickname, password, full_name, email, uri, set_by)
-    VALUES (nick, crypt(pass, gen_salt('des')), COALESCE(name, ''), _email, _uri, nick);
+    VALUES (nick, crypt(pass, gen_salt('des')), COALESCE(name, ''), insert_user.email, insert_user.uri, nick);
     RETURN FOUND;
 END;
 $$;
