@@ -30,7 +30,7 @@ ok my $dbh = $conn->dbh, 'Make sure we can connect';
 isa_ok $dbh, 'DBI::db', 'The handle';
 
 # What are we connected to, and how?
-is $dbh->{Username}, 'postgres', 'Should be connected as "postgres"';
+is $dbh->{Username}, 'pgxn', 'Should be connected as "postgres"';
 is $dbh->{Name}, 'dbname=pgxn_manager_test',
     'Should be connected to "pgxn_manager_test"';
 ok !$dbh->{PrintError}, 'PrintError should be disabled';
@@ -38,7 +38,5 @@ ok !$dbh->{RaiseError}, 'RaiseError should be disabled';
 ok $dbh->{AutoCommit}, 'AutoCommit should be enabled';
 isa_ok $dbh->{HandleError}, 'CODE', 'There should be an error handler';
 
-is $dbh->selectrow_arrayref(
-    'SELECT value FROM metadata WHERE label = ?',
-    undef, 'schema_version',
-)->[0], 1283212129, 'The schema should be up-to-date';
+is $dbh->selectrow_arrayref('SELECT 1')->[0], 1,
+    'We should be able to execute a query';

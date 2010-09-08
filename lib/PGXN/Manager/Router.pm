@@ -17,6 +17,9 @@ sub app {
         mount '/ui' => Plack::App::File->new(root => './www/ui/');
         mount '/' => builder {
             enable 'JSONP';
+            if (my $mids = PGXN::Manager->instance->config->{middleware}) {
+                enable @$_ for @$mids;
+            }
             sub {
                 my $env = shift;
                 my $route = $router->match($env) or return [404, [], ['not found']];

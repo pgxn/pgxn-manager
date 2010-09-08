@@ -2,7 +2,12 @@
     "name": "PGXN Manager (DEV)",
     "dbi": {
         "dsn": "dbi:Pg:dbname=pgxn_manager_dev",
-        "username": "postgres",
+        "username": "pgxn",
         "password": ""
-    }
+    },
+    "middleware": [
+        ["StackTrace"],
+        ["Debug"],
+        ["Lint"]
+    ]
 }

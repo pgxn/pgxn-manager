@@ -4,5 +4,8 @@
         "dsn": "dbi:Pg:dbname=pgxn_manager",
         "username": "pgxn",
         "password": ""
-    }
+    },
+    "middleware": [
+        [ "ErrorDocument", 500, "/ui/error.html" ]
+    ]
 }
