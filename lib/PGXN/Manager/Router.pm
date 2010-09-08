@@ -2,19 +2,28 @@ package PGXN::Manager::Router;
 
 use 5.12.0;
 use utf8;
+use Plack::Builder;
 use Router::Simple::Sinatraish;
+use Plack::App::File;
 use aliased 'PGXN::Manager::Controller::Root';
+use PGXN::Manager;
 
 # The routing table. Define all new routes here.
 get '/' => sub { Root->home(shift) };
 
 sub app {
     my $router = shift->router;
-    sub {
-        my $env = shift;
-        my $route = $router->match($env) or return [404, [], ['not found']];
-        return $route->{code}->($env);
-    }
+    builder {
+        mount '/ui' => Plack::App::File->new(root => './www/ui/');
+        mount '/' => builder {
+            enable 'JSONP';
+            sub {
+                my $env = shift;
+                my $route = $router->match($env) or return [404, [], ['not found']];
+                return $route->{code}->($env);
+            }
+        };
+    };
 };
 
 1;

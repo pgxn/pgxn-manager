@@ -1,0 +1,11 @@
+html, body {
+  font-family: Helvetica, Arial, sans-serif;
+  font-size: .95em;
+  line-height: 1.3em;
+  background: #8b795e;
+  margin: 0 0 20px 0;
+  color: black;
+  height: 100%;
+  min-width: 800px;
+}
+
