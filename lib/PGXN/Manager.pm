@@ -1,6 +1,6 @@
 package PGXN::Manager v0.0.1;
 
-use feature ':5.12';
+use 5.12.0;
 use utf8;
 use MooseX::Singleton;
 use DBIx::Connector;

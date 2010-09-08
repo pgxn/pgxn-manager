@@ -5,20 +5,22 @@ use Module::Build::DB;
 Module::Build::DB->new(
     module_name        => 'PGXN::Manager',
     license            => 'perl',
-#   script_files       => 'bin',
+    script_files       => 'bin',
     test_file_exts     => [qw(.t .pg)],
     db_config_key      => 'dbi',
-    replace_config     => 'conf/dev.yml',
+    replace_config     => 'conf/test.json',
     db_client          => 'psql',
     configure_requires => {
         'Module::Build::DB' => '0.10',
     },
     build_requires     => {
-        'Module::Build::DB' => '0.10',
-        'Test::More'        => '0.70',
-        'Test::Harness'     => '3.18',
+        'Module::Build::DB'     => '0.10',
+        'Test::More'            => '0.70',
+        'Test::Harness'         => '3.18',
+        'HTTP::Request::Common' => '5.824',
     },
     requires           => {
+        'aliased'             => '0.30',
         'Data::Validate::URI' => '0.05',
         'DBD::Pg'             => '2.15.1',
         'DBI'                 => '1.608',
@@ -27,6 +29,7 @@ Module::Build::DB->new(
         'Moose'               => '1.12',
         'MooseX::Singleton'   => '0.25',
         'perl'                => 5.012,
+        'Plack'               => '0.9946',
     },
     recommends         => {
         'Test::Pod'              => '1.20',
