@@ -24,6 +24,8 @@ Module::Build::DB->new(
         'DBI'                 => '1.608',
         'DBIx::Connector'     => '0.20',
         'Email::Valid'        => '0.184',
+        'Moose'               => '1.12',
+        'MooseX::Singleton'   => '0.25',
         'perl'                => 5.012,
     },
     recommends         => {
