@@ -9,5 +9,15 @@
         ["StackTrace"],
         ["Debug"],
         ["Lint"]
-    ]
+    ],
+    "mirror_root": "/tmp/pgxn-root-dev",
+    "uri_templates": {
+        "dist":         "/dist/{dist}/{dist}-{version}.pgz",
+        "readme":       "/dist/{dist}/{dist}-{version}.readme",
+        "meta":         "/dist/{dist}/{dist}-{version}.json",
+        "by-dist":      "/by/dist/{dist}.json",
+        "by-extension": "/by/extension/{extension}.json",
+        "by-owner":     "/by/owner/{owner}.json",
+        "by-tag":       "/by/tag/{tag}.json"
+    }
 }
