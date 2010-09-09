@@ -14,9 +14,10 @@ Module::Build::DB->new(
         'Module::Build::DB' => '0.10',
     },
     build_requires     => {
-        'Test::File::Contents'  => '0.05',
         'Test::File'            => '1.29',
+        'Test::File::Contents'  => '0.05',
         'Module::Build::DB'     => '0.10',
+        'Test::MockModule'      => '0.05',
         'Test::More'            => '0.70',
         'Test::Harness'         => '3.18',
         'HTTP::Request::Common' => '5.824',

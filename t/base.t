@@ -2,9 +2,13 @@
 
 use 5.12.0;
 use utf8;
-use Test::More tests => 17;
+use Test::More tests => 23;
 #use Test::More 'no_plan';
 use JSON::XS;
+use Test::File;
+use Test::File::Contents;
+use Test::MockModule;
+use File::Path 'remove_tree';
 
 BEGIN {
     use_ok 'PGXN::Manager' or die;
@@ -14,7 +18,6 @@ can_ok 'PGXN::Manager', qw(config conn instance initialize);
 isa_ok my $pgxn = PGXN::Manager->instance, 'PGXN::Manager';
 is +PGXN::Manager->instance, $pgxn, 'instance() should return a singleton';
 is +PGXN::Manager->instance, $pgxn, 'new() should return a singleton';
-
 
 open my $fh, '<', 'conf/test.json' or die "Cannot open conf/test.json: $!\n";
 my $conf = do {
@@ -40,3 +43,21 @@ isa_ok $dbh->{HandleError}, 'CODE', 'There should be an error handler';
 
 is $dbh->selectrow_arrayref('SELECT 1')->[0], 1,
     'We should be able to execute a query';
+
+# Make sure we can initialize the mirror root.
+my $index = File::Spec->catfile($pgxn->config->{mirror_root}, 'index.json');
+END { remove_tree $pgxn->config->{mirror_root} }
+file_not_exists_ok $index, "$index should not exist";
+ok $pgxn->init_root, 'Initialize the mirror root';
+file_exists_ok $index, "$index should now exist";
+
+# Make sure that it contains what it ought to.
+file_contents_is $index, JSON::XS->new->indent->space_after->canonical->encode(
+    $pgxn->config->{uri_templates}
+), '...And it should have the mirror templates specified in it';
+
+# Make sure it doesn't get overwritten by subsequent calls to init_root().
+my $mock_json = Test::MockModule->new('JSON::XS');
+$mock_json->mock(new => sub { fail 'JSON::XS->new should not be called!' });
+ok $pgxn->init_root, 'Init the root again';
+file_exists_ok $index, "$index should still exist";

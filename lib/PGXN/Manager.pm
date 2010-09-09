@@ -5,6 +5,7 @@ use utf8;
 use MooseX::Singleton;
 use DBIx::Connector;
 use Exception::Class::DBI;
+use File::Spec;
 use JSON::XS ();
 
 =head1 Name
@@ -74,6 +75,45 @@ has conn => (is => 'ro', lazy => 1, isa => 'DBIx::Connector', default => sub {
         pg_enable_utf8 => 1,
     });
 });
+
+=head2 Instance Methods
+
+=head3 C<init_root>
+
+  $pgxn->init_root;
+
+Initializes the PGXN mirror root. If the root directory, specified by the
+C<mirror_root> key in the configuration file, does not exist, it will be
+created. If the F<index.json> file does not exist, it too will be created and
+populated with the contents of the C<uri_templates> section of the
+configuration file.
+
+B<Note:> Once the network has gone live and clients are usig it, the
+F<index.json> file's URI templates must not be modified! Otherwise clients
+won't be able to find metadata or distributions upladed before the
+modification. So leave this file alone!
+
+=cut
+
+sub init_root {
+    my $self = shift;
+    my $root = $self->config->{mirror_root};
+    if (!-e $root) {
+        require File::Path;
+        File::Path::make_path($root);
+    }
+
+    my $index = File::Spec->catfile($root, 'index.json');
+    if (!-e $index) {
+        open my $fh, '>', $index or die qq{Cannot open "$index": $!\n};
+        print $fh JSON::XS->new->indent->space_after->canonical->encode(
+            $self->config->{uri_templates}
+        );
+        close $fh or die qq{Cannot close "$index": $!\n};
+    }
+
+    return $self;
+}
 
 1;
 
