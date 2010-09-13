@@ -1,12 +1,11 @@
 SET search_path = public,contrib,tap;
 
 BEGIN;
-SELECT plan(12);
+SELECT plan(11);
 
 -- Check languages.
 SELECT has_language('plpgsql');
 SELECT has_language('plperl');
-SELECT has_language('plperlu');
 
 -- Check schemas.
 SELECT schemas_are(ARRAY['public', 'contrib', 'tap']);

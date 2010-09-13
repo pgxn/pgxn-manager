@@ -88,9 +88,9 @@ created. If the F<index.json> file does not exist, it too will be created and
 populated with the contents of the C<uri_templates> section of the
 configuration file.
 
-B<Note:> Once the network has gone live and clients are usig it, the
+B<Note:> Once the network has gone live and clients are using it, the
 F<index.json> file's URI templates must not be modified! Otherwise clients
-won't be able to find metadata or distributions upladed before the
+won't be able to find metadata or distributions uploaded before the
 modification. So leave this file alone!
 
 =cut

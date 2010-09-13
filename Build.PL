@@ -10,34 +10,36 @@ Module::Build::DB->new(
     db_config_key      => 'dbi',
     replace_config     => 'conf/test.json',
     db_client          => 'psql',
-    configure_requires => {
-        'Module::Build::DB' => '0.10',
-    },
+    configure_requires => { 'Module::Build::DB' => '0.10', },
     build_requires     => {
-        'Test::File'            => '1.29',
-        'Test::File::Contents'  => '0.05',
-        'Module::Build::DB'     => '0.10',
-        'Test::MockModule'      => '0.05',
-        'Test::More'            => '0.70',
-        'Test::Harness'         => '3.18',
-        'HTTP::Request::Common' => '5.824',
+        'Test::File'                        => '1.29',
+        'Test::File::Contents'              => '0.05',
+        'Module::Build::DB'                 => '0.10',
+        'Test::MockModule'                  => '0.05',
+        'Test::More'                        => '0.70',
+        'Test::Harness'                     => '3.18',
+        'HTTP::Request::Common'             => '5.824',
+        'TAP::Parser::SourceHandler::pgTAP' => '3.23',
     },
-    requires           => {
-        'aliased'              => '0.30',
-        'Data::Validate::URI'  => '0.05',
-        'DBD::Pg'              => '2.15.1',
-        'DBI'                  => '1.608',
-        'DBIx::Connector'      => '0.20',
-        'Email::Valid'         => '0.184',
-        'Moose'                => '1.12',
-        'MooseX::Singleton'    => '0.25',
-        'perl'                 => 5.012,
-        'Plack'                => '0.9946',
-        'namespace::autoclean' => '0.11',
-      },
-    recommends         => {
-        'Test::Pod'              => '1.20',
-        'Test::Pod::Coverage'    => '1.06',
+    requires => {
+        'aliased'                    => '0.30',
+        'Data::Validate::URI'        => '0.05',
+        'DBD::Pg'                    => '2.15.1',
+        'DBI'                        => '1.608',
+        'DBIx::Connector'            => '0.20',
+        'Email::Valid'               => '0.184',
+        'Exception::Class::DBI'      => '1.00',
+        'JSON::XS'                   => '2.3',
+        'Moose'                      => '1.12',
+        'MooseX::Singleton'          => '0.25',
+        'perl'                       => 5.012,
+        'Plack'                      => '0.9946',
+        'namespace::autoclean'       => '0.11',
+        'Router::Simple::Sinatraish' => '0.02',
+    },
+    recommends => {
+        'Test::Pod'           => '1.20',
+        'Test::Pod::Coverage' => '1.06',
     },
     tap_harness_args => {
         sources => {
@@ -49,11 +51,11 @@ Module::Build::DB->new(
             },
         },
     },
-    meta_merge         => {
+    meta_merge => {
         resources => {
-            homepage    => 'http://manage.pgxn.org/',
-            bugtracker  => 'http://github.com/theory/pgxn-manager/issues/',
-            repository  => 'http://github.com/theory/pgxn-manager/tree/',
+            homepage   => 'http://manage.pgxn.org/',
+            bugtracker => 'http://github.com/theory/pgxn-manager/issues/',
+            repository => 'http://github.com/theory/pgxn-manager/tree/',
         }
     },
 )->create_build_script;
