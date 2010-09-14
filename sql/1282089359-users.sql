@@ -274,4 +274,28 @@ BEGIN
 END;
 $$;
 
+CREATE OR REPLACE FUNCTION authenticate_user(
+   nickname CITEXT,
+   password TEXT
+) RETURNS BOOLEAN LANGUAGE sql STABLE SECURITY DEFINER AS $$
+/*
+
+    % select authenticate_user('admin', '*****');
+     authenticate_user
+    ────────────────
+     t
+
+Returns true if the user with the specified nickname exists, is active, and
+the password matches. Otherwise returns false.
+
+*/
+    SELECT EXISTS(
+        SELECT TRUE
+          FROM users
+         WHERE nickname = $1
+           AND status = 'active'
+           AND password = crypt($2, password)
+    );
+$$;
+
 COMMIT;
