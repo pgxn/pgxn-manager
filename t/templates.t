@@ -2,7 +2,7 @@
 
 use 5.12.0;
 use utf8;
-use Test::More tests => 37;
+use Test::More tests => 41;
 #use Test::More 'no_plan';
 use Test::XML;
 use Test::XPath;
@@ -18,6 +18,7 @@ Template::Declare->init( dispatch_to => ['PGXN::Manager::Templates'] );
 
 ok my $req = PGXN::Manager::Request->new(req_to_psgi(GET '/')),
     'Create a Plack request object';
+my $mt = PGXN::Manager::Maketext->accept($req->env->{HTTP_ACCEPT_LANGUAGE});
 
 ok my $html = Template::Declare->show('home', $req, {
     description => 'Whatever desc',
@@ -26,18 +27,27 @@ ok my $html = Template::Declare->show('home', $req, {
 
 is_well_formed_xml $html, 'The HTML should be well-formed';
 my $tx = Test::XPath->new( xml => $html, is_html => 1 );
-test_basics($tx, $req, {
-    desc     => 'Whatever desc',
-    keywords => 'yes,no',
-    h1       => 'Welcome!',
-    current_uri => 'current',
+test_basics($tx, $req, $mt, {
+    desc        => 'Whatever desc',
+    keywords    => 'yes,no',
+    h1          => $mt->maketext('Welcome'),
 });
+
+# Try in french.
+$req->env->{HTTP_ACCEPT_LANGUAGE} = 'fr';
+ok $html = Template::Declare->show('home', $req ), 'Show French home';
+is_well_formed_xml $html, 'French HTML should be well-formed';
+my $tx = Test::XPath->new( xml => $html, is_html => 1 );
+$tx->is(
+    '/html/body/div[@id="content"]/h1',
+    'Bienvenue',
+    'French HTML should have localized h1'
+);
 
 # Call this function for every request to make sure that they all
 # have the same basic structure.
 sub test_basics {
-    my ($tx, $req, $p) = @_;
-    my $mt = PGXN::Manager::Maketext->accept($req->env->{HTTP_ACCEPT_LANGUAGE});
+    my ($tx, $req, $mt, $p) = @_;
 
     # Some basic sanity-checking.
     $tx->is( 'count(/html)',      1, 'Should have 1 html element' );
@@ -123,9 +133,9 @@ sub test_basics {
                     "Should be one subelement of menu item $i"
                 );
                 $_->is(
-                    "./li[$i][\@class]", 'active',
+                    "./li[$i]/a/\@class", 'active',
                     "Link $i should be active"
-                ) if $p->{current_uri} eq $spec->[0];
+                ) if $req->path eq $spec->[0];
                 my $uri = $req->uri_for($spec->[0]);
                 $_->is(
                     qq{./li[$i]/a[\@href="$uri"]},

@@ -94,7 +94,7 @@ BEGIN { create_wrapper wrapper => sub {
 template home => sub {
     my ($self, $req, $args) = @_;
     wrapper {
-        h1 { T 'Welcome!' };
+        h1 { T 'Welcome' };
     } $req, $args;
 };
 
