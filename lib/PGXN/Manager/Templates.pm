@@ -5,9 +5,17 @@ use utf8;
 use parent 'Template::Declare';
 use Template::Declare::Tags;
 use PGXN::Manager;
+use PGXN::Manager::Maketext;
+
+my $l = PGXN::Manager::Maketext->get_handle('en');
+sub T {
+    $l->maketext(@_);
+}
 
 BEGIN { create_wrapper wrapper => sub {
     my ($code, $req, $args) = @_;
+    $l = PGXN::Manager::Maketext->accept($req->env->{HTTP_ACCEPT_LANGUAGE});
+
     xml_decl { 'xml', version => '1.0' };
     outs_raw '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" '
            . '"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">';
@@ -21,7 +29,7 @@ BEGIN { create_wrapper wrapper => sub {
                 'http-equiv' => 'Content-Type',
                  content     => 'text/html; charset=UTF-8',
             } };
-            title { $args->{title} || 'PGXN::Manager' };
+            title { T 'main_title' };
             meta {
                 name is 'generator';
                 content is 'PGXN::Manager ' . PGXN::Manager->VERSION;
@@ -57,8 +65,8 @@ BEGIN { create_wrapper wrapper => sub {
             div {
                 id is 'sidebar';
                 img { src is $req->uri_for('ui/img/logo.png') };
-                h1 { $args->{name} || 'PGXN Manager' };
-                h2 { $args->{tagline} || 'Release it on PGXN!' };
+                h1 { T 'PGXN Manager' };
+                h2 { T 'tagline' };
 
                 ul {
                     id is 'menu';
@@ -86,7 +94,7 @@ BEGIN { create_wrapper wrapper => sub {
 template home => sub {
     my ($self, $req, $args) = @_;
     wrapper {
-        h1 { 'Welcome!' };
+        h1 { T 'Welcome!' };
     } $req, $args;
 };
 

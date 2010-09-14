@@ -20,22 +20,16 @@ ok my $req = PGXN::Manager::Request->new(req_to_psgi(GET '/')),
     'Create a Plack request object';
 
 ok my $html = Template::Declare->show('home', $req, {
-    title => 'PGXN Dude',
     description => 'Whatever desc',
     keywords    => 'yes,no',
-    name        => 'Our Manager',
-    tagline     => 'Release it Stella',
 }), 'Show home';
 
 is_well_formed_xml $html, 'The HTML should be well-formed';
 my $tx = Test::XPath->new( xml => $html, is_html => 1 );
 test_basics($tx, $req, {
-    title    => 'PGXN Dude',
     desc     => 'Whatever desc',
     keywords => 'yes,no',
     h1       => 'Welcome!',
-    name     => 'Our Manager',
-    tagline  => 'Release it Stella',
     current_uri => 'current',
 });
 
@@ -43,6 +37,7 @@ test_basics($tx, $req, {
 # have the same basic structure.
 sub test_basics {
     my ($tx, $req, $p) = @_;
+    my $mt = PGXN::Manager::Maketext->accept($req->env->{HTTP_ACCEPT_LANGUAGE});
 
     # Some basic sanity-checking.
     $tx->is( 'count(/html)',      1, 'Should have 1 html element' );
@@ -59,7 +54,7 @@ sub test_basics {
             'Should have the content-type set in a meta header',
         );
 
-        $_->is('./title', $p->{title}, 'Title should be corect');
+        $_->is('./title', $mt->maketext('main_title'), 'Title should be corect');
 
         $_->is(
             './meta[@name="generator"]/@content',
@@ -107,8 +102,8 @@ sub test_basics {
         $_->is('count(./*)', 4, 'Should have four sidebar subelements');
 
         $_->is('./img/@src', $req->base . 'ui/img/logo.png', 'Should have logo');
-        $_->is('./h1', $p->{name}, 'Should have name');
-        $_->is('./h2', $p->{tagline}, 'Should have tagline');
+        $_->is('./h1', $mt->maketext('PGXN Manager'), 'Should have name');
+        $_->is('./h2', $mt->maketext('tagline'), 'Should have tagline');
 
         $_->ok('./ul[@id="menu"]', 'Test menu', sub {
             $_->is('count(./*)', 5, 'Should have 7 menue subelements');
