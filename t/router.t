@@ -16,7 +16,7 @@ test_psgi +PGXN::Manager::Router->app => sub {
     my $cb = shift;
     ok my $res = $cb->(GET '/'), 'Fetch /';
     is $res->code, 200, 'Should get 200 response';
-    is $res->content, 'Hello World', 'The body should be correct';
+    like $res->content, qr/Welcome/, 'The body should look correct';
 };
 
 test_psgi +PGXN::Manager::Router->app => sub {

@@ -12,14 +12,15 @@ Module::Build::DB->new(
     db_client          => 'psql',
     configure_requires => { 'Module::Build::DB' => '0.10', },
     build_requires     => {
+        'HTTP::Request::Common'             => '5.824',
+        'Module::Build::DB'                 => '0.10',
+        'TAP::Parser::SourceHandler::pgTAP' => '3.23',
         'Test::File'                        => '1.29',
         'Test::File::Contents'              => '0.05',
-        'Module::Build::DB'                 => '0.10',
+        'Test::Harness'                     => '3.18',
         'Test::MockModule'                  => '0.05',
         'Test::More'                        => '0.70',
-        'Test::Harness'                     => '3.18',
-        'HTTP::Request::Common'             => '5.824',
-        'TAP::Parser::SourceHandler::pgTAP' => '3.23',
+        'Test::XPath'                       => '0.13',
     },
     requires => {
         'aliased'                    => '0.30',
@@ -36,6 +37,7 @@ Module::Build::DB->new(
         'Plack'                      => '0.9946',
         'namespace::autoclean'       => '0.11',
         'Router::Simple::Sinatraish' => '0.02',
+        'Template::Declare'          => '0.43',
     },
     recommends => {
         'Test::Pod'           => '1.20',
