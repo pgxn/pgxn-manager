@@ -27,6 +27,7 @@ Module::Build::DB->new(
         'aliased'                    => '0.30',
         'Archive::Extract'           => '0.42',
         'Archive::Zip'               => '1.30',
+        'Class::ISA'                 => '0.36',
         'Data::Validate::URI'        => '0.05',
         'DBD::Pg'                    => '2.15.1',
         'DBI'                        => '1.608',
