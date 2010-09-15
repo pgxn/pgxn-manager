@@ -9,10 +9,12 @@ use aliased 'PGXN::Manager::Controller::Root';
 use PGXN::Manager;
 
 # The routing table. Define all new routes here.
-get '/' => sub { Root->home(shift) };
+get '/'     => sub { Root->home(shift) };
+get '/auth' => sub { Root->auth(shift) };
 
 sub app {
     my $router = shift->router;
+
     builder {
         mount '/ui' => Plack::App::File->new(root => './www/ui/');
         mount '/' => builder {
@@ -20,11 +22,23 @@ sub app {
             if (my $mids = PGXN::Manager->instance->config->{middleware}) {
                 enable @$_ for @$mids;
             }
+            # Authenticate all requests undef /auth
+            enable_if {
+                shift->{PATH_INFO} =~ m{^/auth\b}
+            }'Auth::Basic', authenticator => sub {
+                my ($username, $password) = @_;
+                PGXN::Manager->conn->run(sub {
+                    return ($_->selectrow_array(
+                        'SELECT authenticate_user(?, ?)',
+                        undef, $username, $password
+                    ))[0];
+                });
+            };
             sub {
                 my $env = shift;
                 my $route = $router->match($env) or return [404, [], ['not found']];
                 return $route->{code}->($env);
-            }
+            };
         };
     };
 };

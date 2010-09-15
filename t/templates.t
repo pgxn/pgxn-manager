@@ -2,7 +2,7 @@
 
 use 5.12.0;
 use utf8;
-use Test::More tests => 41;
+use Test::More tests => 40;
 #use Test::More 'no_plan';
 use Test::XML;
 use Test::XPath;
@@ -18,7 +18,7 @@ Template::Declare->init( dispatch_to => ['PGXN::Manager::Templates'] );
 
 ok my $req = PGXN::Manager::Request->new(req_to_psgi(GET '/')),
     'Create a Plack request object';
-my $mt = PGXN::Manager::Maketext->accept($req->env->{HTTP_ACCEPT_LANGUAGE});
+my $mt = PGXN::Manager::Locale->accept($req->env->{HTTP_ACCEPT_LANGUAGE});
 
 ok my $html = Template::Declare->show('home', $req, {
     description => 'Whatever desc',
@@ -121,10 +121,10 @@ sub test_basics {
 
             my $i = 0;
             for my $spec (
-                [ '/', 'Home' ],
+                [ '/auth',    'Log In' ],
                 [ '/request', 'Request Account' ],
-                [ '/forgot', 'Forgot Password' ],
-                [ '/about', 'About' ],
+                [ '/reset',   'Reset Password' ],
+                [ '/about',   'About' ],
                 [ '/contact', 'Contact' ],
             ) {
                 $i++;

@@ -5,16 +5,16 @@ use utf8;
 use parent 'Template::Declare';
 use Template::Declare::Tags;
 use PGXN::Manager;
-use PGXN::Manager::Maketext;
+use PGXN::Manager::Locale;
 
-my $l = PGXN::Manager::Maketext->get_handle('en');
+my $l = PGXN::Manager::Locale->get_handle('en');
 sub T {
     $l->maketext(@_);
 }
 
 BEGIN { create_wrapper wrapper => sub {
     my ($code, $req, $args) = @_;
-    $l = PGXN::Manager::Maketext->accept($req->env->{HTTP_ACCEPT_LANGUAGE});
+    $l = PGXN::Manager::Locale->accept($req->env->{HTTP_ACCEPT_LANGUAGE});
 
     xml_decl { 'xml', version => '1.0' };
     outs_raw '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" '
@@ -64,7 +64,7 @@ BEGIN { create_wrapper wrapper => sub {
 
             div {
                 id is 'sidebar';
-                img { src is $req->uri_for('ui/img/logo.png') };
+                img { src is $req->uri_for('/ui/img/logo.png') };
                 h1 { T 'PGXN Manager' };
                 h2 { T 'tagline' };
 
@@ -72,9 +72,17 @@ BEGIN { create_wrapper wrapper => sub {
                     id is 'menu';
                     my $path = $req->path;
                     for my $item (
-                        [ '/',        'Home' ],
-                        [ '/request', 'Request Account' ],
-                        [ '/forgot',  'Forgot Password' ],
+                        ($req->user ? (
+                            [ '/auth/upload',      'Upload a Distribution' ],
+                            [ '/auth/show',        'Show my Files'         ],
+                            [ '/auth/permissions', 'Show Permissions'      ],
+                            [ '/auth/user',        'Edit Account'          ],
+                            [ '/auth/pass',        'Change Password'       ],
+                        ) : (
+                            [ '/auth' =>  'Log In' ],
+                            [ '/request', 'Request Account' ],
+                            [ '/reset',   'Reset Password' ],
+                        )),
                         [ '/about',   'About' ],
                         [ '/contact', 'Contact' ],
                     ) {
@@ -143,6 +151,14 @@ XXX Document all parameters.
 =head3 C<home>
 
 Renders the home page of the app.
+
+=head2 Utility Functions
+
+=head3 C<T>
+
+  h1 { T 'Welcome!' };
+
+Translates the string using L<PGXN::Manager::Locale>.
 
 =head1 Author
 

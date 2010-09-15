@@ -8,7 +8,7 @@ use Plack::Response;
 sub uri_for {
     my ($self, $path) = (shift, shift);
     my $uri = $self->base;
-    my $relpath = ''; # XXX Configure for app mounted elsewhere than root?
+    my $relpath = $self->script_name;
     if ($path !~ m{^/}) {
         $relpath = $self->path_info;
         $relpath .= '/' if $relpath !~ s{/$}{};
