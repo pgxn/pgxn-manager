@@ -13,6 +13,7 @@ Module::Build::DB->new(
     configure_requires => { 'Module::Build::DB' => '0.10', },
     build_requires     => {
         'HTTP::Request::Common'             => '5.824',
+        'MIME::Base64'                      => '3.08',
         'Module::Build::DB'                 => '0.10',
         'TAP::Parser::SourceHandler::pgTAP' => '3.23',
         'Test::File'                        => '1.29',
