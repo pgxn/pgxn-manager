@@ -51,7 +51,7 @@ the C<--context> option to C<perl Build.PL> at build time.
 =cut
 
 has config => (is => 'ro', isa => 'HashRef', default => sub {
-    my $fn = 'conf/test.json';
+    my $fn = 'conf/' . ($ENV{PLACK_ENV} || 'test') . '.json';
     open my $fh, '<', $fn or die "Cannot open $fn: $!\n";
     local $/;
     JSON::XS->new->decode(<$fh>);
