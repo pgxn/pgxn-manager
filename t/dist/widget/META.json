@@ -1,0 +1,42 @@
+{
+   "name": "widget",
+   "abstract": "Widget for PostgreSQL",
+   "description": "A widget is just thing thing, you know",
+   "version": "0.2.5",
+   "maintainer": [
+      "David E. Wheeler <theory@pgxn.org>",
+   ],
+   "license": {
+      "PostgreSQL": "http://www.postgresql.org/about/licence"
+   },
+   "prereqs": {
+      "runtime": {
+         "requires": {
+            "plpgsql": 0,
+            "PostgreSQL": "8.0.0"
+         },
+         "recommends": {
+            "PostgreSQL": "8.4.0"
+         }
+      }
+   },
+   "provides": {
+      "widget": {
+         "file": "sql/widget.sql.in",
+         "version": "0.2.5"
+      }
+   },
+   "resources": {
+      "homepage": "http://widget.example.org/",
+   },
+   "generated_by": "theory",
+   "meta-spec": {
+      "version": "1.0.0",
+      "url": "http://github.com/theory/pgxn/wiki/PGXN-Meta-Spec"
+   },
+   "tags": [
+      "widget",
+      "gadget",
+      "full text search"
+   ]
+}
