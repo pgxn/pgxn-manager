@@ -6,7 +6,7 @@ use Test::More tests => 15;
 my $CLASS;
 
 BEGIN {
-    $CLASS = 'PGXN::Manager::Maketext';
+    $CLASS = 'PGXN::Manager::Locale';
     use_ok $CLASS or die;
 }
 
