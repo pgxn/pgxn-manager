@@ -1,8 +1,7 @@
-_build
-blib
-PGXN-Manager-*
-MANIFEST
-MANIFEST.bak
-*META.*
-Build
-sql/pgtap*
+/_build
+/blib
+/PGXN-Manager-*
+/MANIFEST
+/MANIFEST.bak
+/*META.*
+/Build
