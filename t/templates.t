@@ -2,7 +2,7 @@
 
 use 5.12.0;
 use utf8;
-use Test::More tests => 40;
+use Test::More tests => 43;
 #use Test::More 'no_plan';
 use Test::XML;
 use Test::XPath;
@@ -56,7 +56,7 @@ sub test_basics {
 
     # Check the head element.
     $tx->ok('/html/head', 'Test head', sub {
-        $_->is('count(./*)', 6, 'Should have 6 elements below "head"');
+        $_->is('count(./*)', 7, 'Should have 7 elements below "head"');
 
         $_->is(
             './meta[@http-equiv="Content-Type"]/@content',
@@ -97,6 +97,12 @@ sub test_basics {
             . qq{  <link rel="stylesheet" type="text/css" href="$ie_uri" />\n}
             . '  <![endif]',
             'Should have IE6 fix comment');
+
+        $_->is(
+            './link[@rel="shortcut icon"]/@href',
+            $req->base . 'ui/img/favicon.png',
+            'Should specify the favicon',
+        );
     });
 
     # Test the body.
@@ -111,7 +117,14 @@ sub test_basics {
     $tx->ok( '/html/body/div[@id="sidebar"]', 'Test sidebar', sub {
         $_->is('count(./*)', 4, 'Should have four sidebar subelements');
 
-        $_->is('./img/@src', $req->base . 'ui/img/logo.png', 'Should have logo');
+        $_->ok('./a[@id="logo"]', 'Should have logo link', sub {
+            $_->is(
+                './@href',
+                $req->base . ($req->user ? '/auth' : ''),
+               'It should link to the right place'
+            );
+            $_->is('./img/@src', $req->base . 'ui/img/logo.png', 'Should have logo');
+        });
         $_->is('./h1', $mt->maketext('PGXN Manager'), 'Should have name');
         $_->is('./h2', $mt->maketext('tagline'), 'Should have tagline');
 

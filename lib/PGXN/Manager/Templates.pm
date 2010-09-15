@@ -54,6 +54,10 @@ BEGIN { create_wrapper wrapper => sub {
                 href is $req->uri_for('/ui/css/fix.css');
             };
             outs_raw "\n  <![endif]-->";
+            link {
+                rel is 'shortcut icon';
+                href is $req->uri_for('/ui/img/favicon.png');
+            };
         };
 
         body {
@@ -64,7 +68,11 @@ BEGIN { create_wrapper wrapper => sub {
 
             div {
                 id is 'sidebar';
-                img { src is $req->uri_for('/ui/img/logo.png') };
+                a {
+                    id is 'logo';
+                    href is $req->uri_for($req->user ? '/auth' : '/');
+                    img { src is $req->uri_for('/ui/img/logo.png') };
+                };
                 h1 { T 'PGXN Manager' };
                 h2 { T 'tagline' };
 
