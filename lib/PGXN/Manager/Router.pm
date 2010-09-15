@@ -9,8 +9,9 @@ use aliased 'PGXN::Manager::Controller::Root';
 use PGXN::Manager;
 
 # The routing table. Define all new routes here.
-get '/'     => sub { Root->home(shift) };
-get '/auth' => sub { Root->auth(shift) };
+get '/'            => sub { Root->home(shift) };
+get '/auth'        => sub { Root->auth(shift) };
+get '/auth/upload' => sub { Root->uplod(shift) };
 
 sub app {
     my $router = shift->router;

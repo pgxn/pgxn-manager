@@ -4,6 +4,7 @@ use 5.12.0;
 use utf8;
 use PGXN::Manager::Request;
 use PGXN::Manager::Templates;
+use aliased 'PGXN::Manager::Uploader';
 
 Template::Declare->init( dispatch_to => ['PGXN::Manager::Templates'] );
 
@@ -25,6 +26,12 @@ sub auth {
     my $self = shift;
     my $req = PGXN::Manager::Request->new(shift);
     return $self->render('/home', $req);
+}
+
+sub upload {
+    my $self = shift;
+    my $req = PGXN::Manager::Request->new(shift);
+    my $upload = Uploader->new( $req->uploads->{distribution} );
 }
 
 1;
@@ -59,6 +66,12 @@ Displays the HTML for the home page.
   PGXN::Manager::Controller::Root->auth($env);
 
 Displays the HTML for the authorized user home page.
+
+=head3 C<upload>
+
+  PGXN::Manager::Controller::Root->upload($env);
+
+Handles uploads to PGXN.
 
 =head2 Methods
 
