@@ -4,7 +4,7 @@ use 5.12.0;
 use utf8;
 use PGXN::Manager::Request;
 use PGXN::Manager::Templates;
-use aliased 'PGXN::Manager::Uploader';
+use aliased 'PGXN::Manager::Distribution';
 
 Template::Declare->init( dispatch_to => ['PGXN::Manager::Templates'] );
 
@@ -30,8 +30,11 @@ sub auth {
 
 sub upload {
     my $self = shift;
-    my $req = PGXN::Manager::Request->new(shift);
-    my $upload = Uploader->new( $req->uploads->{distribution} );
+    my $req  = PGXN::Manager::Request->new(shift);
+    my $dist = Distribution->new(
+        upload => $req->uploads->{distribution},
+        owner  => $req->remote_user,
+    );
 }
 
 1;

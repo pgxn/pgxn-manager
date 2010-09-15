@@ -1,4 +1,4 @@
-package PGXN::Manager::Uploader;
+package PGXN::Manager::Distribution;
 
 use 5.12.0;
 use utf8;
@@ -10,30 +10,24 @@ use File::Spec;
 use File::Path qw(make_path remove_tree);
 use namespace::autoclean;
 
-has upload => (is => 'ro', isa => 'Plack::Request::Upload');
-has error  => (is => 'ro', isa => 'Str' );
-has ae     => (is => 'ro', isa => 'Archive::Extract');
+has upload => (is => 'ro', required => 1, isa => 'Plack::Request::Distribution');
+has owner  => (is => 'ro', required => 1, isa => 'Str');
+has error  => (is => 'ro', required => 0, isa => 'Str');
+has ae     => (is => 'ro', required => 0, isa => 'Archive::Extract');
 
 local $Archive::Extract::PREFER_BIN = 1;
 my $TMPDIR = File::Spec->catdir(File::Spec->tmpdir, 'pgxn');
 
 make_path $TMPDIR if !-d $TMPDIR;
 
-around BUILDARGS => sub {
-    my $orig  = shift;
-    my $class = shift;
-    return $class->$orig(upload => $_[0]) if @_ == 1 && ! ref $_[0];
-    return $class->$orig(@_);
-};
-
-sub BUILD {
+sub process {
     my $self = shift;
     # 1. Unpack distro.
     $self->extract;
 
     # 2. Process its META.json.
     # 3. Zip it up.
-    # 4. Seed JSON + SHA1 to server.
+    # 4. Send JSON + SHA1 to server.
     # 5. If fail, return with failure.
     # 6. Otherwise, index.
 }
@@ -44,6 +38,18 @@ sub extract {
     $ae->extract(to => $TMPDIR);
     $self->ae($ae);
     return $self;
+}
+
+sub read_meta {
+}
+
+sub zipit {
+}
+
+sub register {
+}
+
+sub index {
 }
 
 sub DEMOLISH {
@@ -59,17 +65,20 @@ __PACKAGE__->meta->make_immutable(inline_constructor => 0);
 
 =head1 Name
 
-PGXN::Manager::Uploader - Manages distributions uploaded to PGXN.
+PGXN::Manager::Distribution - Manages distributions uploaded to PGXN.
 
 =head1 Synopsis
 
-  use PGXN::Manager::Uploader;
-  my $upload = PGXN::Manager::Uploader->new($archive_file_name);
-  die "Upload failure: ", $upload->error unless $upload->is_success;
+  use PGXN::Manager::Distribution;
+  my $upload = PGXN::Manager::Distribution->new(
+      upload => $req->uploads->{distribution}
+      owner  => $nickname,
+  );
+  die "Distribution failure: ", $upload->error unless $upload->is_success;
 
 =head1 Description
 
-This class provides the interface for managing uploads to PGXN.
+This class provides the interface for managing distribution uploads to PGXN.
 
 =head1 Interface
 
@@ -80,11 +89,16 @@ method.
 
 =head3 C<new>
 
-  my $upload = PGXN::Manager::Uploader->new($archive_file_name);
+  my $upload = PGXN::Manager::Distribution->new(
+      upload => $req->uploads->{distribution}
+      owner  => $nickname,
+  );
 
 Creates a new uploader object, doing all the work of the upload.
 
 =head2 Instance Methods
+
+=head3 C<process>
 
 =head3 C<extract>
 
@@ -92,6 +106,14 @@ Creates a new uploader object, doing all the work of the upload.
 
 Extracts the archive into a temporary directory. This directory will be
 removed when the uploader object is garbage-collected.
+
+=head3 C<read_meta>
+
+=head3 C<zipit>
+
+=head3 C<register>
+
+=head3 C<index>
 
 =head1 Author
 

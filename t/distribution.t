@@ -8,7 +8,8 @@ use Test::More 'no_plan';
 my $CLASS;
 
 BEGIN {
-    $CLASS = 'PGXN::Manager::Uploader';
+    $CLASS = 'PGXN::Manager::Distribution';
     use_ok $CLASS or die;
 }
 
+can_ok $CLASS, qw(process extract DEMOLISH read_meta register index);
