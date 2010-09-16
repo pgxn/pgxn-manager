@@ -20,6 +20,7 @@ has zip      => (is => 'rw', required => 0, isa => 'Archive::Zip');
 has deldir   => (is => 'rw', required => 0, isa => 'Str');
 has prefix   => (is => 'rw', required => 0, isa => 'Str');
 has distmeta => (is => 'rw', required => 0, isa => 'HashRef');
+has modified => (is => 'rw', required => 0, isa => 'Bool', default => 0);
 
 my $TMPDIR = File::Spec->catdir(File::Spec->tmpdir, 'pgxn');
 my $EXTRE = do {
@@ -39,10 +40,12 @@ sub process {
     # 2. Process its META.json.
     $self->read_meta or return;
 
-    # 3. Zip it up.
-    # 4. Send JSON + SHA1 to server.
-    # 5. If fail, return with failure.
-    # 6. Otherwise, index.
+    # 3. Normalize it.
+    $self->normalize;
+
+    # 4. Zip it up.
+    # 5. Send JSON + SHA1 to server.
+    # 6. Index it.
 
 }
 
@@ -76,6 +79,7 @@ sub extract {
             $zip->addTree($ae->extract_path, $dir);
             $self->zip($zip);
             $self->deldir($ae->extract_path);
+            $self->modified(1);
         }
     } catch {
         $self->error(ref $_ eq 'ARRAY' ? sprintf $_->[0], $upload->basename : $_);
@@ -110,6 +114,9 @@ sub read_meta {
     } or return;
 
     return $self;
+}
+
+sub normalize {
 }
 
 sub zipit {

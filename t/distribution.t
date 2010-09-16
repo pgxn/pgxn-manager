@@ -2,7 +2,7 @@
 
 use 5.12.0;
 use utf8;
-use Test::More tests => 49;
+use Test::More tests => 55;
 #use Test::More 'no_plan';
 use Archive::Zip qw(:ERROR_CODES);
 use HTTP::Headers;
@@ -21,7 +21,7 @@ BEGIN {
     use_ok $CLASS or die;
 }
 
-can_ok $CLASS, qw(process extract read_meta register index);
+can_ok $CLASS, qw(process extract read_meta normalize zipit register index DEMOLISH);
 
 my $distdir    = File::Spec->catdir(qw(t dist widget));
 my $distzip    = File::Spec->catdir(qw(t dist widget-0.2.5.pgz));
@@ -42,9 +42,11 @@ END {
 
 isa_ok my $dist = new_dist($distzip), $CLASS, 'New object';
 
+##############################################################################
 # Test extract().
 is $dist->zip, undef, 'Should have no zip attribute';
 ok $dist->extract, 'Extract the distribution';
+ok !$dist->modified, 'The zip should be unmodified';
 isa_ok my $zip = $dist->zip, 'Archive::Zip', 'Zip attribute';
 is_deeply [sort $zip->memberNames ],
     ['widget-0.2.5/', map { "widget-0.2.5/$_"} qw(META.json Makefile widget.sql.in)],
@@ -68,6 +70,7 @@ file_not_exists_ok $extdir, 'Should not have extraction directory';
 is $dist->zip, undef, 'Should have no zip attribute';
 ok $dist->extract, 'Extract the distribution';
 file_exists_ok $extdir, 'Should now have extraction directory';
+ok $dist->modified, 'The zip should be modified';
 isa_ok my $zip = $dist->zip, 'Archive::Zip', 'Should now have a zip attribute';
 is_deeply [sort $zip->memberNames ],
     ['widget/', map { "widget/$_"} qw(META.json Makefile widget.sql.in)],
@@ -99,12 +102,14 @@ ok $dist->extract, 'Try to extract it';
 like $dist->error, qr/distribution[.]t[.]tgz doesn’t look like a distribution archive/,
     'Should invalid archive error';
 
-# Okay, go back to the zip file and process its META.json.
+##############################################################################
+# Test read_meta().
 ok $dist = new_dist($distzip), 'Create a distribution with a zip archive again';
 ok $dist->extract, 'Extract it';
 ok !$dist->error, 'Should be successful';
 ok $dist->read_meta, 'Read its meta data';
 is $dist->prefix, 'widget-0.2.5', 'It should have the prefix';
+ok !$dist->modified, 'The zip should be unmodified';
 ok $dist->distmeta, 'Should have its distmeta';
 my $distmeta = decode_json do {
     my $mf = File::Spec->catfile($distdir, 'META.json');
@@ -119,6 +124,7 @@ ok $dist = new_dist($disttgz), 'Create a distribution with a tgz archive again';
 ok $dist->extract, 'Extract it';
 ok !$dist->error, 'Should be successful';
 ok $dist->read_meta, 'Read its meta data';
+ok $dist->modified, 'The zip should be modified';
 is $dist->prefix, 'widget', 'It should have the prefix';
 ok $dist->distmeta, 'Should have its distmeta';
 is_deeply $dist->distmeta, $distmeta, 'It should have the metadata';
@@ -129,6 +135,7 @@ $dzip->writeToFileNamed($nometazip) == AZ_OK or die 'write error';
 ok $dist = new_dist($nometazip), 'Create a distribution with meta-less zip';
 ok $dist->extract, 'Extract it';
 ok !$dist->read_meta, 'Try to read its meta data';
+ok !$dist->modified, 'The zip should be unmodified';
 is $dist->error, 'Cannot find a META.json in widget-0.2.5.pgz',
     'The error message should be set';
 is $dist->prefix, undef, 'The prefix should not be set';
@@ -140,11 +147,14 @@ $dzip->writeToFileNamed($badmetazip) == AZ_OK or die 'write error';
 ok $dist = new_dist($badmetazip), 'Create a distribution with bad meta zip';
 ok $dist->extract, 'Extract it';
 ok !$dist->read_meta, 'Try to read its meta data';
+ok !$dist->modified, 'The zip should be unmodified';
 is $dist->error, q[Cannot parse JSON from widget-0.2.5/META.json: '"' expected, at character offset 27 (before "}")],
     'The error message should be set';
 is $dist->prefix, 'widget-0.2.5', 'The prefix should be set';
 is $dist->distmeta, undef, 'But we should have no distmeta';
 
+##############################################################################
+# Test read_meta().
 
 
 sub new_dist {
