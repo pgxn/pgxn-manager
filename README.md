@@ -1,6 +1,12 @@
 PGXN/Manager version 0.0.1
 ==========================
 
+Database Configuration
+----------------------
+
+    plperl.use_strict = on
+    plperl.on_init='use 5.12.0; use JSON::XS; use Email::Valid; use Data::Validate::URI; use SemVer;'
+
 Installation
 ------------
 

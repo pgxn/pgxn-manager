@@ -46,6 +46,7 @@ Module::Build::DB->new(
         'Plack'                      => '0.9946',
         'namespace::autoclean'       => '0.11',
         'Router::Simple::Sinatraish' => '0.02',
+        'SemVer'                     => '0.1.0',
         'Template::Declare'          => '0.43',
         'Try::Tiny'                  => '0.06',
     },

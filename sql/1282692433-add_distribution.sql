@@ -32,17 +32,14 @@ CREATE OR REPLACE FUNCTION setup_meta(
     $idx_meta->{release_status} ||= 'stable';
 
     # Normalize version string.
-    my $semverify = sub { spi_exec_query(
-        sprintf 'SELECT clean_semver(%s)', quote_nullable(shift)
-    )->{rows}[0]{clean_semver} };
-    $idx_meta->{version} = $semverify->($idx_meta->{version});
+    $idx_meta->{version} = SemVer->declare($idx_meta->{version})->normal;
 
     # Normalize "prereq" version strings.
     if (my $prereqs = $idx_meta->{prereqs}) {
         for my $phase (values %{ $prereqs }) {
             for my $type ( values %{ $phase }) {
                 for my $prereq (keys %{ $type }) {
-                    $type->{$prereq} = $semverify->($type->{$prereq});
+                    $type->{$prereq} = SemVer->declare($type->{$prereq})->normal;
                 }
             }
         }
@@ -51,7 +48,7 @@ CREATE OR REPLACE FUNCTION setup_meta(
     if (my $provides = $idx_meta->{provides}) {
         # Normalize "provides" version strings.
         for my $ext (values %{ $provides }) {
-            $ext->{version} = $semverify->($ext->{version});
+            $ext->{version} = SemVer->declare($ext->{version})->normal;
         }
     } else {
         # Default to using the distribution name as the extension.
