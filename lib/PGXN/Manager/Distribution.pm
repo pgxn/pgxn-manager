@@ -7,7 +7,9 @@ use PGXN::Manager;
 use Archive::Extract;
 use Archive::Zip qw(:ERROR_CODES);
 use File::Spec;
+use Try::Tiny;
 use File::Path qw(make_path remove_tree);
+use Cwd;
 use namespace::autoclean;
 
 has upload => (is => 'ro', required => 1, isa => 'Plack::Request::Upload');
@@ -16,7 +18,6 @@ has error  => (is => 'rw', required => 0, isa => 'Str');
 has zip    => (is => 'rw', required => 0, isa => 'Archive::Zip');
 has deldir => (is => 'rw', required => 0, isa => 'Str');
 
-local $Archive::Extract::PREFER_BIN = 1;
 my $TMPDIR = File::Spec->catdir(File::Spec->tmpdir, 'pgxn');
 my $EXTRE = do {
     my ($ext) = lc(PGXN::Manager->config->{uri_templates}{dist}) =~ /[.]([^.]+)$/;
@@ -24,6 +25,7 @@ my $EXTRE = do {
 };
 
 make_path $TMPDIR if !-d $TMPDIR;
+Archive::Zip::setErrorHandler(\&_zip_error_handler);
 
 sub process {
     my $self = shift;
@@ -35,32 +37,45 @@ sub process {
     # 4. Send JSON + SHA1 to server.
     # 5. If fail, return with failure.
     # 6. Otherwise, index.
+
 }
 
 sub extract {
     my $self   = shift;
     my $upload = $self->upload;
+    local $Archive::Extract::WARN = 0;
+    local $Archive::Extract::PREFER_BIN = 1;
+    # local $Archive::Extract::DEBUG = 1;
 
     # If upload extension matches dist template suffix, it's a Zip file.
     my ($ext) = lc($upload->basename) =~ /([.][^.]+)$/;
-    if ($ext =~ $EXTRE) {
-        # It's a zip acrhive.
-        my $zip = Archive::Zip->new;
-        $zip->read($upload->path) == AZ_OK or die 'read error';
-        $self->zip($zip);
-    } else {
-        # It's something else. Extract it and then zip it up.
-        my $ae = Archive::Extract->new(archive => $upload->path);
-        $ae->extract(to => $TMPDIR);
+    try {
+        if ($ext =~ $EXTRE) {
+            # It's a zip acrhive.
+            my $zip = Archive::Zip->new;
+            $zip->read($upload->path);
+            $self->zip($zip);
+        } else {
+            # It's something else. Extract it and then zip it up.
+            my $ae = do {
+                local $Archive::Extract::WARN = 1;
+                local $SIG{__WARN__} = \&_ae_error_handler;
+                my $ae = Archive::Extract->new(archive => $upload->path);
+                $ae->extract(to => $TMPDIR);
+                $ae;
+            };
 
-        # Create the zip.
-        my $dir = (File::Spec->splitdir($ae->extract_path))[-1];
-        my $zip = Archive::Zip->new;
-        $zip->addTree($ae->extract_path, $dir) == AZ_OK or die 'tree error';
-        $self->zip($zip);
-        $self->deldir($ae->extract_path);
-    }
-
+            # Create the zip.
+            my $dir = (File::Spec->splitdir($ae->extract_path))[-1];
+            my $zip = Archive::Zip->new;
+            $zip->addTree($ae->extract_path, $dir);
+            $self->zip($zip);
+            $self->deldir($ae->extract_path);
+        }
+    } catch {
+        $self->error(ref $_ eq 'ARRAY' ? sprintf $_->[0], $upload->basename : $_);
+        return;
+    };
     return $self;
 }
 
@@ -80,6 +95,26 @@ sub DEMOLISH {
     my $self = shift;
     if (my $path = $self->delpath) {
         remove_tree $path if -e $path;
+    }
+}
+
+sub _zip_error_handler {
+    given (shift) {
+        when (/format error: can't find EOCD signature/) {
+            die ['%s doesn’t look like a distribution archive'];
+        }
+        default { die [$_] }
+    }
+}
+
+my $CWD = cwd;
+sub _ae_error_handler {
+    chdir $CWD; # Go back to where we belong.
+    given (shift) {
+        when (/(?:Cannot determine file type|Unrecognized archive format)/) {
+            die ['%s doesn’t look like a distribution archive'];
+        }
+        default { die [$_] }
     }
 }
 

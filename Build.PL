@@ -13,6 +13,7 @@ Module::Build::DB->new(
     configure_requires => { 'Module::Build::DB' => '0.10', },
     build_requires     => {
         'Archive::Tar'                      => '1.68',
+        'File::Copy'                        => '2.18',
         'HTTP::Request::Common'             => '5.824',
         'MIME::Base64'                      => '3.08',
         'Module::Build::DB'                 => '0.10',
@@ -46,6 +47,7 @@ Module::Build::DB->new(
         'namespace::autoclean'       => '0.11',
         'Router::Simple::Sinatraish' => '0.02',
         'Template::Declare'          => '0.43',
+        'Try::Tiny'                  => '0.06',
     },
     recommends => {
         'Test::Pod'           => '1.20',
