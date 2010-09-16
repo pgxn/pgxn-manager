@@ -10,13 +10,16 @@ use File::Spec;
 use Try::Tiny;
 use File::Path qw(make_path remove_tree);
 use Cwd;
+use JSON::XS;
 use namespace::autoclean;
 
-has upload => (is => 'ro', required => 1, isa => 'Plack::Request::Upload');
-has owner  => (is => 'ro', required => 1, isa => 'Str');
-has error  => (is => 'rw', required => 0, isa => 'Str');
-has zip    => (is => 'rw', required => 0, isa => 'Archive::Zip');
-has deldir => (is => 'rw', required => 0, isa => 'Str');
+has upload   => (is => 'ro', required => 1, isa => 'Plack::Request::Upload');
+has owner    => (is => 'ro', required => 1, isa => 'Str');
+has error    => (is => 'rw', required => 0, isa => 'Str');
+has zip      => (is => 'rw', required => 0, isa => 'Archive::Zip');
+has deldir   => (is => 'rw', required => 0, isa => 'Str');
+has prefix   => (is => 'rw', required => 0, isa => 'Str');
+has distmeta => (is => 'rw', required => 0, isa => 'HashRef');
 
 my $TMPDIR = File::Spec->catdir(File::Spec->tmpdir, 'pgxn');
 my $EXTRE = do {
@@ -29,10 +32,13 @@ Archive::Zip::setErrorHandler(\&_zip_error_handler);
 
 sub process {
     my $self = shift;
+
     # 1. Unpack distro.
-    $self->extract;
+    $self->extract or return;
 
     # 2. Process its META.json.
+    $self->read_meta or return;
+
     # 3. Zip it up.
     # 4. Send JSON + SHA1 to server.
     # 5. If fail, return with failure.
@@ -43,9 +49,6 @@ sub process {
 sub extract {
     my $self   = shift;
     my $upload = $self->upload;
-    local $Archive::Extract::WARN = 0;
-    local $Archive::Extract::PREFER_BIN = 1;
-    # local $Archive::Extract::DEBUG = 1;
 
     # If upload extension matches dist template suffix, it's a Zip file.
     my ($ext) = lc($upload->basename) =~ /([.][^.]+)$/;
@@ -59,6 +62,8 @@ sub extract {
             # It's something else. Extract it and then zip it up.
             my $ae = do {
                 local $Archive::Extract::WARN = 1;
+                local $Archive::Extract::PREFER_BIN = 1;
+                # local $Archive::Extract::DEBUG = 1;
                 local $SIG{__WARN__} = \&_ae_error_handler;
                 my $ae = Archive::Extract->new(archive => $upload->path);
                 $ae->extract(to => $TMPDIR);
@@ -80,6 +85,31 @@ sub extract {
 }
 
 sub read_meta {
+    my $self    = shift;
+    my $zip     = $self->zip;
+    my $meta_re = qr/\bMETA[.]json$/;
+
+    my ($member) = $zip->membersMatching($meta_re);
+    unless ($member) {
+        $self->error('Cannot find a META.json in ' . $self->upload->basename);
+        return;
+    }
+
+    # Cache the prefix.
+    (my $prefix = $member->fileName) =~ s{/$meta_re}{};
+    $self->prefix($prefix || '');
+
+    # Process the JSON.
+    try {
+        $self->distmeta(decode_json scalar $member->contents );
+    } catch {
+        my $f = quotemeta __FILE__;
+        (my $err = $_) =~ s/\s+at\s+$f.+//ms;
+        $self->error('Cannot parse JSON from ' . $member->fileName . ": $err");
+        return;
+    } or return;
+
+    return $self;
 }
 
 sub zipit {

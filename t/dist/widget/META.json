@@ -4,7 +4,7 @@
    "description": "A widget is just thing thing, you know",
    "version": "0.2.5",
    "maintainer": [
-      "David E. Wheeler <theory@pgxn.org>",
+      "David E. Wheeler <theory@pgxn.org>"
    ],
    "license": {
       "PostgreSQL": "http://www.postgresql.org/about/licence"
@@ -27,7 +27,7 @@
       }
    },
    "resources": {
-      "homepage": "http://widget.example.org/",
+      "homepage": "http://widget.example.org/"
    },
    "generated_by": "theory",
    "meta-spec": {
