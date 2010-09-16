@@ -12,6 +12,7 @@ Module::Build::DB->new(
     db_client          => 'psql',
     configure_requires => { 'Module::Build::DB' => '0.10', },
     build_requires     => {
+        'Archive::Tar'                      => '1.68',
         'HTTP::Request::Common'             => '5.824',
         'MIME::Base64'                      => '3.08',
         'Module::Build::DB'                 => '0.10',

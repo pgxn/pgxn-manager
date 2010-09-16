@@ -5,18 +5,23 @@ use utf8;
 use Moose;
 use PGXN::Manager;
 use Archive::Extract;
-use Archive::Zip;
+use Archive::Zip qw(:ERROR_CODES);
 use File::Spec;
 use File::Path qw(make_path remove_tree);
 use namespace::autoclean;
 
-has upload => (is => 'ro', required => 1, isa => 'Plack::Request::Distribution');
+has upload => (is => 'ro', required => 1, isa => 'Plack::Request::Upload');
 has owner  => (is => 'ro', required => 1, isa => 'Str');
-has error  => (is => 'ro', required => 0, isa => 'Str');
-has ae     => (is => 'ro', required => 0, isa => 'Archive::Extract');
+has error  => (is => 'rw', required => 0, isa => 'Str');
+has zip    => (is => 'rw', required => 0, isa => 'Archive::Zip');
+has deldir => (is => 'rw', required => 0, isa => 'Str');
 
 local $Archive::Extract::PREFER_BIN = 1;
 my $TMPDIR = File::Spec->catdir(File::Spec->tmpdir, 'pgxn');
+my $EXTRE = do {
+    my ($ext) = lc(PGXN::Manager->config->{uri_templates}{dist}) =~ /[.]([^.]+)$/;
+    qr/[.](?:$ext|zip)$/
+};
 
 make_path $TMPDIR if !-d $TMPDIR;
 
@@ -33,10 +38,29 @@ sub process {
 }
 
 sub extract {
-    my $self = shift;
-    my $ae = Archive::Extract->new(archive => $self->upload->path);
-    $ae->extract(to => $TMPDIR);
-    $self->ae($ae);
+    my $self   = shift;
+    my $upload = $self->upload;
+
+    # If upload extension matches dist template suffix, it's a Zip file.
+    my ($ext) = lc($upload->basename) =~ /([.][^.]+)$/;
+    if ($ext =~ $EXTRE) {
+        # It's a zip acrhive.
+        my $zip = Archive::Zip->new;
+        $zip->read($upload->path) == AZ_OK or die 'read error';
+        $self->zip($zip);
+    } else {
+        # It's something else. Extract it and then zip it up.
+        my $ae = Archive::Extract->new(archive => $upload->path);
+        $ae->extract(to => $TMPDIR);
+
+        # Create the zip.
+        my $dir = (File::Spec->splitdir($ae->extract_path))[-1];
+        my $zip = Archive::Zip->new;
+        $zip->addTree($ae->extract_path, $dir) == AZ_OK or die 'tree error';
+        $self->zip($zip);
+        $self->deldir($ae->extract_path);
+    }
+
     return $self;
 }
 
@@ -54,10 +78,8 @@ sub index {
 
 sub DEMOLISH {
     my $self = shift;
-    if (my $ae = $self->ae) {
-        if (my $path = $ae->extract_path) {
-            remove_tree $path if -e $path;
-        }
+    if (my $path = $self->delpath) {
+        remove_tree $path if -e $path;
     }
 }
 
