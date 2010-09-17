@@ -2,7 +2,7 @@
 
 use 5.12.0;
 use utf8;
-use Test::More tests => 55;
+use Test::More tests => 110;
 #use Test::More 'no_plan';
 use Archive::Zip qw(:ERROR_CODES);
 use HTTP::Headers;
@@ -13,6 +13,7 @@ use Archive::Tar;
 use File::Basename;
 use File::Copy;
 use JSON::XS;
+use Test::MockModule;
 
 my $CLASS;
 
@@ -21,13 +22,17 @@ BEGIN {
     use_ok $CLASS or die;
 }
 
-can_ok $CLASS, qw(process extract read_meta normalize zipit register index DEMOLISH);
+can_ok $CLASS, qw(
+    process extract read_meta normalize update_meta zipit register index
+    DEMOLISH
+);
 
 my $distdir    = File::Spec->catdir(qw(t dist widget));
 my $distzip    = File::Spec->catdir(qw(t dist widget-0.2.5.pgz));
-my $nometazip  = File::Spec->catdir(qw(t dist widget-0.2.5.pgz));
-my $badmetazip = File::Spec->catdir(qw(t dist widget-0.2.5.pgz));
 my $disttgz    = File::Spec->catdir(qw(t dist widget-0.2.5.tar.gz));
+my $nometazip  = File::Spec->catdir(qw(t dist nometa-0.2.5.pgz));
+my $badmetazip = File::Spec->catdir(qw(t dist badmeta-0.2.5.pgz));
+my $nonsemzip  = File::Spec->catdir(qw(t dist nonsem-0.2.5.pgz));
 my $tmpdir     = File::Spec->catdir(File::Spec->tmpdir, 'pgxn');
 
 # First, create a distribution.
@@ -36,7 +41,7 @@ $dzip->addTree($distdir, 'widget-0.2.5') == AZ_OK or die 'tree error';
 $dzip->writeToFileNamed($distzip) == AZ_OK or die 'write error';
 
 END {
-    unlink $distzip, $disttgz, $nometazip, $badmetazip;
+    unlink $distzip, $disttgz, $nometazip, $badmetazip, $nonsemzip;
     remove_tree $tmpdir;
 }
 
@@ -108,7 +113,9 @@ ok $dist = new_dist($distzip), 'Create a distribution with a zip archive again';
 ok $dist->extract, 'Extract it';
 ok !$dist->error, 'Should be successful';
 ok $dist->read_meta, 'Read its meta data';
-is $dist->prefix, 'widget-0.2.5', 'It should have the prefix';
+ok $dist->metamemb, 'It should have the meta member';
+is $dist->metamemb->fileName, 'widget-0.2.5/META.json',
+    'It should be the right file';
 ok !$dist->modified, 'The zip should be unmodified';
 ok $dist->distmeta, 'Should have its distmeta';
 my $distmeta = decode_json do {
@@ -125,7 +132,9 @@ ok $dist->extract, 'Extract it';
 ok !$dist->error, 'Should be successful';
 ok $dist->read_meta, 'Read its meta data';
 ok $dist->modified, 'The zip should be modified';
-is $dist->prefix, 'widget', 'It should have the prefix';
+ok $dist->metamemb, 'It should have the meta member';
+is $dist->metamemb->fileName, 'widget/META.json',
+    'It should be the right file';
 ok $dist->distmeta, 'Should have its distmeta';
 is_deeply $dist->distmeta, $distmeta, 'It should have the metadata';
 
@@ -136,9 +145,9 @@ ok $dist = new_dist($nometazip), 'Create a distribution with meta-less zip';
 ok $dist->extract, 'Extract it';
 ok !$dist->read_meta, 'Try to read its meta data';
 ok !$dist->modified, 'The zip should be unmodified';
-is $dist->error, 'Cannot find a META.json in widget-0.2.5.pgz',
+is $dist->error, 'Cannot find a META.json in nometa-0.2.5.pgz',
     'The error message should be set';
-is $dist->prefix, undef, 'The prefix should not be set';
+is $dist->metamemb, undef, 'The meta member should not be set';
 is $dist->distmeta, undef, 'Should have no distmeta';
 
 # Now try an archive with a broken META.json.
@@ -150,12 +159,114 @@ ok !$dist->read_meta, 'Try to read its meta data';
 ok !$dist->modified, 'The zip should be unmodified';
 is $dist->error, q[Cannot parse JSON from widget-0.2.5/META.json: '"' expected, at character offset 27 (before "}")],
     'The error message should be set';
-is $dist->prefix, 'widget-0.2.5', 'The prefix should be set';
+ok $dist->metamemb, 'It should have the meta member';
+is $dist->metamemb->fileName, 'widget-0.2.5/META.json',
+    'It should be the right file';
 is $dist->distmeta, undef, 'But we should have no distmeta';
 
 ##############################################################################
-# Test read_meta().
+# Test normalize().
+my $mock = Test::MockModule->new($CLASS);
+my $updated = 0;
+my $updater = sub { $updated++ };
+$mock->mock(update_meta => $updater);
 
+ok $dist = new_dist($distzip), 'Create a distribution with a zip archive again';
+ok $dist->extract, 'Extract it';
+ok $dist->read_meta, 'Read its meta data';
+ok $dist->normalize, 'Normalize it';
+ok !$dist->error, 'Should be successful';
+ok !$dist->modified, 'Should not be modified';
+ok $dist->metamemb, 'It should have the meta member';
+is $dist->metamemb->fileName, 'widget-0.2.5/META.json',
+    'It should be the right file';
+is_deeply $dist->distmeta, $distmeta, 'The distmeta should be unchanged';
+is $updated, 0, 'And update_meta() should not have been called';
+
+# Let's test update_meta() while we're here.
+$mock->unmock('update_meta');
+ok $dist->update_meta, 'Update the metadata';
+$distmeta->{generated_by} = 'PGXN::Manager ' . PGXN::Manager->VERSION;
+is_deeply decode_json $dist->metamemb->contents, $distmeta,
+    'The distmeta should be complete';
+
+# Mock update_meta again.
+$mock->mock(update_meta => $updater);
+
+
+# Try the tarball which has a bogus prefix.
+ok $dist = new_dist($disttgz), 'Create a distribution with a tgz archive again';
+ok $dist->extract, 'Extract it';
+ok $dist->read_meta, 'Read its meta data';
+ok $dist->normalize, 'Normalize it';
+ok !$dist->error, 'Should be successful';
+ok $dist->modified, 'Should be modified';
+ok $dist->metamemb, 'It should have the meta member';
+is $dist->metamemb->fileName, 'widget-0.2.5/META.json',
+    'It should have its prefix properly updated';
+$distmeta->{generated_by} = 'theory';
+is_deeply $dist->distmeta, $distmeta, 'The distmeta should be unchanged';
+is $updated, 0, 'And update_meta() should not have been called';
+is_deeply [sort $dist->zip->memberNames ],
+    ['widget-0.2.5/', map { "widget-0.2.5/$_"} qw(META.json Makefile widget.sql.in)],
+    'All of the files should have the new prefix';
+is $updated, 0, 'update_meta() should not have been called';
+
+# Try with metdata that's got some non-semantic versions.
+$distmeta->{version} = '2.5';
+$dzip->memberNamed('widget-0.2.5/META.json')->contents(encode_json $distmeta);
+$dzip->writeToFileNamed($nonsemzip) == AZ_OK or die 'write error';
+
+ok $dist = new_dist($nonsemzip), 'Create dist with non-smantic version';
+ok $dist->extract, 'Extract it';
+ok $dist->read_meta, 'Read its meta data';
+ok $dist->normalize, 'Normalize it';
+ok !$dist->error, 'Should be successful';
+ok $dist->modified, 'Should be modified';
+ok $dist->metamemb, 'It should have the meta member';
+$distmeta->{version} = '2.5.0';
+is_deeply $dist->distmeta, $distmeta,
+    'The distmeta should have the normalized version';
+is $updated, 1, 'And update_meta() should have been called';
+is_deeply [sort $dist->zip->memberNames ],
+    ['widget-2.5.0/', map { "widget-2.5.0/$_"} qw(META.json Makefile widget.sql.in)],
+    'All of the files should have normalized version in their prefix';
+
+# Make sure that the "prereq" versions are normalized.
+$updated = 0;
+$distmeta->{prereqs}{runtime}{requires}{PostgreSQL} = '8.0';
+$dzip->memberNamed('widget-0.2.5/META.json')->contents(encode_json $distmeta);
+$dzip->writeToFileNamed($nonsemzip) == AZ_OK or die 'write error';
+
+ok $dist = new_dist($nonsemzip), 'Create dist with non-smantic "prereq" version';
+ok $dist->extract, 'Extract it';
+ok $dist->read_meta, 'Read its meta data';
+ok $dist->normalize, 'Normalize it';
+ok !$dist->error, 'Should be successful';
+ok $dist->modified, 'Should be modified';
+ok $dist->metamemb, 'It should have the meta member';
+$distmeta->{prereqs}{runtime}{requires}{PostgreSQL} = '8.0.0';
+is_deeply $dist->distmeta, $distmeta,
+    'The distmeta should have the normalized prereq version';
+is $updated, 1, 'And update_meta() should have been called';
+
+# Make sure that the "provides" versions are normalized.
+$updated = 0;
+$distmeta->{provides}{widget}{version} = '1.095';
+$dzip->memberNamed('widget-0.2.5/META.json')->contents(encode_json $distmeta);
+$dzip->writeToFileNamed($nonsemzip) == AZ_OK or die 'write error';
+
+ok $dist = new_dist($nonsemzip), 'Create dist with non-smantic "provides" version';
+ok $dist->extract, 'Extract it';
+ok $dist->read_meta, 'Read its meta data';
+ok $dist->normalize, 'Normalize it';
+ok !$dist->error, 'Should be successful';
+ok $dist->modified, 'Should be modified';
+ok $dist->metamemb, 'It should have the meta member';
+$distmeta->{provides}{widget}{version} = '1.95.0';
+is_deeply $dist->distmeta, $distmeta,
+    'The distmeta should have the normalized prvides version';
+is $updated, 1, 'And update_meta() should have been called again';
 
 sub new_dist {
     my $fn = shift;

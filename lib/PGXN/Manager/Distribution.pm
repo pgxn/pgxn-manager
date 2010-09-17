@@ -11,6 +11,7 @@ use Try::Tiny;
 use File::Path qw(make_path remove_tree);
 use Cwd;
 use JSON::XS;
+use SemVer;
 use namespace::autoclean;
 
 has upload   => (is => 'ro', required => 1, isa => 'Plack::Request::Upload');
@@ -18,15 +19,16 @@ has owner    => (is => 'ro', required => 1, isa => 'Str');
 has error    => (is => 'rw', required => 0, isa => 'Str');
 has zip      => (is => 'rw', required => 0, isa => 'Archive::Zip');
 has deldir   => (is => 'rw', required => 0, isa => 'Str');
-has prefix   => (is => 'rw', required => 0, isa => 'Str');
+has metamemb => (is => 'rw', required => 0, isa => 'Archive::Zip::FileMember');
 has distmeta => (is => 'rw', required => 0, isa => 'HashRef');
 has modified => (is => 'rw', required => 0, isa => 'Bool', default => 0);
 
 my $TMPDIR = File::Spec->catdir(File::Spec->tmpdir, 'pgxn');
-my $EXTRE = do {
+my $EXT_RE = do {
     my ($ext) = lc(PGXN::Manager->config->{uri_templates}{dist}) =~ /[.]([^.]+)$/;
     qr/[.](?:$ext|zip)$/
 };
+my $META_RE = qr/\bMETA[.]json$/;
 
 make_path $TMPDIR if !-d $TMPDIR;
 Archive::Zip::setErrorHandler(\&_zip_error_handler);
@@ -56,7 +58,7 @@ sub extract {
     # If upload extension matches dist template suffix, it's a Zip file.
     my ($ext) = lc($upload->basename) =~ /([.][^.]+)$/;
     try {
-        if ($ext =~ $EXTRE) {
+        if ($ext =~ $EXT_RE) {
             # It's a zip acrhive.
             my $zip = Archive::Zip->new;
             $zip->read($upload->path);
@@ -91,17 +93,15 @@ sub extract {
 sub read_meta {
     my $self    = shift;
     my $zip     = $self->zip;
-    my $meta_re = qr/\bMETA[.]json$/;
 
-    my ($member) = $zip->membersMatching($meta_re);
+    my ($member) = $zip->membersMatching($META_RE);
     unless ($member) {
         $self->error('Cannot find a META.json in ' . $self->upload->basename);
         return;
     }
 
-    # Cache the prefix.
-    (my $prefix = $member->fileName) =~ s{/$meta_re}{};
-    $self->prefix($prefix || '');
+    # Cache the member.
+    $self->metamemb($member);
 
     # Process the JSON.
     try {
@@ -117,6 +117,94 @@ sub read_meta {
 }
 
 sub normalize {
+    my $self = shift;
+    my $meta = $self->distmeta;
+
+    # Check required keys.
+    if (my @missing = grep { !exists $meta->{$_} } qw(
+        name version license maintainer abstract
+    )) {
+        my $pl = @missing > 1 ? 's' : '';
+        my $keys = join '", "', @missing;
+        $self->error(qq{META.json is missing the required "$keys" key$pl});
+        return;
+    }
+
+    my $meta_modified = 0;
+    # Does the version need normalizing?
+    my $normal = SemVer->declare($meta->{version})->normal;
+    if ($normal ne $meta->{version}) {
+        $meta->{version} = $normal;
+        $self->modified($meta_modified = 1);
+    }
+
+    # Do the "prereq" versions need normalizing?
+    if (my $prereqs = $meta->{prereqs}) {
+        for my $phase (values %{ $prereqs }) {
+            for my $type ( values %{ $phase }) {
+                for my $prereq (keys %{ $type }) {
+                    my $v = $type->{$prereq} or next; # 0 is valid.
+                    my $norm = SemVer->declare($type->{$prereq})->normal;
+                    next if $norm eq $v;
+                    $type->{$prereq} = $norm;
+                    $self->modified($meta_modified = 1);
+                }
+            }
+        }
+    }
+
+    # Do the provides versions need normalizing?
+    if (my $provides = $meta->{provides}) {
+        for my $ext (values %{ $provides }) {
+            my $norm = SemVer->declare($ext->{version})->normal;
+            next if $norm eq $ext->{version};
+            $ext->{version} = $norm;
+            $self->modified($meta_modified = 1);
+        }
+    }
+
+    # Rewrite JSON if distmeta is modified.
+    $self->update_meta if $meta_modified;
+
+    # Is the prefix right?
+    (my $meta_prefix = $self->metamemb->fileName) =~ s{/$META_RE}{};
+    $meta_prefix //= '';
+
+    my $prefix = "$meta->{name}-$meta->{version}";
+    if ($meta_prefix ne $prefix) {
+        # Rename all members.
+        my $old = quotemeta $meta_prefix;
+        for my $mem ($self->zip->members) {
+            (my $name = $mem->fileName) =~ s/\A$old/$prefix/;
+            $mem->fileName($name);
+        }
+        $self->modified(1);
+    }
+
+    return $self;
+}
+
+sub update_meta {
+    # Abstract to a CPAN module (and use it in setup_meta() db function, too).
+    my $self = shift;
+    my $mem  = $self->metamemb;
+    my $meta = $self->distmeta;
+    $meta->{generated_by} = 'PGXN::Manager ' . PGXN::Manager->VERSION;
+    my $encoder = JSON::XS->new->space_after->allow_nonref->indent->canonical;
+    $mem->contents( "{\n   " . join(",\n   ", map {
+        $encoder->indent( $_ ne 'tags');
+        my $v = $encoder->encode($meta->{$_});
+        chomp $v;
+        $v =~ s/^(?![[{])/   /gm if ref $meta->{$_} && $_ ne 'tags';
+        qq{"$_": $v}
+    } grep {
+        defined $meta->{$_}
+    } qw(
+        name abstract description version maintainer release_status owner sha1
+        license prereqs provides tags resources generated_by no_index
+        meta-spec
+    )) . "\n}\n");
+    return $self;
 }
 
 sub zipit {
@@ -202,6 +290,10 @@ Extracts the archive into a temporary directory. This directory will be
 removed when the uploader object is garbage-collected.
 
 =head3 C<read_meta>
+
+=head3 C<normalize>
+
+=head3 <update_meta>
 
 =head3 C<zipit>
 
