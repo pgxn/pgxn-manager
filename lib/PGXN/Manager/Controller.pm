@@ -1,4 +1,4 @@
-package PGXN::Manager::Controller::Root;
+package PGXN::Manager::Controller;
 
 use 5.12.0;
 use utf8;
@@ -41,12 +41,12 @@ sub upload {
 
 =head1 Name
 
-PGXN::Manager::Controller::Root - The PGXN::Manager request root controller
+PGXN::Manager::Controller - The PGXN::Manager request controller
 
 =head1 Synopsis
 
   # in PGXN::Manager::Router:
-  use aliased 'PGXN::Manager::Controller::Root';
+  use aliased 'PGXN::Manager::Controller';
   get '/' => sub { Root->home(shift) };
 
 =head1 Description
@@ -60,19 +60,19 @@ it doesn't do much, but it's a start.
 
 =head3 C<home>
 
-  PGXN::Manager::Controller::Root->home($env);
+  PGXN::Manager::Controller->home($env);
 
 Displays the HTML for the home page.
 
 =head3 C<auth>
 
-  PGXN::Manager::Controller::Root->auth($env);
+  PGXN::Manager::Controller->auth($env);
 
 Displays the HTML for the authorized user home page.
 
 =head3 C<upload>
 
-  PGXN::Manager::Controller::Root->upload($env);
+  PGXN::Manager::Controller->upload($env);
 
 Handles uploads to PGXN.
 

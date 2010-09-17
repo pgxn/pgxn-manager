@@ -5,13 +5,13 @@ use utf8;
 use Plack::Builder;
 use Router::Simple::Sinatraish;
 use Plack::App::File;
-use aliased 'PGXN::Manager::Controller::Root';
+use aliased 'PGXN::Manager::Controller';
 use PGXN::Manager;
 
 # The routing table. Define all new routes here.
-get '/'            => sub { Root->home(shift) };
-get '/auth'        => sub { Root->auth(shift) };
-get '/auth/upload' => sub { Root->uplod(shift) };
+get '/'            => sub { Controller->home(shift) };
+get '/auth'        => sub { Controller->auth(shift) };
+get '/auth/upload' => sub { Controller->uplod(shift) };
 
 sub app {
     my $router = shift->router;
