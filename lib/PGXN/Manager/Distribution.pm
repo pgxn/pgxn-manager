@@ -250,6 +250,21 @@ after zipfile => sub {
 };
 
 sub register {
+    my $self = shift;
+    PGXN::Manager->conn->run(sub {
+        $_->do(
+            'SELECT add_distribution(?, ?, ?)',
+            undef,
+            $self->owner,
+            $self->sha1,
+            $self->metamemb->contents,
+        );
+    }, catch {
+        $self->error($_);
+        return;
+    }) or return;
+
+    return $self;
 }
 
 sub indexit {
