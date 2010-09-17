@@ -12,6 +12,7 @@ use File::Path qw(make_path remove_tree);
 use Cwd;
 use JSON::XS;
 use SemVer;
+use Digest::SHA1 'sha1_hex';
 use namespace::autoclean;
 
 has upload   => (is => 'ro', required => 1, isa => 'Plack::Request::Upload');
@@ -23,6 +24,7 @@ has metamemb => (is => 'rw', required => 0, isa => 'Archive::Zip::FileMember');
 has distmeta => (is => 'rw', required => 0, isa => 'HashRef');
 has modified => (is => 'rw', required => 0, isa => 'Bool', default => 0);
 has zipfile  => (is => 'rw', required => 0, isa => 'Str');
+has sha1     => (is => 'rw', required => 0, isa => 'Str');
 
 my $TMPDIR = File::Spec->catdir(File::Spec->tmpdir, 'pgxn');
 my $EXT_RE = do {
@@ -50,8 +52,10 @@ sub process {
     $self->zipit or return;
 
     # 5. Send JSON + SHA1 to server.
-    # 6. Index it.
+    $self->register or return;
 
+    # 6. Index it.
+    $self->indexit or return;
 }
 
 sub extract {
@@ -234,10 +238,21 @@ sub zipit {
     } or return;
 }
 
+after zipfile => sub {
+    my $self = shift;
+    my $zf = shift or return;
+    open my $fh, '<', $zf or die "Cannot open $zf: $!\n";
+    my $sha1 = Digest::SHA1->new;
+    $sha1->addfile($fh);
+    $self->sha1($sha1->hexdigest);
+    close $fh or die "Cannot close $zf: $!\n";
+    return $self;
+};
+
 sub register {
 }
 
-sub index {
+sub indexit {
 }
 
 sub DEMOLISH {
@@ -323,7 +338,7 @@ removed when the uploader object is garbage-collected.
 
 =head3 C<register>
 
-=head3 C<index>
+=head3 C<indexit>
 
 =head1 Author
 

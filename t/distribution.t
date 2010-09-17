@@ -2,7 +2,7 @@
 
 use 5.12.0;
 use utf8;
-use Test::More tests => 127;
+use Test::More tests => 129;
 #use Test::More 'no_plan';
 use Archive::Zip qw(:ERROR_CODES);
 use HTTP::Headers;
@@ -23,7 +23,7 @@ BEGIN {
 }
 
 can_ok $CLASS, qw(
-    process extract read_meta normalize update_meta zipit register index
+    process extract read_meta normalize update_meta zipit register indexit
     DEMOLISH
 );
 
@@ -277,6 +277,7 @@ ok $dist->zipit, 'Zip it';
 ok !$dist->error, 'Should be successful';
 ok !$dist->modified, 'Should not be modified';
 is $dist->zipfile, $distzip, 'Should reference the original zip file';
+is $dist->sha1, '39642746a8d91345f93fc3027765043c8e52bbde', 'The SHA1 should be set';
 
 # Try the tgz file, which must be rewritten as a zip file.
 ok $dist = new_dist($disttgz), 'Create a distribution with a tgz archive again';
@@ -288,6 +289,12 @@ ok !$dist->error, 'Should be successful';
 ok $dist->modified, 'Should be modified';
 is $dist->zipfile, File::Spec->catfile($tmpdir, 'widget-0.2.5.zip'),
     'Zip file name should be new';
+is $dist->sha1, do {
+    open my $fh, '<', $dist->zipfile or die "Cannot open zipfile: $!\n";
+    my $sha1 = Digest::SHA1->new;
+    $sha1->addfile($fh);
+    $sha1->hexdigest;
+}, 'The SHA1 should be set';
 
 END { $dist->zipfile }
 
