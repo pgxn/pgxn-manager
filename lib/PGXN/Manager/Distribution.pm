@@ -22,6 +22,7 @@ has deldir   => (is => 'rw', required => 0, isa => 'Str');
 has metamemb => (is => 'rw', required => 0, isa => 'Archive::Zip::FileMember');
 has distmeta => (is => 'rw', required => 0, isa => 'HashRef');
 has modified => (is => 'rw', required => 0, isa => 'Bool', default => 0);
+has zipfile  => (is => 'rw', required => 0, isa => 'Str');
 
 my $TMPDIR = File::Spec->catdir(File::Spec->tmpdir, 'pgxn');
 my $EXT_RE = do {
@@ -43,9 +44,11 @@ sub process {
     $self->read_meta or return;
 
     # 3. Normalize it.
-    $self->normalize;
+    $self->normalize or return;
 
     # 4. Zip it up.
+    $self->zipit or return;
+
     # 5. Send JSON + SHA1 to server.
     # 6. Index it.
 
@@ -208,6 +211,27 @@ sub update_meta {
 }
 
 sub zipit {
+    my $self = shift;
+
+    unless ($self->modified) {
+        # We can just use the uploaded zip file as-is.
+        $self->zipfile($self->upload->path);
+        return $self;
+    }
+
+    my $meta = $self->distmeta;
+    my $zipfile = File::Spec->catfile(
+        $TMPDIR, "$meta->{name}-$meta->{version}.zip"
+    );
+
+    try {
+        $self->zip->writeToFileNamed($zipfile);
+        $self->zipfile($zipfile);
+        return $self;
+    } catch {
+        $self->error("Error writing new zip file");
+        return;
+    } or return;
 }
 
 sub register {
@@ -293,7 +317,7 @@ removed when the uploader object is garbage-collected.
 
 =head3 C<normalize>
 
-=head3 <update_meta>
+=head3 C<update_meta>
 
 =head3 C<zipit>
 

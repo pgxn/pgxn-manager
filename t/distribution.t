@@ -2,7 +2,7 @@
 
 use 5.12.0;
 use utf8;
-use Test::More tests => 110;
+use Test::More tests => 127;
 #use Test::More 'no_plan';
 use Archive::Zip qw(:ERROR_CODES);
 use HTTP::Headers;
@@ -193,7 +193,6 @@ is_deeply decode_json $dist->metamemb->contents, $distmeta,
 # Mock update_meta again.
 $mock->mock(update_meta => $updater);
 
-
 # Try the tarball which has a bogus prefix.
 ok $dist = new_dist($disttgz), 'Create a distribution with a tgz archive again';
 ok $dist->extract, 'Extract it';
@@ -268,6 +267,39 @@ is_deeply $dist->distmeta, $distmeta,
     'The distmeta should have the normalized prvides version';
 is $updated, 1, 'And update_meta() should have been called again';
 
+##############################################################################
+# Test zipit().
+ok $dist = new_dist($distzip), 'Create a distribution with a zip archive again';
+ok $dist->extract, 'Extract it';
+ok $dist->read_meta, 'Read its meta data';
+ok $dist->normalize, 'Normalize it';
+ok $dist->zipit, 'Zip it';
+ok !$dist->error, 'Should be successful';
+ok !$dist->modified, 'Should not be modified';
+is $dist->zipfile, $distzip, 'Should reference the original zip file';
+
+# Try the tgz file, which must be rewritten as a zip file.
+ok $dist = new_dist($disttgz), 'Create a distribution with a tgz archive again';
+ok $dist->extract, 'Extract it';
+ok $dist->read_meta, 'Read its meta data';
+ok $dist->normalize, 'Normalize it';
+ok $dist->zipit, 'Zip it';
+ok !$dist->error, 'Should be successful';
+ok $dist->modified, 'Should be modified';
+is $dist->zipfile, File::Spec->catfile($tmpdir, 'widget-0.2.5.zip'),
+    'Zip file name should be new';
+
+END { $dist->zipfile }
+
+# Make sure the zip file looks right.
+my $nzip = Archive::Zip->new;
+$nzip->read($dist->zipfile);
+is_deeply [sort $nzip->memberNames ],
+    ['widget-0.2.5/', map { "widget-0.2.5/$_"} qw(META.json Makefile widget.sql.in)],
+    'It should have the expected files';
+
+##############################################################################
+# Utility for constructing a distribution.
 sub new_dist {
     my $fn = shift;
     my $bn = basename $fn;
