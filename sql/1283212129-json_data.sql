@@ -222,30 +222,6 @@ BEGIN
 END;
 $$;
 
-CREATE OR REPLACE VIEW distribution_versions AS
-SELECT name AS distribution,
-       '[' || string_agg(
-           CASE relstatus WHEN 'stable'
-           THEN '"' || version || '"'
-           ELSE NULL
-       END, ', ' ORDER BY version USING >) || ']' AS stable,
-       '[' || string_agg(
-           CASE relstatus
-           WHEN 'testing'
-           THEN '"' || version || '"'
-           ELSE NULL
-       END, ', ' ORDER BY version USING >) || ']' AS testing,
-       '[' || string_agg(
-           CASE relstatus
-           WHEN 'unstable'
-           THEN '"' || version || '"'
-           ELSE NULL
-       END, ', ' ORDER BY version USING >) || ']' AS unstable
-  FROM distributions
- GROUP BY name;
-
-GRANT SELECT ON distribution_versions TO pgxn;
-
 CREATE OR REPLACE FUNCTION by_dist_json(
    dist      TEXT
 ) RETURNS TEXT LANGUAGE sql STABLE STRICT AS $$
@@ -273,7 +249,28 @@ versions.
                '"testing": '  || testing,
                '"unstable": ' || unstable
            ], E',\n      ') || E'\n   }\n}\n'
-      FROM distribution_versions
+      FROM (
+        SELECT name AS distribution,
+           '[' || string_agg(
+               CASE relstatus WHEN 'stable'
+               THEN '"' || version || '"'
+               ELSE NULL
+           END, ', ' ORDER BY version USING >) || ']' AS stable,
+           '[' || string_agg(
+               CASE relstatus
+               WHEN 'testing'
+               THEN '"' || version || '"'
+               ELSE NULL
+           END, ', ' ORDER BY version USING >) || ']' AS testing,
+           '[' || string_agg(
+               CASE relstatus
+               WHEN 'unstable'
+               THEN '"' || version || '"'
+               ELSE NULL
+           END, ', ' ORDER BY version USING >) || ']' AS unstable
+          FROM distributions
+         GROUP BY name
+      ) AS dv
      WHERE distribution = $1;
 $$;
 
