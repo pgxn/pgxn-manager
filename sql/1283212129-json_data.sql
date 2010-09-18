@@ -318,25 +318,39 @@ only associated with pgtap 0.0.1. The tag "schema", on the other hand, is
 associcated with three versions of the "pair" distribution, as well.
 
 */
-    SELECT tag, E'{\n   "tag": ' || json_value(tag) || E',\n   "releases": {\n'
-           || string_agg(
-               DISTINCT '      "' || dv.distribution
-                   || E'": {\n         ' ||  array_to_string(ARRAY[
-                       '"stable": '   || stable,
-                       '"testing": '  || testing,
-                       '"unstable": ' || unstable
-                   ], E',\n         ') || E'\n      }',
-              E',\n')
-           || E'\n   }\n}\n'
-      FROM distribution_tags dt
-      JOIN distribution_versions dv
-        ON dt.distribution = dv.distribution
-     WHERE dt.tag IN (
-        SELECT tag
-          FROM distribution_tags
-         WHERE distribution = $1
-           AND version      = $2
-     )
+    WITH td AS (
+        WITH ds AS (
+            WITH dt AS (
+                SELECT dt.tag, dt.distribution, d.version, d.relstatus
+                  FROM distribution_tags dt
+                  JOIN distributions d
+                    ON dt.distribution = d.name
+                   AND dt.version      = d.version
+                 WHERE dt.tag IN (
+                    SELECT tag
+                      FROM distribution_tags
+                     WHERE distribution = $1
+                       AND version      = $2
+                 )
+             )
+             SELECT dt.tag, dt.distribution, d.relstatus,
+                    array_agg(d.version::text ORDER BY d.version USING >) AS versions
+               FROM dt
+               JOIN distributions d
+                 ON dt.distribution = d.name
+                AND dt.version      = d.version
+             GROUP BY tag, dt.distribution, d.relstatus
+        )
+        SELECT tag, distribution,
+               array_agg(json_key(relstatus::text) || ': [ "' ||  array_to_string(versions, '", "') || '" ]') AS relv
+          FROM ds
+         GROUP BY tag, distribution
+    )
+    SELECT tag, E'{\n   "tag": ' || json_value(tag) || E',\n   "releases": {\n      '
+        || string_agg(json_key(distribution) || E': {\n         '
+        || array_to_string(relv, E',\n         '), E'\n      },\n      ')
+        || E'\n      }\n   }\n}\n'
+      FROM td
      GROUP BY tag;
 $$;
 

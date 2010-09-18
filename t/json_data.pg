@@ -622,19 +622,19 @@ SELECT is_empty(
     'Should get no results from by_tag_json() for non-existent distribution'
 );
 
--- Chck distribution with one tag.
+-- Check distribution with one tag.
 SELECT results_eq(
     $$ SELECT * FROM by_tag_json('trip', '0.2.5') $$,
     $$ VALUES ('foo'::citext, '{
    "tag": "foo",
    "releases": {
       "pair": {
-         "stable": ["0.0.10", "0.0.3", "0.0.2"],
-         "testing": ["0.0.1"],
-         "unstable": ["0.0.2a1"]
+         "stable": [ "0.0.10", "0.0.2" ],
+         "testing": [ "0.0.1" ],
+         "unstable": [ "0.0.2a1" ]
       },
       "trip": {
-         "stable": ["0.2.5"]
+         "stable": [ "0.2.5" ]
       }
    }
 }
@@ -648,7 +648,7 @@ SELECT results_eq(
    "tag": "baz",
    "releases": {
       "trip": {
-         "stable": ["0.2.5"]
+         "stable": [ "0.2.5" ]
       }
    }
 }
@@ -656,12 +656,12 @@ SELECT results_eq(
    "tag": "foo",
    "releases": {
       "pair": {
-         "stable": ["0.0.10", "0.0.3", "0.0.2"],
-         "testing": ["0.0.1"],
-         "unstable": ["0.0.2a1"]
+         "stable": [ "0.0.10", "0.0.2" ],
+         "testing": [ "0.0.1" ],
+         "unstable": [ "0.0.2a1" ]
       },
       "trip": {
-         "stable": ["0.2.5"]
+         "stable": [ "0.2.5" ]
       }
    }
 }
@@ -682,12 +682,12 @@ SELECT results_eq(
    "tag": "foo",
    "releases": {
       "pair": {
-         "stable": ["0.0.10", "0.0.3", "0.0.2"],
-         "testing": ["0.0.1"],
-         "unstable": ["0.0.2a1"]
+         "stable": [ "0.0.10", "0.0.2" ],
+         "testing": [ "0.0.1" ],
+         "unstable": [ "0.0.2a1" ]
       },
       "trip": {
-         "stable": ["0.2.5"]
+         "stable": [ "0.2.5" ]
       }
    }
 }
@@ -699,9 +699,7 @@ SELECT results_eq(
    "tag": "bar",
    "releases": {
       "pair": {
-         "stable": ["0.0.10", "0.0.3", "0.0.2"],
-         "testing": ["0.0.1"],
-         "unstable": ["0.0.2a1"]
+         "stable": [ "0.0.10", "0.0.2" ]
       }
    }
 }
@@ -709,12 +707,12 @@ SELECT results_eq(
    "tag": "foo",
    "releases": {
       "pair": {
-         "stable": ["0.0.10", "0.0.3", "0.0.2"],
-         "testing": ["0.0.1"],
-         "unstable": ["0.0.2a1"]
+         "stable": [ "0.0.10", "0.0.2" ],
+         "testing": [ "0.0.1" ],
+         "unstable": [ "0.0.2a1" ]
       },
       "trip": {
-         "stable": ["0.2.5"]
+         "stable": [ "0.2.5" ]
       }
    }
 }
