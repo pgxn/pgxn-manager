@@ -1,8 +1,8 @@
 SET search_path = public,contrib,tap;
 
 BEGIN;
-SELECT plan(114);
---SELECT * FROM no_plan();
+--SELECT plan(114);
+SELECT * FROM no_plan();
 
 /****************************************************************************/
 -- Assertion function for validating JSON.
@@ -166,7 +166,7 @@ SELECT json_ok(get_mirrors_json(), 'Two-item mirror JSON should be valid');
 SELECT has_function(    'by_extension_json' );
 SELECT has_function(    'by_extension_json', ARRAY['text', 'semver'] );
 SELECT function_returns('by_extension_json', ARRAY['text', 'semver'], 'setof record' );
-SELECT function_lang_is('by_extension_json', ARRAY['text', 'semver'], 'sql' );
+SELECT function_lang_is('by_extension_json', ARRAY['text', 'semver'], 'plpgsql' );
 SELECT volatility_is(   'by_extension_json', ARRAY['text', 'semver'], 'stable' );
 SELECT is_strict(       'by_extension_json', ARRAY['text', 'semver'] );
 SELECT ok(
@@ -200,16 +200,24 @@ SELECT results_eq(
     $$ SELECT * FROM by_extension_json('pair', '0.0.1') $$,
     $$ VALUES
         ('pair'::citext, '{
-   "testing": "0.2.2",
-   "releases": {
-      "0.2.2": { "dist": "pair", "version": "0.0.1", "status": "testing" }
+   "extension": "pair",
+   "latest": "testing",
+   "testing":  { "dist": "pair", "version": "0.0.1" },
+   "versions": {
+      "0.2.2": [
+         { "dist": "pair", "version": "0.0.1", "status": "testing" }
+      ]
    }
 }
 '),
         ('trip', '{
-   "testing": "0.2.1",
-   "releases": {
-      "0.2.1": { "dist": "pair", "version": "0.0.1", "status": "testing" }
+   "extension": "trip",
+   "latest": "testing",
+   "testing":  { "dist": "pair", "version": "0.0.1" },
+   "versions": {
+      "0.2.1": [
+         { "dist": "pair", "version": "0.0.1", "status": "testing" }
+      ]
    }
 }
 ')
@@ -238,20 +246,32 @@ SELECT results_eq(
     $$ SELECT * FROM by_extension_json('pair', '0.0.2a1') $$,
     $$ VALUES
         ('pair'::citext, '{
-   "testing": "0.2.2",
-   "unstable": "0.2.3",
-   "releases": {
-      "0.2.3": { "dist": "pair", "version": "0.0.2a1", "status": "unstable" },
-      "0.2.2": { "dist": "pair", "version": "0.0.1", "status": "testing" }
+   "extension": "pair",
+   "latest": "unstable",
+   "testing":  { "dist": "pair", "version": "0.0.1" },
+   "unstable":  { "dist": "pair", "version": "0.0.2a1" },
+   "versions": {
+      "0.2.3": [
+         { "dist": "pair", "version": "0.0.2a1", "status": "unstable" }
+      ],
+      "0.2.2": [
+         { "dist": "pair", "version": "0.0.1", "status": "testing" }
+      ]
    }
 }
 '),
         ('trip', '{
-   "testing": "0.2.1",
-   "unstable": "0.2.2",
-   "releases": {
-      "0.2.2": { "dist": "pair", "version": "0.0.2a1", "status": "unstable" },
-      "0.2.1": { "dist": "pair", "version": "0.0.1", "status": "testing" }
+   "extension": "trip",
+   "latest": "unstable",
+   "testing":  { "dist": "pair", "version": "0.0.1" },
+   "unstable":  { "dist": "pair", "version": "0.0.2a1" },
+   "versions": {
+      "0.2.2": [
+         { "dist": "pair", "version": "0.0.2a1", "status": "unstable" }
+      ],
+      "0.2.1": [
+         { "dist": "pair", "version": "0.0.1", "status": "testing" }
+      ]
    }
 }
 ')
@@ -279,24 +299,40 @@ SELECT results_eq(
     $$ SELECT * FROM by_extension_json('pair', '0.0.2') $$,
     $$ VALUES
         ('pair'::citext, '{
-   "stable": "0.2.4",
-   "testing": "0.2.2",
-   "unstable": "0.2.3",
-   "releases": {
-      "0.2.4": { "dist": "pair", "version": "0.0.2" },
-      "0.2.3": { "dist": "pair", "version": "0.0.2a1", "status": "unstable" },
-      "0.2.2": { "dist": "pair", "version": "0.0.1", "status": "testing" }
+   "extension": "pair",
+   "latest": "stable",
+   "stable":  { "dist": "pair", "version": "0.0.2" },
+   "testing":  { "dist": "pair", "version": "0.0.1" },
+   "unstable":  { "dist": "pair", "version": "0.0.2a1" },
+   "versions": {
+      "0.2.4": [
+         { "dist": "pair", "version": "0.0.2" }
+      ],
+      "0.2.3": [
+         { "dist": "pair", "version": "0.0.2a1", "status": "unstable" }
+      ],
+      "0.2.2": [
+         { "dist": "pair", "version": "0.0.1", "status": "testing" }
+      ]
    }
 }
 '),
         ('trip', '{
-   "stable": "0.2.3",
-   "testing": "0.2.1",
-   "unstable": "0.2.2",
-   "releases": {
-      "0.2.3": { "dist": "pair", "version": "0.0.2" },
-      "0.2.2": { "dist": "pair", "version": "0.0.2a1", "status": "unstable" },
-      "0.2.1": { "dist": "pair", "version": "0.0.1", "status": "testing" }
+   "extension": "trip",
+   "latest": "stable",
+   "stable":  { "dist": "pair", "version": "0.0.2" },
+   "testing":  { "dist": "pair", "version": "0.0.1" },
+   "unstable":  { "dist": "pair", "version": "0.0.2a1" },
+   "versions": {
+      "0.2.3": [
+         { "dist": "pair", "version": "0.0.2" }
+      ],
+      "0.2.2": [
+         { "dist": "pair", "version": "0.0.2a1", "status": "unstable" }
+      ],
+      "0.2.1": [
+         { "dist": "pair", "version": "0.0.1", "status": "testing" }
+      ]
    }
 }
 ')
@@ -331,14 +367,24 @@ SELECT results_eq(
     $$ SELECT * FROM by_extension_json('trip', '0.2.5') $$,
     $$ VALUES
         ('trip'::citext, '{
-   "stable": "0.2.5",
-   "testing": "0.2.1",
-   "unstable": "0.2.2",
-   "releases": {
-      "0.2.5": { "dist": "trip", "version": "0.2.5" },
-      "0.2.3": { "dist": "pair", "version": "0.0.2" },
-      "0.2.2": { "dist": "pair", "version": "0.0.2a1", "status": "unstable" },
-      "0.2.1": { "dist": "pair", "version": "0.0.1", "status": "testing" }
+   "extension": "trip",
+   "latest": "stable",
+   "stable":  { "dist": "trip", "version": "0.2.5" },
+   "testing":  { "dist": "pair", "version": "0.0.1" },
+   "unstable":  { "dist": "pair", "version": "0.0.2a1" },
+   "versions": {
+      "0.2.5": [
+         { "dist": "trip", "version": "0.2.5" }
+      ],
+      "0.2.3": [
+         { "dist": "pair", "version": "0.0.2" }
+      ],
+      "0.2.2": [
+         { "dist": "pair", "version": "0.0.2a1", "status": "unstable" }
+      ],
+      "0.2.1": [
+         { "dist": "pair", "version": "0.0.1", "status": "testing" }
+      ]
    }
 }
 ')
@@ -348,6 +394,75 @@ SELECT results_eq(
 
 SELECT json_ok(json, 'JSON for extension ' || extension || ' should be valid')
   FROM by_extension_json('trip', '0.2.5');
+
+-- Great, now do a release with dup versions of both extensions.
+SELECT ok(
+     add_distribution('theory', 'pshaw', '{
+        "name": "pair",
+        "version": "0.0.3",
+        "license": "postgresql",
+        "maintainer": "theory",
+        "abstract": "Ordered pair",
+        "provides": {
+            "pair": { "file": "pair.sql.in", "version": "0.2.4" },
+            "trip": { "file": "trip.sql.in", "version": "0.2.5" }
+        }
+    }') IS NOT NULL,
+    'Add a distribution with dupe extension versions'
+);
+
+UPDATE distributions SET created_at = created_at + '1 day'::interval WHERE name = 'pair' AND VERSION = '0.0.3';
+
+SELECT results_eq(
+    $$ SELECT * FROM by_extension_json('pair', '0.0.3') $$,
+    $$ VALUES
+        ('pair'::citext, '{
+   "extension": "pair",
+   "latest": "stable",
+   "stable":  { "dist": "pair", "version": "0.0.3" },
+   "testing":  { "dist": "pair", "version": "0.0.1" },
+   "unstable":  { "dist": "pair", "version": "0.0.2a1" },
+   "versions": {
+      "0.2.4": [
+         { "dist": "pair", "version": "0.0.3" },
+         { "dist": "pair", "version": "0.0.2" }
+      ],
+      "0.2.3": [
+         { "dist": "pair", "version": "0.0.2a1", "status": "unstable" }
+      ],
+      "0.2.2": [
+         { "dist": "pair", "version": "0.0.1", "status": "testing" }
+      ]
+   }
+}
+'),
+        ('trip', '{
+   "extension": "trip",
+   "latest": "stable",
+   "stable":  { "dist": "pair", "version": "0.0.3" },
+   "testing":  { "dist": "pair", "version": "0.0.1" },
+   "unstable":  { "dist": "pair", "version": "0.0.2a1" },
+   "versions": {
+      "0.2.5": [
+         { "dist": "pair", "version": "0.0.3" },
+         { "dist": "trip", "version": "0.2.5" }
+      ],
+      "0.2.3": [
+         { "dist": "pair", "version": "0.0.2" }
+      ],
+      "0.2.2": [
+         { "dist": "pair", "version": "0.0.2a1", "status": "unstable" }
+      ],
+      "0.2.1": [
+         { "dist": "pair", "version": "0.0.1", "status": "testing" }
+      ]
+   }
+}
+')
+    $$,
+    'Should get proper data with duplicate extension versions'
+);
+
 
 /****************************************************************************/
 -- Test the distribution_versions view.
@@ -418,7 +533,7 @@ SELECT is(
     by_dist_json('pair'), '{
    "name": "pair",
    "releases": {
-      "stable": ["0.0.2"],
+      "stable": ["0.0.3", "0.0.2"],
       "testing": ["0.0.1"],
       "unstable": ["0.0.2a1"]
    }
@@ -447,12 +562,12 @@ SELECT is(
     by_dist_json('pair'), '{
    "name": "pair",
    "releases": {
-      "stable": ["0.0.10", "0.0.2"],
+      "stable": ["0.0.10", "0.0.3", "0.0.2"],
       "testing": ["0.0.1"],
       "unstable": ["0.0.2a1"]
    }
 }
-', '0.0.10 should be greater than 0.0.2 in the "pair" JSON');
+', '0.0.10 should be greater than 0.0.3 in the "pair" JSON');
 
 SELECT json_ok(by_dist_json('pair'), '...And that JSON should be valid');
 
@@ -514,7 +629,7 @@ SELECT results_eq(
    "tag": "foo",
    "releases": {
       "pair": {
-         "stable": ["0.0.10", "0.0.2"],
+         "stable": ["0.0.10", "0.0.3", "0.0.2"],
          "testing": ["0.0.1"],
          "unstable": ["0.0.2a1"]
       },
@@ -541,7 +656,7 @@ SELECT results_eq(
    "tag": "foo",
    "releases": {
       "pair": {
-         "stable": ["0.0.10", "0.0.2"],
+         "stable": ["0.0.10", "0.0.3", "0.0.2"],
          "testing": ["0.0.1"],
          "unstable": ["0.0.2a1"]
       },
@@ -567,7 +682,7 @@ SELECT results_eq(
    "tag": "foo",
    "releases": {
       "pair": {
-         "stable": ["0.0.10", "0.0.2"],
+         "stable": ["0.0.10", "0.0.3", "0.0.2"],
          "testing": ["0.0.1"],
          "unstable": ["0.0.2a1"]
       },
@@ -584,7 +699,7 @@ SELECT results_eq(
    "tag": "bar",
    "releases": {
       "pair": {
-         "stable": ["0.0.10", "0.0.2"],
+         "stable": ["0.0.10", "0.0.3", "0.0.2"],
          "testing": ["0.0.1"],
          "unstable": ["0.0.2a1"]
       }
@@ -594,7 +709,7 @@ SELECT results_eq(
    "tag": "foo",
    "releases": {
       "pair": {
-         "stable": ["0.0.10", "0.0.2"],
+         "stable": ["0.0.10", "0.0.3", "0.0.2"],
          "testing": ["0.0.1"],
          "unstable": ["0.0.2a1"]
       },
@@ -701,7 +816,7 @@ SELECT is(
          "stable": ["0.50.1"]
       },
       "pair": {
-         "stable": ["0.0.10", "0.0.2"],
+         "stable": ["0.0.10", "0.0.3", "0.0.2"],
          "testing": ["0.0.1"],
          "unstable": ["0.0.2a1"]
       }

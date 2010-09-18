@@ -86,31 +86,47 @@ CREATE OR REPLACE FUNCTION by_extension_json(
 ) RETURNS TABLE (
     extension CITEXT,
     json      TEXT
-) LANGUAGE sql STABLE STRICT AS $$
+) LANGUAGE plpgsql STABLE STRICT AS $$
 /*
 
-    % SELECT * FROM by_extension_json('pair', '1.0.0');
-     extension │                                     json                                     
-    ───────────┼──────────────────────────────────────────────────────────────────────────────
-     pair      │ {                                                                           ↵
-               │    "stable": "1.0.0",                                                       ↵
-               │    "testing": "1.2.0",                                                      ↵
-               │    "releases": {                                                            ↵
-               │       "1.2.0": { "dist": "pair", "version": "1.2.0", "status": "testing" }, ↵
-               │       "1.0.0": { "dist": "pair", "version": "1.0.0" },                      ↵
-               │       "0.2.2": { "dist": "pair", "version": "0.0.1", "status": "testing" }  ↵
-               │    }                                                                        ↵
-               │ }                                                                           ↵
+    % SELECT * FROM by_extension_json('pair', '1.2.0');
+     extension │                                 json                                 
+    ───────────┼──────────────────────────────────────────────────────────────────────
+     pair      │ {                                                                   ↵
+               │    "extension": "pair",                                             ↵
+               │    "latest": "testing",                                             ↵
+               │    "stable":  { "dist": "pair", "version": "1.0.0" },               ↵
+               │    "testing":  { "dist": "pair", "version": "1.2.0" },              ↵
+               │    "distributions": {                                               ↵
+               │       "1.2.0": [                                                    ↵
+               │          { "dist": "pair", "version": "1.2.0", "status": "testing" }↵
+               │       ],                                                            ↵
+               │       "1.0.0": [                                                    ↵
+               │          { "dist": "pair", "version": "1.0.0" }                     ↵
+               │       ],                                                            ↵
+               │       "0.2.2": [                                                    ↵
+               │          { "dist": "pair", "version": "0.0.1", "status": "testing" }↵
+               │       ]                                                             ↵
+               │    }                                                                ↵
+               │ }                                                                   ↵
                │ 
-     trip      │ {                                                                           ↵
-               │    "stable": "0.9.9",                                                       ↵
-               │    "testing": "0.9.10",                                                     ↵
-               │    "releases": {                                                            ↵
-               │       "0.9.10": { "dist": "pair", "version": "1.2.0", "status": "testing" },↵
-               │       "0.9.9": { "dist": "pair", "version": "1.0.0" },                      ↵
-               │       "0.2.1": { "dist": "pair", "version": "0.0.1", "status": "testing" }  ↵
-               │    }                                                                        ↵
-               │ }                                                                           ↵
+     trip      │ {                                                                   ↵
+               │    "extension": "trip",                                             ↵
+               │    "latest": "testing",                                             ↵
+               │    "stable":  { "dist": "pair", "version": "1.0.0" },               ↵
+               │    "testing":  { "dist": "pair", "version": "1.2.0" },              ↵
+               │    "distributions": {                                               ↵
+               │       "0.9.10": [                                                   ↵
+               │          { "dist": "pair", "version": "1.2.0", "status": "testing" }↵
+               │       ],                                                            ↵
+               │       "0.9.9": [                                                    ↵
+               │          { "dist": "pair", "version": "1.0.0" }                     ↵
+               │       ],                                                            ↵
+               │       "0.2.1": [                                                    ↵
+               │          { "dist": "pair", "version": "0.0.1", "status": "testing" }↵
+               │       ]                                                             ↵
+               │    }                                                                ↵
+               │ }                                                                   ↵
                │ 
 
 Returns a set of extensions and their JSON metadata for a given distribution
@@ -120,32 +136,90 @@ testing, and unstable versions (as appropriate) and the distribution details
 for every released version in descending by extension version number.
 
 */
-    WITH extmap AS (
-        SELECT de.extension,
-               MAX(CASE d.relstatus WHEN 'stable'   THEN de.ext_version ELSE NULL END) AS stable,
-               MAX(CASE d.relstatus WHEN 'testing'  THEN de.ext_version ELSE NULL END) AS testing,
-               MAX(CASE d.relstatus WHEN 'unstable' THEN de.ext_version ELSE NULL END) AS unstable,
-               array_agg(
-                   json_key(de.ext_version) || ': { "dist": ' || json_value(d.name)
-                   || ', "version": ' || json_value(d.version)
-                   || CASE d.relstatus WHEN 'stable' THEN '' ELSE ', "status": ' || json_value(d.relstatus::text) END
-                   || ' }'
-               ORDER BY de.ext_version USING >) AS releases
-          FROM distributions d
-          JOIN distribution_extensions de
-            ON d.name     = de.distribution
-           AND d.version  = de.dist_version
-         GROUP BY de.extension
-    )
-    SELECT e.extension, E'{\n   '
-        || CASE WHEN stable   IS NULL THEN '' ELSE '"stable": '   || json_value(stable)   || E',\n   ' END
-        || CASE WHEN testing  IS NULL THEN '' ELSE '"testing": '  || json_value(testing)  || E',\n   ' END
-        || CASE WHEN unstable IS NULL THEN '' ELSE '"unstable": ' || json_value(unstable) || E',\n   ' END
-        || E'"releases": {\n      ' || array_to_string(releases, E',\n      ') || E'\n   }\n}\n'
-      FROM extmap e
-      JOIN distribution_extensions de ON e.extension = de.extension
-     WHERE de.distribution = $1
-       AND de.dist_version = $2;
+DECLARE
+    latest   TEXT;
+    stable   TEXT;
+    testing  TEXT;
+    unstable TEXT;
+    ext      TEXT;
+    prev     TEXT;
+    extv     TEXT;
+    distjson TEXT[] := '{}';
+    dists    HSTORE[];
+    dist     HSTORE;
+BEGIN
+    FOR ext, extv, dists IN
+        SELECT de.extension, de.ext_version,
+               array_agg(hstore(ARRAY[
+                   'dist',      d.name,
+                   'version',   d.version,
+                   'relstatus', d.relstatus::text
+               ]) ORDER BY d.created_at DESC)
+          FROM distribution_extensions de
+          JOIN distributions d
+            ON de.distribution = d.name
+           AND de.dist_version = d.version
+         WHERE de.extension IN (
+             SELECT distribution_extensions.extension
+               FROM distribution_extensions
+              WHERE distribution = $1
+                AND dist_version = $2
+         )
+         GROUP BY de.extension, de.ext_version
+         UNION SELECT NULL, NULL, NULL
+         ORDER BY extension, ext_version USING >
+    LOOP
+        IF (prev IS NOT NULL AND prev <> ext) OR ext IS NULL THEN
+            extension := prev;
+            json := E'{\n   "extension": ' || json_value(prev)
+                 || E',\n   "latest": ' || json_value(latest)
+                 || COALESCE(E',\n   "stable": '   || stable, '')
+                 || COALESCE(E',\n   "testing": '  || testing, '')
+                 || COALESCE(E',\n   "unstable": ' || unstable, '')
+                 || E',\n   "versions": {\n' || array_to_string(distjson, E',\n')
+                 || E'\n   }\n}\n';
+            RETURN NEXT;
+            latest   := NULL;
+            stable   := NULL;
+            testing  := NULL;
+            unstable := NULL;
+            distjson := '{}';
+            IF ext IS NULL THEN EXIT; END IF;
+        END IF;
+        prev := ext;
+        DECLARE
+            myjson TEXT[] := '{}';
+        BEGIN
+            FOR dist IN SELECT * FROM unnest(dists) LOOP
+                myjson := array_append(myjson,
+                          '         { "dist": ' || json_value(dist->'dist')
+                       || ', "version": ' || json_value(dist->'version')
+                       || CASE dist->'relstatus'
+                              WHEN 'stable' THEN ''
+                              ELSE ', "status": ' || json_value(dist->'relstatus')
+                          END
+                       || E' }');
+                IF latest IS NULL THEN latest := dist->'relstatus'; END IF;
+                CASE dist->'relstatus'
+                    WHEN 'stable' THEN IF stable IS NULL THEN
+                        stable := ' { "dist": ' || json_value(dist->'dist')
+                        || ', "version": ' || json_value(dist->'version') || ' }';
+                    END IF;
+                    WHEN 'testing' THEN IF testing IS NULL THEN
+                        testing := ' { "dist": ' || json_value(dist->'dist')
+                        || ', "version": ' || json_value(dist->'version') || ' }';
+                    END IF;
+                    WHEN 'unstable' THEN IF unstable IS NULL THEN
+                        unstable := ' { "dist": ' || json_value(dist->'dist')
+                        || ', "version": ' || json_value(dist->'version') || ' }';
+                    END IF;
+                END CASE;
+            END LOOP;
+            distjson := array_append(distjson, E'      ' || json_key(extv) || E': [\n'
+                     || array_to_string(myjson, E',\n') || E'\n      ]');
+        END;
+    END LOOP;
+END;
 $$;
 
 CREATE OR REPLACE VIEW distribution_versions AS
