@@ -177,7 +177,7 @@ CREATE OR REPLACE FUNCTION by_dist_json(
 ) RETURNS TEXT LANGUAGE sql STABLE STRICT AS $$
 /*
 
-    % SELECT * from by_dist_json('pair');
+    % SELECT * FROM by_dist_json('pair');
                   by_dist_json               
     ─────────────────────────────────────────
      {                                      ↵
@@ -212,7 +212,7 @@ CREATE OR REPLACE FUNCTION by_tag_json(
 ) LANGUAGE sql STABLE STRICT AS $$
 /*
 
-    % SELECT * from by_tag_json('pgtap', '0.0.1');
+    % SELECT * FROM by_tag_json('pgtap', '0.0.1');
        tag   │                  json                  
     ─────────┼────────────────────────────────────────
      schema  │ {                                     ↵

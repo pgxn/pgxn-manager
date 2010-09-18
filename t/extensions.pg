@@ -134,7 +134,7 @@ SELECT has_column(        'distribution_extensions', 'ext_version' );
 SELECT col_type_is(       'distribution_extensions', 'ext_version', 'semver' );
 SELECT col_not_null(      'distribution_extensions', 'ext_version' );
 SELECT col_hasnt_default( 'distribution_extensions', 'ext_version' );
-SELECT col_is_pk(         'distribution_extensions', ARRAY['extension', 'ext_version'] );
+SELECT col_is_pk(         'distribution_extensions', ARRAY['extension', 'ext_version', 'distribution', 'dist_version'] );
 
 SELECT has_column(        'distribution_extensions', 'distribution' );
 SELECT col_type_is(       'distribution_extensions', 'distribution', 'citext' );

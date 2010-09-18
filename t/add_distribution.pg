@@ -1,7 +1,7 @@
 SET search_path = public,contrib,tap;
 
 BEGIN;
-SELECT plan(91);
+SELECT plan(89);
 --SELECT * FROM no_plan();
 
 -- Check that we have the functions we think we have.
@@ -500,41 +500,6 @@ SELECT throws_ok(
     'P0001',
     'Distribution pair 0.0.1 already exists',
     'Should get an exception for a duplicate distribution and version'
-);
-
-SELECT throws_ok(
-    $$ SELECT add_distribution('theory', 'foo', '{
-        "name":        "pair",
-        "version":     "0.0.2",
-        "license":     "postgresql",
-        "maintainer":  "theory",
-        "abstract":    "whatever",
-        "provides":     {
-          "pair": {"file": "pair.sql.in", "version": "0.2.2" },
-          "trip": {"file": "trip.sql.in", "version": "0.2.1" }
-        }
-    }') $$,
-    'P0001',
-    'One or more versions of the provided extensions already exist:
-  pair 0.2.2
-  trip 0.2.1',
-    'Should get an exception for duplicate extensions and versions'
-);
-
-SELECT throws_ok(
-    $$ SELECT add_distribution('theory', 'foo', '{
-        "name":        "pair",
-        "version":     "0.0.2",
-        "license":     "postgresql",
-        "maintainer":  "theory",
-        "abstract":    "whatever",
-        "provides":     {
-          "pair": {"file": "pair.sql.in", "version": "0.2.2" }
-        }
-    }') $$,
-    'P0001',
-    'Extension pair version 0.2.2 already exists',
-    'Should get an exception for a single duplicate extension and versions'
 );
 
 -- Have strongrrl add a distribution with one extension.

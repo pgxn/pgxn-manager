@@ -256,10 +256,10 @@ SELECT results_eq(
 }
 ')
     $$,
-    'Should get proper data for extensions in a testing and unstable distributions'
+    'Should get proper data for extensions in testing and unstable distributions'
 );
 
--- Add an stable distribution.
+-- Add a stable distribution.
 SELECT ok(
      add_distribution('theory', 'pshaw', '{
         "name": "pair",
