@@ -371,7 +371,7 @@ SELECT bag_eq(
           "homepage": "http://pgxn.org/dist/pair/"
         }
     }')$$,
-    $$VALUES ('meta', 'pair', '{
+    $$ VALUES ('meta', 'pair', '{
    "name": "pair",
    "abstract": "Ordered pair",
    "description": "An ordered pair for PostgreSQL",
@@ -565,7 +565,7 @@ SELECT throws_ok(
 
 -- Have strongrrl add a distribution with one extension.
 SELECT bag_eq(
-    $$SELECT * FROM add_distribution('strongrrl', 'ick', '{
+    $$ SELECT * FROM add_distribution('strongrrl', 'ick', '{
         "name":        "foo",
         "version":     "0.0.2",
         "license":     "postgresql",
@@ -573,7 +573,7 @@ SELECT bag_eq(
         "abstract":    "whatever",
         "tags": ["Foo", "PAIR", "pair"]
     }')$$,
-    $$VALUES('meta', 'foo', '{
+    $$ VALUES('meta', 'foo', '{
    "name": "foo",
    "abstract": "whatever",
    "version": "0.0.2",
@@ -724,7 +724,7 @@ SELECT bag_eq(
         "maintainer":  "theory",
         "abstract":    "whatever"
     }')$$,
-    $$VALUES('meta', 'pair', '{
+    $$ VALUES('meta', 'pair', '{
    "name": "pair",
    "abstract": "whatever",
    "version": "0.0.3",
