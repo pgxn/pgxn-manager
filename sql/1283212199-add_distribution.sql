@@ -277,6 +277,9 @@ BEGIN
     UNION
         SELECT 'by-extension', * FROM by_extension_json(distmeta.name, distmeta.version)
     UNION
-        SELECT 'by-owner', nick, by_owner_json(nick);
+        SELECT 'by-owner', LOWER(nick), by_owner_json(nick)
+    UNION
+        SELECT 'by-tag', * FROM by_tag_json(distmeta.name, distmeta.version)
+    ;
 END;
 $$;

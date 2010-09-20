@@ -343,7 +343,7 @@ associcated with three versions of the "pair" distribution, as well.
           FROM ds
          GROUP BY tag, distribution
     )
-    SELECT tag, E'{\n   "tag": ' || json_value(tag) || E',\n   "releases": {\n      '
+    SELECT LOWER(tag)::CITEXT, E'{\n   "tag": ' || json_value(tag) || E',\n   "releases": {\n      '
         || string_agg(json_key(distribution) || E': {\n         '
         || array_to_string(relv, E',\n         '), E'\n      },\n      ')
         || E'\n      }\n   }\n}\n'

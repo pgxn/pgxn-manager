@@ -443,6 +443,30 @@ SELECT bag_eq(
       }
    }
 }
+'), ('by-tag', 'bar', '{
+   "tag": "bar",
+   "releases": {
+      "pair": {
+         "testing": [ "0.0.1" ]
+      }
+   }
+}
+'), ('by-tag', 'foo', '{
+   "tag": "foo",
+   "releases": {
+      "pair": {
+         "testing": [ "0.0.1" ]
+      }
+   }
+}
+'), ('by-tag', 'baz', '{
+   "tag": "baz",
+   "releases": {
+      "pair": {
+         "testing": [ "0.0.1" ]
+      }
+   }
+}
 ')$$, 'Add a distribution for user "theory"');
 
 SELECT is(COUNT(*)::int, 1, 'Should have one distribution') FROM distributions;
@@ -588,6 +612,25 @@ SELECT bag_eq(
    "releases": {
       "foo": {
          "stable": ["0.0.2"]
+      }
+   }
+}
+'), ('by-tag', 'foo', '{
+   "tag": "foo",
+   "releases": {
+      "pair": {
+         "testing": [ "0.0.1" ]
+      },
+      "foo": {
+         "stable": [ "0.0.2" ]
+      }
+   }
+}
+'), ('by-tag', 'pair', '{
+   "tag": "PAIR",
+   "releases": {
+      "foo": {
+         "stable": [ "0.0.2" ]
       }
    }
 }
