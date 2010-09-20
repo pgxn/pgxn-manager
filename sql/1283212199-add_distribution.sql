@@ -19,7 +19,7 @@ CREATE OR REPLACE FUNCTION setup_meta(
     # Check required keys.
     for my $key qw(name version license maintainer abstract) {
         $idx_meta->{$key} = $dist_meta->{$key} or elog(
-            ERROR, qq{Metadata is missing the required "$key" key}
+            ERROR, qq{Metadata is missing the required “$key” key}
         );
     }
 

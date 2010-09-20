@@ -1,7 +1,7 @@
 SET search_path = public,contrib,tap;
 
 BEGIN;
-SELECT plan(89);
+SELECT plan(90);
 --SELECT * FROM no_plan();
 
 -- Check that we have the functions we think we have.
@@ -40,31 +40,31 @@ SELECT volatility_is(   'setup_meta', 'immutable' );
 -- Validate that missing required fields throw an exception.
 SELECT throws_like(
     $$ SELECT setup_meta('nobody', 'pshaw', '{"foo": "whatever"}') $$,
-    '%Metadata is missing the required "name" key%',
+    '%Metadata is missing the required “name” key%',
     'Should get error from setup_meta for messing name'
 );
 
 SELECT throws_like(
     $$ SELECT setup_meta('nobody', 'pshaw', '{"name": "pair"}') $$,
-    '%Metadata is missing the required "version" key%',
+    '%Metadata is missing the required “version” key%',
     'Should get error from setup_meta for messing version'
 );
 
 SELECT throws_like(
     $$ SELECT setup_meta('nobody', 'pshaw', '{"name": "pair", "version": "0.0.1"}') $$,
-    '%Metadata is missing the required "license" key%',
+    '%Metadata is missing the required “license” key%',
     'Should get error from setup_meta for messing license'
 );
 
 SELECT throws_like(
     $$ SELECT setup_meta('nobody', 'pshaw', '{"name": "pair", "version": "0.0.1", "license": "postgresql"}') $$,
-    '%Metadata is missing the required "maintainer" key%',
+    '%Metadata is missing the required “maintainer” key%',
     'Should get error from setup_meta for messing maintainer'
 );
 
 SELECT throws_like(
     $$ SELECT setup_meta('nobody', 'pshaw', '{"name": "pair", "version": "0.0.1", "license": "postgresql", "maintainer": "theory"}') $$,
-    '%Metadata is missing the required "abstract" key%',
+    '%Metadata is missing the required “abstract” key%',
     'Should get error from setup_meta for messing abstract'
 );
 
@@ -337,6 +337,18 @@ SELECT throws_ok(
     'P0001',
     'User “theory” does not own all provided extensions',
     'Should get an exception for user without permission'
+);
+
+SELECT throws_like(
+    $_$ SELECT add_distribution('theory', 'pshaw', $${
+        "name":        "pair",
+        "version":     "",
+        "license":     "postgresql",
+        "maintainer":  "theory",
+        "abstract":    "whatever"
+    }$$) $_$,
+    'Metadata is missing the required “version” key%',
+    'Should get an exception for blank version string'
 );
 
 DELETE FROM extensions;
