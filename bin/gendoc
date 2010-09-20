@@ -198,6 +198,20 @@ C<MultiMarkdown>-compatible.
   -m --man      Print the complete documentation and exit.
   -v --version  Print the version number and exit.
 
+=head1 To Do
+
+=over
+
+=item *
+
+Output in schema/function alphabetical order.
+
+=item *
+
+Create a TOC.
+
+=back
+
 =head1 Author
 
 David E. Wheeler <david.wheeler@pgexperts.com>
