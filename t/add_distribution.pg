@@ -407,7 +407,27 @@ SELECT bag_eq(
       "homepage": "http://pgxn.org/dist/pair/"
    }
 }
-'),('by-owner', 'theory', '{
+'), ('by-extension', 'pair', '{
+   "extension": "pair",
+   "latest": "testing",
+   "testing":  { "dist": "pair", "version": "0.0.1" },
+   "versions": {
+      "0.2.2": [
+         { "dist": "pair", "version": "0.0.1", "status": "testing" }
+      ]
+   }
+}
+'), ('by-extension', 'trip', '{
+   "extension": "trip",
+   "latest": "testing",
+   "testing":  { "dist": "pair", "version": "0.0.1" },
+   "versions": {
+      "0.2.1": [
+         { "dist": "pair", "version": "0.0.1", "status": "testing" }
+      ]
+   }
+}
+'), ('by-owner', 'theory', '{
    "nickname": "theory",
    "name": "",
    "email": "theory@pgxn.org",
@@ -539,6 +559,16 @@ SELECT bag_eq(
    },
    "tags": ["Foo", "PAIR", "pair"]
 }
+'), ('by-extension', 'foo', '{
+   "extension": "foo",
+   "latest": "stable",
+   "stable":  { "dist": "foo", "version": "0.0.2" },
+   "versions": {
+      "0.0.2": [
+         { "dist": "foo", "version": "0.0.2" }
+      ]
+   }
+}
 '), ('by-owner', 'strongrrl', '{
    "nickname": "strongrrl",
    "name": "",
@@ -652,6 +682,20 @@ SELECT bag_eq(
       "pair": {
          "version": "0.0.3"
       }
+   }
+}
+'), ('by-extension', 'pair', '{
+   "extension": "pair",
+   "latest": "testing",
+   "stable":  { "dist": "pair", "version": "0.0.3" },
+   "testing":  { "dist": "pair", "version": "0.0.1" },
+   "versions": {
+      "0.2.2": [
+         { "dist": "pair", "version": "0.0.1", "status": "testing" }
+      ],
+      "0.0.3": [
+         { "dist": "pair", "version": "0.0.3" }
+      ]
    }
 }
 '), ('by-owner', 'strongrrl', '{
