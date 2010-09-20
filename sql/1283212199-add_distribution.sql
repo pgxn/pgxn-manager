@@ -137,41 +137,109 @@ CREATE OR REPLACE FUNCTION add_distribution(
 ) LANGUAGE plpgsql STRICT SECURITY DEFINER AS $$
 /*
 
-    % SELECT add_distribution('theory', 'ebf381e2e1e5767fb068d1c4423a9d9f122c2dc6', '{
+    % SELECT * FROM add_distribution('theory', 'ebf381e2e1e5767fb068d1c4423a9d9f122c2dc6', '{
         "name": "pair",
         "version": "0.0.01",
         "license": "postgresql",
         "maintainer": "theory",
         "abstract": "Ordered pair",
+        "tags": ["ordered pair", "key value"],
         "provides": {
             "pair": { "file": "pair.sql.in", "version": "0.02.02" },
             "trip": { "file": "trip.sql.in", "version": "0.02.01" }
         },
         "release_status": "testing"
     }');
-                           add_distribution                                                                                                                                                   
-    ─────────────────────────────────────────────────────────────
-     {
-       "maintainer": "theory",
-       "owner": "theory",
-       "sha1": "ebf381e2e1e5767fb068d1c4423a9d9f122c2dc6",
-       "version": "0.0.1",
-       "name": "pair",
-       "license": "postgresql",
-       "provides": {
-         "pair": { "version": "0.2.2", "file": "pair.sql.in" },
-         "trip": { "version": "0.2.1", "file": "trip.sql.in" }
-       },
-       "abstract": "Ordered pair",
-       "release_status": "testing"
-     }
+    
+       template   │   subject    │                                 json                                 
+    ──────────────┼──────────────┼──────────────────────────────────────────────────────────────────────
+     meta         │ pair         │ {                                                                   ↵
+                  │              │    "name": "pair",                                                  ↵
+                  │              │    "abstract": "Ordered pair",                                      ↵
+                  │              │    "version": "0.0.1",                                              ↵
+                  │              │    "maintainer": "theory",                                          ↵
+                  │              │    "release_status": "testing",                                     ↵
+                  │              │    "owner": "theory",                                               ↵
+                  │              │    "sha1": "ebf381e2e1e5767fb068d1c4423a9d9f122c2dc6",              ↵
+                  │              │    "license": "postgresql",                                         ↵
+                  │              │    "provides": {                                                    ↵
+                  │              │       "pair": {                                                     ↵
+                  │              │          "file": "pair.sql.in",                                     ↵
+                  │              │          "version": "0.2.2"                                         ↵
+                  │              │       },                                                            ↵
+                  │              │       "trip": {                                                     ↵
+                  │              │          "file": "trip.sql.in",                                     ↵
+                  │              │          "version": "0.2.1"                                         ↵
+                  │              │       }                                                             ↵
+                  │              │    },                                                               ↵
+                  │              │    "tags": ["ordered pair", "key value"]                            ↵
+                  │              │ }                                                                   ↵
+                  │              │ 
+     by-dist      │ pair         │ {                                                                   ↵
+                  │              │    "name": "pair",                                                  ↵
+                  │              │    "releases": {                                                    ↵
+                  │              │       "testing": ["0.0.1"]                                          ↵
+                  │              │    }                                                                ↵
+                  │              │ }                                                                   ↵
+                  │              │ 
+     by-extension │ pair         │ {                                                                   ↵
+                  │              │    "extension": "pair",                                             ↵
+                  │              │    "latest": "testing",                                             ↵
+                  │              │    "testing":  { "dist": "pair", "version": "0.0.1" },              ↵
+                  │              │    "versions": {                                                    ↵
+                  │              │       "0.2.2": [                                                    ↵
+                  │              │          { "dist": "pair", "version": "0.0.1", "status": "testing" }↵
+                  │              │       ]                                                             ↵
+                  │              │    }                                                                ↵
+                  │              │ }                                                                   ↵
+                  │              │ 
+     by-extension │ trip         │ {                                                                   ↵
+                  │              │    "extension": "trip",                                             ↵
+                  │              │    "latest": "testing",                                             ↵
+                  │              │    "testing":  { "dist": "pair", "version": "0.0.1" },              ↵
+                  │              │    "versions": {                                                    ↵
+                  │              │       "0.2.1": [                                                    ↵
+                  │              │          { "dist": "pair", "version": "0.0.1", "status": "testing" }↵
+                  │              │       ]                                                             ↵
+                  │              │    }                                                                ↵
+                  │              │ }                                                                   ↵
+                  │              │ 
+     by-owner     │ theory       │ {                                                                   ↵
+                  │              │    "nickname": "theory",                                            ↵
+                  │              │    "name": "",                                                      ↵
+                  │              │    "email": "theory@pgxn.org",                                      ↵
+                  │              │    "releases": {                                                    ↵
+                  │              │       "pair": {                                                     ↵
+                  │              │          "testing": ["0.0.1"]                                       ↵
+                  │              │       }                                                             ↵
+                  │              │    }                                                                ↵
+                  │              │ }                                                                   ↵
+                  │              │ 
+     by-tag       │ ordered pair │ {                                                                   ↵
+                  │              │    "tag": "ordered pair",                                           ↵
+                  │              │    "releases": {                                                    ↵
+                  │              │       "pair": {                                                     ↵
+                  │              │          "testing": [ "0.0.1" ]                                     ↵
+                  │              │       }                                                             ↵
+                  │              │    }                                                                ↵
+                  │              │ }                                                                   ↵
+                  │              │ 
+     by-tag       │ key value    │ {                                                                   ↵
+                  │              │    "tag": "key value",                                              ↵
+                  │              │    "releases": {                                                    ↵
+                  │              │       "pair": {                                                     ↵
+                  │              │          "testing": [ "0.0.1" ]                                     ↵
+                  │              │       }                                                             ↵
+                  │              │    }                                                                ↵
+                  │              │ }                                                                   ↵
+                  │              │ 
 
-Creates a new distribution, returning the JSON to be used in the metadata file
-for the distribution. The nickname of the uploading user (owner) must be
-passed as the first argument. The SHA1 of the distribution file must be passed
-as the second argument. All other metadata is parsed from the JSON string,
-which should contain the complete contents of the distribution's `META.json`
-file. The required keys in the JSON metadata are:
+Creates a new distribution, returning all of the JSON that needs to be written
+to the mirror in order for the distribution to be indexed. The nickname of the
+uploading user (owner) must be passed as the first argument. The SHA1 of the
+distribution file must be passed as the second argument. All other metadata is
+parsed from the JSON string, which should contain the complete contents of the
+distribution's `META.json` file. The required keys in the JSON metadata are:
 
 name
 : The name of the extension.
@@ -196,13 +264,15 @@ With this data, `add_distribution()` does the following things:
 * Parses the JSON string and validates that all required keys are present.
   Throws an exception if they're not.
 
-* Creates a new metadata structure and stores all the required and many of hte
+* Creates a new metadata structure and stores all the required and many of the
   optional meta spec keys, as well as the SHA1 of the distribution file and
   the owner's nickname.
 
 * Normalizes all of the version numbers found in the metadata into compliant
-  semantic version strings. See `clean_semver()` for details on how
-  non-compliant version strings are converted.
+  semantic version strings. See
+  [`SemVer->normal`](http://search.cpan.org/dist/SemVer/lib/SemVer.pm#declare)
+  for details on how non-compliant version strings are converted. Versions
+  that cannot be normalized will trigger an exception.
 
 * Specifies that the provided extension is the same as the distribution name
   and version if no "provides" metadata is present in the distribution
@@ -220,8 +290,19 @@ With this data, `add_distribution()` does the following things:
 
 * Inserts records for all associated tags into the `distribution_tags` table.
 
-* Returns the index metadata as a JSON string. If any argument is `NULL`,
-  returns `NULL`, in which case the distribution will not have been added.
+Once all this work is done, `add_distribution()` returns a relation with the
+following columns:
+
+template
+: Name of a mirror URI template.
+
+subject
+: The subject of the metadata to be written, such as the name of a
+  distribution, extension, owner, or tag.
+
+json
+: The JSON-formatted metadata for the subject, which the application should
+  write to the fie specified by the template.
 
 */
 DECLARE
