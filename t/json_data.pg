@@ -1,7 +1,7 @@
 SET search_path = public,contrib,tap;
 
 BEGIN;
-SELECT plan(125);
+SELECT plan(99);
 --SELECT * FROM no_plan();
 
 /****************************************************************************/
@@ -180,8 +180,8 @@ SELECT is_empty(
 );
 
 -- Let's create a distribution.
-SELECT ok(
-     add_distribution('theory', 'pshaw', '{
+SELECT lives_ok(
+     $$ SELECT * FROM add_distribution('theory', 'pshaw', '{
         "name": "pair",
         "version": "0.0.01",
         "license": "postgresql",
@@ -192,7 +192,7 @@ SELECT ok(
             "trip": { "file": "trip.sql.in", "version": "0.02.01" }
         },
         "release_status": "testing"
-    }') IS NOT NULL,
+    }')$$,
     'Add a testing distribution'
 );
 
@@ -226,8 +226,8 @@ SELECT results_eq(
 );
 
 -- Add an unstable distribution.
-SELECT ok(
-     add_distribution('theory', 'pshaw', '{
+SELECT lives_ok(
+     $$ SELECT * FROM add_distribution('theory', 'pshaw', '{
         "name": "pair",
         "version": "0.0.2a1",
         "license": "postgresql",
@@ -238,7 +238,7 @@ SELECT ok(
             "trip": { "file": "trip.sql.in", "version": "0.02.02" }
         },
         "release_status": "unstable"
-    }') IS NOT NULL,
+    }') $$,
     'Add an unstable distribution'
 );
 
@@ -280,8 +280,8 @@ SELECT results_eq(
 );
 
 -- Add a stable distribution.
-SELECT ok(
-     add_distribution('theory', 'pshaw', '{
+SELECT lives_ok(
+     $$ SELECT * FROM add_distribution('theory', 'pshaw', '{
         "name": "pair",
         "version": "0.0.2",
         "license": "postgresql",
@@ -291,7 +291,7 @@ SELECT ok(
             "pair": { "file": "pair.sql.in", "version": "0.2.4" },
             "trip": { "file": "trip.sql.in", "version": "0.2.3" }
         }
-    }') IS NOT NULL,
+    }') $$,
     'Add a stable distribution'
 );
 
@@ -352,14 +352,14 @@ SELECT ok(
 UPDATE users SET status = 'active';
 INSERT INTO coowners (extension, nickname) VALUES ('trip', 'strongrrl');
 
-SELECT ok(
-     add_distribution('strongrrl', 'pshaw', '{
+SELECT lives_ok(
+     $$ SELECT * FROM add_distribution('strongrrl', 'pshaw', '{
         "name": "trip",
         "version": "0.2.5",
         "license": "postgresql",
         "maintainer": "theory",
         "abstract": "Ordered triplet"
-    }') IS NOT NULL,
+    }') $$,
     'Add a trip distribution'
 );
 
@@ -396,8 +396,8 @@ SELECT json_ok(json, 'JSON for extension ' || extension || ' should be valid')
   FROM by_extension_json('trip', '0.2.5');
 
 -- Great, now do a release with dup versions of both extensions.
-SELECT ok(
-     add_distribution('theory', 'pshaw', '{
+SELECT lives_ok(
+     $$ SELECT * FROM add_distribution('theory', 'pshaw', '{
         "name": "pair",
         "version": "0.0.3",
         "license": "postgresql",
@@ -407,7 +407,7 @@ SELECT ok(
             "pair": { "file": "pair.sql.in", "version": "0.2.4" },
             "trip": { "file": "trip.sql.in", "version": "0.2.5" }
         }
-    }') IS NOT NULL,
+    }') $$,
     'Add a distribution with dupe extension versions'
 );
 
@@ -502,8 +502,8 @@ SELECT is(
 SELECT json_ok(by_dist_json('pair'), '...And the JSON should be valid');
 
 -- Add version 0.0.10.
-SELECT ok(
-     add_distribution('theory', 'pshaw', '{
+SELECT lives_ok(
+     $$ SELECT * FROM add_distribution('theory', 'pshaw', '{
         "name": "pair",
         "version": "0.0.10",
         "license": "postgresql",
@@ -513,7 +513,7 @@ SELECT ok(
             "pair": { "file": "pair.sql.in", "version": "0.02.10" },
             "trip": { "file": "trip.sql.in", "version": "0.02.10" }
         }
-    }') IS NOT NULL,
+    }') $$,
     'Add a stable distribution pair 0.0.10'
 );
 
@@ -681,14 +681,14 @@ SELECT json_ok(json, 'JSON for tag ' || tag || ' should be valid')
   FROM by_tag_json('pair', '0.0.10');
 
 -- Insert a new distribution with no tags.
-SELECT ok(
-     add_distribution('theory', 'pshaw', '{
+SELECT lives_ok(
+     $$ SELECT * FROM add_distribution('theory', 'pshaw', '{
         "name": "duwop",
         "version": "0.50.1",
         "license": "postgresql",
         "maintainer": "theory",
         "abstract": "Do wa, p-diddy"
-    }') IS NOT NULL,
+    }') $$,
     'Add another distribution'
 );
 
