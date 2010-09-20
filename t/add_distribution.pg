@@ -1,7 +1,7 @@
 SET search_path = public,contrib,tap;
 
 BEGIN;
-SELECT plan(90);
+SELECT plan(91);
 --SELECT * FROM no_plan();
 
 -- Check that we have the functions we think we have.
@@ -349,6 +349,21 @@ SELECT throws_like(
     }$$) $_$,
     'Metadata is missing the required “version” key%',
     'Should get an exception for blank version string'
+);
+
+SELECT throws_like(
+    $_$ SELECT add_distribution('theory', 'pshaw', $${
+        "name":        "pair",
+        "version":     "2.2",
+        "license":     "postgresql",
+        "maintainer":  "theory",
+        "abstract":    "whatever",
+        "provides": {
+            "pair": { "file": "pair.sql.in", "version": "" }
+        }
+    }$$) $_$,
+    'Invalid version format (version required)%',
+    'Should get an exception for blank "provides" version string'
 );
 
 DELETE FROM extensions;
