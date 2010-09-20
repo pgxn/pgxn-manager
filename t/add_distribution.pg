@@ -407,6 +407,12 @@ SELECT bag_eq(
       "homepage": "http://pgxn.org/dist/pair/"
    }
 }
+'), ('by-dist', 'pair', '{
+   "name": "pair",
+   "releases": {
+      "testing": ["0.0.1"]
+   }
+}
 '), ('by-extension', 'pair', '{
    "extension": "pair",
    "latest": "testing",
@@ -559,6 +565,12 @@ SELECT bag_eq(
    },
    "tags": ["Foo", "PAIR", "pair"]
 }
+'), ('by-dist', 'foo', '{
+   "name": "foo",
+   "releases": {
+      "stable": ["0.0.2"]
+   }
+}
 '), ('by-extension', 'foo', '{
    "extension": "foo",
    "latest": "stable",
@@ -682,6 +694,13 @@ SELECT bag_eq(
       "pair": {
          "version": "0.0.3"
       }
+   }
+}
+'), ('by-dist', 'pair', '{
+   "name": "pair",
+   "releases": {
+      "stable": ["0.0.3"],
+      "testing": ["0.0.1"]
    }
 }
 '), ('by-extension', 'pair', '{

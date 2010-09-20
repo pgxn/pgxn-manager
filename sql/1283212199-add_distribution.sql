@@ -273,6 +273,8 @@ BEGIN
     RETURN QUERY
         SELECT 'meta'::TEXT, distmeta.name::TEXT, distmeta.json
     UNION
+        SELECT 'by-dist', distmeta.name::TEXT, by_dist_json(distmeta.name)
+    UNION
         SELECT 'by-extension', * FROM by_extension_json(distmeta.name, distmeta.version)
     UNION
         SELECT 'by-owner', nick, by_owner_json(nick);
