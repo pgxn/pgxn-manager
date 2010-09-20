@@ -130,7 +130,11 @@ CREATE OR REPLACE FUNCTION add_distribution(
     nick LABEL,
     sha1 TEXT,
     meta TEXT
-) RETURNS TEXT LANGUAGE plpgsql STRICT SECURITY DEFINER AS $$
+) RETURNS TABLE (
+    template TEXT,
+    subject  TEXT,
+    json     TEXT
+) LANGUAGE plpgsql STRICT SECURITY DEFINER AS $$
 /*
 
     % SELECT add_distribution('theory', 'ebf381e2e1e5767fb068d1c4423a9d9f122c2dc6', '{
@@ -266,6 +270,6 @@ BEGIN
     SELECT DISTINCT distmeta.name, distmeta.version, tag
       FROM unnest(distmeta.tags) AS tag;
 
-    RETURN distmeta.json;
+    RETURN QUERY SELECT 'meta'::TEXT, distmeta.name::TEXT, distmeta.json;
 END;
 $$;

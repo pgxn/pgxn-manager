@@ -341,8 +341,8 @@ SELECT throws_ok(
 
 DELETE FROM extensions;
 -- Add a distribution.
-SELECT is(
-    add_distribution('theory', 'pshaw', '{
+SELECT bag_eq(
+    $$ SELECT * FROM add_distribution('theory', 'pshaw', '{
         "name": "pair",
         "version": "0.0.01",
         "license": "postgresql",
@@ -370,7 +370,8 @@ SELECT is(
         "resources": {
           "homepage": "http://pgxn.org/dist/pair/"
         }
-    }'), '{
+    }')$$,
+    $$VALUES ('meta', 'pair', '{
    "name": "pair",
    "abstract": "Ordered pair",
    "description": "An ordered pair for PostgreSQL",
@@ -406,7 +407,7 @@ SELECT is(
       "homepage": "http://pgxn.org/dist/pair/"
    }
 }
-', 'Add a distribution for user "theory"');
+')$$, 'Add a distribution for user "theory"');
 
 SELECT is(COUNT(*)::int, 1, 'Should have one distribution') FROM distributions;
 SELECT row_eq(
@@ -503,16 +504,16 @@ SELECT throws_ok(
 );
 
 -- Have strongrrl add a distribution with one extension.
-SELECT is(
-    add_distribution('strongrrl', 'ick', '{
+SELECT bag_eq(
+    $$SELECT * FROM add_distribution('strongrrl', 'ick', '{
         "name":        "foo",
         "version":     "0.0.2",
         "license":     "postgresql",
         "maintainer":  "strongrrl",
         "abstract":    "whatever",
         "tags": ["Foo", "PAIR", "pair"]
-    }'),
-    '{
+    }')$$,
+    $$VALUES('meta', 'foo', '{
    "name": "foo",
    "abstract": "whatever",
    "version": "0.0.2",
@@ -528,7 +529,7 @@ SELECT is(
    },
    "tags": ["Foo", "PAIR", "pair"]
 }
-', 'Should get proper JSON for strongrrl upload');
+')$$, 'Should get proper JSON for strongrrl upload');
 
 SELECT is(COUNT(*)::int, 2, 'Should now have two distributions') FROM distributions;
 SELECT row_eq(
@@ -610,15 +611,15 @@ SELECT throws_ok(
 -- Give strongrrl co-ownership of pair and try again.
 INSERT INTO coowners (extension, nickname) VALUES ('pair', 'strongrrl');
 
-SELECT is(
-    add_distribution('strongrrl', 'howdy', '{
+SELECT bag_eq(
+    $$ SELECT * FROM add_distribution('strongrrl', 'howdy', '{
         "name":        "pair",
         "version":     "0.0.3",
         "license":     "postgresql",
         "maintainer":  "theory",
         "abstract":    "whatever"
-    }'),
-    '{
+    }')$$,
+    $$VALUES('meta', 'pair', '{
    "name": "pair",
    "abstract": "whatever",
    "version": "0.0.3",
@@ -633,7 +634,7 @@ SELECT is(
       }
    }
 }
-', 'Should get proper JSON for strongrrl pair upload');
+')$$, 'Should get proper JSON for strongrrl pair upload');
 
 SELECT is(COUNT(*)::int, 3, 'Should now have three distributions') FROM distributions;
 SELECT row_eq(
