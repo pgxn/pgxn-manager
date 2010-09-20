@@ -144,12 +144,12 @@ for my $fn (@ARGV) {
 
             # Find any documentation.
             my $doc = '';
-            while (<$fh>) {
+            DOC: while (<$fh>) {
                 last if /\bAS\s+\$(?:BODY|_)?\$/i;
                 if (m{^(?:/[*]|=begin markdown)}i) {
                     print STDERR "    Markdown comment found\n" if $opts{verbose} > 1;
                     while (<$fh>) {
-                        last if m{^[*]/|=end markdown|=cut};
+                        last DOC if m{^[*]/|=end markdown|=cut};
                         $doc .= $_;
                     }
                 }
