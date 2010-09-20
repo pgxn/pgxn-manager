@@ -270,6 +270,9 @@ BEGIN
     SELECT DISTINCT distmeta.name, distmeta.version, tag
       FROM unnest(distmeta.tags) AS tag;
 
-    RETURN QUERY SELECT 'meta'::TEXT, distmeta.name::TEXT, distmeta.json;
+    RETURN QUERY
+        SELECT 'meta'::TEXT, distmeta.name::TEXT, distmeta.json
+    UNION
+        SELECT 'by-owner', nick, by_owner_json(nick);
 END;
 $$;

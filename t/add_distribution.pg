@@ -407,6 +407,16 @@ SELECT bag_eq(
       "homepage": "http://pgxn.org/dist/pair/"
    }
 }
+'),('by-owner', 'theory', '{
+   "nickname": "theory",
+   "name": "",
+   "email": "theory@pgxn.org",
+   "releases": {
+      "pair": {
+         "testing": ["0.0.1"]
+      }
+   }
+}
 ')$$, 'Add a distribution for user "theory"');
 
 SELECT is(COUNT(*)::int, 1, 'Should have one distribution') FROM distributions;
@@ -529,6 +539,16 @@ SELECT bag_eq(
    },
    "tags": ["Foo", "PAIR", "pair"]
 }
+'), ('by-owner', 'strongrrl', '{
+   "nickname": "strongrrl",
+   "name": "",
+   "email": "strongrrl@pgxn.org",
+   "releases": {
+      "foo": {
+         "stable": ["0.0.2"]
+      }
+   }
+}
 ')$$, 'Should get proper JSON for strongrrl upload');
 
 SELECT is(COUNT(*)::int, 2, 'Should now have two distributions') FROM distributions;
@@ -631,6 +651,19 @@ SELECT bag_eq(
    "provides": {
       "pair": {
          "version": "0.0.3"
+      }
+   }
+}
+'), ('by-owner', 'strongrrl', '{
+   "nickname": "strongrrl",
+   "name": "",
+   "email": "strongrrl@pgxn.org",
+   "releases": {
+      "foo": {
+         "stable": ["0.0.2"]
+      },
+      "pair": {
+         "stable": ["0.0.3"]
       }
    }
 }
