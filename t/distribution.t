@@ -2,12 +2,13 @@
 
 use 5.12.0;
 use utf8;
-use Test::More tests => 157;
-#use Test::More 'no_plan';
+#use Test::More tests => 157;
+use Test::More 'no_plan';
 use Archive::Zip qw(:ERROR_CODES);
 use HTTP::Headers;
 use Plack::Request::Upload;
 use Test::File;
+use Test::File::Contents;
 use File::Path qw(remove_tree);
 use Archive::Tar;
 use File::Basename;
@@ -287,7 +288,7 @@ ok $dist->zipit, 'Zip it';
 ok !$dist->error, 'Should be successful';
 ok !$dist->modified, 'Should not be modified';
 is $dist->zipfile, $distzip, 'Should reference the original zip file';
-is $dist->sha1, '009f5fa9d854aa39e78bd0fee1e6dfa314314d90', 'The SHA1 should be set';
+is $dist->sha1, _sha1_for($distzip), 'The SHA1 should be set';
 
 # Try the tgz file, which must be rewritten as a zip file.
 ok $dist = new_dist($disttgz), 'Create a distribution with a tgz archive again';
@@ -299,12 +300,7 @@ ok !$dist->error, 'Should be successful';
 ok $dist->modified, 'Should be modified';
 is $dist->zipfile, File::Spec->catfile($dist->workdir, 'dest', 'widget-0.2.5.zip'),
     'Zip file name should be new';
-is $dist->sha1, do {
-    open my $fh, '<', $dist->zipfile or die "Cannot open zipfile: $!\n";
-    my $sha1 = Digest::SHA1->new;
-    $sha1->addfile($fh);
-    $sha1->hexdigest;
-}, 'The SHA1 should be set';
+is $dist->sha1, _sha1_for($dist->zipfile), 'The SHA1 should be set';
 
 END { $dist->zipfile }
 
@@ -319,7 +315,7 @@ is_deeply [sort $nzip->memberNames ], [
 ##############################################################################
 # Test indexit().
 my $user = TxnTest->user; # Create user.
-my @files = map { File::Spec->catfile($root, $_ ) } qw(
+my %files = map { $_ => File::Spec->catfile($root, $_ ) } qw(
    /by/owner/user.json
    /by/dist/widget.json
    /by/tag/gadget.json
@@ -329,14 +325,17 @@ my @files = map { File::Spec->catfile($root, $_ ) } qw(
    /dist/widget/widget-0.2.5.readme
    /dist/widget/widget-0.2.5.pgz
 ), '/by/tag/full text search.json';
-file_not_exists_ok $_, basename($_) . ' should not yet exist' for @files;
+file_not_exists_ok $files{$_}, "File $_ should not yet exist" for keys %files;
 ok $dist = new_dist($distzip), 'Create a distribution with a zip archive again';
 ok $dist->extract, 'Extract it';
 ok $dist->read_meta, 'Read its meta data';
 ok $dist->normalize, 'Normalize it';
 ok $dist->zipit, 'Zip it';
 ok $dist->indexit, 'Index it';
-file_exists_ok $_, basename($_) . ' should now exist' for @files;
+file_exists_ok $files{$_}, "File $_ should now exist" for keys %files;
+
+# Let's try a distribution without a README.
+
 
 ##############################################################################
 # Utility for constructing a distribution.
@@ -355,4 +354,12 @@ sub new_dist {
             )
         )
     );
+}
+
+sub _sha1_for {
+    my $fn = shift;
+    open my $fh, '<', $fn or die "Cannot open $fn: $!\n";
+    my $sha1 = Digest::SHA1->new;
+    $sha1->addfile($fh);
+    return $sha1->hexdigest;
 }
