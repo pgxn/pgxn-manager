@@ -75,7 +75,7 @@ closedir $dir or die "Cannot close directory $distdir: $!\n";
 $tgz->write($disttgz, COMPRESS_GZIP);
 
 isa_ok $dist = new_dist($disttgz), $CLASS, 'Tgz distribution';
-my $extdir = File::Spec->catdir($dist->workdir, 'widget');
+my $extdir = File::Spec->catdir($dist->workdir, 'source', 'widget');
 file_not_exists_ok $extdir, 'Should not have extraction directory';
 is $dist->zip, undef, 'Should have no zip attribute';
 ok $dist->extract, 'Extract the distribution';

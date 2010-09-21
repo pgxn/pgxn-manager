@@ -78,12 +78,13 @@ sub extract {
         } else {
             # It's something else. Extract it and then zip it up.
             my $ae = do {
+                my $extract_dir = File::Spec->catdir($workdir, 'source');
                 local $Archive::Extract::WARN = 1;
                 local $Archive::Extract::PREFER_BIN = 1;
                 # local $Archive::Extract::DEBUG = 1;
                 local $SIG{__WARN__} = \&_ae_error_handler;
                 my $ae = Archive::Extract->new(archive => $upload->path);
-                $ae->extract(to => $workdir);
+                $ae->extract(to => $extract_dir);
                 $ae;
             };
 
