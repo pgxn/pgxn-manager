@@ -6,6 +6,8 @@ use Moose;
 use PGXN::Manager;
 use Archive::Extract;
 use Archive::Zip qw(:ERROR_CODES);
+use File::Basename qw(dirname);
+use File::Copy qw(move);
 use File::Spec;
 use Try::Tiny;
 use File::Path qw(make_path remove_tree);
@@ -258,11 +260,13 @@ after zipfile => sub {
 };
 
 sub indexit {
-    my $self  = shift;
-    my $mirror_root   = PGXN::Manager->config->{mirror_root};
-    my $uri_templates = PGXN::Manager->uri_templates;
-    my $meta          = $self->distmeta;
-    my $destdir       = File::Spec->catdir($self->workdir, 'dest');
+    my $self      = shift;
+    my $root      = PGXN::Manager->config->{mirror_root};
+    my $templates = PGXN::Manager->uri_templates;
+    my $meta      = $self->distmeta;
+    my $destdir   = File::Spec->catdir($self->workdir, 'dest');
+    my @vars      = ( dist => $meta->{name}, version => $meta->{version} );
+    my %files;
 
     PGXN::Manager->conn->run(sub {
         my $sth = $_->prepare('SELECT * FROM add_distribution(?, ?, ?)');
@@ -272,26 +276,64 @@ sub indexit {
             scalar $self->metamemb->contents,
         );
         $sth->bind_columns(\my ($template_name, $subject, $json));
-        my @vars = ( dist => $meta->{name}, version => $meta->{version} );
+
         while ($sth->fetch) {
-            my $tmpl = $uri_templates->{$template_name}
+            my $tmpl  = $templates->{$template_name}
                 or die "No $template_name templae found in config\n";
+
             my ($key) = $template_name =~ /by-(.+)/;
-            $key ||= 'dist';
-            my $uri = $tmpl->process(@vars, $key => $subject);
-            my $fn = File::Spec->catfile($destdir, $uri->path_segments);
-            use Test::More; diag $fn;
-            # open my $fh, '>', $fn or die "Cannot open $fn: $!\n";
-            # print $fh $json;
-            # close $fh or die "Cannot close $fn: $!\n";
+            my $uri   = $tmpl->process(@vars, $key || 'dist' => $subject);
+            my $fn    = File::Spec->catfile($destdir, $uri->path_segments);
+
+            make_path dirname $fn;
+            open my $fh, '>', $fn or die "Cannot open $fn: $!\n";
+            print $fh $json;
+            close $fh or die "Cannot close $fn: $!\n";
+
+            $files{$fn} = File::Spec->catfile($root, $uri->path_segments);
         }
+
         return $self;
     }, catch {
         $self->error($_);
         return;
     }) or return;
 
+    # Copy the README.
+    my $prefix = quotemeta "$meta->{name}-$meta->{version}";
+    my ($readme) = $self->zip->membersMatching(
+        qr{^$prefix/README(?:[.][^.]+)?$}
+    );
+    if ($readme) {
+        my $uri = $templates->{readme}->process(@vars);
+        my $fn = File::Spec->catfile($destdir, $uri->path_segments);
+        open my $fh, '>', $fn or die "Cannot open $fn: $!\n";
+        print $fh $readme->contents;
+        close $fh or die "Cannot close $fn: $!\n";
+        $files{$fn} = File::Spec->catfile($root, $uri->path_segments);
+    }
+
+    # Move the archive to the mirror root.
+    my $uri  = $templates->{dist}->process(@vars);
+    _mv($self->zipfile, File::Spec->catfile($root, $uri->path_segments));
+
+    # Move all the other files over.
+    while (my ($src, $dest) = each %files) {
+        _mv($src, $dest);
+    }
+
     return $self;
+}
+
+sub _mv {
+    my ($src, $dest) = @_;
+    make_path dirname $dest;
+    move $src, $dest and return;
+
+    # D'oh! Move failed. Try to clean up.
+    my $err = $!;
+    remove_tree $dest;
+    die qq{Failed to move "$src" to "dest": $!\n};
 }
 
 sub DEMOLISH {

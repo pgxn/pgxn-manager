@@ -2,7 +2,7 @@
 
 use 5.12.0;
 use utf8;
-use Test::More tests => 139;
+use Test::More tests => 157;
 #use Test::More 'no_plan';
 use Archive::Zip qw(:ERROR_CODES);
 use HTTP::Headers;
@@ -35,6 +35,7 @@ my $nometazip  = File::Spec->catdir(qw(t dist nometa-0.2.5.pgz));
 my $badmetazip = File::Spec->catdir(qw(t dist badmeta-0.2.5.pgz));
 my $nonsemzip  = File::Spec->catdir(qw(t dist nonsem-0.2.5.pgz));
 my $tmpdir     = File::Spec->catdir(File::Spec->tmpdir, 'pgxn');
+my $root = PGXN::Manager->new->config->{mirror_root};
 
 # First, create a distribution.
 my $dzip = Archive::Zip->new;
@@ -43,7 +44,7 @@ $dzip->writeToFileNamed($distzip) == AZ_OK or die 'write error';
 
 END {
     unlink $distzip, $disttgz, $nometazip, $badmetazip, $nonsemzip;
-    remove_tree $tmpdir;
+    remove_tree $tmpdir, $root;
 }
 
 isa_ok my $dist = new_dist($distzip), $CLASS, 'New object';
@@ -56,9 +57,10 @@ ok $dist->extract, 'Extract the distribution';
 file_exists_ok $dist->workdir, 'Working directory should now exist';
 ok !$dist->modified, 'The zip should be unmodified';
 isa_ok my $zip = $dist->zip, 'Archive::Zip', 'Zip attribute';
-is_deeply [sort $zip->memberNames ],
-    ['widget-0.2.5/', map { "widget-0.2.5/$_"} qw(META.json Makefile widget.sql.in)],
-    'It should have the expected files';
+is_deeply [sort $zip->memberNames ], [
+    'widget-0.2.5/',
+    map { "widget-0.2.5/$_"} qw(META.json Makefile README widget.sql.in)
+], 'It should have the expected files';
 ok $dist->DEMOLISH, 'Demolish';
 file_not_exists_ok $dist->workdir, 'Working directory should be gone';
 
@@ -82,9 +84,10 @@ ok $dist->extract, 'Extract the distribution';
 file_exists_ok $extdir, 'Should now have extraction directory';
 ok $dist->modified, 'The zip should be modified';
 isa_ok my $zip = $dist->zip, 'Archive::Zip', 'Should now have a zip attribute';
-is_deeply [sort $zip->memberNames ],
-    ['widget/', map { "widget/$_"} qw(META.json Makefile widget.sql.in)],
-    'It should have the expected files';
+is_deeply [sort $zip->memberNames ], [
+    'widget/',
+    map { "widget/$_"} qw(META.json Makefile README widget.sql.in)
+], 'It should have the expected files';
 
 # Let's handle some exceptional situations. Start with an unkonwn archive.
 isa_ok $dist = new_dist(__FILE__), $CLASS, 'Non-archive distribution';
@@ -211,9 +214,10 @@ is $dist->metamemb->fileName, 'widget-0.2.5/META.json',
 $distmeta->{generated_by} = 'theory';
 is_deeply $dist->distmeta, $distmeta, 'The distmeta should be unchanged';
 is $updated, 0, 'And update_meta() should not have been called';
-is_deeply [sort $dist->zip->memberNames ],
-    ['widget-0.2.5/', map { "widget-0.2.5/$_"} qw(META.json Makefile widget.sql.in)],
-    'All of the files should have the new prefix';
+is_deeply [sort $dist->zip->memberNames ], [
+    'widget-0.2.5/',
+    map { "widget-0.2.5/$_"} qw(META.json Makefile README widget.sql.in)
+], 'All of the files should have the new prefix';
 is $updated, 0, 'update_meta() should not have been called';
 
 # Try with metdata that's got some non-semantic versions.
@@ -232,9 +236,10 @@ $distmeta->{version} = '2.5.0';
 is_deeply $dist->distmeta, $distmeta,
     'The distmeta should have the normalized version';
 is $updated, 1, 'And update_meta() should have been called';
-is_deeply [sort $dist->zip->memberNames ],
-    ['widget-2.5.0/', map { "widget-2.5.0/$_"} qw(META.json Makefile widget.sql.in)],
-    'All of the files should have normalized version in their prefix';
+is_deeply [sort $dist->zip->memberNames ], [
+    'widget-2.5.0/',
+    map { "widget-2.5.0/$_"} qw(META.json Makefile README widget.sql.in)
+], 'All of the files should have normalized version in their prefix';
 
 # Make sure that the "prereq" versions are normalized.
 $updated = 0;
@@ -282,7 +287,7 @@ ok $dist->zipit, 'Zip it';
 ok !$dist->error, 'Should be successful';
 ok !$dist->modified, 'Should not be modified';
 is $dist->zipfile, $distzip, 'Should reference the original zip file';
-is $dist->sha1, '39642746a8d91345f93fc3027765043c8e52bbde', 'The SHA1 should be set';
+is $dist->sha1, '009f5fa9d854aa39e78bd0fee1e6dfa314314d90', 'The SHA1 should be set';
 
 # Try the tgz file, which must be rewritten as a zip file.
 ok $dist = new_dist($disttgz), 'Create a distribution with a tgz archive again';
@@ -306,20 +311,32 @@ END { $dist->zipfile }
 # Make sure the zip file looks right.
 my $nzip = Archive::Zip->new;
 $nzip->read($dist->zipfile);
-is_deeply [sort $nzip->memberNames ],
-    ['widget-0.2.5/', map { "widget-0.2.5/$_"} qw(META.json Makefile widget.sql.in)],
-    'It should have the expected files';
+is_deeply [sort $nzip->memberNames ], [
+    'widget-0.2.5/',
+    map { "widget-0.2.5/$_"} qw(META.json Makefile README widget.sql.in)
+], 'It should have the expected files';
 
 ##############################################################################
 # Test indexit().
 my $user = TxnTest->user; # Create user.
+my @files = map { File::Spec->catfile($root, $_ ) } qw(
+   /by/owner/user.json
+   /by/dist/widget.json
+   /by/tag/gadget.json
+   /by/tag/widget.json
+   /by/extension/widget.json
+   /dist/widget/widget-0.2.5.json
+   /dist/widget/widget-0.2.5.readme
+   /dist/widget/widget-0.2.5.pgz
+), '/by/tag/full text search.json';
+file_not_exists_ok $_, basename($_) . ' should not yet exist' for @files;
 ok $dist = new_dist($distzip), 'Create a distribution with a zip archive again';
 ok $dist->extract, 'Extract it';
 ok $dist->read_meta, 'Read its meta data';
 ok $dist->normalize, 'Normalize it';
 ok $dist->zipit, 'Zip it';
 ok $dist->indexit, 'Index it';
-
+file_exists_ok $_, basename($_) . ' should now exist' for @files;
 
 ##############################################################################
 # Utility for constructing a distribution.
