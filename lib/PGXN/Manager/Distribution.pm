@@ -280,7 +280,7 @@ sub indexit {
             $key ||= 'dist';
             my $uri = $tmpl->process(@vars, $key => $subject);
             my $fn = File::Spec->catfile($destdir, $uri->path_segments);
-#            use Test::More; diag $fn;
+            use Test::More; diag $fn;
             # open my $fh, '>', $fn or die "Cannot open $fn: $!\n";
             # print $fh $json;
             # close $fh or die "Cannot close $fn: $!\n";
