@@ -70,11 +70,12 @@ to use pretty much anywhere.
 
 has conn => (is => 'ro', lazy => 1, isa => 'DBIx::Connector', default => sub {
     DBIx::Connector->new( @{ shift->config->{dbi} }{qw(dsn username password)}, {
-        PrintError     => 0,
-        RaiseError     => 0,
-        HandleError    => Exception::Class::DBI->handler,
-        AutoCommit     => 1,
-        pg_enable_utf8 => 1,
+        PrintError        => 0,
+        RaiseError        => 0,
+        HandleError       => Exception::Class::DBI->handler,
+        AutoCommit        => 1,
+        pg_enable_utf8    => 1,
+        pg_server_prepare => 0,
     });
 });
 

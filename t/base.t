@@ -2,7 +2,7 @@
 
 use 5.12.0;
 use utf8;
-use Test::More tests => 32;
+use Test::More tests => 33;
 #use Test::More 'no_plan';
 use JSON::XS;
 use Test::File;
@@ -39,6 +39,7 @@ is $dbh->{Name}, 'dbname=pgxn_manager_test',
 ok !$dbh->{PrintError}, 'PrintError should be disabled';
 ok !$dbh->{RaiseError}, 'RaiseError should be disabled';
 ok $dbh->{AutoCommit}, 'AutoCommit should be enabled';
+ok !$dbh->{pg_server_prepare}, 'pg_server_prepare should be disabled';
 isa_ok $dbh->{HandleError}, 'CODE', 'There should be an error handler';
 
 is $dbh->selectrow_arrayref('SELECT 1')->[0], 1,
