@@ -15,26 +15,29 @@ use SemVer;
 use Digest::SHA1 'sha1_hex';
 use namespace::autoclean;
 
-has upload   => (is => 'ro', required => 1, isa => 'Plack::Request::Upload');
-has owner    => (is => 'ro', required => 1, isa => 'Str');
-has error    => (is => 'rw', required => 0, isa => 'Str');
-has zip      => (is => 'rw', required => 0, isa => 'Archive::Zip');
-has deldir   => (is => 'rw', required => 0, isa => 'Str');
-has metamemb => (is => 'rw', required => 0, isa => 'Archive::Zip::FileMember');
-has distmeta => (is => 'rw', required => 0, isa => 'HashRef');
-has modified => (is => 'rw', required => 0, isa => 'Bool', default => 0);
-has zipfile  => (is => 'rw', required => 0, isa => 'Str');
-has sha1     => (is => 'rw', required => 0, isa => 'Str');
-
-my $TMPDIR = File::Spec->catdir(File::Spec->tmpdir, 'pgxn');
+my $TMPDIR = PGXN::Manager->new->config->{tmpdir}
+          || File::Spec->catdir(File::Spec->tmpdir, 'pgxn');
 my $EXT_RE = do {
-    my ($ext) = lc(PGXN::Manager->config->{uri_templates}{dist}) =~ /[.]([^.]+)$/;
+    my ($ext) = lc(PGXN::Manager->new->config->{uri_templates}{dist}) =~ /[.]([^.]+)$/;
     qr/[.](?:$ext|zip)$/
 };
 my $META_RE = qr/\bMETA[.]json$/;
 
 make_path $TMPDIR if !-d $TMPDIR;
 Archive::Zip::setErrorHandler(\&_zip_error_handler);
+
+has upload   => (is => 'ro', required => 1, isa => 'Plack::Request::Upload');
+has owner    => (is => 'ro', required => 1, isa => 'Str');
+has error    => (is => 'rw', required => 0, isa => 'Str');
+has zip      => (is => 'rw', required => 0, isa => 'Archive::Zip');
+has metamemb => (is => 'rw', required => 0, isa => 'Archive::Zip::FileMember');
+has distmeta => (is => 'rw', required => 0, isa => 'HashRef');
+has modified => (is => 'rw', required => 0, isa => 'Bool', default => 0);
+has zipfile  => (is => 'rw', required => 0, isa => 'Str');
+has sha1     => (is => 'rw', required => 0, isa => 'Str');
+has workdir  => (is => 'rw', required => 0, isa => 'Str', default => sub {
+    File::Spec->catdir($TMPDIR, "working.$$")
+});
 
 sub process {
     my $self = shift;
@@ -51,16 +54,18 @@ sub process {
     # 4. Zip it up.
     $self->zipit or return;
 
-    # 5. Send JSON + SHA1 to server.
-    $self->register or return;
-
-    # 6. Index it.
+    # 5. Send JSON + SHA1 to server and index it.
     $self->indexit or return;
 }
 
 sub extract {
     my $self   = shift;
     my $upload = $self->upload;
+
+    # Set up the working directory.
+    my $workdir = $self->workdir;
+    remove_tree $workdir if -e $workdir;
+    make_path $workdir;
 
     # If upload extension matches dist template suffix, it's a Zip file.
     my ($ext) = lc($upload->basename) =~ /([.][^.]+)$/;
@@ -78,7 +83,7 @@ sub extract {
                 # local $Archive::Extract::DEBUG = 1;
                 local $SIG{__WARN__} = \&_ae_error_handler;
                 my $ae = Archive::Extract->new(archive => $upload->path);
-                $ae->extract(to => $TMPDIR);
+                $ae->extract(to => $workdir);
                 $ae;
             };
 
@@ -87,7 +92,6 @@ sub extract {
             my $zip = Archive::Zip->new;
             $zip->addTree($ae->extract_path, $dir);
             $self->zip($zip);
-            $self->deldir($ae->extract_path);
             $self->modified(1);
         }
     } catch {
@@ -217,6 +221,9 @@ sub update_meta {
 sub zipit {
     my $self = shift;
 
+    my $dest = File::Spec->catdir($self->workdir, 'dest');
+    make_path $dest;
+
     unless ($self->modified) {
         # We can just use the uploaded zip file as-is.
         $self->zipfile($self->upload->path);
@@ -225,7 +232,7 @@ sub zipit {
 
     my $meta = $self->distmeta;
     my $zipfile = File::Spec->catfile(
-        $TMPDIR, "$meta->{name}-$meta->{version}.zip"
+        $dest, "$meta->{name}-$meta->{version}.zip"
     );
 
     try {
@@ -249,16 +256,35 @@ after zipfile => sub {
     return $self;
 };
 
-sub register {
-    my $self = shift;
+sub indexit {
+    my $self  = shift;
+    my $mirror_root   = PGXN::Manager->config->{mirror_root};
+    my $uri_templates = PGXN::Manager->uri_templates;
+    my $meta          = $self->distmeta;
+    my $destdir       = File::Spec->catdir($self->workdir, 'dest');
+
     PGXN::Manager->conn->run(sub {
-        $_->do(
-            'SELECT add_distribution(?, ?, ?)',
-            undef,
+        my $sth = $_->prepare('SELECT * FROM add_distribution(?, ?, ?)');
+        $sth->execute(
             $self->owner,
             $self->sha1,
-            $self->metamemb->contents,
+            scalar $self->metamemb->contents,
         );
+        $sth->bind_columns(\my ($template_name, $subject, $json));
+        my @vars = ( dist => $meta->{name}, version => $meta->{version} );
+        while ($sth->fetch) {
+            my $tmpl = $uri_templates->{$template_name}
+                or die "No $template_name templae found in config\n";
+            my ($key) = $template_name =~ /by-(.+)/;
+            $key ||= 'dist';
+            my $uri = $tmpl->process(@vars, $key => $subject);
+            my $fn = File::Spec->catfile($destdir, $uri->path_segments);
+#            use Test::More; diag $fn;
+            # open my $fh, '>', $fn or die "Cannot open $fn: $!\n";
+            # print $fh $json;
+            # close $fh or die "Cannot close $fn: $!\n";
+        }
+        return $self;
     }, catch {
         $self->error($_);
         return;
@@ -267,12 +293,9 @@ sub register {
     return $self;
 }
 
-sub indexit {
-}
-
 sub DEMOLISH {
     my $self = shift;
-    if (my $path = $self->delpath) {
+    if (my $path = $self->workdir) {
         remove_tree $path if -e $path;
     }
 }

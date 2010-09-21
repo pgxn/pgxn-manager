@@ -2,7 +2,7 @@
 
 use 5.12.0;
 use utf8;
-use Test::More tests => 129;
+use Test::More tests => 139;
 #use Test::More 'no_plan';
 use Archive::Zip qw(:ERROR_CODES);
 use HTTP::Headers;
@@ -14,6 +14,8 @@ use File::Basename;
 use File::Copy;
 use JSON::XS;
 use Test::MockModule;
+use lib 't/lib';
+use TxnTest;
 
 my $CLASS;
 
@@ -23,8 +25,7 @@ BEGIN {
 }
 
 can_ok $CLASS, qw(
-    process extract read_meta normalize update_meta zipit register indexit
-    DEMOLISH
+    process extract read_meta normalize update_meta zipit indexit DEMOLISH
 );
 
 my $distdir    = File::Spec->catdir(qw(t dist widget));
@@ -50,12 +51,16 @@ isa_ok my $dist = new_dist($distzip), $CLASS, 'New object';
 ##############################################################################
 # Test extract().
 is $dist->zip, undef, 'Should have no zip attribute';
+file_not_exists_ok $dist->workdir, 'Working directory should not exist';
 ok $dist->extract, 'Extract the distribution';
+file_exists_ok $dist->workdir, 'Working directory should now exist';
 ok !$dist->modified, 'The zip should be unmodified';
 isa_ok my $zip = $dist->zip, 'Archive::Zip', 'Zip attribute';
 is_deeply [sort $zip->memberNames ],
     ['widget-0.2.5/', map { "widget-0.2.5/$_"} qw(META.json Makefile widget.sql.in)],
     'It should have the expected files';
+ok $dist->DEMOLISH, 'Demolish';
+file_not_exists_ok $dist->workdir, 'Working directory should be gone';
 
 # Now try a tarball.
 my $tgz = Archive::Tar->new;
@@ -70,7 +75,7 @@ closedir $dir or die "Cannot close directory $distdir: $!\n";
 $tgz->write($disttgz, COMPRESS_GZIP);
 
 isa_ok $dist = new_dist($disttgz), $CLASS, 'Tgz distribution';
-my $extdir = File::Spec->catdir($tmpdir, 'widget');
+my $extdir = File::Spec->catdir($dist->workdir, 'widget');
 file_not_exists_ok $extdir, 'Should not have extraction directory';
 is $dist->zip, undef, 'Should have no zip attribute';
 ok $dist->extract, 'Extract the distribution';
@@ -287,7 +292,7 @@ ok $dist->normalize, 'Normalize it';
 ok $dist->zipit, 'Zip it';
 ok !$dist->error, 'Should be successful';
 ok $dist->modified, 'Should be modified';
-is $dist->zipfile, File::Spec->catfile($tmpdir, 'widget-0.2.5.zip'),
+is $dist->zipfile, File::Spec->catfile($dist->workdir, 'dest', 'widget-0.2.5.zip'),
     'Zip file name should be new';
 is $dist->sha1, do {
     open my $fh, '<', $dist->zipfile or die "Cannot open zipfile: $!\n";
@@ -304,6 +309,17 @@ $nzip->read($dist->zipfile);
 is_deeply [sort $nzip->memberNames ],
     ['widget-0.2.5/', map { "widget-0.2.5/$_"} qw(META.json Makefile widget.sql.in)],
     'It should have the expected files';
+
+##############################################################################
+# Test indexit().
+my $user = TxnTest->user; # Create user.
+ok $dist = new_dist($distzip), 'Create a distribution with a zip archive again';
+ok $dist->extract, 'Extract it';
+ok $dist->read_meta, 'Read its meta data';
+ok $dist->normalize, 'Normalize it';
+ok $dist->zipit, 'Zip it';
+ok $dist->indexit, 'Index it';
+
 
 ##############################################################################
 # Utility for constructing a distribution.
