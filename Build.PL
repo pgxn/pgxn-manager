@@ -49,6 +49,7 @@ Module::Build::DB->new(
         'SemVer'                     => '0.1.0',
         'Template::Declare'          => '0.43',
         'Try::Tiny'                  => '0.06',
+        'URI::Template'              => '0.15',
     },
     recommends => {
         'Test::Pod'           => '1.20',

@@ -2,7 +2,7 @@
 
 use 5.12.0;
 use utf8;
-use Test::More tests => 23;
+use Test::More tests => 32;
 #use Test::More 'no_plan';
 use JSON::XS;
 use Test::File;
@@ -14,7 +14,7 @@ BEGIN {
     use_ok 'PGXN::Manager' or die;
 }
 
-can_ok 'PGXN::Manager', qw(config conn instance initialize);
+can_ok 'PGXN::Manager', qw(config conn instance initialize uri_templates);
 isa_ok my $pgxn = PGXN::Manager->instance, 'PGXN::Manager';
 is +PGXN::Manager->instance, $pgxn, 'instance() should return a singleton';
 is +PGXN::Manager->instance, $pgxn, 'new() should return a singleton';
@@ -61,3 +61,8 @@ my $mock_json = Test::MockModule->new('JSON::XS');
 $mock_json->mock(new => sub { fail 'JSON::XS->new should not be called!' });
 ok $pgxn->init_root, 'Init the root again';
 file_exists_ok $index, "$index should still exist";
+
+# Make sure the URI templates are created.
+ok my $tmpl = $pgxn->uri_templates, 'Get URI templates';
+isa_ok $tmpl, 'HASH', 'Their storage';
+isa_ok $tmpl->{$_}, 'URI::Template', "Template $_" for keys %{ $tmpl };

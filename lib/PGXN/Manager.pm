@@ -7,6 +7,7 @@ use DBIx::Connector;
 use Exception::Class::DBI;
 use File::Spec;
 use JSON::XS ();
+use URI::Template;
 
 =head1 Name
 
@@ -54,6 +55,7 @@ has config => (is => 'ro', isa => 'HashRef', default => sub {
     my $fn = 'conf/' . ($ENV{PLACK_ENV} || 'test') . '.json';
     open my $fh, '<', $fn or die "Cannot open $fn: $!\n";
     local $/;
+    # XXX Verify presence of required keys.
     JSON::XS->new->decode(<$fh>);
 });
 
@@ -74,6 +76,21 @@ has conn => (is => 'ro', lazy => 1, isa => 'DBIx::Connector', default => sub {
         AutoCommit     => 1,
         pg_enable_utf8 => 1,
     });
+});
+
+=head3 C<uri_templates>
+
+  my $templates = $pgxn->uri_templates;
+
+Returns a hash reference of the URI templates for the various files stored in
+the mirror root. The keys are the names of the templates, and the values are
+L<URI::Template> objects.
+
+=cut
+
+has uri_templates => (is => 'ro', isa => 'HashRef', lazy => 1, default => sub {
+    my $tmpl = shift->config->{uri_templates};
+    return { map { $_ => URI::Template->new($tmpl->{$_}) } keys %{ $tmpl } };
 });
 
 =head2 Instance Methods
