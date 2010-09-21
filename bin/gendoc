@@ -59,8 +59,10 @@ for my $fn (@ARGV) {
             next;
         }
         if (/CREATE\s+(?:OR\s+REPLACE\s+)?FUNCTION\s+(?:($ident)[.])?($ident)/) {
-            say STDERR '  Found function ' . ($1 ? "$1." : '') . "$2" if $opts{verbose};
-            $in_doc = $seen{$2}++ ? 0 : 1;
+            my $func = $2;
+            say STDERR '  Found function ' . ($1 ? "$1." : '') . "$func"
+                if $opts{verbose};
+            $in_doc = $seen{"$schema.$func"}++ ? 0 : 1;
             if ($1) {
                 $schema = $1;
                 push @schemas, $schema unless exists $output_for{$schema};
@@ -68,8 +70,7 @@ for my $fn (@ARGV) {
             }
 
             next unless $in_doc;
-            my $buf = "\n### `$2` ###\n";
-            push @{ $funcs_for{$schema} } => [$2 => "`$2`"];
+            my $buf = "\n### `$func` ###\n";
 
             # Find everything up to the start of the function body
             my @sig;
@@ -159,7 +160,10 @@ for my $fn (@ARGV) {
                 }
             }
 
-            $output_for{$schema} .= $buf . $doc if $doc || $opts{all};
+            if ($doc || $opts{all}) {
+                $output_for{$schema} .= $buf . $doc;
+                push @{ $funcs_for{$schema} } => [$func => "`$2`"];
+            }
             print STDERR $/ if $opts{verbose} > 1;
         }
     }
