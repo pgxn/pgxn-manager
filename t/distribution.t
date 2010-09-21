@@ -42,6 +42,7 @@ my $root = PGXN::Manager->new->config->{mirror_root};
 my $dzip = Archive::Zip->new;
 $dzip->addTree($distdir, 'widget-0.2.5') == AZ_OK or die 'tree error';
 $dzip->writeToFileNamed($distzip) == AZ_OK or die 'write error';
+my $distzip_sha1 = _sha1_for($distzip);
 
 END {
     unlink $distzip, $disttgz, $nometazip, $badmetazip, $nonsemzip;
@@ -288,7 +289,7 @@ ok $dist->zipit, 'Zip it';
 ok !$dist->error, 'Should be successful';
 ok !$dist->modified, 'Should not be modified';
 is $dist->zipfile, $distzip, 'Should reference the original zip file';
-is $dist->sha1, _sha1_for($distzip), 'The SHA1 should be set';
+is $dist->sha1, $distzip_sha1, 'The SHA1 should be set';
 
 # Try the tgz file, which must be rewritten as a zip file.
 ok $dist = new_dist($disttgz), 'Create a distribution with a tgz archive again';
@@ -315,16 +316,19 @@ is_deeply [sort $nzip->memberNames ], [
 ##############################################################################
 # Test indexit().
 my $user = TxnTest->user; # Create user.
-my %files = map { $_ => File::Spec->catfile($root, $_ ) } qw(
-   /by/owner/user.json
-   /by/dist/widget.json
-   /by/tag/gadget.json
-   /by/tag/widget.json
-   /by/extension/widget.json
-   /dist/widget/widget-0.2.5.json
-   /dist/widget/widget-0.2.5.readme
-   /dist/widget/widget-0.2.5.pgz
-), '/by/tag/full text search.json';
+my %files = map { join('/', @{ $_ }) => File::Spec->catfile($root, @{ $_ } ) } (
+   ['by',   'owner',     'user.json'],
+   ['by',   'dist',      'widget.json'],
+   ['by',   'tag',       'gadget.json'],
+   ['by',   'tag',       'widget.json'],
+   ['by',   'extension', 'widget.json'],
+   ['dist', 'widget',    'widget-0.2.5.json'],
+   ['dist', 'widget',    'widget-0.2.5.readme'],
+   ['dist', 'widget',    'widget-0.2.5.pgz'],
+   ['by',   'tag',       'full text search.json'],
+);
+
+file_exists_ok $distzip, 'We should have the distzip file';
 file_not_exists_ok $files{$_}, "File $_ should not yet exist" for keys %files;
 ok $dist = new_dist($distzip), 'Create a distribution with a zip archive again';
 ok $dist->extract, 'Extract it';
@@ -332,7 +336,57 @@ ok $dist->read_meta, 'Read its meta data';
 ok $dist->normalize, 'Normalize it';
 ok $dist->zipit, 'Zip it';
 ok $dist->indexit, 'Index it';
+file_not_exists_ok $distzip, 'The distzip file should be gone';
 file_exists_ok $files{$_}, "File $_ should now exist" for keys %files;
+
+# Check the content of those files.
+PGXN::Manager->conn->run(sub {
+    my $dbh = shift;
+
+    # Check distribution JSON.
+    my ($json) = $dbh->selectrow_array(
+        'SELECT meta FROM distributions WHERE name = ? AND version = ?',
+        undef, 'widget', '0.2.5',
+    );
+    file_contents_is $files{'dist/widget/widget-0.2.5.json'}, $json,
+        "Distribution JSON file should be correct";
+
+    # Check by-extension JSON.
+    my ($json) = $dbh->selectrow_array(
+        'SELECT json FROM by_extension_json(?, ?)',
+        undef, 'widget', '0.2.5',
+    );
+    file_contents_is $files{'by/extension/widget.json'}, $json,
+        "By extension JSON file should be correct";
+
+    # Check owner JSON.
+    ($json) = $dbh->selectrow_array(
+        'SELECT by_owner_json(?)', undef, $user,
+    );
+    file_contents_is $files{'by/owner/user.json'}, $json,
+        "By owner JSON file should be correct";
+
+    # Check dist JSON.
+    ($json) = $dbh->selectrow_array(
+        'SELECT by_dist_json(?)', undef, 'widget',
+    );
+    file_contents_is $files{'by/dist/widget.json'}, $json,
+        "By dist JSON file should be correct";
+
+    # Check tag JSON.
+    my $tags = $dbh->selectall_arrayref(
+        'SELECT tag, json FROM by_tag_json(?, ?)',
+        undef, 'widget', '0.2.5'
+    );
+    for my $row (@$tags) {
+        file_contents_is $files{"by/tag/$row->[0].json"}, $row->[1],
+            qq{By tag "$row->[0]" JSON should be correct}
+    }
+
+    # Check the distribution itself.
+    is _sha1_for($files{'dist/widget/widget-0.2.5.pgz'}), $distzip_sha1,
+        'The distribution archive should be as expected';
+});
 
 # Let's try a distribution without a README.
 
