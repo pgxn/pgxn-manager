@@ -12,6 +12,7 @@ my %opts = (
 GetOptions(
     'title|t=s'  => \$opts{title},
     'all|a'      => \$opts{all},
+    'toc|c'      => \$opts{toc},
     'verbose|V+' => \$opts{verbose},
     'help|h'     => \$opts{help},
     'man|m'      => \$opts{man},
@@ -39,6 +40,7 @@ my $in_doc = 0;
 my $schema = 'public';
 my @schemas = ($schema);
 my %output_for = ( $schema => '' );
+my %funcs_for  = ( $schema => [] );
 
 my $ident   = qr/"(?:""|[^"])+"|\w+/;
 my $literal = qr/'(?:''|[^'])+'/;
@@ -53,6 +55,7 @@ for my $fn (@ARGV) {
             say STDERR "  Found schema $schema\n" if $opts{verbose};
             push @schemas, $schema unless exists $output_for{$schema};
             $output_for{$schema} ||= '';
+            $funcs_for{$schema} ||= [];
             next;
         }
         if (/CREATE\s+(?:OR\s+REPLACE\s+)?FUNCTION\s+(?:($ident)[.])?($ident)/) {
@@ -66,6 +69,7 @@ for my $fn (@ARGV) {
 
             next unless $in_doc;
             my $buf = "\n### `$2` ###\n";
+            push @{ $funcs_for{$schema} } => [$2 => "`$2`"];
 
             # Find everything up to the start of the function body
             my @sig;
@@ -164,6 +168,17 @@ for my $fn (@ARGV) {
 
 print $opts{title}, $/, ('=' x length $opts{title}), $/, $/;
 
+if ($opts{toc}) {
+    say "Contents\n--------";
+    for my $schema (@schemas) {
+        my $funcs = $funcs_for{$schema};
+        next unless @{ $funcs };
+        say "* $schema";
+        say "  * [$_->[1]](#$_->[0])" for @{ $funcs };
+    }
+    print $/;
+}
+
 for (@schemas) {
     print $_, $/, ('-' x length), $/, $output_for{$_}, $/ if $output_for{$_};
 }
@@ -193,24 +208,11 @@ C<MultiMarkdown>-compatible.
 
   -t --title    Title to use in the C<< <h1> >> tag.
   -a --all      Include all functions, documented and undocumented.
+  -c --toc      Include table of contents.
   -V --verbose  Incremental verbosity to STDERR.
   -h --help     Print this usage statement and exit.
   -m --man      Print the complete documentation and exit.
   -v --version  Print the version number and exit.
-
-=head1 To Do
-
-=over
-
-=item *
-
-Output in schema/function alphabetical order.
-
-=item *
-
-Create a TOC.
-
-=back
 
 =head1 Author
 
