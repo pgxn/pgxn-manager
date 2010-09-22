@@ -35,6 +35,7 @@ my $disttgz    = File::Spec->catdir(qw(t dist widget-0.2.5.tar.gz));
 my $nometazip  = File::Spec->catdir(qw(t dist nometa-0.2.5.pgz));
 my $badmetazip = File::Spec->catdir(qw(t dist badmeta-0.2.5.pgz));
 my $nonsemzip  = File::Spec->catdir(qw(t dist nonsem-0.2.5.pgz));
+my $noreadzip  = File::Spec->catdir(qw(t dist badmeta-0.2.5.pgz));
 my $tmpdir     = File::Spec->catdir(File::Spec->tmpdir, 'pgxn');
 my $root = PGXN::Manager->new->config->{mirror_root};
 
@@ -45,7 +46,7 @@ $dzip->writeToFileNamed($distzip) == AZ_OK or die 'write error';
 my $distzip_sha1 = _sha1_for($distzip);
 
 END {
-    unlink $distzip, $disttgz, $nometazip, $badmetazip, $nonsemzip;
+    unlink $distzip, $disttgz, $nometazip, $badmetazip, $nonsemzip, $noreadzip;
     remove_tree $tmpdir, $root;
 }
 
@@ -382,14 +383,35 @@ PGXN::Manager->conn->run(sub {
         file_contents_is $files{"by/tag/$row->[0].json"}, $row->[1],
             qq{By tag "$row->[0]" JSON should be correct}
     }
-
-    # Check the distribution itself.
-    is _sha1_for($files{'dist/widget/widget-0.2.5.pgz'}), $distzip_sha1,
-        'The distribution archive should be as expected';
 });
 
-# Let's try a distribution without a README.
+# Check the distribution itself.
+is _sha1_for($files{'dist/widget/widget-0.2.5.pgz'}), $distzip_sha1,
+    'The distribution archive should be as expected';
 
+file_contents_is $files{'dist/widget/widget-0.2.5.readme'},
+    "This is the widget 0.2.5 README.\n",
+    'The README contents should be correct';
+
+# Let's try a distribution without a README.
+%files = map { join('/', @{ $_ }) => File::Spec->catfile($root, @{ $_ } ) } (
+   ['by',   'owner',     'user.json'],
+   ['by',   'dist',      'widget.json'],
+   ['by',   'tag',       'gadget.json'],
+   ['by',   'tag',       'widget.json'],
+   ['by',   'extension', 'widget.json'],
+   ['dist', 'widget',    'widget-2.5.0.json'],
+   ['dist', 'widget',    'widget-2.5.0.pgz'],
+   ['by',   'tag',       'full text search.json'],
+);
+$dzip->removeMember('widget-0.2.5/README');
+$dzip->writeToFileNamed($noreadzip) == AZ_OK or die 'write error';
+
+ok $dist = new_dist($noreadzip), 'Create a distribution with README-less zip';
+ok $dist->process, 'Process the distribution';
+file_exists_ok $files{$_}, "File $_ should now exist" for keys %files;
+file_not_exists_ok +File::Spec->catfile('dist', 'widget', 'widget-2.5.0.readme'),
+    'There should be no README on the mirror';
 
 ##############################################################################
 # Utility for constructing a distribution.

@@ -308,7 +308,7 @@ sub indexit {
         my $uri = $templates->{readme}->process(@vars);
         my $fn = File::Spec->catfile($destdir, $uri->path_segments);
         open my $fh, '>', $fn or die "Cannot open $fn: $!\n";
-        print $fh $readme->contents;
+        print $fh scalar $readme->contents;
         close $fh or die "Cannot close $fn: $!\n";
         $files{$fn} = File::Spec->catfile($root, $uri->path_segments);
     }
