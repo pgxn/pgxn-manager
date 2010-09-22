@@ -6,7 +6,6 @@ use Test::More tests => 182;
 #use Test::More 'no_plan';
 use Archive::Zip qw(:ERROR_CODES);
 use HTTP::Headers;
-use Plack::Request::Upload;
 use Test::File;
 use Test::File::Contents;
 use File::Path qw(remove_tree);
@@ -426,15 +425,8 @@ sub new_dist {
     my $bn = basename $fn;
     $CLASS->new(
         owner  => shift || 'user',
-        upload => Plack::Request::Upload->new(
-            tempname => $fn,
-            filename => $bn,
-            size     => 0,
-            headers  => HTTP::Headers->new(
-                'Content-Type'        => 'application/zip',
-                'Content-Disposition' => "attachment; filename=$bn",
-            )
-        )
+        archive => $fn,
+        basename => $bn,
     );
 }
 

@@ -28,7 +28,8 @@ my $META_RE = qr/\bMETA[.]json$/;
 make_path $TMPDIR if !-d $TMPDIR;
 Archive::Zip::setErrorHandler(\&_zip_error_handler);
 
-has upload   => (is => 'ro', required => 1, isa => 'Plack::Request::Upload');
+has archive  => (is => 'ro', required => 1, isa => 'Str');
+has basename => (is => 'ro', required => 1, isa => 'Str');
 has owner    => (is => 'ro', required => 1, isa => 'Str');
 has error    => (is => 'rw', required => 0, isa => 'Str');
 has zip      => (is => 'rw', required => 0, isa => 'Archive::Zip');
@@ -62,7 +63,6 @@ sub process {
 
 sub extract {
     my $self   = shift;
-    my $upload = $self->upload;
 
     # Set up the working directory.
     my $workdir = $self->workdir;
@@ -70,12 +70,12 @@ sub extract {
     make_path $workdir;
 
     # If upload extension matches dist template suffix, it's a Zip file.
-    my ($ext) = lc($upload->basename) =~ /([.][^.]+)$/;
+    my ($ext) = lc($self->basename) =~ /([.][^.]+)$/;
     try {
         if ($ext =~ $EXT_RE) {
             # It's a zip acrhive.
             my $zip = Archive::Zip->new;
-            $zip->read($upload->path);
+            $zip->read($self->archive);
             $self->zip($zip);
         } else {
             # It's something else. Extract it and then zip it up.
@@ -85,7 +85,7 @@ sub extract {
                 local $Archive::Extract::PREFER_BIN = 1;
                 # local $Archive::Extract::DEBUG = 1;
                 local $SIG{__WARN__} = \&_ae_error_handler;
-                my $ae = Archive::Extract->new(archive => $upload->path);
+                my $ae = Archive::Extract->new(archive => $self->archive);
                 $ae->extract(to => $extract_dir);
                 $ae;
             };
@@ -98,7 +98,7 @@ sub extract {
             $self->modified(1);
         }
     } catch {
-        $self->error(ref $_ eq 'ARRAY' ? sprintf $_->[0], $upload->basename : $_);
+        $self->error(ref $_ eq 'ARRAY' ? sprintf $_->[0], $self->basename : $_);
         return;
     };
     return $self;
@@ -110,7 +110,7 @@ sub read_meta {
 
     my ($member) = $zip->membersMatching($META_RE);
     unless ($member) {
-        $self->error('Cannot find a META.json in ' . $self->upload->basename);
+        $self->error('Cannot find a META.json in ' . $self->basename);
         return;
     }
 
@@ -229,7 +229,7 @@ sub zipit {
 
     unless ($self->modified) {
         # We can just use the uploaded zip file as-is.
-        $self->zipfile($self->upload->path);
+        $self->zipfile($self->archive);
         return $self;
     }
 
@@ -375,19 +375,20 @@ PGXN::Manager::Distribution - Manages distributions uploaded to PGXN.
 
   use PGXN::Manager::Distribution;
   my $dist = PGXN::Manager::Distribution->new(
-      upload => $req->uploads->{distribution}
-      owner  => $nickname,
+      archive  => $path_to_archive_file,
+      basename => File::Spec->basename($path_to_archive_file),
+      owner    => $nickname,
   );
   die "Distribution failure: ", $dist->error unless $dist->process;
 
 =head1 Description
 
-This class provides the interface for managing distribution uploads to PGXN.
-Its interface is quite simple, really. Give it a L<Plack::Request::Upload>
-object and the nickname of the user uploading it and call C<process()> and
-it will do the rest.
+This class provides the interface for managing distribution archives uploaded
+to PGXN. Its interface is quite simple, really. Give it a path to an archive
+file and the nickname of the user uploading it and call C<process()> and it
+will do the rest.
 
-User visible exceptions will be caught and stored in the C<error> attribute.
+User-visible exceptions will be caught and stored in the C<error> attribute.
 If C<process> returns false, you'll want to display the contents of this
 attribute to users.
 
@@ -402,19 +403,24 @@ the user.q
 =head3 C<new>
 
   my $dist = PGXN::Manager::Distribution->new(
-      upload => $req->uploads->{distribution}
-      owner  => $nickname,
+      archive  => $path_to_archive_file,
+      basename => File::Spec->basename($path_to_archive_file),
+      owner    => $nickname,
   );
 
 Creates a new distribution object. The supported parameters are:
 
 =over
 
-=item C<upload>
+=item C<archive>
 
-A L<Plack::Request::Upload> object containing the uploaded archive. The format
-of this archive can be anything supported by L<Archive::Extract>, although Zip
-files are preferred (because then we might not have to repack them).
+The path to a an archive file. The format of this archive can be anything
+supported by L<Archive::Extract>, although Zip files are preferred (because
+then we might not have to repack them).
+
+=item C<basename>
+
+The base filename of the archive.
 
 =item C<owner>
 
@@ -424,12 +430,17 @@ The nickname of the user uploading the distribution.
 
 =head2 Instance Attributes
 
-=head3 C<upload>
+=head3 C<archive>
 
-  my $upload = $dist->upload;
+  my $archive = $dist->archive;
 
-A L<Plack::Request::Upload> object representing the uploaded distribution
-archive.
+The path to the uploaded distribution archive file.
+
+=head3 C<basename>
+
+  my $basename = $dist->basename;
+
+The basename of the archive file.
 
 =head3 C<owner>
 
