@@ -2,7 +2,7 @@
 
 use 5.12.0;
 use utf8;
-use Test::More tests => 182;
+use Test::More tests => 192;
 #use Test::More 'no_plan';
 use Archive::Zip qw(:ERROR_CODES);
 use HTTP::Headers;
@@ -22,6 +22,7 @@ my $CLASS;
 BEGIN {
     $CLASS = 'PGXN::Manager::Distribution';
     use_ok $CLASS or die;
+    $ENV{HTTP_ACCEPT_LANGUAGE} = 'en';
 }
 
 can_ok $CLASS, qw(
@@ -94,8 +95,13 @@ is_deeply [sort $zip->memberNames ], [
 # Let's handle some exceptional situations. Start with an unkonwn archive.
 isa_ok $dist = new_dist(__FILE__), $CLASS, 'Non-archive distribution';
 ok $dist->extract, 'Try to extract it';
-like $dist->error, qr/distribution[.]t doesn’t look like a distribution archive/,
-    'Should invalid archive error';
+is_deeply $dist->error, [
+    "\x{201c}[_1]\x{201d} doesn\x{2019}t look like a distribution archive",
+    "distribution.t"
+], 'Should invalid archive error';
+is $dist->localized_error,
+    "\x{201c}distribution.t\x{201d} doesn\x{2019}t look like a distribution archive",
+    'And it should localize properly';
 
 # Try an invalid zip file.
 my $badzip = __FILE__ . '.zip';
@@ -104,8 +110,10 @@ END { unlink $badzip }
 
 isa_ok $dist = new_dist($badzip), $CLASS, 'Bad zip distribution';
 ok $dist->extract, 'Try to extract it';
-like $dist->error, qr/distribution[.]t[.]zip doesn’t look like a distribution archive/,
-    'Should invalid archive error';
+is_deeply $dist->error, [
+    "\x{201c}[_1]\x{201d} doesn\x{2019}t look like a distribution archive",
+    "distribution.t.zip"
+], 'Should invalid archive error';
 
 # Try an invalid tgz file.
 my $badtgz = __FILE__ . '.tgz';
@@ -114,8 +122,10 @@ END { unlink $badtgz }
 
 isa_ok $dist = new_dist($badtgz), $CLASS, 'Bad tgz distribution';
 ok $dist->extract, 'Try to extract it';
-like $dist->error, qr/distribution[.]t[.]tgz doesn’t look like a distribution archive/,
-    'Should invalid archive error';
+is_deeply $dist->error, [
+    "\x{201c}[_1]\x{201d} doesn\x{2019}t look like a distribution archive",
+    "distribution.t.tgz",
+], 'Should invalid archive error';
 
 ##############################################################################
 # Test read_meta().
@@ -155,10 +165,15 @@ ok $dist = new_dist($nometazip), 'Create a distribution with meta-less zip';
 ok $dist->extract, 'Extract it';
 ok !$dist->read_meta, 'Try to read its meta data';
 ok !$dist->modified, 'The zip should be unmodified';
-is $dist->error, 'Cannot find a META.json in nometa-0.2.5.pgz',
-    'The error message should be set';
 is $dist->metamemb, undef, 'The meta member should not be set';
 is $dist->distmeta, undef, 'Should have no distmeta';
+is_deeply $dist->error, [
+    'Cannot find a “[_1]” in “[_2]”',
+    'META.json', 'nometa-0.2.5.pgz',
+], 'The error message should be set';
+is $dist->localized_error,
+    'Cannot find a “META.json” in “nometa-0.2.5.pgz”',
+    'And it should localize properly';
 
 # Now try an archive with a broken META.json.
 $dzip->addString('{ "name": "hi", "rank": 1, }', 'widget-0.2.5/META.json');
@@ -167,8 +182,14 @@ ok $dist = new_dist($badmetazip), 'Create a distribution with bad meta zip';
 ok $dist->extract, 'Extract it';
 ok !$dist->read_meta, 'Try to read its meta data';
 ok !$dist->modified, 'The zip should be unmodified';
-is $dist->error, q[Cannot parse JSON from widget-0.2.5/META.json: '"' expected, at character offset 27 (before "}")],
-    'The error message should be set';
+is_deeply $dist->error, [
+    'Cannot parse JSON from “[_1]”: [_2]',
+    'widget-0.2.5/META.json',
+    q['"' expected, at character offset 27 (before "}")],
+], 'The error message should be set';
+is $dist->localized_error,
+    q[Cannot parse JSON from “widget-0.2.5/META.json”: '"' expected, at character offset 27 (before "}")],
+    'And it should localize properly';
 ok $dist->metamemb, 'It should have the meta member';
 is $dist->metamemb->fileName, 'widget-0.2.5/META.json',
     'It should be the right file';
@@ -221,6 +242,23 @@ is_deeply [sort $dist->zip->memberNames ], [
     map { "widget-0.2.5/$_"} qw(META.json Makefile README widget.sql.in)
 ], 'All of the files should have the new prefix';
 is $updated, 0, '_update_meta() should not have been called';
+
+# Try an archive with keys missing from the META.json.
+$dzip->memberNamed('widget-0.2.5/META.json')->contents(encode_json {
+    name => 'whatever',
+    version => '1.2.2',
+});
+$dzip->writeToFileNamed($badmetazip) == AZ_OK or die 'write error';
+ok $dist = new_dist($badmetazip), 'Create dist with missing meta keys';
+ok $dist->extract, 'Extract it';
+ok $dist->read_meta, 'Read its meta data';
+ok !$dist->normalize, 'Should get false from normalize()';
+is_deeply $dist->error, [
+    '“[_1]” is missing the required [numerate,_2,key] [qlist,_3]',
+    'widget-0.2.5/META.json', 3, [qw(license maintainer abstract)],
+], 'Sould get missing keys error';
+is $dist->localized_error,
+    '“widget-0.2.5/META.json” is missing the required keys “license”, “maintainer”, and “abstract”',
 
 # Try with metdata that's got some non-semantic versions.
 $distmeta->{version} = '2.5';
@@ -415,8 +453,13 @@ file_not_exists_ok +File::Spec->catfile('dist', 'widget', 'widget-2.5.0.readme')
 # Now test with an exception thrown by the database.
 ok $dist = new_dist($noreadzip, 'nobody'), 'Create a distribution object with invalid owner';
 ok !$dist->process, 'process() should return false';
-is $dist->error, 'User “nobody” does not own all provided extensions',
-    'The error message should be correct';
+is_deeply $dist->error, [
+    'User “[_1]” does not own all provided extensions',
+    'nobody'
+], 'The error message should be correct';
+is $dist->localized_error,
+    'User “nobody” does not own all provided extensions',
+    'And it should localize properly';
 
 ##############################################################################
 # Utility for constructing a distribution.

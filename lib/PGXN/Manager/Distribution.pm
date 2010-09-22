@@ -4,6 +4,7 @@ use 5.12.0;
 use utf8;
 use Moose;
 use PGXN::Manager;
+use PGXN::Manager::Locale;
 use Archive::Extract;
 use Archive::Zip qw(:ERROR_CODES);
 use File::Basename qw(dirname);
@@ -31,7 +32,7 @@ Archive::Zip::setErrorHandler(\&_zip_error_handler);
 has archive  => (is => 'ro', required => 1, isa => 'Str');
 has basename => (is => 'ro', required => 1, isa => 'Str');
 has owner    => (is => 'ro', required => 1, isa => 'Str');
-has error    => (is => 'rw', required => 0, isa => 'Str');
+has error    => (is => 'rw', required => 0, isa => 'ArrayRef');
 has zip      => (is => 'rw', required => 0, isa => 'Archive::Zip');
 has metamemb => (is => 'rw', required => 0, isa => 'Archive::Zip::FileMember');
 has distmeta => (is => 'rw', required => 0, isa => 'HashRef');
@@ -98,7 +99,8 @@ sub extract {
             $self->modified(1);
         }
     } catch {
-        $self->error(ref $_ eq 'ARRAY' ? sprintf $_->[0], $self->basename : $_);
+        die $_ unless ref $_ eq 'ARRAY';
+        $self->error([@{ $_ }, $self->basename]);
         return;
     };
     return $self;
@@ -110,7 +112,9 @@ sub read_meta {
 
     my ($member) = $zip->membersMatching($META_RE);
     unless ($member) {
-        $self->error('Cannot find a META.json in ' . $self->basename);
+        $self->error([
+            'Cannot find a “[_1]” in “[_2]”', 'META.json', $self->basename
+        ]);
         return;
     }
 
@@ -123,7 +127,11 @@ sub read_meta {
     } catch {
         my $f = quotemeta __FILE__;
         (my $err = $_) =~ s/\s+at\s+$f.+//ms;
-        $self->error('Cannot parse JSON from ' . $member->fileName . ": $err");
+        $self->error([
+            'Cannot parse JSON from “[_1]”: [_2]',
+            $member->fileName,
+            $err
+        ]);
         return;
     } or return;
 
@@ -140,7 +148,12 @@ sub normalize {
     )) {
         my $pl = @missing > 1 ? 's' : '';
         my $keys = join '", "', @missing;
-        $self->error(qq{META.json is missing the required "$keys" key$pl});
+        $self->error([
+            '“[_1]” is missing the required [numerate,_2,key] [qlist,_3]',
+            $self->metamemb->fileName,
+            scalar @missing,
+            \@missing,
+        ]);
         return;
     }
 
@@ -243,7 +256,7 @@ sub zipit {
         $self->zipfile($zipfile);
         return $self;
     } catch {
-        $self->error("Error writing new zip file");
+        $self->error(['Error writing new zip file']);
         return;
     } or return;
 }
@@ -297,7 +310,13 @@ sub indexit {
     }, sub {
         die $_ if $_->state ne 'P0001' && $_->state ne 'XX000';
         (my $err = $_->errstr) =~ s/^[[:upper:]]+:\s+//;
-        $self->error($err);
+        my @params;
+        my $i = 0;
+        $err =~ s{“([^”]+)”}{
+            push @params => $1;
+            '“[_' . ++$i . ']”';
+        }gesm;
+        $self->error([$err, @params]);
         return;
     }) or return;
 
@@ -327,15 +346,8 @@ sub indexit {
     return $self;
 }
 
-sub _mv {
-    my ($src, $dest) = @_;
-    make_path dirname $dest;
-    move $src, $dest and return;
-
-    # D'oh! Move failed. Try to clean up.
-    my $err = $!;
-    remove_tree $dest;
-    die qq{Failed to move "$src" to "dest": $!\n};
+sub localized_error {
+    PGXN::Manager::Locale->get_handle->maketext(@{ shift->error });
 }
 
 sub DEMOLISH {
@@ -345,10 +357,21 @@ sub DEMOLISH {
     }
 }
 
+sub _mv {
+    my ($src, $dest) = @_;
+    make_path dirname $dest;
+    move $src, $dest and return;
+
+    # D'oh! Move failed. Try to clean up.
+    my $err = $!;
+    remove_tree $dest;
+    die qq{Failed to move $src" to "dest": $!\n};
+}
+
 sub _zip_error_handler {
     given (shift) {
         when (/format error: can't find EOCD signature/) {
-            die ['%s doesn’t look like a distribution archive'];
+            die ['“[_1]” doesn’t look like a distribution archive'];
         }
         default { die [$_] }
     }
@@ -359,7 +382,7 @@ sub _ae_error_handler {
     chdir $CWD; # Go back to where we belong.
     given (shift) {
         when (/(?:Cannot determine file type|Unrecognized archive format)/) {
-            die ['%s doesn’t look like a distribution archive'];
+            die ['“[_1]” doesn’t look like a distribution archive'];
         }
         default { die [$_] }
     }
@@ -420,7 +443,7 @@ then we might not have to repack them).
 
 =item C<basename>
 
-The base filename of the archive.
+The base file name of the archive.
 
 =item C<owner>
 
@@ -440,7 +463,7 @@ The path to the uploaded distribution archive file.
 
   my $basename = $dist->basename;
 
-The basename of the archive file.
+The base name of the archive file.
 
 =head3 C<owner>
 
@@ -450,10 +473,11 @@ The nickname of the user uploading the distribution archive.
 
 =head3 C<error>
 
-  $dist->process or die $dist->error;
+  $dist->process or die PGXN::Manager::Locale->get_handle(@{ $dist->error });
 
-User-visible error message. Be sure to check this attribute if C<process()>
-returns false.
+User-visible error message formatted as an array suitable for passing to
+L<PGXN::Manager::Locale> for localization. Be sure to check this attribute if
+C<process()> returns false.
 
 =head2 Instance Methods
 
@@ -538,6 +562,14 @@ distribution, such as ensuring that the user is a valid owner of the
 extensions in the distribution. In the event that such validation fails, an
 error message will be stored in C<error> as usual and C<indexit()> will return
 false.
+
+=head3 C<localized_error>
+
+  $dist->process or die $dist->localized_error;
+
+Convenience method that localizes an error. Basically just:
+
+ PGXN::Manager::Locale->get_handle(@{ shift->error });
 
 =head1 Author
 
