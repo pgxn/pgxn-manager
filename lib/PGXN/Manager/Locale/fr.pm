@@ -5,6 +5,10 @@ use utf8;
 use parent 'PGXN::Manager::Locale';
 
 our %Lexicon = (
+    listcomma => ',',
+    listand   => 'et',
+    openquote => '«',
+    shutquote => '»',
     Welcome => 'Bienvenue',
 );
 

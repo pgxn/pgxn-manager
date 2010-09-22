@@ -2,7 +2,8 @@
 
 use 5.12.0;
 use utf8;
-use Test::More tests => 15;
+use Test::More tests => 29;
+#use Test::More 'no_plan';
 my $CLASS;
 
 BEGIN {
@@ -33,3 +34,37 @@ isa_ok $l, "$CLASS\::en", 'It also';
 
 isa_ok my $l = $CLASS->accept('en;q=1,fr;q=2'), $CLASS, 'French accept handle';
 isa_ok $l, "$CLASS\::fr", 'It also';
+
+# Try en list().
+ok my $lh = $CLASS->get_handle('en'), 'Get English handle';
+is $lh->maketext('[list,_1]', ['foo', 'bar']),
+    'foo and bar', 'en list() should work';
+is $lh->maketext('[list,_1]', ['foo']),
+    'foo', 'single-item en list() should work';
+is $lh->maketext('[list,_1]', ['foo', 'bar', 'baz']),
+    'foo, bar, and baz', 'triple-item en list() should work';
+
+# Try en qlist()
+is $lh->maketext('[qlist,_1]', ['foo', 'bar']),
+    '“foo” and “bar”', 'en qlist() should work';
+is $lh->maketext('[qlist,_1]', ['foo']),
+    '“foo”', 'single-item en qlist() should work';
+is $lh->maketext('[qlist,_1]', ['foo', 'bar', 'baz']),
+    '“foo”, “bar”, and “baz”', 'triple-item en qlist() should work';
+
+# Try fr list().
+ok my $lh = $CLASS->get_handle('fr'), 'Get Frglish hetle';
+is $lh->maketext('[list,_1]', ['foo', 'bar']),
+    'foo et bar', 'fr list() should work';
+is $lh->maketext('[list,_1]', ['foo']),
+    'foo', 'single-item fr list() should work';
+is $lh->maketext('[list,_1]', ['foo', 'bar', 'baz']),
+    'foo, bar, et baz', 'triple-item fr list() should work';
+
+# Try fr qlist()
+is $lh->maketext('[qlist,_1]', ['foo', 'bar']),
+    '«foo» et «bar»', 'fr qlist() should work';
+is $lh->maketext('[qlist,_1]', ['foo']),
+    '«foo»', 'single-item fr qlist() should work';
+is $lh->maketext('[qlist,_1]', ['foo', 'bar', 'baz']),
+    '«foo», «bar», et «baz»', 'triple-item fr qlist() should work';

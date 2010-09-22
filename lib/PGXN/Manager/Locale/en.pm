@@ -5,6 +5,10 @@ use utf8;
 use parent 'PGXN::Manager::Locale';
 
 our %Lexicon = (
+    listcomma => ',',
+    listand   => 'and',
+    openquote => '“',
+    shutquote => '”',
     main_title => 'PGXN Manager: Distribute your PostgreSQL Extensions on PGXN',
     Welcome   => 'Welcome',
     'PGXN Manager' => 'PGXN Manager',
