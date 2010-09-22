@@ -4,6 +4,8 @@ use 5.12.0;
 use utf8;
 use parent 'Plack::Request';
 use Plack::Response;
+use HTTP::Negotiate;
+use namespace::autoclean;
 
 sub uri_for {
     my ($self, $path) = (shift, shift);
@@ -16,6 +18,18 @@ sub uri_for {
     $uri->path( $relpath . $path);
     $uri->query_form([@_], ';') if @_;
     $uri;
+}
+
+my $variants = [
+    #  ID     QS  Content-Type         Encoding  Charset  Lang  Size
+    ['text',  1, 'text/plain',           undef,   undef, undef, 1000 ],
+    ['json',  1, 'application/json',     undef,   undef, undef, 2000 ],
+    ['atom',  1, 'application/atom+xml', undef,   undef, undef, 3000 ],
+    ['html',  1, 'text/html',            undef,   undef, undef, 4000 ],
+];
+
+sub respond_with {
+    choose $variants, shift->headers;
 }
 
 1;
@@ -49,6 +63,42 @@ example, if the current request is to C</foo>:
 
   my $rel = $req->uri_for('bar');  # http://localhost/foo/bar
   my $abs = $req->uri_for('/yow'); # http://localhost/yow
+
+=head3 C<respond_with>
+
+  given ($req->respond_with) {
+      say '<h1>Hi</h1>'                    when 'html';
+      say 'Hi'                             when 'text';
+      say '<feed><title>hi</title></feed>' when 'atom';
+      say '{ "title": "hi" }'              when 'json';
+  }
+
+This method uses L<HTTP::Negotiate> to select and return a preferred response
+type based on the request accept headers. It supports and can return one of
+four different types:
+
+=over
+
+=item C<html>: text/html
+
+=item C<json>: application/json
+
+=item C<atom>: application/xml+atom
+
+=item C<text>: text/plain
+
+=back
+
+In scalar context, only the preferred response type identifier is returned
+(C<html>, C<json>, C<atom>, or C<text>). In list context, it returns a list of
+C<[variant identifier, calculated quality, content-size]> tuples. The values
+are sorted by quality, highest quality first. For example:
+
+  ['html', 1, 4000], ['json', 0.3, 2000], ['atom', 0.3, 3000]
+
+Note that also zero quality variants are included in the return list even if
+these should never be served to the client. So if you're trying to chose the
+base variant, exclude those with zero quality.
 
 =head1 Author
 

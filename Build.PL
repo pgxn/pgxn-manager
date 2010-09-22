@@ -36,6 +36,7 @@ Module::Build::DB->new(
         'DBIx::Connector'            => '0.20',
         'Email::Valid'               => '0.184',
         'Exception::Class::DBI'      => '1.00',
+        'HTTP::Negotiate'            => '5.835',
         'I18N::LangTags::Detect'     => '1.04',
         'JSON::XS'                   => '2.3',
         'Locale::Maketext'           => '1.13',
