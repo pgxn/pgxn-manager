@@ -95,7 +95,7 @@ is_deeply [sort $zip->memberNames ], [
 # Let's handle some exceptional situations. Start with an unkonwn archive.
 isa_ok $dist = new_dist(__FILE__), $CLASS, 'Non-archive distribution';
 ok $dist->extract, 'Try to extract it';
-is_deeply $dist->error, [
+is_deeply scalar $dist->error, [
     "\x{201c}[_1]\x{201d} doesn\x{2019}t look like a distribution archive",
     "distribution.t"
 ], 'Should invalid archive error';
@@ -110,7 +110,7 @@ END { unlink $badzip }
 
 isa_ok $dist = new_dist($badzip), $CLASS, 'Bad zip distribution';
 ok $dist->extract, 'Try to extract it';
-is_deeply $dist->error, [
+is_deeply scalar $dist->error, [
     "\x{201c}[_1]\x{201d} doesn\x{2019}t look like a distribution archive",
     "distribution.t.zip"
 ], 'Should invalid archive error';
@@ -122,7 +122,7 @@ END { unlink $badtgz }
 
 isa_ok $dist = new_dist($badtgz), $CLASS, 'Bad tgz distribution';
 ok $dist->extract, 'Try to extract it';
-is_deeply $dist->error, [
+is_deeply scalar $dist->error, [
     "\x{201c}[_1]\x{201d} doesn\x{2019}t look like a distribution archive",
     "distribution.t.tgz",
 ], 'Should invalid archive error';
@@ -167,7 +167,7 @@ ok !$dist->read_meta, 'Try to read its meta data';
 ok !$dist->modified, 'The zip should be unmodified';
 is $dist->metamemb, undef, 'The meta member should not be set';
 is $dist->distmeta, undef, 'Should have no distmeta';
-is_deeply $dist->error, [
+is_deeply scalar $dist->error, [
     'Cannot find a “[_1]” in “[_2]”',
     'META.json', 'nometa-0.2.5.pgz',
 ], 'The error message should be set';
@@ -182,7 +182,7 @@ ok $dist = new_dist($badmetazip), 'Create a distribution with bad meta zip';
 ok $dist->extract, 'Extract it';
 ok !$dist->read_meta, 'Try to read its meta data';
 ok !$dist->modified, 'The zip should be unmodified';
-is_deeply $dist->error, [
+is_deeply scalar $dist->error, [
     'Cannot parse JSON from “[_1]”: [_2]',
     'widget-0.2.5/META.json',
     q['"' expected, at character offset 27 (before "}")],
@@ -253,7 +253,7 @@ ok $dist = new_dist($badmetazip), 'Create dist with missing meta keys';
 ok $dist->extract, 'Extract it';
 ok $dist->read_meta, 'Read its meta data';
 ok !$dist->normalize, 'Should get false from normalize()';
-is_deeply $dist->error, [
+is_deeply scalar $dist->error, [
     '“[_1]” is missing the required [numerate,_2,key] [qlist,_3]',
     'widget-0.2.5/META.json', 3, [qw(license maintainer abstract)],
 ], 'Sould get missing keys error';
@@ -453,7 +453,7 @@ file_not_exists_ok +File::Spec->catfile('dist', 'widget', 'widget-2.5.0.readme')
 # Now test with an exception thrown by the database.
 ok $dist = new_dist($noreadzip, 'nobody'), 'Create a distribution object with invalid owner';
 ok !$dist->process, 'process() should return false';
-is_deeply $dist->error, [
+is_deeply scalar $dist->error, [
     'User “[_1]” does not own all provided extensions',
     'nobody'
 ], 'The error message should be correct';

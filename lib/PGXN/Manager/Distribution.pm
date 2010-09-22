@@ -32,7 +32,7 @@ Archive::Zip::setErrorHandler(\&_zip_error_handler);
 has archive  => (is => 'ro', required => 1, isa => 'Str');
 has basename => (is => 'ro', required => 1, isa => 'Str');
 has owner    => (is => 'ro', required => 1, isa => 'Str');
-has error    => (is => 'rw', required => 0, isa => 'ArrayRef');
+has error    => (is => 'rw', required => 0, isa => 'ArrayRef', auto_deref => 1);
 has zip      => (is => 'rw', required => 0, isa => 'Archive::Zip');
 has metamemb => (is => 'rw', required => 0, isa => 'Archive::Zip::FileMember');
 has distmeta => (is => 'rw', required => 0, isa => 'HashRef');
@@ -347,7 +347,7 @@ sub indexit {
 }
 
 sub localized_error {
-    PGXN::Manager::Locale->get_handle->maketext(@{ shift->error });
+    PGXN::Manager::Locale->get_handle->maketext(shift->error);
 }
 
 sub DEMOLISH {
@@ -473,17 +473,18 @@ The nickname of the user uploading the distribution archive.
 
 =head3 C<error>
 
-  $dist->process or die PGXN::Manager::Locale->get_handle(@{ $dist->error });
+  $dist->process or die PGXN::Manager::Locale->get_handle($dist->error);
 
 User-visible error message formatted as an array suitable for passing to
-L<PGXN::Manager::Locale> for localization. Be sure to check this attribute if
-C<process()> returns false.
+L<PGXN::Manager::Locale> for localization. Returns the error as an array
+reference in scalar context and as a list in list context. Be sure to check
+this attribute if C<process()> returns false.
 
 =head2 Instance Methods
 
 =head3 C<process>
 
-  $dist->process or die $dist->error;
+  $dist->process or die $dist->localized_error;
 
 Processes the distribution, indexes it, and updates the mirror root as
 appropriate. This is really just a bit of sugar so you don't have to call all
@@ -509,7 +510,7 @@ never call them directly.
 
 =head3 C<extract>
 
-  $dist->extract or die $dist->error;
+  $dist->extract or die $dist->localized_error;
 
 If the archive is a zip file, this method loads it up into an L<Archive::Zip>
 object, although it doesn't extract it.
@@ -522,7 +523,7 @@ returns false.
 
 =head3 C<read_meta>
 
-  $dist->read_meta or die $dist->error;
+  $dist->read_meta or die $dist->localized_error;
 
 Loads and parses the archive's C<META.json> file. If the file does not exist
 or cannot be parsed, C<read_meta> stores an error message in C<erro> and
@@ -530,7 +531,7 @@ returns false.
 
 =head3 C<normalize>
 
-  $dist->normalize or die $dist->error;
+  $dist->normalize or die $dist->localized_error;
 
 Examines the metadata loaded by C<read_meta>. If any required keys are
 missing, it says so in C<error> and returns false. Otherwise, it parses all of
@@ -542,7 +543,7 @@ equal to C<$dist_name-$dist_version>, it will be rewritten as such.
 
 =head3 C<zipit>
 
-  $dist->zipit or die $dist->error;
+  $dist->zipit or die $dist->localized_error;
 
 Zips the archive up into a new zip file. If the original archive was already
 a zip file and the C<normalize> method made no modifications, a new zip
@@ -550,7 +551,7 @@ file will not be written, but the original one will be used.
 
 =head3 C<indexit>
 
-  $dist->indexit or die $dist->error;
+  $dist->indexit or die $dist->localized_error;
 
 Indexes the distribution archive and places it in the mirror root. All
 necessary F<.json> files will be written to the mirror, as well, as will the
@@ -569,7 +570,7 @@ false.
 
 Convenience method that localizes an error. Basically just:
 
- PGXN::Manager::Locale->get_handle(@{ shift->error });
+ PGXN::Manager::Locale->get_handle( shift->error );
 
 =head1 Author
 
