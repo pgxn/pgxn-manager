@@ -294,8 +294,10 @@ sub indexit {
         }
 
         return $self;
-    }, catch {
-        $self->error($_);
+    }, sub {
+        die $_ if $_->state ne 'P0001' && $_->state ne 'XX000';
+        (my $err = $_->errstr) =~ s/^[[:upper:]]+:\s+//;
+        $self->error($err);
         return;
     }) or return;
 

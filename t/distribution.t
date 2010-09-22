@@ -2,8 +2,8 @@
 
 use 5.12.0;
 use utf8;
-#use Test::More tests => 157;
-use Test::More 'no_plan';
+use Test::More tests => 182;
+#use Test::More 'no_plan';
 use Archive::Zip qw(:ERROR_CODES);
 use HTTP::Headers;
 use Plack::Request::Upload;
@@ -413,13 +413,19 @@ file_exists_ok $files{$_}, "File $_ should now exist" for keys %files;
 file_not_exists_ok +File::Spec->catfile('dist', 'widget', 'widget-2.5.0.readme'),
     'There should be no README on the mirror';
 
+# Now test with an exception thrown by the database.
+ok $dist = new_dist($noreadzip, 'nobody'), 'Create a distribution object with invalid owner';
+ok !$dist->process, 'process() should return false';
+is $dist->error, 'User “nobody” does not own all provided extensions',
+    'The error message should be correct';
+
 ##############################################################################
 # Utility for constructing a distribution.
 sub new_dist {
     my $fn = shift;
     my $bn = basename $fn;
     $CLASS->new(
-        owner  => 'user',
+        owner  => shift || 'user',
         upload => Plack::Request::Upload->new(
             tempname => $fn,
             filename => $bn,
