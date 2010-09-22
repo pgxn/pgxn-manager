@@ -178,7 +178,7 @@ sub normalize {
     }
 
     # Rewrite JSON if distmeta is modified.
-    $self->update_meta if $meta_modified;
+    $self->_update_meta if $meta_modified;
 
     # Is the prefix right?
     (my $meta_prefix = $self->metamemb->fileName) =~ s{/$META_RE}{};
@@ -198,7 +198,7 @@ sub normalize {
     return $self;
 }
 
-sub update_meta {
+sub _update_meta {
     # Abstract to a CPAN module (and use it in setup_meta() db function, too).
     my $self = shift;
     my $mem  = $self->metamemb;
@@ -374,54 +374,159 @@ PGXN::Manager::Distribution - Manages distributions uploaded to PGXN.
 =head1 Synopsis
 
   use PGXN::Manager::Distribution;
-  my $upload = PGXN::Manager::Distribution->new(
+  my $dist = PGXN::Manager::Distribution->new(
       upload => $req->uploads->{distribution}
       owner  => $nickname,
   );
-  die "Distribution failure: ", $upload->error unless $upload->is_success;
+  die "Distribution failure: ", $dist->error unless $dist->process;
 
 =head1 Description
 
 This class provides the interface for managing distribution uploads to PGXN.
+Its interface is quite simple, really. Give it a L<Plack::Request::Upload>
+object and the nickname of the user uploading it and call C<process()> and
+it will do the rest.
+
+User visible exceptions will be caught and stored in the C<error> attribute.
+If C<process> returns false, you'll want to display the contents of this
+attribute to users.
+
+System exceptions will not be caught; the caller needs to handle them. For
+the app, they should simply be logged and a generic error page returned to
+the user.q
 
 =head1 Interface
 
-The interface inherits from L<Locale::Maketext> and adds the following
-method.
-
-=head2 Constructors
+=head2 Constructor
 
 =head3 C<new>
 
-  my $upload = PGXN::Manager::Distribution->new(
+  my $dist = PGXN::Manager::Distribution->new(
       upload => $req->uploads->{distribution}
       owner  => $nickname,
   );
 
-Creates a new uploader object, doing all the work of the upload.
+Creates a new distribution object. The supported parameters are:
+
+=over
+
+=item C<upload>
+
+A L<Plack::Request::Upload> object containing the uploaded archive. The format
+of this archive can be anything supported by L<Archive::Extract>, although Zip
+files are preferred (because then we might not have to repack them).
+
+=item C<owner>
+
+The nickname of the user uploading the distribution.
+
+=back
+
+=head2 Instance Attributes
+
+=head3 C<upload>
+
+  my $upload = $dist->upload;
+
+A L<Plack::Request::Upload> object representing the uploaded distribution
+archive.
+
+=head3 C<owner>
+
+  my $owner = $dist->owner;
+
+The nickname of the user uploading the distribution archive.
+
+=head3 C<error>
+
+  $dist->process or die $dist->error;
+
+User-visible error message. Be sure to check this attribute if C<process()>
+returns false.
 
 =head2 Instance Methods
 
 =head3 C<process>
 
+  $dist->process or die $dist->error;
+
+Processes the distribution, indexes it, and updates the mirror root as
+appropriate. This is really just a bit of sugar so you don't have to call all
+the processing methods yourself. It simply calls the following methods and
+returns false if any of them returns false:
+
+=over
+
+=item C<extract>
+
+=item C<read_meta>
+
+=item C<normalize>
+
+=item C<zipit>
+
+=item C<indexit>
+
+See below for what each of these methods actually does, though you will likely
+never call them directly.
+
+=back
+
 =head3 C<extract>
 
-  $upload->extract;
+  $dist->extract or die $dist->error;
 
-Extracts the archive into a temporary directory. This directory will be
-removed when the uploader object is garbage-collected.
+If the archive is a zip file, this method loads it up into an L<Archive::Zip>
+object, although it doesn't extract it.
+
+If the archive is not a zip file, this method extracts it into a temporary
+directory and then loads it into an L<Archive::Zip> object.
+
+In the event of an error, C<extract> stores the error message in C<error> and
+returns false.
 
 =head3 C<read_meta>
 
+  $dist->read_meta or die $dist->error;
+
+Loads and parses the archive's C<META.json> file. If the file does not exist
+or cannot be parsed, C<read_meta> stores an error message in C<erro> and
+returns false.
+
 =head3 C<normalize>
 
-=head3 C<update_meta>
+  $dist->normalize or die $dist->error;
+
+Examines the metadata loaded by C<read_meta>. If any required keys are
+missing, it says so in C<error> and returns false. Otherwise, it parses all of
+the version numbers in the metadata and attempts to normalize any that are not
+valid semantic versions using the L<C<< SemVer->declare >>|SemVer/declare>.
+
+And finally, it examines the directory prefix of the archive. If it is not
+equal to C<$dist_name-$dist_version>, it will be rewritten as such.
 
 =head3 C<zipit>
 
-=head3 C<register>
+  $dist->zipit or die $dist->error;
+
+Zips the archive up into a new zip file. If the original archive was already
+a zip file and the C<normalize> method made no modifications, a new zip
+file will not be written, but the original one will be used.
 
 =head3 C<indexit>
+
+  $dist->indexit or die $dist->error;
+
+Indexes the distribution archive and places it in the mirror root. All
+necessary F<.json> files will be written to the mirror, as well, as will the
+F<README>, if one exists.
+
+Most of this metadata content is generated by the database
+C<add_distribution()> function. This function also performs validation of the
+distribution, such as ensuring that the user is a valid owner of the
+extensions in the distribution. In the event that such validation fails, an
+error message will be stored in C<error> as usual and C<indexit()> will return
+false.
 
 =head1 Author
 
