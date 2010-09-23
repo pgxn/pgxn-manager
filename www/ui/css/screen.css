@@ -91,13 +91,13 @@ body > #sidebar
 {clear:both; margin:30px 0 10px 0; color:#236691; font-weight:normal; font-size: 2em; letter-spacing:-2px;}
 
 /**************** Form styles ****************/
-fieldset {margin-bottom:1em;width:32em;border:2px solid #236691;background:#dee7ef;}
+fieldset {margin-bottom:1em;border:2px solid #236691;background:#dee7ef;}
 legend {background:#236691; padding:.2em .5em; margin-bottom:2em; color:#fff; font-weight: bold;}
 label {width: 5em; float:left; clear:left; text-align:right; margin-right:0.5em; display:block;margin-bottom:.5em;padding-top:.3em;font-weight:bold;}
 label:after {content: ":";}
 
 input.submit {display:block;margin-left:10em;}
-fieldset input, fieldset textarea {margin-left:4.5em;display:block;width:25em;font-family: 'trebuchet ms', Helvetica, sans-serif; font-size:1em;margin-bottom:.5em;}
+fieldset input, fieldset textarea {margin-left:4.5em;display:block;width:35em;font-family: 'trebuchet ms', Helvetica, sans-serif; font-size:1em;margin-bottom:.5em;}
 textarea {height:8em;}
 label.highlight {color:#d8000c;}
 input.highlight, textarea.highlight {border:2px solid #d8000c;}
