@@ -47,6 +47,7 @@ sub register {
         delete $params->{why};
         return $self->render('/request', { req => $req, code => 409, vars => {
             %{ $params },
+            highlight => 'why',
             error => [
                 q{You forgot to tell us why you want an account. Is it because you're such a rockin PostgreSQL developer that we just can't do without you? Don't be shy, toot your own horn!}
             ],
@@ -80,12 +81,13 @@ sub register {
     }, sub {
         # Failure!
         my $err = shift;
-        my ($msg, $code);
+        my ($msg, $code, $highlight);
         given ($err->state) {
             when ('23505') {
                 # Unique constraint violation.
                 $code = 409;
                 if ($err->errstr =~ /\busers_pkey\b/) {
+                    $highlight = 'nickname';
                     $msg = [
                         'The Nickname “[_1]” is already taken. Sorry about that.',
                         delete $params->{nickname}
@@ -101,16 +103,19 @@ sub register {
                 $code = 409;
                 given ($err->errstr) {
                     when (/\blabel_check\b/) {
+                    $highlight = 'nickname';
                         $msg = [
                             'Sorry, the nickname “[_1]” is invalid. Your nickname must start with a letter, end with a letter or digit, and otherwise contain only letters, digits, or hyphen. Sorry to be so strict.',
                             encode_entities delete $params->{nickname},
                         ];
                     } when (/\bemail_check\b/) {
+                        $highlight = 'email';
                         $msg = [
                             q{Hrm, “[_1]” doesn't look like an email address. Care to try again?},
                             encode_entities delete $params->{email},
                         ];
                     } when (/\buri_check\b/) {
+                        $highlight = 'uri';
                         $msg = [
                             q{Hrm, “[_1]” doesn't look like a URI. Care to try again?},
                             encode_entities delete $params->{uri},
@@ -127,7 +132,8 @@ sub register {
 
         $self->render('/request', { req => $req, code => $code, vars => {
             %{ $params },
-            error => $msg,
+            highlight => $highlight,
+            error     => $msg,
         }});
     });
 }

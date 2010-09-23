@@ -99,6 +99,8 @@ label:after {content: ":";}
 input.submit {display:block;margin-left:10em;}
 fieldset input, fieldset textarea {margin-left:4.5em;display:block;width:25em;font-family: 'trebuchet ms', Helvetica, sans-serif; font-size:1em;margin-bottom:.5em;}
 textarea {height:8em;}
+label.highlight {color:#d8000c;}
+input.highlight, textarea.highlight {border:2px solid #d8000c;}
 
 /**************** Messages ****************/
 /* Borrowed from http://css.dzone.com/news/css-message-boxes-different-me */

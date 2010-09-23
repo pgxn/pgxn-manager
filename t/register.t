@@ -2,7 +2,7 @@
 
 use 5.12.0;
 use utf8;
-use Test::More tests => 456;
+use Test::More tests => 463;
 #use Test::More 'no_plan';
 use lib '/Users/david/dev/github/Plack/lib';
 use Plack::Test;
@@ -217,6 +217,7 @@ test_psgi $app => sub {
             $tx->is('./input[@id="email"]/@value', 'tgl@pgxn.org', '...... Email should be set');
             $tx->is('./input[@id="uri"]/@value', 'http://tgl.example.org/', '...... URI should be set');
             $tx->is('./input[@id="nickname"]/@value', '', '...... Nickname should not be set');
+            $tx->is('./input[@id="nickname"]/@class', 'highlight', '...... And it should be highlighted');
         });
 
         $tx->ok('./form[@id="reqform"]/fieldset[2]', '... Check second fieldset', sub {
@@ -291,6 +292,7 @@ test_psgi $app => sub {
         $tx->ok('./form[@id="reqform"]/fieldset[1]', '... Check first fieldset', sub {
             $tx->is('./input[@id="name"]/@value', 'Tom Lane', '...... Name should be set');
             $tx->is('./input[@id="email"]/@value', '', '...... Email should be blank');
+            $tx->is('./input[@id="email"]/@class', '', '...... And it should not be highlighted');
             $tx->is('./input[@id="uri"]/@value', 'http://tgl.example.org/', '...... URI should be set');
             $tx->is('./input[@id="nickname"]/@value', 'yodude', '...... Nickname should be set');
         });
@@ -337,6 +339,11 @@ test_psgi $app => sub {
         $tx->is('./p[1]', $p, '... Intro paragraph should be set');
         my $err = $mt->maketext('Sorry, the nickname “[_1]” is invalid. Your nickname must start with a letter, end with a letter or digit, and otherwise contain only letters, digits, or hyphen. Sorry to be so strict.', '');
         $tx->is('./p[@class="error"]', $err, '... Error paragraph should be set');
+        $tx->is(
+            './form/fieldset[1]/input[@id="nickname"]/@class',
+            'highlight',
+            '... And the nickname field should be highlighted'
+        );
     });
 };
 
@@ -374,6 +381,7 @@ test_psgi $app => sub {
         $tx->is('./p[@class="error"]', $err, '... Error paragraph should be set');
         $tx->ok('./form/fieldset[1]/input[@id="nickname"]', '... Test nickname input', sub {
             $tx->is('./@value', '', '...... Its value should be empty');
+            $tx->is('./@class', 'highlight', '...... And it should be highlighted');
         })
     });
 };
@@ -412,6 +420,7 @@ test_psgi $app => sub {
         $tx->is('./p[@class="error"]', $err, '... Error paragraph should be set');
         $tx->ok('./form/fieldset[1]/input[@id="email"]', '... Test email input', sub {
             $tx->is('./@value', '', '...... Its value should be empty');
+            $tx->is('./@class', 'highlight', '...... And it should be highlighted');
         })
     });
 };
@@ -450,6 +459,7 @@ test_psgi $app => sub {
         $tx->is('./p[@class="error"]', $err, '... Error paragraph should be set');
         $tx->ok('./form/fieldset[1]/input[@id="uri"]', '... Test uri input', sub {
             $tx->is('./@value', '', '...... Its value should be empty');
+            $tx->is('./@class', 'highlight', '...... And it should be highlighted');
         })
     });
 };
@@ -487,5 +497,10 @@ test_psgi $app => sub {
         my $err = $mt->maketext(q{You forgot to tell us why you want an account. Is it because you're such a rockin PostgreSQL developer that we just can't do without you? Don't be shy, toot your own horn!});
         $tx->is('./p[@class="error"]', $err, '... Error paragraph should be set');
         $tx->is('./form/fieldset[2]/textarea', '', '... The why Textarea should be empty');
+        $tx->is(
+            './form/fieldset[2]/textarea/@class',
+            'highlight',
+            '... And it should be highlighted'
+        );
     });
 };

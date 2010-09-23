@@ -116,6 +116,7 @@ template home => sub {
 
 template request => sub {
     my ($self, $req, $args) = @_;
+    $args->{highlight} //= '';
     wrapper {
         h1 { T 'Request an Account' };
         p { T q{Want to distribute your PostgreSQL extensions on PGXN? Register here to request an account. We'll get it approved post haste.} };
@@ -142,6 +143,7 @@ template request => sub {
                 ) {
                     label {
                         attr { for => $spec->[0], title => $spec->[4] };
+                        class is 'highlight' if $args->{highlight} eq $spec->[0];
                         T $spec->[1];
                     };
                     input {
@@ -150,6 +152,7 @@ template request => sub {
                         type  is $spec->[2];
                         title is $spec->[4];
                         value is $args->{$spec->[0]} || '';
+                        class is 'highlight' if $args->{highlight} eq $spec->[0];
                         placeholder is $spec->[3];
                     };
                 }
@@ -161,12 +164,14 @@ template request => sub {
                 my $why = T 'So what are your plans for PGXN? What do you wanna release?';
                 label {
                     attr { for => 'why', title => $why };
+                    class is 'highlight' if $args->{highlight} eq 'why';
                     T 'Why';
                 };
                 textarea {
-                    id   is 'why';
-                    name is 'why';
+                    id    is 'why';
+                    name  is 'why';
                     title is $why;
+                    class is 'highlight' if $args->{highlight} eq 'why';
                     placeholder is T "I would like to release the following killer extensions on PGXN:\n\n* foo\n* bar\n* baz";
                     $args->{why} || '';
                 };
