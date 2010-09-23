@@ -1,7 +1,7 @@
 SET search_path = public,contrib,tap;
 
 BEGIN;
-SELECT plan(217);
+SELECT plan(222);
 --SELECT * FROM no_plan();
 
 SELECT has_enum('status');
@@ -15,6 +15,7 @@ SELECT columns_are('public', 'users', ARRAY[
     'full_name',
     'email',
     'uri',
+    'why',
     'status',
     'set_by',
     'is_admin',
@@ -52,6 +53,12 @@ SELECT has_column(        'users', 'uri' );
 SELECT col_type_is(       'users', 'uri', 'uri' );
 SELECT col_is_null(       'users', 'uri' );
 SELECT col_hasnt_default( 'users', 'uri' );
+
+SELECT has_column(        'users', 'why' );
+SELECT col_type_is(       'users', 'why', 'text' );
+SELECT col_not_null(      'users', 'why' );
+SELECT col_has_default(   'users', 'why' );
+SELECT col_default_is(    'users', 'why', '' );
 
 SELECT has_column(        'users', 'status' );
 SELECT col_type_is(       'users', 'status', 'status' );
@@ -111,15 +118,15 @@ SELECT ok(
 /*****************************************************************************/
 -- Test insert_user().
 SELECT has_function(    'insert_user' );
-SELECT has_function(    'insert_user', ARRAY['label', 'text', 'text', 'email', 'uri'] );
-SELECT is_definer(      'insert_user', ARRAY['label', 'text', 'text', 'email', 'uri'] );
+SELECT has_function(    'insert_user', ARRAY['label', 'text', 'text', 'email', 'uri', 'text'] );
+SELECT is_definer(      'insert_user', ARRAY['label', 'text', 'text', 'email', 'uri', 'text'] );
 SELECT function_returns('insert_user', 'boolean' );
 SELECT function_lang_is('insert_user', 'plpgsql' );
 SELECT volatility_is(   'insert_user', 'volatile' );
 SELECT ok(
     has_function_privilege(
         'pgxn',
-        'insert_user(label, text, text, email, uri)',
+        'insert_user(label, text, text, email, uri, text)',
         'EXECUTE'
     ),
     'User "pgxn" should have EXECUTE priv on insert_user()'
@@ -139,11 +146,11 @@ SELECT ok(
 SELECT is(COUNT(*)::int, 1, 'Should now have one user') FROM users;
 
 SELECT row_eq(
-    $$ SELECT nickname, NULL::text, full_name, email, uri, status, set_by,
+    $$ SELECT nickname, NULL::text, full_name, email, uri, why, status, set_by,
               is_admin, created_at, updated_at, visited_at
          FROM users WHERE nickname = 'theory' $$,
     ROW('theory', NULL::text, 'David Wheeler', 'theory@pgxn.org',
-        NULL::uri, 'new', 'theory', false, now(), now(), now())::users,
+        NULL::uri, '', 'new', 'theory', false, now(), now(), now())::users,
     'That user should have the expected data'
 );
 
@@ -159,18 +166,20 @@ SELECT ok(
         password  := 'wet blanket',
         full_name := 'Julie Wheeler',
         email     := 'strongrrl@pgxn.org',
-        uri       := 'http://www.strongrrl.com/'
+        uri       := 'http://www.strongrrl.com/',
+        why       := 'I rock!'
     ), 'Insert user "strongrrl"'
 );
 
 SELECT is(COUNT(*)::int, 2, 'Should now have two users') FROM users;
 
 SELECT row_eq(
-    $$ SELECT nickname, NULL::text, full_name, email, uri, status, set_by,
+    $$ SELECT nickname, NULL::text, full_name, email, uri, why, status, set_by,
               is_admin, created_at, updated_at, visited_at
          FROM users WHERE nickname = 'strongrrl' $$,
     ROW('strongrrl', NULL::text, 'Julie Wheeler', 'strongrrl@pgxn.org',
-        'http://www.strongrrl.com/', 'new', 'strongrrl', false, now(), now(), now())::users,
+        'http://www.strongrrl.com/', 'I rock!', 'new', 'strongrrl', false,
+         now(), now(), now())::users,
     'User "strongrrl" should have the expected data'
 );
 
