@@ -42,6 +42,17 @@ sub register {
     my $self   = shift;
     my $req    = Request->new(shift);
     my $params = $req->body_parameters;
+
+    if ($params->{nickname} && $params->{email} && (!$params->{why} || $params->{why} !~ /\w+/ || length $params->{why} < 5)) {
+        delete $params->{why};
+        return $self->render('/request', { req => $req, code => 409, vars => {
+            %{ $params },
+            error => [
+                q{You forgot to tell us why you want an account. Is it because you're such a rockin PostgreSQL developer that we just can't do without you? Don't be shy, toot your own horn!}
+            ],
+        }});
+    }
+
     PGXN::Manager->conn->run(sub {
         $_->do(
             q{SELECT insert_user(
@@ -49,6 +60,7 @@ sub register {
                 password  := rand_str_of_len(5),
                 full_name := ?,
                 email     := ?,
+                why       := ?,
                 uri       := ?
             );},
             undef,
@@ -56,6 +68,7 @@ sub register {
                 nickname
                 name
                 email
+                why
             )}, $params->{uri} || undef,
         );
 

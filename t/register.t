@@ -2,7 +2,7 @@
 
 use 5.12.0;
 use utf8;
-use Test::More tests => 410;
+use Test::More tests => 456;
 #use Test::More 'no_plan';
 use lib '/Users/david/dev/github/Plack/lib';
 use Plack::Test;
@@ -168,10 +168,13 @@ test_psgi $app => sub {
     # And now Tom Lane should be registered.
     PGXN::Manager->conn->run(sub {
         is_deeply $_->selectrow_arrayref(q{
-            SELECT full_name, email, uri, status
+            SELECT full_name, email, uri, why, status
               FROM users
              WHERE nickname = ?
-        }, undef, 'tgl'), ['Tom Lane', 'tgl@pgxn.org', undef, 'new'], 'TGL should exist';
+        }, undef, 'tgl'), [
+            'Tom Lane', 'tgl@pgxn.org', undef,
+            'In short, +1 from me. Regards, Tom Lane', 'new'
+        ], 'TGL should exist';
     });
 };
 
@@ -347,7 +350,7 @@ test_psgi $app => sub {
         uri      => '',
         nickname => '-@@-',
         why      => '',
-    ]), 'POST empty form to /register yet again';
+    ]), 'POST form with bogus nickname to /register';
     ok !$res->is_redirect, 'It should not be a redirect response';
     is $res->code, 409, 'Should have 409 status code';
 
@@ -384,8 +387,8 @@ test_psgi $app => sub {
         email    => 'getme at whatever dot com',
         uri      => '',
         nickname => 'foo',
-        why      => '',
-    ]), 'POST empty form to /register yet again';
+        why      => 'I rock',
+    ]), 'POST form with bogus email to /register';
     ok !$res->is_redirect, 'It should not be a redirect response';
     is $res->code, 409, 'Should have 409 status code';
 
@@ -422,8 +425,8 @@ test_psgi $app => sub {
         uri      => 'http:\\foo.com/',
         email    => 'foo@bar.com',
         nickname => 'foo',
-        why      => '',
-    ]), 'POST empty form to /register yet again';
+        why      => 'I rock',
+    ]), 'POST form with bogus URI to /register';
     ok !$res->is_redirect, 'It should not be a redirect response';
     is $res->code, 409, 'Should have 409 status code';
 
@@ -448,5 +451,41 @@ test_psgi $app => sub {
         $tx->ok('./form/fieldset[1]/input[@id="uri"]', '... Test uri input', sub {
             $tx->is('./@value', '', '...... Its value should be empty');
         })
+    });
+};
+
+# Try an empty why.
+TxnTest->restart;
+test_psgi $app => sub {
+    my $cb = shift;
+    ok my $res = $cb->(POST '/register', [
+        name     => '',
+        uri      => 'http://foo.com/',
+        email    => 'foo@bar.com',
+        nickname => 'foo',
+        why      => '    ',
+    ]), 'POST form with empty why to /register';
+    ok !$res->is_redirect, 'It should not be a redirect response';
+    is $res->code, 409, 'Should have 409 status code';
+
+    # So check the content.
+    is_well_formed_xml $res->content, 'The HTML should be well-formed';
+    my $tx = Test::XPath->new( xml => $res->content, is_html => 1 );
+
+    my $req = PGXN::Manager::Request->new(req_to_psgi($res->request));
+    XPathTest->test_basics($tx, $req, $mt, {
+        desc        => $desc,
+        keywords    => $keywords,
+        h1          => $h1,
+    });
+
+    # Now verify that we have the error message.
+    $tx->ok('/html/body/div[@id="content"]', 'Test the content', sub {
+        $tx->is('count(./*)', 4, '... It should have four subelements');
+        $tx->is('./h1', $h1, '... The title h1 should be set');
+        $tx->is('./p[1]', $p, '... Intro paragraph should be set');
+        my $err = $mt->maketext(q{You forgot to tell us why you want an account. Is it because you're such a rockin PostgreSQL developer that we just can't do without you? Don't be shy, toot your own horn!});
+        $tx->is('./p[@class="error"]', $err, '... Error paragraph should be set');
+        $tx->is('./form/fieldset[2]/textarea', '', '... The why Textarea should be empty');
     });
 };
