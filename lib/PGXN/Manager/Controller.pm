@@ -13,10 +13,11 @@ use namespace::autoclean;
 Template::Declare->init( dispatch_to => ['PGXN::Manager::Templates'] );
 
 sub render {
-    my $self = shift;
-    my $res = $_[1]->new_response(200);
-    $res->content_type('text/html; charset=UTF-8');
-    $res->body(encode_utf8 +Template::Declare->show(@_));
+    my ($self, $template, $p) = @_;
+    my $req = $p->{req} ||= Request->new($p->{env});
+    my $res = $req->new_response($p->{code} || 200);
+    $res->content_type($p->{type} || 'text/html; charset=UTF-8');
+    $res->body(encode_utf8 +Template::Declare->show($template, $p->{req}, $p->{vars}));
     return $res->finalize;
 }
 
@@ -29,16 +30,12 @@ sub redirect {
 
 sub home {
     my $self = shift;
-    my $req = Request->new(shift);
-    return $self->render('/home', $req);
+    return $self->render('/home', { env => shift });
 }
 
 sub request {
     my $self = shift;
-    return $self->render('/request', Request->new(shift), {
-        description => 'Request a PGXN Account and start distributing your PostgreSQL extensions!',
-        keywords => 'pgxn,postgresql,distribution,register,account,user,nickname',
-    });
+    return $self->render('/request', { env => shift });
 }
 
 sub register {
@@ -63,24 +60,18 @@ sub register {
         );
 
         # Success!
+        # XXX Consider returning 201 and URI to the user profile.
         $req->session->{name} = $req->param('name') || $req->param('nickname');
         $self->redirect('/thanks', $req);
 
     }, sub {
         # Failure!
         my $err = shift;
-        my $msg;
+        my ($msg, $code);
         given ($err->state) {
-            when ([qw(P0001 XX00)]) {
-                (my $str = $err->errstr) =~ s/^[[:upper:]]+:\s+//;
-                my @params;
-                my $i = 0;
-                $str =~ s{“([^”]+)”}{
-                    push @params => $1;
-                    '“[_' . ++$i . ']”';
-                }gesm;
-                $msg = [$str, @params];
-            } when ('23505') {
+            when ('23505') {
+                # Unique constraint violation.
+                $code = 409;
                 if ($err->errstr =~ /\busers_pkey\b/) {
                     $msg = [
                         'The Nickname “[_1]” is already taken. Sorry about that.',
@@ -89,8 +80,31 @@ sub register {
                 } else {
                     $msg = [
                         'Looks like you might already have an account. Need to <a href="/reset?email=[_1]">reset your password</a>?',
-                        encode_entities delete $params->{email}
+                        encode_entities delete $params->{email},
                     ];
+                }
+            } when ('23514') {
+                # Domain label violation.
+                $code = 409;
+                given ($err->errstr) {
+                    when (/\blabel_check\b/) {
+                        $msg = [
+                            'Sorry, the nickname “[_1]” is invalid. Your nickname must start with a letter, end with a letter or digit, and otherwise contain only letters, digits, or hyphen. Sorry to be so strict.',
+                            encode_entities delete $params->{nickname},
+                        ];
+                    } when (/\bemail_check\b/) {
+                        $msg = [
+                            q{Hrm, “[_1]” doesn't look like an email address. Care to try again?},
+                            encode_entities delete $params->{email},
+                        ];
+                    } when (/\buri_check\b/) {
+                        $msg = [
+                            q{Hrm, “[_1]” doesn't look like a URI. Care to try again?},
+                            encode_entities delete $params->{uri},
+                        ];
+                    } default {
+                        die $err;
+                    }
                 }
             }
             default {
@@ -98,17 +112,19 @@ sub register {
             }
         }
 
-        $self->render('/register', $req, {
+        $self->render('/request', { req => $req, code => $code, vars => {
             %{ $params },
             error => $msg,
-        });
+        }});
     });
 }
 
 sub thanks {
     my $self = shift;
     my $req  = Request->new(shift);
-    return $self->render('/thanks', $req, { name => delete $req->session->{name}});
+    return $self->render('/thanks', {req => $req, vars => {
+        name => delete $req->session->{name}
+    }});
 }
 
 sub upload {
@@ -121,7 +137,7 @@ sub upload {
         owner    => $req->remote_user,
     );
     $dist->process or $self->render_error($dist->error);
-    $self->render('/done');
+    $self->render('/done', { req => $req });
 }
 
 1;

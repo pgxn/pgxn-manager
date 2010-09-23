@@ -167,20 +167,24 @@ template request => sub {
                     id   is 'why';
                     name is 'why';
                     title is $why;
-                    $args->{why} || '';
                     placeholder is T "I would like to release the following killer extensions on PGXN:\n\n* foo\n* bar\n* baz";
+                    $args->{why} || '';
                 };
             };
 
             input {
                 class is 'submit';
-                type is 'submit';
-                name is 'submit';
-                id   is 'submit';
+                type  is 'submit';
+                name  is 'submit';
+                id    is 'submit';
                 value is T 'Pretty Please!';
             };
         };
-    } $req, $args;
+    } $req, {
+        description => 'Request a PGXN Account and start distributing your PostgreSQL extensions!',
+        keywords    => 'pgxn,postgresql,distribution,register,account,user,nickname',
+        $args ? %{ $args } : ()
+    }
 };
 
 template thanks => sub {
