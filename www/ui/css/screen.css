@@ -91,21 +91,46 @@ body > #sidebar
 {clear:both; margin:30px 0 10px 0; color:#236691; font-weight:normal; font-size: 2em; letter-spacing:-2px;}
 
 /**************** Form styles ****************/
-fieldset {margin-bottom:1em;border:2px solid #236691;background:#dee7ef;}
-legend {background:#236691; padding:.2em .5em; margin-bottom:2em; color:#fff; font-weight: bold;}
-label {width: 5em; float:left; clear:left; text-align:right; margin-right:0.5em; display:block;margin-bottom:.5em;padding-top:.3em;font-weight:bold;}
-label:after {content: ":";}
+fieldset
+{margin-bottom:1em;border:2px solid #236691;background:#dee7ef;}
 
-input.submit {display:block;margin-left:10em;}
-fieldset input, fieldset textarea {margin-left:4.5em;display:block;width:35em;font-family: 'trebuchet ms', Helvetica, sans-serif; font-size:1em;margin-bottom:.5em;}
-textarea {height:8em;}
-label.highlight {color:#d8000c;}
-input.highlight, textarea.highlight {border:2px solid #d8000c;}
+legend
+{background:#236691; padding:.2em .5em; margin-bottom:2em; color:#fff; font-weight: bold;}
+
+label
+{width: 5em; float:left; clear:left; text-align:right; margin-right:0.5em; display:block;margin-bottom:.5em;padding-top:.3em;font-weight:bold;}
+
+label:after
+{content: ":";}
+
+input.submit
+{display:block;margin-left:10em;}
+
+fieldset input, fieldset textarea
+{margin-left:4.5em;display:block;width:35em;font-family: 'trebuchet ms', Helvetica, sans-serif; font-size:1em;margin-bottom:.5em;}
+
+textarea
+{height:8em;}
+
+label.highlight
+{color:#d8000c;}
+
+input.highlight, textarea.highlight
+{border:2px solid #d8000c;}
 
 /**************** Messages ****************/
 /* Borrowed from http://css.dzone.com/news/css-message-boxes-different-me */
-.info, .success, .warning, .error, .validation { border:1px solid; margin:10px 0px; padding:15px 10px 15px 50px; background-repeat:no-repeat; background-position:.65em 1em;}
-.info { color:#00529b; background-color:#bde5f8; background-image:url('../img/info.png');}
-.success { color:#4f8a10; background-color:#dff2bf; background-image:url('../img/success.png');}
-.warning { color:#9f6000; background-color:#feefb3; background-image:url('../img/warning.png');}
-.error { color:#d8000c; background-color:#ffbaba; background-image:url('../img/error.png');}
+.info, .success, .warning, .error, .validation
+{ border:1px solid; margin:10px 0px; padding:15px 10px 15px 50px; background-repeat:no-repeat; background-position:.65em 1em;}
+
+.info
+{ color:#00529b; background-color:#bde5f8; background-image:url('../img/info.png');}
+
+.success
+{ color:#4f8a10; background-color:#dff2bf; background-image:url('../img/success.png');}
+
+.warning
+{ color:#9f6000; background-color:#feefb3; background-image:url('../img/warning.png');}
+
+.error
+{ color:#d8000c; background-color:#ffbaba; background-image:url('../img/error.png');}
