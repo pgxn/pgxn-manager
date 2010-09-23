@@ -2,8 +2,8 @@
 
 use 5.12.0;
 use utf8;
-use Test::More tests => 22;
-#use Test::More 'no_plan';
+#use Test::More tests => 22;
+use Test::More 'no_plan';
 use Plack::Test;
 use HTTP::Request::Common;
 use Test::File::Contents;

@@ -36,7 +36,7 @@ BEGIN { create_wrapper wrapper => sub {
             };
             meta {
                 name is 'description';
-                content is $args->{description};
+                content is T $args->{description};
             } if $args->{description};
             meta {
                 name    is 'keywords',
@@ -87,9 +87,9 @@ BEGIN { create_wrapper wrapper => sub {
                             [ '/auth/user',        'Edit Account'          ],
                             [ '/auth/pass',        'Change Password'       ],
                         ) : (
-                            [ '/auth' =>  'Log In' ],
+                            [ '/auth',    'Log In'          ],
                             [ '/request', 'Request Account' ],
-                            [ '/reset',   'Reset Password' ],
+                            [ '/reset',   'Reset Password'  ],
                         )),
                         [ '/about',   'About' ],
                         [ '/contact', 'Contact' ],
@@ -111,6 +111,83 @@ template home => sub {
     my ($self, $req, $args) = @_;
     wrapper {
         h1 { T 'Welcome' };
+    } $req, $args;
+};
+
+template request => sub {
+    my ($self, $req, $args) = @_;
+    wrapper {
+        h1 { T 'Request an Account' };
+        p { T q{Want to distribute your PostgreSQL extensions on PGXN? Register here to request an account. We'll get it approved post haste.} };
+        if (my $err = $args->{error}) {
+            p {
+                class is 'error';
+                outs_raw T @{ $err };
+            };
+        }
+        form {
+            id      is 'reqform';
+            action  is '/register';
+            enctype is 'application/x-www-form-urlencoded';
+            method  is 'post';
+
+            fieldset {
+                id is 'reqessentials';
+                legend { T 'The Essentials' };
+                for my $spec (
+                    [qw(name     Name     text),  'Barack Obama', T 'What does your mother call you?'    ],
+                    [qw(email    Email    email), 'you@example.com', T 'Where can we get hold of you?' ],
+                    [qw(uri      URI      url),   'http://blog.example.com/', T 'Got a blog or personal site?'  ],
+                    [qw(nickname Nickname text),  'bobama', T 'By what name would you like to be known? Letters, numbers, and dashes only, please.' ],
+                ) {
+                    label {
+                        attr { for => $spec->[0], title => $spec->[4] };
+                        T $spec->[1];
+                    };
+                    input {
+                        id    is $spec->[0];
+                        name  is $spec->[0];
+                        type  is $spec->[2];
+                        title is $spec->[4];
+                        value is $args->{$spec->[0]} || '';
+                        placeholder is $spec->[3];
+                    };
+                }
+            };
+
+            fieldset {
+                id is 'reqwhy';
+                legend { T 'Your Plans' };
+                my $why = T 'So what are your plans for PGXN? What do you wanna release?';
+                label {
+                    attr { for => 'why', title => $why };
+                    T 'Why';
+                };
+                textarea {
+                    id   is 'why';
+                    name is 'why';
+                    title is $why;
+                    $args->{why} || '';
+                    placeholder is T "I would like to release the following killer extensions on PGXN:\n\n* foo\n* bar\n* baz";
+                };
+            };
+
+            input {
+                class is 'submit';
+                type is 'submit';
+                name is 'submit';
+                id   is 'submit';
+                value is T 'Pretty Please!';
+            };
+        };
+    } $req, $args;
+};
+
+template thanks => sub {
+    my ($self, $req, $args) = @_;
+    wrapper {
+        h1 { T 'Thanks' };
+        p { T q{Thanks for requesting a PGXN account, [_1]. We'll get back to you once the hangover has worn off.}, $args->{name} };
     } $req, $args;
 };
 

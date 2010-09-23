@@ -9,9 +9,12 @@ use aliased 'PGXN::Manager::Controller';
 use PGXN::Manager;
 
 # The routing table. Define all new routes here.
-get '/'            => sub { Controller->home(shift) };
-get '/auth'        => sub { Controller->auth(shift) };
-get '/auth/upload' => sub { Controller->uplod(shift) };
+get  '/'            => sub { Controller->home(shift) };
+get  '/auth'        => sub { Controller->home(shift) };
+get  '/auth/upload' => sub { Controller->uplod(shift) };
+get  '/request'     => sub { Controller->request(shift) };
+post '/register'    => sub { Controller->register(shift) };
+get  '/thanks'      => sub { Controller->thanks(shift) };
 
 sub app {
     my $router = shift->router;
@@ -20,6 +23,7 @@ sub app {
         mount '/ui' => Plack::App::File->new(root => './www/ui/');
         mount '/' => builder {
             enable 'JSONP';
+            enable 'Session', store => 'File';
             if (my $mids = PGXN::Manager->instance->config->{middleware}) {
                 enable @$_ for @$mids;
             }
