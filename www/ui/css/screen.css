@@ -76,7 +76,7 @@ body > #sidebar
 /**************** Content area styles ****************/
 
 #content, #banner
-{width:700px; margin:0 0 0 280px; padding:20px 0; background:#fafafa;}
+{width:650px; margin:0 0 0 305px; padding:20px 0; background:#fafafa;}
 
 #content p
 {margin:0 0 20px 0; line-height:1.5em;}
@@ -107,7 +107,7 @@ input.submit
 {display:block;margin-left:10em;}
 
 fieldset input, fieldset textarea
-{margin-left:4.5em;display:block;width:35em;font-family: 'trebuchet ms', Helvetica, sans-serif; font-size:1em;margin-bottom:.5em;}
+{margin-left:4.5em;display:block;width:32em;font-family: 'trebuchet ms', Helvetica, sans-serif; font-size:1em;margin-bottom:.5em;}
 
 textarea
 {height:8em;}
