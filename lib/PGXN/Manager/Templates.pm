@@ -137,9 +137,9 @@ template request => sub {
                 legend { T 'The Essentials' };
                 for my $spec (
                     [qw(name     Name     text),  'Barack Obama', T 'What does your mother call you?'    ],
-                    [qw(email    Email    email), 'you@example.com', T 'Where can we get hold of you?' ],
+                    [qw(email    Email    email), 'you@example.com', T('Where can we get hold of you?'), 1 ],
                     [qw(uri      URI      url),   'http://blog.example.com/', T 'Got a blog or personal site?'  ],
-                    [qw(nickname Nickname text),  'bobama', T 'By what name would you like to be known? Letters, numbers, and dashes only, please.' ],
+                    [qw(nickname Nickname text),  'bobama', T('By what name would you like to be known? Letters, numbers, and dashes only, please.'), 1 ],
                 ) {
                     label {
                         attr { for => $spec->[0], title => $spec->[4] };
@@ -152,7 +152,11 @@ template request => sub {
                         type  is $spec->[2];
                         title is $spec->[4];
                         value is $args->{$spec->[0]} || '';
-                        class is 'highlight' if $args->{highlight} eq $spec->[0];
+                        my $class = join( ' ',
+                            ($spec->[5] ? 'required' : ()),
+                            ($args->{highlight} eq $spec->[0] ? 'highlight' : ()),
+                        );
+                        class is $class if $class;
                         placeholder is $spec->[3];
                     };
                 }
@@ -171,7 +175,7 @@ template request => sub {
                     id    is 'why';
                     name  is 'why';
                     title is $why;
-                    class is 'highlight' if $args->{highlight} eq 'why';
+                    class is 'required' . ($args->{highlight} eq 'why' ? ' highlight' : '');
                     placeholder is T "I would like to release the following killer extensions on PGXN:\n\n* foo\n* bar\n* baz";
                     $args->{why} || '';
                 };

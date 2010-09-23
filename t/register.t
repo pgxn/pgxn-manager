@@ -2,7 +2,7 @@
 
 use 5.12.0;
 use utf8;
-use Test::More tests => 463;
+use Test::More tests => 467;
 #use Test::More 'no_plan';
 use lib '/Users/david/dev/github/Plack/lib';
 use Plack::Test;
@@ -75,6 +75,7 @@ test_psgi $app => sub {
                     label => $mt->maketext('Name'),
                     type  => 'text',
                     phold => 'Barack Obama',
+                    class => '',
                 },
                 {
                     id    => 'email',
@@ -82,6 +83,7 @@ test_psgi $app => sub {
                     label => $mt->maketext('Email'),
                     type  => 'email',
                     phold => 'you@example.com',
+                    class => 'required',
                 },
                 {
                     id    => 'uri',
@@ -89,6 +91,7 @@ test_psgi $app => sub {
                     label => $mt->maketext('URI'),
                     type  => 'url',
                     phold => 'http://blog.example.com/',
+                    class => '',
                 },
                 {
                     id    => 'nickname',
@@ -96,6 +99,7 @@ test_psgi $app => sub {
                     label => $mt->maketext('Nickname'),
                     type  => 'text',
                     phold => 'bobama',
+                    class => 'required',
                 },
             ) {
                 ++$i;
@@ -109,6 +113,7 @@ test_psgi $app => sub {
                     $_->is('./@name', $spec->{id}, '......... Check "name" attr' );
                     $_->is('./@type', $spec->{type}, '......... Check "type" attr' );
                     $_->is('./@title', $spec->{title}, '......... Check "title" attr' );
+                    $_->is('./@class', $spec->{class}, '......... Check "class" attr' );
                     $_->is('./@placeholder', $spec->{phold}, '......... Check "placeholder" attr' );
                 });
             }
@@ -217,7 +222,7 @@ test_psgi $app => sub {
             $tx->is('./input[@id="email"]/@value', 'tgl@pgxn.org', '...... Email should be set');
             $tx->is('./input[@id="uri"]/@value', 'http://tgl.example.org/', '...... URI should be set');
             $tx->is('./input[@id="nickname"]/@value', '', '...... Nickname should not be set');
-            $tx->is('./input[@id="nickname"]/@class', 'highlight', '...... And it should be highlighted');
+            $tx->is('./input[@id="nickname"]/@class', 'required highlight', '...... And it should be highlighted');
         });
 
         $tx->ok('./form[@id="reqform"]/fieldset[2]', '... Check second fieldset', sub {
@@ -292,7 +297,7 @@ test_psgi $app => sub {
         $tx->ok('./form[@id="reqform"]/fieldset[1]', '... Check first fieldset', sub {
             $tx->is('./input[@id="name"]/@value', 'Tom Lane', '...... Name should be set');
             $tx->is('./input[@id="email"]/@value', '', '...... Email should be blank');
-            $tx->is('./input[@id="email"]/@class', '', '...... And it should not be highlighted');
+            $tx->is('./input[@id="email"]/@class', 'required', '...... And it should not be highlighted');
             $tx->is('./input[@id="uri"]/@value', 'http://tgl.example.org/', '...... URI should be set');
             $tx->is('./input[@id="nickname"]/@value', 'yodude', '...... Nickname should be set');
         });
@@ -341,7 +346,7 @@ test_psgi $app => sub {
         $tx->is('./p[@class="error"]', $err, '... Error paragraph should be set');
         $tx->is(
             './form/fieldset[1]/input[@id="nickname"]/@class',
-            'highlight',
+            'required highlight',
             '... And the nickname field should be highlighted'
         );
     });
@@ -381,7 +386,7 @@ test_psgi $app => sub {
         $tx->is('./p[@class="error"]', $err, '... Error paragraph should be set');
         $tx->ok('./form/fieldset[1]/input[@id="nickname"]', '... Test nickname input', sub {
             $tx->is('./@value', '', '...... Its value should be empty');
-            $tx->is('./@class', 'highlight', '...... And it should be highlighted');
+            $tx->is('./@class', 'required highlight', '...... And it should be highlighted');
         })
     });
 };
@@ -420,7 +425,7 @@ test_psgi $app => sub {
         $tx->is('./p[@class="error"]', $err, '... Error paragraph should be set');
         $tx->ok('./form/fieldset[1]/input[@id="email"]', '... Test email input', sub {
             $tx->is('./@value', '', '...... Its value should be empty');
-            $tx->is('./@class', 'highlight', '...... And it should be highlighted');
+            $tx->is('./@class', 'required highlight', '...... And it should be highlighted');
         })
     });
 };
@@ -499,7 +504,7 @@ test_psgi $app => sub {
         $tx->is('./form/fieldset[2]/textarea', '', '... The why Textarea should be empty');
         $tx->is(
             './form/fieldset[2]/textarea/@class',
-            'highlight',
+            'required highlight',
             '... And it should be highlighted'
         );
     });
