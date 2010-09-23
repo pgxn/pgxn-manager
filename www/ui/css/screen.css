@@ -99,3 +99,33 @@ label:after {content: ":";}
 input.submit {display:block;margin-left:10em;}
 fieldset input, fieldset textarea {margin-left:4.5em;display:block;width:25em;font-family: 'trebuchet ms', Helvetica, sans-serif; font-size:1em;margin-bottom:.5em;}
 textarea {height:8em;}
+
+/**************** Messages ****************/
+/* Borrowed from http://css.dzone.com/news/css-message-boxes-different-me */
+.info, .success, .warning, .error, .validation {
+    border: 1px solid;
+    margin: 10px 0px;
+    padding:15px 10px 15px 50px;
+    background-repeat: no-repeat;
+    background-position: 10px center;
+}
+.info {
+    color: #00529b;
+    background-color: #bde5f8;
+    background-image: url('../img/info.png');
+}
+.success {
+    color: #4f8a10;
+    background-color: #dff2bf;
+    background-image:url('../img/success.png');
+}
+.warning {
+    color: #9f6000;
+    background-color: #feefb3;
+    background-image: url('../img/warning.png');
+}
+.error {
+    color: #d8000c;
+    background-color: #ffbaba;
+    background-image: url('../img/error.png');
+}
