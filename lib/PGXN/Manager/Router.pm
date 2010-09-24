@@ -12,7 +12,7 @@ use PGXN::Manager;
 get  '/'            => sub { Controller->home(shift) };
 get  '/auth'        => sub { Controller->home(shift) };
 get  '/auth/upload' => sub { Controller->uplod(shift) };
-get  '/request'     => sub { Controller->request(shift) };
+get  '/register'    => sub { Controller->request(shift) };
 post '/register'    => sub { Controller->register(shift) };
 get  '/thanks'      => sub { Controller->thanks(shift) };
 

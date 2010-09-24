@@ -2,7 +2,7 @@
 
 use 5.12.0;
 use utf8;
-use Test::More tests => 515;
+use Test::More tests => 522;
 #use Test::More 'no_plan';
 use lib '/Users/david/dev/github/Plack/lib';
 use Plack::Test;
@@ -32,7 +32,7 @@ my $hparams  = {
 # Request a registration form.
 test_psgi $app => sub {
     my $cb = shift;
-    ok my $res = $cb->(GET '/request'), 'Fetch /request';
+    ok my $res = $cb->(GET '/register'), 'Fetch /register';
     ok $res->is_success, 'Should get a successful response';
     is_well_formed_xml $res->content, 'The HTML should be well-formed';
     my $tx = Test::XPath->new( xml => $res->content, is_html => 1 );

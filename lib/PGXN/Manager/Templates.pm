@@ -105,9 +105,9 @@ BEGIN { create_wrapper wrapper => sub {
                             [ '/auth/user',        'Edit Account',          'account'     ],
                             [ '/auth/pass',        'Change Password',       'passwd'      ],
                         ) : (
-                            [ '/auth',    'Log In',          'login'   ],
-                            [ '/request', 'Request Account', 'request' ],
-                            [ '/reset',   'Reset Password',  'reset'   ],
+                            [ '/auth',     'Log In',          'login'   ],
+                            [ '/register', 'Request Account', 'request' ],
+                            [ '/reset',    'Reset Password',  'reset'   ],
                         )),
                     ) {
                         li { a {
