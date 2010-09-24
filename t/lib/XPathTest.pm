@@ -15,7 +15,10 @@ sub test_basics {
 
     # Check the head element.
     $tx->ok('/html/head', 'Test head', sub {
-        $_->is('count(./*)', 7, 'Should have 7 elements below "head"');
+        my $c = $p->{validate_form} ? 10
+              : $p->{with_jquery}   ? 8
+                                    : 7;
+        $_->is('count(./*)', $c, 'Should have 7 elements below "head"');
 
         $_->is(
             './meta[@http-equiv="Content-Type"]/@content',
@@ -62,6 +65,28 @@ sub test_basics {
             $req->base . 'ui/img/favicon.png',
             'Should specify the favicon',
         );
+
+        if ($p->{with_jquery} || $p->{validate_form}) {
+            $_->is(
+                './script[1][@type="text/javascript"]/@src',
+                $req->uri_for('/ui/js/jquery-1.4.2.min.js'),
+                'Should load jQuery'
+            );
+            if (my $id = $p->{validate_form}) {
+                $_->is(
+                    './script[2][@type="text/javascript"]/@src',
+                    $req->uri_for('/ui/js/jquery.validate.min.js'),
+                    'Should load load jQuery Validate plugin'
+                );
+                my $js = quotemeta "\$(document).ready(function(){ \$('#$id').validate";
+                $_->like(
+                    './script[3][@type="text/javascript"]',
+                    qr/$js/,
+                    'Should have the validation function'
+                );
+            }
+        }
+
     });
 
     # Test the body.

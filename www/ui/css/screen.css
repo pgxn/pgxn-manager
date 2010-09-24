@@ -118,6 +118,14 @@ label.highlight
 input.highlight, textarea.highlight
 {border:2px solid #d8000c;}
 
+#content form div{position:relative;text-align:left;}
+label.invalid{text-align:left;display:block;position:absolute; left:620px;top:0;z-index:50;}
+label.invalid{padding:5px;color:#d8000c; background-color:#ffbaba;border:1px solid #d8000c;width:10em;font-size:75%;text-indent:-1.7em;}
+label.invalid:before {content:"◀";color:#d8000c;font-size:150%;line-height:.9em;}
+
+label.invalid:after
+{content: "";}
+
 /**************** Messages ****************/
 /* Borrowed from http://css.dzone.com/news/css-message-boxes-different-me */
 .info, .success, .warning, .error, .validation

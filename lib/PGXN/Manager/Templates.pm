@@ -58,6 +58,23 @@ BEGIN { create_wrapper wrapper => sub {
                 rel is 'shortcut icon';
                 href is $req->uri_for('/ui/img/favicon.png');
             };
+            if ($args->{with_jquery} || $args->{validate_form}) {
+                script {
+                    type is 'text/javascript';
+                    src  is $req->uri_for('/ui/js/jquery-1.4.2.min.js');
+                };
+                if (my $id = $args->{validate_form}) {
+                    script {
+                        type is 'text/javascript';
+                        src  is $req->uri_for('/ui/js/jquery.validate.min.js');
+                    };
+                    # XXX Consider moving this to a function.
+                    script {
+                        type is 'text/javascript';
+                        outs_raw qq{\$(document).ready(function(){ \$('#$id').validate({errorClass: 'invalid', wrapper: 'div', highlight: function(e) {\$(e).addClass('highlight'); \$(e.form).find('label[for=' + e.id + ']').addClass('highlight');}, unhighlight: function(e) {\$(e).removeClass('highlight'); \$(e.form).find('label[for=' + e.id + ']').removeClass('highlight');}, errorPlacement: function (er, el) { \$(el).before(er) } }); });}
+                    };
+                }
+            }
         };
 
         body {
@@ -137,9 +154,9 @@ template request => sub {
                 legend { T 'The Essentials' };
                 for my $spec (
                     [qw(name     Name     text),  'Barack Obama', T 'What does your mother call you?'    ],
-                    [qw(email    Email    email), 'you@example.com', T('Where can we get hold of you?'), 1 ],
+                    [qw(email    Email    email), 'you@example.com', T('Where can we get hold of you?'), 'required email' ],
                     [qw(uri      URI      url),   'http://blog.example.com/', T 'Got a blog or personal site?'  ],
-                    [qw(nickname Nickname text),  'bobama', T('By what name would you like to be known? Letters, numbers, and dashes only, please.'), 1 ],
+                    [qw(nickname Nickname text),  'bobama', T('By what name would you like to be known? Letters, numbers, and dashes only, please.'), 'required' ],
                 ) {
                     label {
                         attr { for => $spec->[0], title => $spec->[4] };
@@ -153,7 +170,7 @@ template request => sub {
                         title is $spec->[4];
                         value is $args->{$spec->[0]} || '';
                         my $class = join( ' ',
-                            ($spec->[5] ? 'required' : ()),
+                            ($spec->[5] ? $spec->[5] : ()),
                             ($args->{highlight} eq $spec->[0] ? 'highlight' : ()),
                         );
                         class is $class if $class;
@@ -190,8 +207,9 @@ template request => sub {
             };
         };
     } $req, {
-        description => 'Request a PGXN Account and start distributing your PostgreSQL extensions!',
-        keywords    => 'pgxn,postgresql,distribution,register,account,user,nickname',
+        description   => 'Request a PGXN Account and start distributing your PostgreSQL extensions!',
+        keywords      => 'pgxn,postgresql,distribution,register,account,user,nickname',
+        validate_form => 'reqform',
         $args ? %{ $args } : ()
     }
 };

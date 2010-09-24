@@ -2,7 +2,7 @@
 
 use 5.12.0;
 use utf8;
-use Test::More tests => 467;
+use Test::More tests => 491;
 #use Test::More 'no_plan';
 use lib '/Users/david/dev/github/Plack/lib';
 use Plack::Test;
@@ -22,6 +22,12 @@ my $desc     = $mt->maketext('Request a PGXN Account and start distributing your
 my $keywords = 'pgxn,postgresql,distribution,register,account,user,nickname';
 my $h1       = $mt->maketext('Request an Account');
 my $p        = $mt->maketext(q{Want to distribute your PostgreSQL extensions on PGXN? Register here to request an account. We'll get it approved post haste.});
+my $hparams  = {
+    desc          => $desc,
+    keywords      => $keywords,
+    h1            => $h1,
+    validate_form => 'reqform',
+};
 
 # Request a registration form.
 test_psgi $app => sub {
@@ -32,11 +38,7 @@ test_psgi $app => sub {
     my $tx = Test::XPath->new( xml => $res->content, is_html => 1 );
 
     my $req = PGXN::Manager::Request->new(req_to_psgi($res->request));
-    XPathTest->test_basics($tx, $req, $mt, {
-        desc        => $desc,
-        keywords    => $keywords,
-        h1          => $h1,
-    });
+    XPathTest->test_basics($tx, $req, $mt, $hparams);
 
     # Check the content
     $tx->ok('/html/body/div[@id="content"]', 'Test the content', sub {
@@ -83,7 +85,7 @@ test_psgi $app => sub {
                     label => $mt->maketext('Email'),
                     type  => 'email',
                     phold => 'you@example.com',
-                    class => 'required',
+                    class => 'required email',
                 },
                 {
                     id    => 'uri',
@@ -201,11 +203,7 @@ test_psgi $app => sub {
     my $tx = Test::XPath->new( xml => $res->content, is_html => 1 );
 
     my $req = PGXN::Manager::Request->new(req_to_psgi($res->request));
-    XPathTest->test_basics($tx, $req, $mt, {
-        desc        => $desc,
-        keywords    => $keywords,
-        h1          => $h1,
-    });
+    XPathTest->test_basics($tx, $req, $mt, $hparams);
 
     # Now verify that we have the error message and that the form fields are
     # filled-in.
@@ -278,11 +276,7 @@ test_psgi $app => sub {
     my $tx = Test::XPath->new( xml => $res->content, is_html => 1 );
 
     my $req = PGXN::Manager::Request->new(req_to_psgi($res->request));
-    XPathTest->test_basics($tx, $req, $mt, {
-        desc        => $desc,
-        keywords    => $keywords,
-        h1          => $h1,
-    });
+    XPathTest->test_basics($tx, $req, $mt, $hparams);
 
     # Now verify that we have the error message and that the form fields are
     # filled-in.
@@ -297,7 +291,7 @@ test_psgi $app => sub {
         $tx->ok('./form[@id="reqform"]/fieldset[1]', '... Check first fieldset', sub {
             $tx->is('./input[@id="name"]/@value', 'Tom Lane', '...... Name should be set');
             $tx->is('./input[@id="email"]/@value', '', '...... Email should be blank');
-            $tx->is('./input[@id="email"]/@class', 'required', '...... And it should not be highlighted');
+            $tx->is('./input[@id="email"]/@class', 'required email', '...... And it should not be highlighted');
             $tx->is('./input[@id="uri"]/@value', 'http://tgl.example.org/', '...... URI should be set');
             $tx->is('./input[@id="nickname"]/@value', 'yodude', '...... Nickname should be set');
         });
@@ -331,11 +325,7 @@ test_psgi $app => sub {
     my $tx = Test::XPath->new( xml => $res->content, is_html => 1 );
 
     my $req = PGXN::Manager::Request->new(req_to_psgi($res->request));
-    XPathTest->test_basics($tx, $req, $mt, {
-        desc        => $desc,
-        keywords    => $keywords,
-        h1          => $h1,
-    });
+    XPathTest->test_basics($tx, $req, $mt, $hparams);
 
     # Now verify that we have the error message.
     $tx->ok('/html/body/div[@id="content"]', 'Test the content', sub {
@@ -371,11 +361,7 @@ test_psgi $app => sub {
     my $tx = Test::XPath->new( xml => $res->content, is_html => 1 );
 
     my $req = PGXN::Manager::Request->new(req_to_psgi($res->request));
-    XPathTest->test_basics($tx, $req, $mt, {
-        desc        => $desc,
-        keywords    => $keywords,
-        h1          => $h1,
-    });
+    XPathTest->test_basics($tx, $req, $mt, $hparams);
 
     # Now verify that we have the error message.
     $tx->ok('/html/body/div[@id="content"]', 'Test the content', sub {
@@ -410,11 +396,7 @@ test_psgi $app => sub {
     my $tx = Test::XPath->new( xml => $res->content, is_html => 1 );
 
     my $req = PGXN::Manager::Request->new(req_to_psgi($res->request));
-    XPathTest->test_basics($tx, $req, $mt, {
-        desc        => $desc,
-        keywords    => $keywords,
-        h1          => $h1,
-    });
+    XPathTest->test_basics($tx, $req, $mt, $hparams);
 
     # Now verify that we have the error message.
     $tx->ok('/html/body/div[@id="content"]', 'Test the content', sub {
@@ -425,7 +407,7 @@ test_psgi $app => sub {
         $tx->is('./p[@class="error"]', $err, '... Error paragraph should be set');
         $tx->ok('./form/fieldset[1]/input[@id="email"]', '... Test email input', sub {
             $tx->is('./@value', '', '...... Its value should be empty');
-            $tx->is('./@class', 'required highlight', '...... And it should be highlighted');
+            $tx->is('./@class', 'required email highlight', '...... And it should be highlighted');
         })
     });
 };
@@ -449,11 +431,7 @@ test_psgi $app => sub {
     my $tx = Test::XPath->new( xml => $res->content, is_html => 1 );
 
     my $req = PGXN::Manager::Request->new(req_to_psgi($res->request));
-    XPathTest->test_basics($tx, $req, $mt, {
-        desc        => $desc,
-        keywords    => $keywords,
-        h1          => $h1,
-    });
+    XPathTest->test_basics($tx, $req, $mt, $hparams);
 
     # Now verify that we have the error message.
     $tx->ok('/html/body/div[@id="content"]', 'Test the content', sub {
@@ -488,11 +466,7 @@ test_psgi $app => sub {
     my $tx = Test::XPath->new( xml => $res->content, is_html => 1 );
 
     my $req = PGXN::Manager::Request->new(req_to_psgi($res->request));
-    XPathTest->test_basics($tx, $req, $mt, {
-        desc        => $desc,
-        keywords    => $keywords,
-        h1          => $h1,
-    });
+    XPathTest->test_basics($tx, $req, $mt, $hparams);
 
     # Now verify that we have the error message.
     $tx->ok('/html/body/div[@id="content"]', 'Test the content', sub {
