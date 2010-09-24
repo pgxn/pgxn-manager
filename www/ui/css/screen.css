@@ -82,7 +82,7 @@ body > #sidebar
 {margin:0 0 20px 0; line-height:1.5em;}
 
 #content h1
-{margin:0; color:#236691; font-size:4em; letter-spacing:-2px; text-align:left; padding-bottom:.25em;}
+{margin:0; color:#236691; font-size:3em; letter-spacing:-2px; text-align:left; padding-bottom:.25em;}
 
 #content h2
 {margin:0; color:#808080; font-weight:normal; font-size:2.5em; letter-spacing:-2px; text-align:center;}
@@ -129,7 +129,7 @@ label.invalid:after
 /**************** Messages ****************/
 /* Borrowed from http://css.dzone.com/news/css-message-boxes-different-me */
 .info, .success, .warning, .error, .validation
-{ border:1px solid; margin:10px 0px; padding:15px 10px 15px 50px; background-repeat:no-repeat; background-position:.65em 1em;}
+{ border:1px solid; margin:10px 4px; padding:15px 10px 15px 50px; background-repeat:no-repeat; background-position:.65em .65em;}
 
 .info
 { color:#00529b; background-color:#bde5f8; background-image:url('../img/info.png');}
@@ -142,3 +142,38 @@ label.invalid:after
 
 .error
 { color:#d8000c; background-color:#ffbaba; background-image:url('../img/error.png');}
+
+/**************** Tables ****************/
+/* Borrowed from http://veerle-v2.duoh.com/blog/comments/a_css_styled_table/ */
+table
+{width:100%;}
+
+th 
+{font-weight:bold; font-size:90%; color: #236691; border-right: 1px solid #C1DAD7; border-bottom: 1px solid #C1DAD7; border-top: 1px solid #C1DAD7; letter-spacing: 2px; text-align: left; padding: 6px 6px 6px 12px; background: #CAE8EA url(../img/thbg.png) no-repeat;}
+
+th:first-child, td:first-child
+{border-left:1px solid#c1dad7;}
+
+th.nobg
+{text-transform: uppercase; border-top: 0; border-left: 0; border-right: 1px solid #C1DAD7; background: none;}
+
+tr.specalt a
+{color:#91867c;font-weight:bold;}
+
+tr.spec th
+{border-left: 1px solid #C1DAD7; border-top: 0; background: #fff url(../img/wedge_brown.gif) no-repeat; font-weight:bold; font-size:90%;}
+
+tr.specalt th
+{border-left: 1px solid #C1DAD7; border-top: 0; background: #fff url(../img/wedge_blue.gif) no-repeat; font-weight:bold; font-size:90%; color: #91867c;}
+
+td
+{ border-right: 1px solid #C1DAD7; border-bottom: 1px solid #C1DAD7; background: #fff; padding: 6px 6px 6px 12px; color: #236691;}
+
+tr.specalt td
+{background: #f5fafa; color: #91867c;}
+
+td.actions
+{width:96px;}
+
+td.actions img
+{border:0;margin:0 .5em 0 0;padding:0;}

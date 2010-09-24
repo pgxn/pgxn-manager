@@ -146,6 +146,22 @@ sub thanks {
     }});
 }
 
+sub moderate {
+    my $self = shift;
+    my $req  = Request->new(shift);
+    return $self->render('/403', { req => $req, code => 403 })
+        unless $req->user_is_admin;
+    my $sth = PGXN::Manager->conn->run(sub {
+        shift->prepare(q{
+            SELECT nickname, full_name, email, uri, why
+              FROM users
+             WHERE status = 'new'
+        });
+    });
+    $sth->execute;
+    $self->render('/moderate', { req => $req, vars => { sth => $sth }});
+}
+
 sub upload {
     my $self = shift;
     my $req  = Request->new(shift);
@@ -209,6 +225,10 @@ Handles requests to register a user account.
 =head3 C<thanks>
 
 Thanks the user for registering for an account.
+
+=head3 C<moderate>
+
+Administrative interface for moderating user requests.
 
 =head2 Methods
 

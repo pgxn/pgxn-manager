@@ -15,9 +15,11 @@ sub test_basics {
 
     # Check the head element.
     $tx->ok('/html/head', 'Test head', sub {
-        my $c = $p->{validate_form} ? 10
-              : $p->{with_jquery}   ? 8
-                                    : 7;
+        my $c = $p->{validate_form} ? 8
+              : $p->{with_jquery}   ? 6
+                                    : 5;
+        $c++ if $p->{desc};
+        $c++ if $p->{keywords};
         $_->is('count(./*)', $c, 'Should have 7 elements below "head"');
 
         $_->is(
@@ -153,7 +155,7 @@ sub test_basics {
 
                     my $i = 0;
                     for my $spec (
-                        [ '/auth/admin/requests', 'Moderate Requests', 'moderate' ],
+                        [ '/auth/admin/moderate', 'Moderate Requests', 'moderate' ],
                     ) {
                         $i++;
                         $_->is(

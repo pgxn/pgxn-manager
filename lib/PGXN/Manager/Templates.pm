@@ -125,7 +125,7 @@ BEGIN { create_wrapper wrapper => sub {
                         class is 'menu';
                         id is 'adminmenu';
                         for my $item (
-                            [ '/auth/admin/requests', 'Moderate Requests', 'moderate' ],
+                            [ '/auth/admin/moderate', 'Moderate Requests', 'moderate' ],
                         ) {
                             li { a {
                                 id is $item->[2];
@@ -253,6 +253,88 @@ template thanks => sub {
     wrapper {
         h1 { T 'Thanks' };
         p { T q{Thanks for requesting a PGXN account, [_1]. We'll get back to you once the hangover has worn off.}, $args->{name} };
+    } $req, $args;
+};
+
+template 403 => sub {
+    my ($self, $req, $args) = @_;
+    wrapper {
+        h1 { T 'Permission Denied' };
+        p {
+            class is 'error';
+            T q{Sorry, you do not have permission to access this page.};
+        };
+    } $req, $args;
+};
+
+template moderate => sub {
+    my ($self, $req, $args) = @_;
+    wrapper {
+        h1 { T 'Moderate Account Requests' };
+        p {
+            T q{Thanks for moderating user requests, [_1]. Here's how:}, $req->user;
+        };
+        ul {
+            li { T q{Hit the green ▶ to review a requestor's reasons for wanting an account}};
+            li { T q{Hit the blue ✔ to approve an account request.}};
+            li { T q{Hit the red ▬ to deny an account request.}};
+        };
+        table {
+            id is 'userlist';
+            summary is T 'List of requests for users accounts';
+            cellspacing is 0;
+            thead {
+                row {
+                    th { scope is 'col'; class is 'nobg'; T 'Requests' };
+                    th { scope is 'col'; T 'Full Name' };
+                    th { scope is 'col'; T 'Email'     };
+                    th { scope is 'col'; T 'Action'    };
+                };
+            };
+            tbody {
+                my $i = 0;
+                while (my $user = $args->{sth}->fetchrow_hashref) {
+                    row {
+                        class is ++$i % 2 ? 'spec' : 'specalt';
+                        my $name = $user->{full_name} || T '~[None given~]';
+                        th { scope is 'row'; $user->{nickname} };
+                        cell {
+                            if (my $uri = $user->{uri}) {
+                                title is T q{Visit [_1]'s site}, $user->{nickname};
+                                a { href is $uri; $name };
+                            } else {
+                                $name;
+                            }
+                        };
+                        cell {
+                            title is T 'Send email to [_1]', $user->{nickname};
+                            a {
+                                href is "mailto:$user->{email}";
+                                $user->{email};
+                            };
+                        };
+                        cell {
+                            class is 'actions';
+                            a {
+                                href is '#';
+                                title is T q{Review [_1]'s }, $user->{nickname};
+                                img { src is $req->uri_for('/ui/img/play.png' ) };
+                            };
+                            a {
+                                href is '#';
+                                title is T q{Accept [_1]'s request}, $user->{nickname};
+                                img { src is $req->uri_for('/ui/img/accept.png' ) };
+                            };
+                            a {
+                                href is '#';
+                                title is T q{Reject [_1]'s request}, $user->{nickname};
+                                img { src is $req->uri_for('/ui/img/reject.png' ) };
+                            };
+                        };
+                    }
+                }
+            }
+        };
     } $req, $args;
 };
 
