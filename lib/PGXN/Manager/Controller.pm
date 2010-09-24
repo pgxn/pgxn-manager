@@ -156,6 +156,7 @@ sub moderate {
             SELECT nickname, full_name, email, uri, why
               FROM users
              WHERE status = 'new'
+             ORDER BY nickname
         });
     });
     $sth->execute;

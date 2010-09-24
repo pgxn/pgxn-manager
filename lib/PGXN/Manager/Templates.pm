@@ -275,7 +275,7 @@ template moderate => sub {
             T q{Thanks for moderating user requests, [_1]. Here's how:}, $req->user;
         };
         ul {
-            li { T q{Hit the green ▶ to review a requestor's reasons for wanting an account}};
+            li { T q{Hit the green ▶ to review a requestor's reasons for wanting an account.}};
             li { T q{Hit the blue ✔ to approve an account request.}};
             li { T q{Hit the red ▬ to deny an account request.}};
         };
@@ -286,9 +286,9 @@ template moderate => sub {
             thead {
                 row {
                     th { scope is 'col'; class is 'nobg'; T 'Requests' };
-                    th { scope is 'col'; T 'Full Name' };
-                    th { scope is 'col'; T 'Email'     };
-                    th { scope is 'col'; T 'Action'    };
+                    th { scope is 'col'; T 'Name'    };
+                    th { scope is 'col'; T 'Email'   };
+                    th { scope is 'col'; T 'Actions' };
                 };
             };
             tbody {
@@ -296,7 +296,7 @@ template moderate => sub {
                 while (my $user = $args->{sth}->fetchrow_hashref) {
                     row {
                         class is ++$i % 2 ? 'spec' : 'specalt';
-                        my $name = $user->{full_name} || T '~[None given~]';
+                        my $name = $user->{full_name} || T '~[none given~]';
                         th { scope is 'row'; $user->{nickname} };
                         cell {
                             if (my $uri = $user->{uri}) {
@@ -332,6 +332,16 @@ template moderate => sub {
                             };
                         };
                     }
+                }
+                unless ($i) {
+                    # Oops, no users.
+                    row {
+                        class is 'spec';
+                        cell {
+                            colspan is 4;
+                            T 'No pending requests. Time for a beer?';
+                        };
+                    };
                 }
             }
         };

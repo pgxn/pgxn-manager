@@ -65,6 +65,11 @@ sub admin {
             'SELECT set_user_status(?, ?, ?)',
             undef, 'tmpadmin', 'admin', 'active'
         );
+        # Delete the temp admin.
+        $_->do(
+            'SELECT set_user_status(?, ?, ?)',
+            undef, 'admin', 'tmpadmin', 'deleted'
+        );
     }) unless $admin;
     return $admin = 'admin';
 }
