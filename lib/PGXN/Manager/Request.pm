@@ -5,6 +5,7 @@ use utf8;
 use parent 'Plack::Request';
 use Plack::Response;
 use HTTP::Negotiate;
+use PGXN::Manager;
 use namespace::autoclean;
 
 sub uri_for {
@@ -30,6 +31,22 @@ my $variants = [
 
 sub respond_with {
     choose $variants, shift->headers;
+}
+
+sub user_is_admin {
+    my $self = shift;
+    return $self->{pgxn_admin} if exists $self->{pgxn_admin};
+
+    # Authenticated?
+    my $u = $self->user or return $self->{pgxn_admin} = 0;
+
+    # Look up the user.
+    return $self->{pgxn_admin} = PGXN::Manager->conn->run(sub {
+        (shift->selectrow_array(
+            'SELECT is_admin FROM users WHERE nickname = ?',
+            undef, $u
+        ))[0];
+    });
 }
 
 1;
@@ -99,6 +116,13 @@ are sorted by quality, highest quality first. For example:
 Note that also zero quality variants are included in the return list even if
 these should never be served to the client. So if you're trying to chose the
 base variant, exclude those with zero quality.
+
+=head3 C<user_is_admin>
+
+  say 'Hey there admin' if $req->user_is_admin;
+
+Returns true if the requested is authenticated and the user is a PGXN admin.
+Otherwise returns false.
 
 =head1 Author
 
