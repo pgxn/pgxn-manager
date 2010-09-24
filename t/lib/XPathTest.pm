@@ -121,11 +121,11 @@ sub test_basics {
 
                 my $i = 0;
                 for my $spec (
-                    [ '/auth/upload',      'Upload a Distribution' ],
-                    [ '/auth/show',        'Show my Files'         ],
-                    [ '/auth/permissions', 'Show Permissions'      ],
-                    [ '/auth/user',        'Edit Account'          ],
-                    [ '/auth/pass',        'Change Password'       ],
+                    [ '/auth/upload',      'Upload a Distribution', 'upload'      ],
+                    [ '/auth/show',        'Show my Files',         'show',       ],
+                    [ '/auth/permissions', 'Show Permissions',      'permissions' ],
+                    [ '/auth/user',        'Edit Account',          'account'     ],
+                    [ '/auth/pass',        'Change Password',       'passwd'      ],
                 ) {
                     $i++;
                     $_->is(
@@ -138,9 +138,9 @@ sub test_basics {
                     ) if $req->path eq $spec->[0];
                     my $uri = $req->uri_for($spec->[0]);
                     $_->is(
-                        qq{./li[$i]/a[\@href="$uri"]},
+                        qq{./li[$i]/a[\@id="$spec->[2]"][\@href="$uri"]},
                         $mt->maketext($spec->[1]),
-                        "Link $i should be to $uri and have proper text"
+                        "Link $i, id $spec->[2], href $uri, should have proper text"
                     );
                 }
             });
@@ -153,7 +153,7 @@ sub test_basics {
 
                     my $i = 0;
                     for my $spec (
-                        [ '/auth/admin/requests', 'Moderate Requests' ],
+                        [ '/auth/admin/requests', 'Moderate Requests', 'moderate' ],
                     ) {
                         $i++;
                         $_->is(
@@ -166,9 +166,9 @@ sub test_basics {
                         ) if $req->path eq $spec->[0];
                         my $uri = $req->uri_for($spec->[0]);
                         $_->is(
-                            qq{./li[$i]/a[\@href="$uri"]},
+                            qq{./li[$i]/a[\@id="$spec->[2]"][\@href="$uri"]},
                             $mt->maketext($spec->[1]),
-                            "Link $i should be to $uri and have proper text"
+                            "Link $i, id $spec->[2], href $uri, should have proper text"
                         );
                     }
                 });
@@ -180,9 +180,9 @@ sub test_basics {
 
                 my $i = 0;
                 for my $spec (
-                    [ '/auth',    'Log In' ],
-                    [ '/request', 'Request Account' ],
-                    [ '/reset',   'Reset Password' ],
+                    [ '/auth',    'Log In',          'login'   ],
+                    [ '/request', 'Request Account', 'request' ],
+                    [ '/reset',   'Reset Password',  'reset'   ],
                 ) {
                     $i++;
                     $_->is(
@@ -195,9 +195,9 @@ sub test_basics {
                     ) if $req->path eq $spec->[0];
                     my $uri = $req->uri_for($spec->[0]);
                     $_->is(
-                        qq{./li[$i]/a[\@href="$uri"]},
+                        qq{./li[$i]/a[\@id="$spec->[2]"][\@href="$uri"]},
                         $mt->maketext($spec->[1]),
-                        "Link $i should be to $uri and have proper text"
+                        "Link $i, id $spec->[2], href $uri, should have proper text"
                     );
                 }
             });

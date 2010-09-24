@@ -99,18 +99,19 @@ BEGIN { create_wrapper wrapper => sub {
                     id is $req->user ? 'usermenu' : 'publicmenu';
                     for my $item (
                         ($req->user ? (
-                            [ '/auth/upload',      'Upload a Distribution' ],
-                            [ '/auth/show',        'Show my Files'         ],
-                            [ '/auth/permissions', 'Show Permissions'      ],
-                            [ '/auth/user',        'Edit Account'          ],
-                            [ '/auth/pass',        'Change Password'       ],
+                            [ '/auth/upload',      'Upload a Distribution', 'upload'      ],
+                            [ '/auth/show',        'Show my Files',         'show',       ],
+                            [ '/auth/permissions', 'Show Permissions',      'permissions' ],
+                            [ '/auth/user',        'Edit Account',          'account'     ],
+                            [ '/auth/pass',        'Change Password',       'passwd'      ],
                         ) : (
-                            [ '/auth',    'Log In'          ],
-                            [ '/request', 'Request Account' ],
-                            [ '/reset',   'Reset Password'  ],
+                            [ '/auth',    'Log In',          'login'   ],
+                            [ '/request', 'Request Account', 'request' ],
+                            [ '/reset',   'Reset Password',  'reset'   ],
                         )),
                     ) {
                         li { a {
+                            id is $item->[2];
                             href is $req->uri_for($item->[0]);
                             class is 'active' if $path eq $item->[0];
                             T $item->[1];
@@ -124,9 +125,10 @@ BEGIN { create_wrapper wrapper => sub {
                         class is 'menu';
                         id is 'adminmenu';
                         for my $item (
-                            [ '/auth/admin/requests', 'Moderate Requests' ],
+                            [ '/auth/admin/requests', 'Moderate Requests', 'moderate' ],
                         ) {
                             li { a {
+                                id is $item->[2];
                                 href is $req->uri_for($item->[0]);
                                 class is 'active' if $path eq $item->[0];
                                 T $item->[1];
@@ -139,10 +141,11 @@ BEGIN { create_wrapper wrapper => sub {
                     class is 'menu';
                     id is 'allmenu';
                     for my $item (
-                        [ '/about',   'About' ],
-                        [ '/contact', 'Contact' ],
+                        [ '/about',   'About',   'about'   ],
+                        [ '/contact', 'Contact', 'contact' ],
                     ) {
                         li { a {
+                            id is $item->[2];
                             href is $req->uri_for($item->[0]);
                             class is 'active' if $path eq $item->[0];
                             T $item->[1];
