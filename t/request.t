@@ -4,7 +4,6 @@ use 5.12.0;
 use utf8;
 use Test::More tests => 25;
 #use Test::More 'no_plan';
-use lib '/Users/david/dev/github/Plack/lib';
 use HTTP::Request::Common;
 use HTTP::Message::PSGI;
 use MIME::Base64;
