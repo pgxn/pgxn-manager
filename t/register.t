@@ -2,7 +2,7 @@
 
 use 5.12.0;
 use utf8;
-use Test::More tests => 491;
+use Test::More tests => 515;
 #use Test::More 'no_plan';
 use lib '/Users/david/dev/github/Plack/lib';
 use Plack::Test;

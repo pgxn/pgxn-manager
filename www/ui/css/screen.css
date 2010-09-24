@@ -43,7 +43,7 @@ body > #sidebar
 {margin:0 20px 18px 5px; color:#808080; font-size:0.9em; font-weight:bold; letter-spacing:-1px; text-align:right;}
 
 #sidebar h3
-{margin:20px 18px 4px 5px; color:#606060;}
+{margin:20px 18px 4px 5px; color:#236691;}
 
 #sidebar  p
 {margin:0 20px 18px 5px; color:#606060; font-size:0.8em;}
@@ -55,22 +55,22 @@ body > #sidebar
 
 /**************** Navigation menu styles ****************/
 
-#menu {
+.menu {
     list-style-type: none; border:0; padding:0;
 }
 
-#menu li {margin:0;}
+.menu li {margin:0;}
 
-#menu a
+.menu a
 {display:block; padding:5px 18px 5px 0; color:#606060; background:#e0e0e0; border-right: 2px solid silver; font-size:1.3em; font-weight:normal; text-decoration:none; letter-spacing:-1px; line-height: 1.5em;}
 
-#menu a:hover
+.menu a:hover
 {color:#303030; background:#caddf9;}
 
-#menu a.active
+.menu a.active
 {padding:5px 18px 5px 0; background:#fafafa; border-top:2px solid #c0c0c0; border-bottom:2px solid #c0c0c0;border-right:2px solid #fafafa;}
 
-#menu a.active:hover
+.menu a.active:hover
 {color:#505050; background:#fafafa;}
 
 /**************** Content area styles ****************/

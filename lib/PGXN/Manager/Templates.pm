@@ -93,9 +93,10 @@ BEGIN { create_wrapper wrapper => sub {
                 h1 { T 'PGXN Manager' };
                 h2 { T 'tagline' };
 
+                my $path = $req->path;
                 ul {
-                    id is 'menu';
-                    my $path = $req->path;
+                    class is 'menu';
+                    id is $req->user ? 'usermenu' : 'publicmenu';
                     for my $item (
                         ($req->user ? (
                             [ '/auth/upload',      'Upload a Distribution' ],
@@ -108,16 +109,46 @@ BEGIN { create_wrapper wrapper => sub {
                             [ '/request', 'Request Account' ],
                             [ '/reset',   'Reset Password'  ],
                         )),
+                    ) {
+                        li { a {
+                            href is $req->uri_for($item->[0]);
+                            class is 'active' if $path eq $item->[0];
+                            T $item->[1];
+                        } };
+                    }
+                }; # /ul id="usermenu|publicmenu"
+
+                if ($req->user_is_admin) {
+                    h3 { T 'Admin Menu' };
+                    ul {
+                        class is 'menu';
+                        id is 'adminmenu';
+                        for my $item (
+                            [ '/auth/admin/requests', 'Moderate Requests' ],
+                        ) {
+                            li { a {
+                                href is $req->uri_for($item->[0]);
+                                class is 'active' if $path eq $item->[0];
+                                T $item->[1];
+                            } };
+                        }
+                }; # /ul id="allmenu"
+                }
+
+                ul {
+                    class is 'menu';
+                    id is 'allmenu';
+                    for my $item (
                         [ '/about',   'About' ],
                         [ '/contact', 'Contact' ],
                     ) {
                         li { a {
                             href is $req->uri_for($item->[0]);
                             class is 'active' if $path eq $item->[0];
-                            $item->[1];
+                            T $item->[1];
                         } };
                     }
-                }; # /ul id="menu"
+                }; # /ul id="allmenu"
 
             }; # /div id="sidebar"
         }; # /body

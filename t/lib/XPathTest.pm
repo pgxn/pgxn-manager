@@ -99,12 +99,13 @@ sub test_basics {
 
     # Test the sidebar section.
     $tx->ok( '/html/body/div[@id="sidebar"]', 'Test sidebar', sub {
-        $_->is('count(./*)', 4, 'Should have four sidebar subelements');
+        my $c = $req->user_is_admin ? 7 : 5;
+        $_->is('count(./*)', $c, 'Should have four sidebar subelements');
 
         $_->ok('./a[@id="logo"]', 'Should have logo link', sub {
             $_->is(
                 './@href',
-                $req->base . ($req->user ? '/auth' : ''),
+                $req->base . ($req->user ? 'auth' : ''),
                'It should link to the right place'
             );
             $_->is('./img/@src', $req->base . 'ui/img/logo.png', 'Should have logo');
@@ -112,15 +113,103 @@ sub test_basics {
         $_->is('./h1', $mt->maketext('PGXN Manager'), 'Should have name');
         $_->is('./h2', $mt->maketext('tagline'), 'Should have tagline');
 
-        $_->ok('./ul[@id="menu"]', 'Test menu', sub {
-            $_->is('count(./*)', 5, 'Should have 7 menue subelements');
-            $_->is('count(./li)', 5, 'And they should all be list items');
+        if ($req->user) {
+            # Test user menu.
+            $_->ok('./ul[@id="usermenu"]', 'Test user menu', sub {
+                $_->is('count(./*)', 5, 'Should have 5 menu subelements');
+                $_->is('count(./li)', 5, 'And they should all be list items');
+
+                my $i = 0;
+                for my $spec (
+                    [ '/auth/upload',      'Upload a Distribution' ],
+                    [ '/auth/show',        'Show my Files'         ],
+                    [ '/auth/permissions', 'Show Permissions'      ],
+                    [ '/auth/user',        'Edit Account'          ],
+                    [ '/auth/pass',        'Change Password'       ],
+                ) {
+                    $i++;
+                    $_->is(
+                        "count(./li[$i]/*)", 1,
+                        "Should be one subelement of menu item $i"
+                    );
+                    $_->is(
+                        "./li[$i]/a/\@class", 'active',
+                        "Link $i should be active"
+                    ) if $req->path eq $spec->[0];
+                    my $uri = $req->uri_for($spec->[0]);
+                    $_->is(
+                        qq{./li[$i]/a[\@href="$uri"]},
+                        $mt->maketext($spec->[1]),
+                        "Link $i should be to $uri and have proper text"
+                    );
+                }
+            });
+            if ($req->user_is_admin) {
+                # We have another menu.
+                $_->is('./h3', $mt->maketext('Admin Menu'), 'Should have admin menu header');
+                $_->ok('./ul[@id="adminmenu"]', 'Test admin menu', sub {
+                    $_->is('count(./*)', 1, 'Should have 1 menu subelement');
+                    $_->is('count(./li)', 1, 'And it should be a list item');
+
+                    my $i = 0;
+                    for my $spec (
+                        [ '/auth/admin/requests', 'Moderate Requests' ],
+                    ) {
+                        $i++;
+                        $_->is(
+                            "count(./li[$i]/*)", 1,
+                            "Should be one subelement of menu item $i"
+                        );
+                        $_->is(
+                            "./li[$i]/a/\@class", 'active',
+                            "Link $i should be active"
+                        ) if $req->path eq $spec->[0];
+                        my $uri = $req->uri_for($spec->[0]);
+                        $_->is(
+                            qq{./li[$i]/a[\@href="$uri"]},
+                            $mt->maketext($spec->[1]),
+                            "Link $i should be to $uri and have proper text"
+                        );
+                    }
+                });
+            }
+        } else {
+            $_->ok('./ul[@id="publicmenu"]', 'Test public menu', sub {
+                $_->is('count(./*)', 3, 'Should have 7 menu subelements');
+                $_->is('count(./li)', 3, 'And they should all be list items');
+
+                my $i = 0;
+                for my $spec (
+                    [ '/auth',    'Log In' ],
+                    [ '/request', 'Request Account' ],
+                    [ '/reset',   'Reset Password' ],
+                ) {
+                    $i++;
+                    $_->is(
+                        "count(./li[$i]/*)", 1,
+                        "Should be one subelement of menu item $i"
+                    );
+                    $_->is(
+                        "./li[$i]/a/\@class", 'active',
+                        "Link $i should be active"
+                    ) if $req->path eq $spec->[0];
+                    my $uri = $req->uri_for($spec->[0]);
+                    $_->is(
+                        qq{./li[$i]/a[\@href="$uri"]},
+                        $mt->maketext($spec->[1]),
+                        "Link $i should be to $uri and have proper text"
+                    );
+                }
+            });
+        }
+
+        # Test the menu present for everyone.
+        $_->ok('./ul[@id="allmenu"]', 'Test permanent menu', sub {
+            $_->is('count(./*)', 2, 'Should have 2 menu subelements');
+            $_->is('count(./li)', 2, 'And they should all be list items');
 
             my $i = 0;
             for my $spec (
-                [ '/auth',    'Log In' ],
-                [ '/request', 'Request Account' ],
-                [ '/reset',   'Reset Password' ],
                 [ '/about',   'About' ],
                 [ '/contact', 'Contact' ],
             ) {
@@ -136,13 +225,11 @@ sub test_basics {
                 my $uri = $req->uri_for($spec->[0]);
                 $_->is(
                     qq{./li[$i]/a[\@href="$uri"]},
-                    $spec->[1],
-                    "Link $i should be to $uri"
+                    $mt->maketext($spec->[1]),
+                    "Link $i should be to $uri and have proper text"
                 );
             }
-
         });
-
     });
 }
 
