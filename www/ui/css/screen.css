@@ -8,7 +8,7 @@ body
 {margin:0; padding:0; color:#303030; background:#e0e0e0 url(../img/bodybg.gif) top left repeat-y; font-family: 'trebuchet ms', Helvetica, sans-serif;}
 
 ul
-{list-style:circle; margin:15px 0 20px 0; font-size:0.9em;}
+{list-style:square; margin:15px 0 20px 0; padding:0; font-size:0.9em;}
 
 li
 {margin:0 0 8px 25px;}
@@ -132,16 +132,16 @@ label.invalid:after
 { border:1px solid; margin:10px 4px; padding:15px 10px 15px 50px; background-repeat:no-repeat; background-position:.65em .65em;}
 
 .info
-{ color:#00529b; background-color:#bde5f8; background-image:url('../img/info.png');}
+{ color:#00529b; background-color:#bde5f8; background-image:url(../img/info.png);}
 
 .success
-{ color:#4f8a10; background-color:#dff2bf; background-image:url('../img/success.png');}
+{ color:#4f8a10; background-color:#dff2bf; background-image:url(../img/success.png);}
 
 .warning
-{ color:#9f6000; background-color:#feefb3; background-image:url('../img/warning.png');}
+{ color:#9f6000; background-color:#feefb3; background-image:url(../img/warning.png);}
 
 .error
-{ color:#d8000c; background-color:#ffbaba; background-image:url('../img/error.png');}
+{ color:#d8000c; background-color:#ffbaba; background-image:url(../img/error.png);}
 
 /**************** Tables ****************/
 /* Borrowed from http://veerle-v2.duoh.com/blog/comments/a_css_styled_table/ */
