@@ -264,6 +264,14 @@ Thanks the user for registering for an account.
 
 Administrative interface for moderating user requests.
 
+=head3 C<accept>
+
+Accepts a user account request.
+
+=head3 C<reject>
+
+Rejects a user account request.
+
 =head2 Methods
 
 =head3 C<render>

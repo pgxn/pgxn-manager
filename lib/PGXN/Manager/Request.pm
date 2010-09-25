@@ -136,9 +136,9 @@ Otherwise returns false.
       # Respond to normal request.
   }
 
-Returns true if the request is an C<XMLHttpRequest> request and fals if not.
-This is specific to L<jQuery|http://jquery.org> seding the C<X-Requested-With>
-header.
+Returns true if the request is an C<XMLHttpRequest> request and false if not.
+This is specific to L<jQuery|http://jquery.org> sending the
+C<X-Requested-With> header.
 
 =head1 Author
 

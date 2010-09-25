@@ -17,4 +17,4 @@ PGXN
 UI
 uploader
 tuples
-
+jQuery
