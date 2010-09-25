@@ -9,13 +9,15 @@ use aliased 'PGXN::Manager::Controller';
 use PGXN::Manager;
 
 # The routing table. Define all new routes here.
-get  '/'                    => sub { Controller->home(shift)     };
-get  '/auth'                => sub { Controller->home(shift)     };
-get  '/auth/upload'         => sub { Controller->uplod(shift)    };
-get  '/register'            => sub { Controller->request(shift)  };
-post '/register'            => sub { Controller->register(shift) };
-get  '/thanks'              => sub { Controller->thanks(shift)   };
-get  '/auth/admin/moderate' => sub { Controller->moderate(shift) };
+get  '/'                    => sub { Controller->home(@_)     };
+get  '/auth'                => sub { Controller->home(@_)     };
+get  '/auth/upload'         => sub { Controller->uplod(@_)    };
+get  '/register'            => sub { Controller->request(@_)  };
+post '/register'            => sub { Controller->register(@_) };
+get  '/thanks'              => sub { Controller->thanks(@_)   };
+get  '/auth/admin/moderate' => sub { Controller->moderate(@_) };
+get  '/auth/admin/accept/:nick' => sub { Controller->accept(@_) };
+get  '/auth/admin/reject/:nick' => sub { Controller->reject(@_) };
 
 sub app {
     my $router = shift->router;
@@ -43,7 +45,7 @@ sub app {
             sub {
                 my $env = shift;
                 my $route = $router->match($env) or return [404, [], ['not found']];
-                return $route->{code}->($env);
+                return $route->{code}->($env, $route);
             };
         };
     };

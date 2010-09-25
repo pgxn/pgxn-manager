@@ -321,12 +321,12 @@ template moderate => sub {
                                 img { src is $req->uri_for('/ui/img/play.png' ) };
                             };
                             a {
-                                href is '#';
+                                href is $req->uri_for("/auth/admin/accept/$user->{nickname}");
                                 title is T q{Accept [_1]'s request}, $user->{nickname};
                                 img { src is $req->uri_for('/ui/img/accept.png' ) };
                             };
                             a {
-                                href is '#';
+                                href is $req->uri_for("/auth/admin/reject/$user->{nickname}");
                                 title is T q{Reject [_1]'s request}, $user->{nickname};
                                 img { src is $req->uri_for('/ui/img/reject.png' ) };
                             };

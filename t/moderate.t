@@ -2,8 +2,8 @@
 
 use 5.12.0;
 use utf8;
-#use Test::More tests => 103;
-use Test::More 'no_plan';
+use Test::More tests => 194;
+#use Test::More 'no_plan';
 use Plack::Test;
 use HTTP::Request::Common;
 use PGXN::Manager;
@@ -33,8 +33,8 @@ test_psgi $app => sub {
 
 # Authenticate a non-admin user.
 test_psgi +PGXN::Manager::Router->app => sub {
-    my $cb   = shift;
-    my $req  = GET $uri, Authorization => 'Basic ' . encode_base64("$user:****");
+    my $cb  = shift;
+    my $req = GET $uri, Authorization => 'Basic ' . encode_base64("$user:****");
 
     ok my $res = $cb->($req), "Get $uri with auth token";
     is $res->code, 403, 'Should get 403 response';
@@ -70,9 +70,8 @@ PGXN::Manager->conn->run(sub {
 
 # Authenticate an admin user.
 test_psgi +PGXN::Manager::Router->app => sub {
-    my $cb    = shift;
-    my $admin = TxnTest->admin;
-    my $req   = GET $uri, Authorization => 'Basic ' . encode_base64("$admin:****");
+    my $cb  = shift;
+    my $req = GET $uri, Authorization => 'Basic ' . encode_base64("$admin:****");
 
     ok my $res = $cb->($req), "Get $uri with auth token";
     ok $res->is_success, 'Response should be success';
@@ -180,8 +179,14 @@ test_psgi +PGXN::Manager::Router->app => sub {
                         });
                         $tx->ok('./a[2]', '............... Test second anchor', sub {
                             $tx->is(
+                                './@href',
+                                $req->uri_for("/auth/admin/accept/bob"),
+                                '.................. It should have the accept uri'
+                            );
+                            $tx->is(
                                 'count(./*)', 1,
-                                '.................. Should have 1 subelement');
+                                '.................. Should have 1 subelement'
+                            );
                             my $uri = $req->uri_for('/ui/img/accept.png');
                             $tx->ok(
                                 qq{./img[\@src="$uri"]},
@@ -191,7 +196,13 @@ test_psgi +PGXN::Manager::Router->app => sub {
                         $tx->ok('./a[3]', '............... Test third anchor', sub {
                             $tx->is(
                                 'count(./*)', 1,
-                                '.................. Should have 1 subelement');
+                                '.................. Should have 1 subelement'
+                            );
+                            $tx->is(
+                                './@href',
+                                $req->uri_for("/auth/admin/reject/bob"),
+                                '.................. It should have the reject uri'
+                            );
                             my $uri = $req->uri_for('/ui/img/reject.png');
                             $tx->ok(
                                 qq{./img[\@src="$uri"]},
@@ -261,7 +272,13 @@ test_psgi +PGXN::Manager::Router->app => sub {
                         $tx->ok('./a[2]', '............... Test second anchor', sub {
                             $tx->is(
                                 'count(./*)', 1,
-                                '.................. Should have 1 subelement');
+                                '.................. Should have 1 subelement'
+                            );
+                            $tx->is(
+                                './@href',
+                                $req->uri_for("/auth/admin/accept/joe"),
+                                '.................. It should have the accept uri'
+                            );
                             my $uri = $req->uri_for('/ui/img/accept.png');
                             $tx->ok(
                                 qq{./img[\@src="$uri"]},
@@ -271,7 +288,13 @@ test_psgi +PGXN::Manager::Router->app => sub {
                         $tx->ok('./a[3]', '............... Test third anchor', sub {
                             $tx->is(
                                 'count(./*)', 1,
-                                '.................. Should have 1 subelement');
+                                '.................. Should have 1 subelement'
+                            );
+                            $tx->is(
+                                './@href',
+                                $req->uri_for("/auth/admin/reject/joe"),
+                                '.................. It should have the reject uri'
+                            );
                             my $uri = $req->uri_for('/ui/img/reject.png');
                             $tx->ok(
                                 qq{./img[\@src="$uri"]},
@@ -290,19 +313,14 @@ PGXN::Manager->conn->run(sub {
     my $dbh = shift;
     $dbh->do(
         'SELECT set_user_status(?, ?, ?)',
-        undef, $admin, 'joe', 'active'
-    );
-    $dbh->do(
-        'SELECT set_user_status(?, ?, ?)',
-        undef, $admin, 'bob', 'active'
-    );
+        undef, $admin, $_, 'active'
+    ) for qw(joe bob);
 });
 
 # Send the request again.
 test_psgi +PGXN::Manager::Router->app => sub {
-    my $cb    = shift;
-    my $admin = TxnTest->admin;
-    my $req   = GET $uri, Authorization => 'Basic ' . encode_base64("$admin:****");
+    my $cb  = shift;
+    my $req = GET $uri, Authorization => 'Basic ' . encode_base64("$admin:****");
 
     ok my $res = $cb->($req), "Get $uri with auth token again";
     ok $res->is_success, 'Response should be success';
@@ -322,4 +340,66 @@ test_psgi +PGXN::Manager::Router->app => sub {
         });
     });
 };
+
+# Okay, make them new again.
+PGXN::Manager->conn->run(sub {
+    my $dbh = shift;
+    $dbh->do(
+        'SELECT set_user_status(?, ?, ?)',
+        undef, $admin, $_, 'new'
+    ) for qw(joe bob);
+});
+
+# Accept bob.
+test_psgi +PGXN::Manager::Router->app => sub {
+    my $cb     = shift;
+    my $req    = GET(
+        '/auth/admin/accept/bob',
+        Authorization => 'Basic ' . encode_base64("$admin:****")
+    );
+
+    ok my $res = $cb->($req), 'GET acceptance for bob';
+    ok $res->is_redirect, 'Response should be a redirect';
+    is $res->headers->header('location'), $uri, 'Should redirect to /moderate';
+};
+
+# Has bob been accepted?
+PGXN::Manager->conn->run(sub {
+    my $dbh = shift;
+    ok $dbh->selectcol_arrayref(
+        'SELECT status = ? FROM users WHERE nickname = ?',
+        undef, 'active', 'bob'
+    )->[0], 'Bob should be active';
+    ok $dbh->selectcol_arrayref(
+        'SELECT status = ? FROM users WHERE nickname = ?',
+        undef, 'new', 'joe'
+    )->[0], 'Joe should still be new';
+});
+
+# Send an Ajax request to reject joe.
+test_psgi +PGXN::Manager::Router->app => sub {
+    my $cb     = shift;
+    my $req    = GET(
+        '/auth/admin/reject/joe',
+        'X-Requested-With' => 'XMLHttpRequest',
+        Authorization => 'Basic ' . encode_base64("$admin:****")
+    );
+
+    ok my $res = $cb->($req), 'GET rejection for joe';
+    ok $res->is_success, 'Response should be success';
+    is $res->content, 'success', 'And the content should say so';
+};
+
+# Has joe been rejected?
+PGXN::Manager->conn->run(sub {
+    my $dbh = shift;
+    ok $dbh->selectcol_arrayref(
+        'SELECT status = ? FROM users WHERE nickname = ?',
+        undef, 'active', 'bob'
+    )->[0], 'Bob should be active';
+    ok $dbh->selectcol_arrayref(
+        'SELECT status = ? FROM users WHERE nickname = ?',
+        undef, 'deleted', 'joe'
+    )->[0], 'Joe should be deleted';
+});
 

@@ -163,6 +163,39 @@ sub moderate {
     $self->render('/moderate', { req => $req, vars => { sth => $sth }});
 }
 
+sub accept {
+    my $ret = shift->_set_status(@_, 'active');
+    # XXX Reset the user's password and send an email.
+    return $ret;
+}
+
+sub reject {
+    my $ret = shift->_set_status(@_, 'deleted');
+    # XXX Send the user an email. Maybe require a note to be entered by the
+    # admin?
+    return $ret;
+}
+
+sub _set_status {
+    my $self = shift;
+    my $req  = Request->new(shift);
+    my ($params, $status) = @_;
+    return $self->render('/403', { req => $req, code => 403 })
+        unless $req->user_is_admin;
+    PGXN::Manager->conn->run(sub {
+        shift->do(
+            'SELECT set_user_status(?, ?, ?)',
+            undef, $req->user, $params->{nick}, $status
+        );
+    });
+
+    # Simple response for XHR request.
+    return [200, [], ['success']] if $req->is_xhr;
+
+    # Redirect for normal request.
+    return $self->redirect('/auth/admin/moderate', $req);
+}
+
 sub upload {
     my $self = shift;
     my $req  = Request->new(shift);
