@@ -2,7 +2,7 @@
 
 use 5.12.0;
 use utf8;
-use Test::More tests => 25;
+use Test::More tests => 28;
 #use Test::More 'no_plan';
 use HTTP::Request::Common;
 use HTTP::Message::PSGI;
@@ -96,3 +96,12 @@ isa_ok $req = +PGXN::Manager::Request->new(req_to_psgi(
 $req->env->{REMOTE_USER} = $admin;
 is $req->user, $admin, 'Admin should be authenicated';
 ok $req->user_is_admin, '... And should be an admin';
+
+##############################################################################
+# Test is_xhr()
+ok !$req->is_xhr, 'Request should not be Ajax';
+isa_ok $req = +PGXN::Manager::Request->new(req_to_psgi(GET(
+    '/',
+    'X-Requested-With' => 'XMLHttpRequest',
+))), 'PGXN::Manager::Request', 'Request with X-Requested-With header';
+ok $req->is_xhr, 'New request should be Ajax';

@@ -49,6 +49,10 @@ sub user_is_admin {
     });
 }
 
+sub is_xhr {
+    shift->env->{HTTP_X_REQUESTED_WITH} eq 'XMLHttpRequest';
+}
+
 1;
 
 =head1 Name
@@ -123,6 +127,18 @@ base variant, exclude those with zero quality.
 
 Returns true if the requested is authenticated and the user is a PGXN admin.
 Otherwise returns false.
+
+=head3 C<is_xhr>
+
+  if ($req->is_xhr) {
+      # Respond to Ajax request.
+  } else {
+      # Respond to normal request.
+  }
+
+Returns true if the request is an C<XMLHttpRequest> request and fals if not.
+This is specific to L<jQuery|http://jquery.org> seding the C<X-Requested-With>
+header.
 
 =head1 Author
 
