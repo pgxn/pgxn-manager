@@ -15,12 +15,14 @@ sub test_basics {
 
     # Check the head element.
     $tx->ok('/html/head', 'Test head', sub {
-        my $c = $p->{validate_form} ? 8
-              : $p->{with_jquery}   ? 6
+        my $c = $p->{validate_form} ? 9
+              : $p->{with_jquery}   ? 7
                                     : 5;
         $c++ if $p->{desc};
         $c++ if $p->{keywords};
-        $_->is('count(./*)', $c, 'Should have 7 elements below "head"');
+        $c++ if $p->{js};
+
+        $_->is('count(./*)', $c, qq{Should have $c elements below "head"});
 
         $_->is(
             './meta[@http-equiv="Content-Type"]/@content',
@@ -71,20 +73,19 @@ sub test_basics {
         if ($p->{with_jquery} || $p->{validate_form}) {
             $_->is(
                 './script[1][@type="text/javascript"]/@src',
-                $req->uri_for('/ui/js/jquery-1.4.2.min.js'),
+                'http://code.jquery.com/jquery-1.4.2.min.js',
                 'Should load jQuery'
+            );
+            $_->is(
+                './script[2][@type="text/javascript"]/@src',
+                $req->uri_for('/ui/js/lib.js'),
+                'Should load JavaScript library'
             );
             if (my $id = $p->{validate_form}) {
                 $_->is(
-                    './script[2][@type="text/javascript"]/@src',
-                    $req->uri_for('/ui/js/jquery.validate.min.js'),
+                    './script[3][@type="text/javascript"]/@src',
+                    'http://ajax.microsoft.com/ajax/jquery.validate/1.7/jquery.validate.pack.js',
                     'Should load load jQuery Validate plugin'
-                );
-                my $js = quotemeta "\$(document).ready(function(){ \$('#$id').validate";
-                $_->like(
-                    './script[3][@type="text/javascript"]',
-                    qr/$js/,
-                    'Should have the validation function'
                 );
             }
         }

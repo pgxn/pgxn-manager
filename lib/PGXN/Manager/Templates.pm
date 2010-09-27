@@ -58,20 +58,31 @@ BEGIN { create_wrapper wrapper => sub {
                 rel is 'shortcut icon';
                 href is $req->uri_for('/ui/img/favicon.png');
             };
-            if ($args->{with_jquery} || $args->{validate_form}) {
+            if ($args->{js} || $args->{with_jquery} || $args->{validate_form}) {
+                script {
+                    # http://docs.jquery.com/Downloading_jQuery#CDN_Hosted_jQuery
+                    type is 'text/javascript';
+                    src is 'http://code.jquery.com/jquery-1.4.2.min.js';
+                };
                 script {
                     type is 'text/javascript';
-                    src  is $req->uri_for('/ui/js/jquery-1.4.2.min.js');
+                    src  is $req->uri_for('/ui/js/lib.js');
                 };
+                if (my $js = $args->{js}) {
+                    script {
+                        type is 'text/javascript';
+                        outs_raw $js;
+                    }
+                }
                 if (my $id = $args->{validate_form}) {
                     script {
+                        # http://bassistance.de/jquery-plugins/jquery-plugin-validation/
                         type is 'text/javascript';
-                        src  is $req->uri_for('/ui/js/jquery.validate.min.js');
+                        src  is 'http://ajax.microsoft.com/ajax/jquery.validate/1.7/jquery.validate.pack.js';
                     };
-                    # XXX Consider moving this to a function.
                     script {
                         type is 'text/javascript';
-                        outs_raw qq{\$(document).ready(function(){ \$('#$id').validate({errorClass: 'invalid', wrapper: 'div', highlight: function(e) {\$(e).addClass('highlight'); \$(e.form).find('label[for=' + e.id + ']').addClass('highlight');}, unhighlight: function(e) {\$(e).removeClass('highlight'); \$(e.form).find('label[for=' + e.id + ']').removeClass('highlight');}, errorPlacement: function (er, el) { \$(el).before(er) } }); });}
+                        outs_raw "PGXN.validate_form('$id')";
                     };
                 }
             }
@@ -243,7 +254,7 @@ template request => sub {
     } $req, {
         description   => 'Request a PGXN Account and start distributing your PostgreSQL extensions!',
         keywords      => 'pgxn,postgresql,distribution,register,account,user,nickname',
-        validate_form => 'reqform',
+        validate_form => '#reqform',
         $args ? %{ $args } : ()
     }
 };
@@ -297,7 +308,27 @@ template moderate => sub {
                     row {
                         class is ++$i % 2 ? 'spec' : 'specalt';
                         my $name = $user->{full_name} || T '~[none given~]';
-                        th { scope is 'row'; $user->{nickname} };
+                        th {
+                            scope is 'row';
+                            a {
+                                class is 'userplay';
+                                href is '#';
+                                title is T q{Review [_1]'s }, $user->{nickname};
+                                img { src is $req->uri_for('/ui/img/play.png' ) };
+                            };
+                            div {
+                                class is 'userinfo';
+                                id is "$user->{nickname}_why";
+                                div {
+                                    class is 'why';
+                                    p { T q{[_1] says:}, $user->{nickname}};
+                                    blockquote {
+                                        p { $user->{why} };
+                                    };
+                                };
+                            };
+                            span { $user->{nickname} };
+                        };
                         cell {
                             if (my $uri = $user->{uri}) {
                                 title is T q{Visit [_1]'s site}, $user->{nickname};
@@ -315,11 +346,6 @@ template moderate => sub {
                         };
                         cell {
                             class is 'actions';
-                            a {
-                                href is '#';
-                                title is T q{Review [_1]'s }, $user->{nickname};
-                                img { src is $req->uri_for('/ui/img/play.png' ) };
-                            };
                             a {
                                 href is $req->uri_for("/auth/admin/accept/$user->{nickname}");
                                 title is T q{Accept [_1]'s request}, $user->{nickname};
@@ -345,7 +371,7 @@ template moderate => sub {
                 }
             }
         };
-    } $req, $args;
+    } $req, { %{ $args }, with_jquery => 1, js => 'PGXN.init_moderate()' };
 };
 
 1;

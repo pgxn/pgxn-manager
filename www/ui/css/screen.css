@@ -128,10 +128,10 @@ label.invalid:after
 
 /**************** Messages ****************/
 /* Borrowed from http://css.dzone.com/news/css-message-boxes-different-me */
-.info, .success, .warning, .error, .validation
+.info, .success, .warning, .error, .validation, .why
 { border:1px solid; margin:10px 4px; padding:15px 10px 15px 50px; background-repeat:no-repeat; background-position:.65em .65em;}
 
-.info
+.info, .why
 { color:#00529b; background-color:#bde5f8; background-image:url(../img/info.png);}
 
 .success
@@ -149,31 +149,38 @@ table
 {width:100%;}
 
 th 
-{font-weight:bold; font-size:90%; color: #236691; border-right: 1px solid #C1DAD7; border-bottom: 1px solid #C1DAD7; border-top: 1px solid #C1DAD7; letter-spacing: 2px; text-align: left; padding: 6px 6px 6px 12px; background: #CAE8EA url(../img/thbg.png) no-repeat;}
+{font-weight:bold; font-size:90%; color:#236691; border-right:1px solid #C1DAD7; border-bottom:1px solid #C1DAD7; border-top:1px solid #C1DAD7; text-align:left; padding:6px 6px 6px 12px; background:#CAE8EA url(../img/thbg.png) no-repeat;}
 
 th:first-child, td:first-child
 {border-left:1px solid#c1dad7;}
 
 th.nobg
-{text-transform: uppercase; border-top: 0; border-left: 0; border-right: 1px solid #C1DAD7; background: none;}
+{text-transform:uppercase; border-top:0; border-left:0; border-right:1px solid #C1DAD7; background:none;}
 
 tr.specalt a
 {color:#91867c;font-weight:bold;}
 
 tr.spec th
-{border-left: 1px solid #C1DAD7; border-top: 0; background: #fff url(../img/wedge_brown.gif) no-repeat; font-weight:bold; font-size:90%;}
+{border-left:1px solid #C1DAD7; border-top:0; background:#fff url(../img/wedge_brown.gif) no-repeat; font-weight:bold; font-size:90%;}
 
 tr.specalt th
-{border-left: 1px solid #C1DAD7; border-top: 0; background: #fff url(../img/wedge_blue.gif) no-repeat; font-weight:bold; font-size:90%; color: #91867c;}
+{border-left:1px solid #C1DAD7; border-top:0; background:#fff url(../img/wedge_blue.gif) no-repeat; font-weight:bold; font-size:90%; color:#91867c;}
 
 td
-{ border-right: 1px solid #C1DAD7; border-bottom: 1px solid #C1DAD7; background: #fff; padding: 6px 6px 6px 12px; color: #236691;}
+{ border-right:1px solid #C1DAD7; border-bottom:1px solid #C1DAD7; background:#fff; padding:6px 6px 6px 12px; color:#236691;}
 
 tr.specalt td
-{background: #f5fafa; color: #91867c;}
+{background:#f5fafa; color:#91867c;}
+
+tr {line-height:24px;vertical-align:top;}
 
 td.actions
-{width:96px;}
+{width:64px;}
 
-td.actions img
+#userlist img
 {border:0;margin:0 .5em 0 0;padding:0;}
+
+#userlist th img {display:block; float:left;}
+
+#userlist .userinfo {display:none;background:transparent url(../img/bubup.png) 34px 0 no-repeat;margin:0;width:20em;}
+#userlist .userinfo blockquote {margin-left:-40px;font-style:italic;font-size:80%;}

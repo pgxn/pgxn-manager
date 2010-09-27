@@ -2,7 +2,7 @@
 
 use 5.12.0;
 use utf8;
-use Test::More tests => 194;
+use Test::More tests => 214;
 #use Test::More 'no_plan';
 use Plack::Test;
 use HTTP::Request::Common;
@@ -80,7 +80,11 @@ test_psgi +PGXN::Manager::Router->app => sub {
 
     $req = PGXN::Manager::Request->new(req_to_psgi($req));
     $req->env->{REMOTE_USER} = $admin;
-    XPathTest->test_basics($tx, $req, $mt, { h1 => 'Moderate Account Requests' });
+    XPathTest->test_basics($tx, $req, $mt, {
+        h1 => 'Moderate Account Requests',
+        with_jquery => 1,
+        js => 1,
+    });
 
     $tx->ok('/html/body/div[@id="content"]', 'Look at the content', sub {
         $tx->is('count(./*)', 4, '... Should have four subelements');
@@ -134,11 +138,35 @@ test_psgi +PGXN::Manager::Router->app => sub {
                 $tx->ok('./tr[1]', '......... Test the first tbody row', sub {
                     $tx->is('./@class', 'spec', '......... It should be class "spec"');
                     $tx->is('count(./*)', 4, '......... Should have four subelements');
-                    $tx->is(
-                        './th[1][@scope="row"]',
-                        'bob',
-                        '............ Should have "Nickname" header'
-                    );
+                    $tx->ok('./th[1][@scope="row"]', '......... Test Nickname header', sub {
+                        $tx->is('count(./*)', 3, '............ Should have three subelements');
+                        $tx->is('./span', 'bob', '............ Should have Nickname');
+                        $tx->ok('./a[@class="userplay"]', '......... Should have play icon', sub {
+                            $tx->is('./@href', '#', '............... It should have no-op href');
+                            $tx->is(
+                                'count(./*)', 1,
+                                '............... It should have 1 subelement');
+                            my $uri = $req->uri_for('/ui/img/play.png');
+                            $tx->ok(
+                                qq{./img[\@src="$uri"]},
+                                '............... Which should be the play image'
+                            );
+                        });
+                        $tx->ok('./div[@class="userinfo"]', '............ And userinfo', sub {
+                            $tx->is('count(./*)', 1, '............ Should have 1 subelement');
+                            $tx->ok('./div[@class="why"]', '............ Which should be "why"', sub {
+                                $tx->is('count(./*)', 2, '............... Should have 2 subelements');
+                                $tx->is(
+                                    './p', $mt->maketext('[_1] says:', 'bob'),
+                                    '............... First should be intro'
+                                );
+                                $tx->is(
+                                    './blockquote/p', 'You want me',
+                                    '............... Second should be "why" text'
+                                );
+                            });
+                        });
+                    });
                     $tx->is(
                         './td[1]', $mt->maketext('~[none given~]'),
                         'Should have name'
@@ -165,19 +193,9 @@ test_psgi +PGXN::Manager::Router->app => sub {
                             './@class', 'actions',
                             '............... It should have a class'
                         );
-                        $tx->is('count(./*)', 3, '............... And three subelements');
-                        $tx->is('count(./a)', 3, '............... All anchors');
+                        $tx->is('count(./*)', 2, '............... And three subelements');
+                        $tx->is('count(./a)', 2, '............... Both anchors');
                         $tx->ok('./a[1]', '............... Test first anchor', sub {
-                            $tx->is(
-                                'count(./*)', 1,
-                                '.................. Should have 1 subelement');
-                            my $uri = $req->uri_for('/ui/img/play.png');
-                            $tx->ok(
-                                qq{./img[\@src="$uri"]},
-                                '.................. Which should be the play image'
-                            );
-                        });
-                        $tx->ok('./a[2]', '............... Test second anchor', sub {
                             $tx->is(
                                 './@href',
                                 $req->uri_for("/auth/admin/accept/bob"),
@@ -193,7 +211,7 @@ test_psgi +PGXN::Manager::Router->app => sub {
                                 '.................. Which should be the accept image'
                             );
                         });
-                        $tx->ok('./a[3]', '............... Test third anchor', sub {
+                        $tx->ok('./a[2]', '............... Test second anchor', sub {
                             $tx->is(
                                 'count(./*)', 1,
                                 '.................. Should have 1 subelement'
@@ -214,11 +232,36 @@ test_psgi +PGXN::Manager::Router->app => sub {
                 $tx->ok('./tr[2]', '......... Test the second tbody row', sub {
                     $tx->is('./@class', 'specalt', '......... It should be class "spec"');
                     $tx->is('count(./*)', 4, '......... Should have four subelements');
-                    $tx->is(
-                        './th[1][@scope="row"]',
-                        'joe',
-                        '............ Should have "Nickname" header'
-                    );
+                    $tx->ok('./th[1][@scope="row"]', '......... Test Nickname header', sub {
+                        $tx->is('count(./*)', 3, '............ Should have three subelements');
+                        $tx->is('./span', 'joe', '............ Should have Nickname');
+                        $tx->ok('./a[@class="userplay"]', '......... Should have play icon', sub {
+                            $tx->is('./@href', '#', '............... It should have no-op href');
+                            $tx->is(
+                                'count(./*)', 1,
+                                '............... It should have 1 subelement');
+                            my $uri = $req->uri_for('/ui/img/play.png');
+                            $tx->ok(
+                                qq{./img[\@src="$uri"]},
+                                '............... Which should be the play image'
+                            );
+                        });
+                        $tx->ok('./div[@class="userinfo"]', '............ And userinfo', sub {
+                            $tx->is('count(./*)', 1, '............ Should have 1 subelement');
+                            $tx->ok('./div[@class="why"]', '............ Which should be "why"', sub {
+                                $tx->is('count(./*)', 2, '............... Should have 2 subelements');
+                                $tx->is(
+                                    './p', $mt->maketext('[_1] says:', 'joe'),
+                                    '............... First should be intro'
+                                );
+                                $tx->is(
+                                    './blockquote/p', 'I am awesome',
+                                    '............... Second should be "why" text'
+                                );
+                            });
+                        });
+                    });
+
                     $tx->ok('./td[1]', '............ Test second column', sub {
                         $tx->is(
                             './@title', $mt->maketext(q{Visit [_1]'s site}, 'joe'),
@@ -257,19 +300,9 @@ test_psgi +PGXN::Manager::Router->app => sub {
                             './@class', 'actions',
                             '............... It should have a class'
                         );
-                        $tx->is('count(./*)', 3, '............... And three subelements');
-                        $tx->is('count(./a)', 3, '............... All anchors');
+                        $tx->is('count(./*)', 2, '............... And two subelements');
+                        $tx->is('count(./a)', 2, '............... Both anchors');
                         $tx->ok('./a[1]', '............... Test first anchor', sub {
-                            $tx->is(
-                                'count(./*)', 1,
-                                '.................. Should have 1 subelement');
-                            my $uri = $req->uri_for('/ui/img/play.png');
-                            $tx->ok(
-                                qq{./img[\@src="$uri"]},
-                                '.................. Which should be the play image'
-                            );
-                        });
-                        $tx->ok('./a[2]', '............... Test second anchor', sub {
                             $tx->is(
                                 'count(./*)', 1,
                                 '.................. Should have 1 subelement'
@@ -285,7 +318,7 @@ test_psgi +PGXN::Manager::Router->app => sub {
                                 '.................. Which should be the accept image'
                             );
                         });
-                        $tx->ok('./a[3]', '............... Test third anchor', sub {
+                        $tx->ok('./a[2]', '............... Test second anchor', sub {
                             $tx->is(
                                 'count(./*)', 1,
                                 '.................. Should have 1 subelement'

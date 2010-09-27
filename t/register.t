@@ -25,7 +25,7 @@ my $hparams  = {
     desc          => $desc,
     keywords      => $keywords,
     h1            => $h1,
-    validate_form => 'reqform',
+    validate_form => '#reqform',
 };
 
 # Request a registration form.
