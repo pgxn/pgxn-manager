@@ -4,9 +4,11 @@ use 5.12.0;
 use utf8;
 use PGXN::Manager;
 use aliased 'PGXN::Manager::Request';
+use PGXN::Manager::Locale;
 use PGXN::Manager::Templates;
 use aliased 'PGXN::Manager::Distribution';
 use HTML::Entities;
+use JSON::XS;
 use Encode;
 use namespace::autoclean;
 
@@ -26,6 +28,52 @@ sub redirect {
     my $res = $req->new_response;
     $res->redirect($uri);
     return $res->finalize;
+}
+
+my %message_for = (
+    success   => q{Success},
+    forbidden => q{Sorry, you do not have permission to access this resource.},
+    notfound  => q{Sorry, there doesn't seem to be a resource at this address.}
+);
+
+my %code_for = (
+    success   => 200,
+    forbidden => 403,
+    notfound  => 404,
+);
+
+sub respond_with {
+    my ($self, $status, $req) = @_;
+    my $code = $code_for{$status} or die qq{No error code for status "$status"};
+
+    return $self->render("/$status", { req => $req, code => $code })
+        unless $req->is_xhr;
+
+    my $l    = PGXN::Manager::Locale->accept($req->env->{HTTP_ACCEPT_LANGUAGE});
+    my $msg  = $message_for{ $status } or die qq{No message for status "$status"};
+    $msg     = $l->maketext($msg);
+
+    my $type;
+    given (scalar $req->respond_with) {
+        when ('html') {
+            $msg = '<p class="error">' . encode_entities(encode_utf8 $msg) . '</p>';
+            $type = 'text/html; charset=UTF-8';
+        } when ('json') {
+            $msg = encode_json { message => $msg };
+            $type = 'application/json';
+        }
+        when ('atom') {
+            # XXX WTF to do here?
+            $type = 'text/plain';
+            $msg = encode_utf8 $msg;
+        }
+        default {
+            # Text is just text.
+            $type = 'text/plain';
+            $msg = encode_utf8 $msg;
+        }
+    }
+    return [$code, ['Content-Type' => $type], [$msg]];
 }
 
 sub home {
@@ -149,8 +197,8 @@ sub thanks {
 sub moderate {
     my $self = shift;
     my $req  = Request->new(shift);
-    return $self->render('/403', { req => $req, code => 403 })
-        unless $req->user_is_admin;
+    return $self->respond_with('forbidden', $req) unless $req->user_is_admin;
+
     my $sth = PGXN::Manager->conn->run(sub {
         shift->prepare(q{
             SELECT nickname, full_name, email, uri, why
@@ -180,33 +228,33 @@ sub _set_status {
     my $self = shift;
     my $req  = Request->new(shift);
     my ($params, $status) = @_;
-    return $self->render('/403', { req => $req, code => 403 })
-        unless $req->user_is_admin;
+    return $self->respond_with('forbidden', $req) unless $req->user_is_admin;
+
     PGXN::Manager->conn->run(sub {
-        shift->do(
+        shift->selectcol_arrayref(
             'SELECT set_user_status(?, ?, ?)',
             undef, $req->user, $params->{nick}, $status
-        );
-    });
+        )->[0];
+    }) or return $self->respond_with('notfound', $req);
 
     # Simple response for XHR request.
-    return [200, [], ['success']] if $req->is_xhr;
+    return $self->respond_with('success', $req) if $req->is_xhr;
 
     # Redirect for normal request.
     return $self->redirect('/auth/admin/moderate', $req);
 }
 
 sub upload {
-    my $self = shift;
-    my $req  = Request->new(shift);
-    my $upload = $req->uploads->{distribution};
-    my $dist = Distribution->new(
-        archive  => $upload->path,
-        basename => $upload->basename,
-        owner    => $req->remote_user,
-    );
-    $dist->process or $self->render_error($dist->error);
-    $self->render('/done', { req => $req });
+    # my $self = shift;
+    # my $req  = Request->new(shift);
+    # my $upload = $req->uploads->{distribution};
+    # my $dist = Distribution->new(
+    #     archive  => $upload->path,
+    #     basename => $upload->basename,
+    #     owner    => $req->remote_user,
+    # );
+    # $dist->process or $self->respond_with('XXX', $req, $dist->error);
+    # $self->render('/done', { req => $req });
 }
 
 1;
@@ -285,6 +333,24 @@ Renders the response to the request using L<PGXN::Manager::Templates>.
   $root->render('/home', $req);
 
 Redirect the request to a new page.
+
+=head3 C<respond_with>
+
+  $root->respond_with('forbidden', $req);
+
+Returns simple response to the requester. This method detects the preferred
+response data type and responds accordingly. A simple status message is
+included in the body of the response. The currently-supported responses are:
+
+=over
+
+=item C<success>
+
+=item C<forbidden>
+
+=item C<notfound>
+
+=back
 
 =head1 Author
 

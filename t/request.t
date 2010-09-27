@@ -2,7 +2,7 @@
 
 use 5.12.0;
 use utf8;
-use Test::More tests => 28;
+use Test::More tests => 30;
 #use Test::More 'no_plan';
 use HTTP::Request::Common;
 use HTTP::Message::PSGI;
@@ -72,6 +72,14 @@ is $req->respond_with, 'atom', 'Should prefer atom again';
 # Now have them tie. Smallest content-size should win.
 $req->headers->header(Accept => 'application/atom+xml;q=0.91,application/json;q=0.91)');
 is $req->respond_with, 'json', 'Should prefer json for a tie';
+
+isa_ok $req = PGXN::Manager::Request->new(req_to_psgi(GET(
+    '/',
+    'Accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+    'Accept-Encoding' => 'gzip, deflate',
+    'Accept-Language' => 'en-us,en;q=0.5',
+))), 'PGXN::Manager::Request', 'Request with different headers';
+is $req->respond_with, 'html', 'Should respond with HTML';
 
 ##############################################################################
 # Test user_is_admin()

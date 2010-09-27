@@ -49,7 +49,7 @@ test_psgi +PGXN::Manager::Router->app => sub {
         $tx->is('count(./*)', 2, '... Should have two subelements');
         $tx->is(
             './p[@class="error"]',
-            $mt->maketext(q{Sorry, you do not have permission to access this page.}),
+            $mt->maketext(q{Sorry, you do not have permission to access this resource.}),
             '... Should have the error message'
         );
     });
@@ -420,7 +420,8 @@ test_psgi +PGXN::Manager::Router->app => sub {
 
     ok my $res = $cb->($req), 'GET rejection for joe';
     ok $res->is_success, 'Response should be success';
-    is $res->content, 'success', 'And the content should say so';
+    is $res->content, $mt->maketext('Success'),
+        'And the content should say so';
 };
 
 # Has joe been rejected?

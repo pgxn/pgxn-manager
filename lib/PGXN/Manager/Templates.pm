@@ -267,13 +267,13 @@ template thanks => sub {
     } $req, $args;
 };
 
-template 403 => sub {
+template forbidden => sub {
     my ($self, $req, $args) = @_;
     wrapper {
         h1 { T 'Permission Denied' };
         p {
             class is 'error';
-            T q{Sorry, you do not have permission to access this page.};
+            T q{Sorry, you do not have permission to access this resource.};
         };
     } $req, $args;
 };
@@ -347,11 +347,13 @@ template moderate => sub {
                         cell {
                             class is 'actions';
                             a {
+                                class is 'accept';
                                 href is $req->uri_for("/auth/admin/accept/$user->{nickname}");
                                 title is T q{Accept [_1]'s request}, $user->{nickname};
                                 img { src is $req->uri_for('/ui/img/accept.png' ) };
                             };
                             a {
+                                class is 'reject';
                                 href is $req->uri_for("/auth/admin/reject/$user->{nickname}");
                                 title is T q{Reject [_1]'s request}, $user->{nickname};
                                 img { src is $req->uri_for('/ui/img/reject.png' ) };
