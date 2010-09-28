@@ -44,7 +44,10 @@ sub app {
             };
             sub {
                 my $env = shift;
-                my $route = $router->match($env) or return [404, [], ['not found']];
+                my $route = $router->match($env) or return Controller->respond_with(
+                    'notfound',
+                    PGXN::Manager::Request->new($env)
+                );
                 return $route->{code}->($env, $route);
             };
         };

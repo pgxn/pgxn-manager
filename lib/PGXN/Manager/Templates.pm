@@ -278,6 +278,17 @@ template forbidden => sub {
     } $req, $args;
 };
 
+template notfound => sub {
+    my ($self, $req, $args) = @_;
+    wrapper {
+        h1 { T 'Not Found' };
+        p {
+            class is 'warning';
+            T q{Resource not found.};
+        };
+    } $req, $args;
+};
+
 template moderate => sub {
     my ($self, $req, $args) = @_;
     wrapper {

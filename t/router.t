@@ -2,7 +2,7 @@
 
 use 5.12.0;
 use utf8;
-use Test::More tests => 22;
+use Test::More tests => 25;
 #use Test::More 'no_plan';
 use Plack::Test;
 use HTTP::Request::Common;
@@ -11,11 +11,13 @@ use PGXN::Manager;
 use lib 't/lib';
 use TxnTest;
 use MIME::Base64;
+use Encode;
 
 BEGIN {
     use_ok 'PGXN::Manager::Router' or die;
 }
 
+# Test home page.
 test_psgi +PGXN::Manager::Router->app => sub {
     my $cb = shift;
     ok my $res = $cb->(GET '/'), 'Fetch /';
@@ -23,12 +25,22 @@ test_psgi +PGXN::Manager::Router->app => sub {
     like $res->content, qr/Welcome/, 'The body should look correct';
 };
 
+# Test static file.
 test_psgi +PGXN::Manager::Router->app => sub {
     my $cb = shift;
     ok my $res = $cb->(GET '/ui/css/screen.css'), 'Fetch /ui/css/screen.css';
     is $res->code, 200, 'Should get 200 response';
     file_contents_is 'www/ui/css/screen.css', $res->content,
         'The file should have been served';
+};
+
+# Test bogus URL.
+test_psgi +PGXN::Manager::Router->app => sub {
+    my $cb = shift;
+    ok my $res = $cb->(GET '/nonexistentpage'), 'Fetch /nonexistentpage';
+    is $res->code, 404, 'Should get 404 response';
+    like decode_utf8($res->content), qr/Where’d It Go\?/,
+        'The body should have the error';
 };
 
 # /auth should require authentication.

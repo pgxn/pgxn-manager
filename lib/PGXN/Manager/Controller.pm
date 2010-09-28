@@ -33,7 +33,7 @@ sub redirect {
 my %message_for = (
     success   => q{Success},
     forbidden => q{Sorry, you do not have permission to access this resource.},
-    notfound  => q{Sorry, there doesn't seem to be a resource at this address.}
+    notfound  => q{Resource not found.},
 );
 
 my %code_for = (

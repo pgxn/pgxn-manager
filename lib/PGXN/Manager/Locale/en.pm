@@ -13,6 +13,8 @@ our %Lexicon = (
     Welcome   => 'Welcome',
     'PGXN Manager' => 'PGXN Manager',
     tagline => 'Release it on PGXN!',
+    'Resource not found.' => 'Hrm. I can’t find a resource at this address. I looked over here and over there and could find nothing. Sorry about that, I’m fresh out of ideas.',
+    'Not Found' => 'Where’d It Go?',
 );
 
 1;
