@@ -29,12 +29,13 @@ PGXN = {
                     url: this.href,
                     dataType: 'html',
                     beforeSend: function() {
-				        tr.children().animate({'backgroundColor':'#fb6c6c'}, 300);
+				        tr.children().css({'backgroundColor':'#fb6c6c'});
 			        },
                     success: function () {
                         tr.fadeOut(500, function() { tr.remove(); });
                     },
                     error: function (xhr) {
+				        tr.children().css({'backgroundColor':'transparent'});
                         var err = jQuery(xhr.responseText);
                         err.hide();
                         $('#userlist').before(err);
