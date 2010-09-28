@@ -10,18 +10,20 @@ PGXN = {
     init_moderate: function () {
         $(document).ready(function() {
             $('.userplay').click(function (e) {
-                var bub = $(this).next().first();
-                $(bub).css({
+                $('.userplay').next().fadeOut(100);
+                var bub = $(this).next();
+                bub.css({
                     position:'absolute',
                     left:$(this).offset().left - 20,
                     top:$(this).offset().top + 31
                 }).toggle();
-                $(bub).click(function () { $(this).hide() });
+                bub.click(function () { $(this).hide() });
                 e.stopPropagation();
             });
 
             $('.actions .accept, .actions .reject').click(function (e) {
                 e.preventDefault();
+                $('.userplay').next().fadeOut(100);
                 var tr = $(this).parents('tr');
                 $.ajax({
                     url: this.href,
