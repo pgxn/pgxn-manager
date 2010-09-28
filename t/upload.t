@@ -23,9 +23,10 @@ my $keywords = 'pgxn,postgresql,distribution,upload,release,archive,extension,mi
 my $h1       = $mt->maketext('Upload a Distribution');
 my $p        = $mt->maketext(q{So you've developed a PGXN extension and what to distribute it on PGXN. This is the place to upload it! Just find your distribution archive (.zip, .tgz, etc.) in the upload field below and you'll be good to go.});
 my $hparams  = {
-    desc          => $desc,
-    keywords      => $keywords,
-    h1            => $h1,
+    desc       => $desc,
+    keywords   => $keywords,
+    h1         => $h1,
+    page_title => 'Release a distribution archive on the network',
 };
 
 # Connect without authenticating.

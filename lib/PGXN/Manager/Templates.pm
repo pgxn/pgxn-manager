@@ -29,7 +29,11 @@ BEGIN { create_wrapper wrapper => sub {
                 'http-equiv' => 'Content-Type',
                  content     => 'text/html; charset=UTF-8',
             } };
-            title { T 'main_title' };
+            my $title = PGXN::Manager->config->{name} || 'PGXN Manager';
+            if (my $page = $args->{page_title}) {
+                $title .= ' — ' . T $page;
+            }
+            title { $title };
             meta {
                 name is 'generator';
                 content is 'PGXN::Manager ' . PGXN::Manager->VERSION;
@@ -173,7 +177,7 @@ template home => sub {
     my ($self, $req, $args) = @_;
     wrapper {
         h1 { T 'Welcome' };
-    } $req, $args;
+    } $req, { page_title => 'home_page_title', $args ? %{ $args } : () };
 };
 
 template request => sub {
@@ -257,6 +261,7 @@ template request => sub {
         description   => 'Request a PGXN Account and start distributing your PostgreSQL extensions!',
         keywords      => 'pgxn,postgresql,distribution,register,account,user,nickname',
         validate_form => '#reqform',
+        page_title    => 'Request an account and start releasing distributions',
         $args ? %{ $args } : ()
     }
 };
@@ -266,7 +271,7 @@ template thanks => sub {
     wrapper {
         h1 { T 'Thanks' };
         p { T q{Thanks for requesting a PGXN account, [_1]. We'll get back to you once the hangover has worn off.}, $args->{name} };
-    } $req, $args;
+    } $req, { %{ $args }, page_title => 'Thanks for registering for an account' };
 };
 
 template forbidden => sub {
@@ -277,7 +282,7 @@ template forbidden => sub {
             class is 'error';
             T q{Sorry, you do not have permission to access this resource.};
         };
-    } $req, $args;
+    } $req, { page_title => q{Whoops! I don't think you belong here} };
 };
 
 template notfound => sub {
@@ -386,7 +391,12 @@ template moderate => sub {
                 }
             }
         };
-    } $req, { %{ $args }, with_jquery => 1, js => 'PGXN.init_moderate()' };
+    } $req, {
+        page_title => 'User account moderation',
+        with_jquery => 1,
+        js => 'PGXN.init_moderate()',
+        $args ? %{ $args } : (),
+    };
 };
 
 template 'show_upload' => sub {
@@ -430,6 +440,7 @@ template 'show_upload' => sub {
     } $req, {
         description   => 'Upload an archive file with your PGXN extensions in it. It will be distributed on PGXN and mirrored to all the networks.',
         keywords      => 'pgxn,postgresql,distribution,upload,release,archive,extension,mirror,network',
+        page_title => 'Release a distribution archive on the network',
         $args ? %{ $args } : ()
     }
 };

@@ -26,6 +26,7 @@ my $hparams  = {
     keywords      => $keywords,
     h1            => $h1,
     validate_form => '#reqform',
+    page_title    => 'Request an account and start releasing distributions',
 };
 
 # Request a registration form.

@@ -43,7 +43,10 @@ test_psgi +PGXN::Manager::Router->app => sub {
 
     $req = PGXN::Manager::Request->new(req_to_psgi($req));
     $req->env->{REMOTE_USER} = $user;
-    XPathTest->test_basics($tx, $req, $mt, { h1 => 'Permission Denied' });
+    XPathTest->test_basics($tx, $req, $mt, {
+        h1 => 'Permission Denied',
+        page_title => q{Whoops! I don't think you belong here},
+    });
 
     $tx->ok('/html/body/div[@id="content"]', 'Look at the content', sub {
         $tx->is('count(./*)', 2, '... Should have two subelements');
@@ -84,6 +87,7 @@ test_psgi +PGXN::Manager::Router->app => sub {
         h1 => 'Moderate Account Requests',
         with_jquery => 1,
         js => 1,
+        page_title => 'User account moderation',
     });
 
     $tx->ok('/html/body/div[@id="content"]', 'Look at the content', sub {

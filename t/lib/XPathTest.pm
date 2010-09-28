@@ -30,7 +30,11 @@ sub test_basics {
             'Should have the content-type set in a meta header',
         );
 
-        $_->is('./title', $mt->maketext('main_title'), 'Title should be corect');
+        my $title = PGXN::Manager->config->{name} || 'PGXN Manager';
+        if (my $page = $p->{page_title}) {
+            $title .= ' — ' . $mt->maketext($page);
+        }
+        $_->is('./title', $title, 'Title should be correct');
 
         $_->is(
             './meta[@name="generator"]/@content',

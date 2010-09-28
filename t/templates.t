@@ -31,9 +31,10 @@ ok my $html = Template::Declare->show('home', $req, {
 is_well_formed_xml $html, 'The HTML should be well-formed';
 my $tx = Test::XPath->new( xml => $html, is_html => 1 );
 XPathTest->test_basics($tx, $req, $mt, {
-    desc        => 'Whatever desc',
-    keywords    => 'yes,no',
-    h1          => $mt->maketext('Welcome'),
+    desc       => 'Whatever desc',
+    keywords   => 'yes,no',
+    h1         => $mt->maketext('Welcome'),
+    page_title => 'Distribute PostgreSQL extensions on our world-wide network',
 });
 
 # Try in french.
@@ -67,6 +68,7 @@ XPathTest->test_basics($tx, $req, $mt, {
     desc        => 'Whatever desc',
     keywords    => 'yes,no',
     h1          => $mt->maketext('Welcome'),
+    page_title => 'Distribute PostgreSQL extensions on our world-wide network',
 });
 
 # Try with an amin user.
@@ -89,4 +91,5 @@ XPathTest->test_basics($tx, $req, $mt, {
     desc        => 'Whatever desc',
     keywords    => 'yes,no',
     h1          => $mt->maketext('Welcome'),
+    page_title => 'Distribute PostgreSQL extensions on our world-wide network',
 });
