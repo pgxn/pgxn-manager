@@ -190,7 +190,7 @@ template request => sub {
         }
         form {
             id      is 'reqform';
-            action  is '/register';
+            action  is $req->uri_for('/register');
             # Browser should send us UTF-8 if that's what we ask for.
             # http://www.unicode.org/mail-arch/unicode-ml/Archives-Old/UML023/0450.html
             enctype is 'application/x-www-form-urlencoded; charset=UTF-8';
@@ -387,6 +387,51 @@ template moderate => sub {
             }
         };
     } $req, { %{ $args }, with_jquery => 1, js => 'PGXN.init_moderate()' };
+};
+
+template 'show_upload' => sub {
+    my ($self, $req, $args) = @_;
+    wrapper {
+        h1 { T 'Upload a Distribution' };
+        p { T q{So you've developed a PGXN extension and what to distribute it on PGXN. This is the place to upload it! Just find your distribution archive (.zip, .tgz, etc.) in the upload field below and you'll be good to go.} };
+        if (my $err = $args->{error}) {
+            p {
+                class is 'error';
+                outs_raw T @{ $err };
+            };
+        }
+        form {
+            id      is 'upform';
+            action  is $req->uri_for('/auth/upload');
+            enctype is 'multipart/form-data';
+            method  is 'post';
+            fieldset {
+                id is 'uploadit';
+                legend { T 'Upload a Distribution Archive' };
+                label {
+                    attr { for => 'archive', title => T 'Select an archive file to upload.' };
+                    T 'Archive';
+                };
+                input {
+                    id    is 'archive';
+                    name  is 'archive';
+                    type  is 'file';
+                    title is T 'Upload your distribution archive file here.';
+                };
+            };
+            input {
+                class is 'submit';
+                type  is 'submit';
+                name  is 'submit';
+                id    is 'submit';
+                value is T 'Release It!';
+            };
+        };
+    } $req, {
+        description   => 'Upload an archive file with your PGXN extensions in it. It will be distributed on PGXN and mirrored to all the networks.',
+        keywords      => 'pgxn,postgresql,distribution,upload,release,archive,extension,mirror,network',
+        $args ? %{ $args } : ()
+    }
 };
 
 1;

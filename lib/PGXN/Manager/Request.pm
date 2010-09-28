@@ -56,6 +56,7 @@ sub is_xhr {
     shift->env->{HTTP_X_REQUESTED_WITH} eq 'XMLHttpRequest';
 }
 
+# Eliminates use of env->{'plack.request.query'}?
 sub query_parameters {
     my $self = shift;
     $self->{decoded_query_params} ||= Hash::MultiValue->new(
@@ -63,6 +64,7 @@ sub query_parameters {
     );
 }
 
+# XXX Consider replacing using env->{'plack.request.body'}?
 sub body_parameters {
     my $self = shift;
     $self->{decoded_body_params} ||= Hash::MultiValue->new(

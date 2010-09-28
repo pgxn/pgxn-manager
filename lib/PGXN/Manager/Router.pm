@@ -9,15 +9,16 @@ use aliased 'PGXN::Manager::Controller';
 use PGXN::Manager;
 
 # The routing table. Define all new routes here.
-get  '/'                    => sub { Controller->home(@_)     };
-get  '/auth'                => sub { Controller->home(@_)     };
-get  '/auth/upload'         => sub { Controller->uplod(@_)    };
-get  '/register'            => sub { Controller->request(@_)  };
-post '/register'            => sub { Controller->register(@_) };
-get  '/thanks'              => sub { Controller->thanks(@_)   };
-get  '/auth/admin/moderate' => sub { Controller->moderate(@_) };
-get  '/auth/admin/accept/:nick' => sub { Controller->accept(@_) };
-get  '/auth/admin/reject/:nick' => sub { Controller->reject(@_) };
+get  '/'                    => sub { Controller->home(@_)        };
+get  '/auth'                => sub { Controller->home(@_)        };
+get  '/auth/upload'         => sub { Controller->show_upload(@_) };
+post '/auth/upload'         => sub { Controller->upload(@_)      };
+get  '/register'            => sub { Controller->request(@_)     };
+post '/register'            => sub { Controller->register(@_)    };
+get  '/thanks'              => sub { Controller->thanks(@_)      };
+get  '/auth/admin/moderate' => sub { Controller->moderate(@_)    };
+get  '/auth/admin/accept/:nick' => sub { Controller->accept(@_)  };
+get  '/auth/admin/reject/:nick' => sub { Controller->reject(@_)  };
 
 sub app {
     my $router = shift->router;
@@ -33,7 +34,7 @@ sub app {
             # Authenticate all requests undef /auth
             enable_if {
                 shift->{PATH_INFO} =~ m{^/auth\b}
-            }'Auth::Basic', authenticator => sub {
+            } 'Auth::Basic', realm => 'PGXN Users Only', authenticator => sub {
                 my ($username, $password) = @_;
                 PGXN::Manager->conn->run(sub {
                     return ($_->selectrow_array(

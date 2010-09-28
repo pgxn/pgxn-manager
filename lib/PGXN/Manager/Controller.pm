@@ -244,6 +244,11 @@ sub _set_status {
     return $self->redirect('/auth/admin/moderate', $req);
 }
 
+sub show_upload {
+    my $self = shift;
+    return $self->render('/show_upload', { env => shift });
+}
+
 sub upload {
     # my $self = shift;
     # my $req  = Request->new(shift);
@@ -319,6 +324,10 @@ Accepts a user account request.
 =head3 C<reject>
 
 Rejects a user account request.
+
+=head3 C<show_upload>
+
+Shows the form for uploading a distribution archive.
 
 =head2 Methods
 
