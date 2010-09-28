@@ -50,7 +50,7 @@ test_psgi $app => sub {
     $tx->ok('/html/body/div[@id="content"]/form[@id="reqform"]', sub {
         for my $attr (
             [action  => '/register'],
-            [enctype => 'application/x-www-form-urlencoded'],
+            [enctype => 'application/x-www-form-urlencoded; charset=UTF-8'],
             [method  => 'post']
         ) {
             $tx->is(

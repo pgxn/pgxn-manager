@@ -191,7 +191,9 @@ template request => sub {
         form {
             id      is 'reqform';
             action  is '/register';
-            enctype is 'application/x-www-form-urlencoded';
+            # Browser should send us UTF-8 if that's what we ask for.
+            # http://www.unicode.org/mail-arch/unicode-ml/Archives-Old/UML023/0450.html
+            enctype is 'application/x-www-form-urlencoded; charset=UTF-8';
             method  is 'post';
 
             fieldset {

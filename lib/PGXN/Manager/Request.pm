@@ -7,6 +7,9 @@ use Plack::Response;
 use HTTP::Negotiate;
 use PGXN::Manager;
 use namespace::autoclean;
+use Encode;
+
+my $CHECK = Encode::FB_CROAK | Encode::LEAVE_SRC;
 
 sub uri_for {
     my ($self, $path) = (shift, shift);
@@ -51,6 +54,25 @@ sub user_is_admin {
 
 sub is_xhr {
     shift->env->{HTTP_X_REQUESTED_WITH} eq 'XMLHttpRequest';
+}
+
+sub query_parameters {
+    my $self = shift;
+    $self->{decoded_query_params} ||= Hash::MultiValue->new(
+        $self->_decode($self->uri->query_form)
+    );
+}
+
+sub body_parameters {
+    my $self = shift;
+    $self->{decoded_body_params} ||= Hash::MultiValue->new(
+        $self->_decode($self->SUPER::body_parameters->flatten)
+    );
+}
+
+sub _decode {
+    my $enc = shift->headers->content_type_charset || 'UTF-8';
+    map { decode $enc, $_, $CHECK } @_;
 }
 
 1;
@@ -139,6 +161,15 @@ Otherwise returns false.
 Returns true if the request is an C<XMLHttpRequest> request and false if not.
 This is specific to L<jQuery|http://jquery.org> sending the
 C<X-Requested-With> header.
+
+=head3 C<query_parameters>
+
+=head3 C<body_parameters>
+
+These two methods override the versions from L<Plack::Request> to decode all
+parameters to Perl's internal representation. Tries to use the encoding
+specified by the request or, if there is none, assumes UTF-8. This should be
+safe as browsers will submit in the same encoding as the form was rendered in.
 
 =head1 Author
 
