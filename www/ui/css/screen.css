@@ -183,4 +183,6 @@ td.actions
 #userlist th img {display:block; float:left;}
 
 #userlist .userinfo {display:none;background:transparent url(../img/bubup.png) 34px 0 no-repeat;margin:0;width:20em;}
-#userlist .userinfo blockquote {margin-left:-40px;font-style:italic;font-size:80%;}
+#userlist .userinfo .why {padding-bottom:0;margin-right:0;margin:0;}
+#userlist .userinfo blockquote {margin-left:-40px;margin-right:10px;font-style:italic;font-size:80%}
+#userlist .userinfo blockquote p {white-space:pre-wrap;}
