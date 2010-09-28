@@ -424,6 +424,7 @@ template 'show_upload' => sub {
                 };
                 input {
                     id    is 'archive';
+                    class is 'uploader';
                     name  is 'archive';
                     type  is 'file';
                     title is T 'Upload your distribution archive file here.';

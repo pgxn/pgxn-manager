@@ -2,7 +2,7 @@
 
 use 5.12.0;
 use utf8;
-use Test::More tests => 72;
+use Test::More tests => 73;
 #use Test::More 'no_plan';
 use Plack::Test;
 use HTTP::Request::Common;
@@ -89,6 +89,7 @@ test_psgi $app => sub {
                 $tx->ok('./input[@id="archive"]', '......... Test archive', sub {
                     $tx->is('./@type', 'file', '............ It should be a file field' );
                     $tx->is('./@name', 'archive', '............ It should have a name' );
+                    $tx->is('./@class', 'uploader', '............ It should have a class' );
                     $tx->is(
                         './@title',
                         $mt->maketext('Upload your distribution archive file here.'),
