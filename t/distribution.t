@@ -2,8 +2,8 @@
 
 use 5.12.0;
 use utf8;
-use Test::More tests => 192;
-#use Test::More 'no_plan';
+#use Test::More tests => 192;
+use Test::More 'no_plan';
 use Archive::Zip qw(:ERROR_CODES);
 use HTTP::Headers;
 use Test::File;
@@ -450,6 +450,7 @@ file_exists_ok $files{$_}, "File $_ should now exist" for keys %files;
 file_not_exists_ok +File::Spec->catfile('dist', 'widget', 'widget-2.5.0.readme'),
     'There should be no README on the mirror';
 
+##############################################################################
 # Now test with an exception thrown by the database.
 ok $dist = new_dist($noreadzip, 'nobody'), 'Create a distribution object with invalid owner';
 ok !$dist->process, 'process() should return false';
@@ -462,13 +463,27 @@ is $dist->localized_error,
     'And it should localize properly';
 
 ##############################################################################
+# Test distribution constraint exception.
+TxnTest->restart;
+$user = TxnTest->user;
+move +File::Spec->catfile($root, qw(dist widget widget-0.2.5.pgz)), $distzip;
+ok $dist = new_dist($distzip), 'Create dist with a zip archive yet again';
+ok $dist->process, 'First creation of distribution should succeed';
+
+move +File::Spec->catfile($root, qw(dist widget widget-0.2.5.pgz)), $distzip;
+ok $dist = new_dist($distzip), 'Create dist with a zip archive yet again';
+ok !$dist->process, 'Second creation of distribution should fail';
+is_deeply [$dist->error], ['Distribution “[_1]” already exists', 'widget 0.2.5'],
+    'Should get the expected localizeable exception';
+
+##############################################################################
 # Utility for constructing a distribution.
 sub new_dist {
     my $fn = shift;
     my $bn = basename $fn;
     $CLASS->new(
-        owner  => shift || 'user',
-        archive => $fn,
+        owner    => shift || 'user',
+        archive  => $fn,
         basename => $bn,
     );
 }

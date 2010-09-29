@@ -37,15 +37,16 @@ sub rollbacks {
     return $ret;
 }
 
+my ($admin, $user);
 sub restart {
     my $dbh = PGXN::Manager->conn->dbh;
     my $rb = $dbi_mock->original('rollback');
     $dbh->$rb;
     my $bw = $dbi_mock->original('begin_work');
     $dbh->$bw;
+    $admin = $user = undef;
 }
 
-my $admin;
 sub admin {
     PGXN::Manager->conn->run(sub {
         $_->do(
@@ -74,7 +75,6 @@ sub admin {
     return $admin = 'admin';
 }
 
-my $user;
 sub user {
     PGXN::Manager->conn->run(sub {
         admin();

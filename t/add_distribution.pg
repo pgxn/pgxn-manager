@@ -586,7 +586,7 @@ SELECT throws_ok(
         "abstract":    "whatever"
     }') $$,
     'P0001',
-    'Distribution pair 0.0.1 already exists',
+    'Distribution “pair 0.0.1” already exists',
     'Should get an exception for a duplicate distribution and version'
 );
 

@@ -323,28 +323,13 @@ BEGIN
         VALUES (distmeta.name, distmeta.version, COALESCE(distmeta.relstatus, 'stable'),
                 distmeta.abstract, COALESCE(distmeta.description, ''), sha1, nick, distmeta.json);
     EXCEPTION WHEN unique_violation THEN
-       RAISE EXCEPTION 'Distribution % % already exists', distmeta.name, distmeta.version;
+       RAISE EXCEPTION 'Distribution “% %” already exists', distmeta.name, distmeta.version;
     END;
 
     -- Record the extensions in this distribution.
-    BEGIN
-        INSERT INTO distribution_extensions (extension, ext_version, distribution, dist_version)
-        SELECT distmeta.provided[i][1], distmeta.provided[i][2], distmeta.name, distmeta.version
-          FROM generate_subscripts(distmeta.provided, 1) AS i;
-    EXCEPTION WHEN unique_violation THEN
-       IF array_length(distmeta.provided, 1) = 1 THEN
-           RAISE EXCEPTION 'Extension % version % already exists',
-               distmeta.provided[1][1], distmeta.provided[1][2];
-       ELSE
-           distmeta.provided := ARRAY(
-               SELECT distmeta.provided[i][1] || ' ' || distmeta.provided[i][2]
-                 FROM generate_subscripts(distmeta.provided, 1) AS i
-           );
-           RAISE EXCEPTION 'One or more versions of the provided extensions already exist:
-  %', array_to_string(distmeta.provided, '
-  ');
-       END IF;
-    END;
+    INSERT INTO distribution_extensions (extension, ext_version, distribution, dist_version)
+    SELECT distmeta.provided[i][1], distmeta.provided[i][2], distmeta.name, distmeta.version
+      FROM generate_subscripts(distmeta.provided, 1) AS i;
 
     -- Record the tags for this distribution.
     INSERT INTO distribution_tags (distribution, version, tag)
