@@ -170,7 +170,9 @@ test_psgi $app => sub {
         why      => 'In short, +1 from me. Regards, Tom Lane',
     ]), 'POST tgl to /register';
     ok $res->is_redirect, 'It should be a redirect response';
-    is $res->headers->header('location'), '/thanks', 'Should redirect to /thanks';
+    my $req = PGXN::Manager::Request->new(req_to_psgi($res->request));
+    is $res->headers->header('location'), $req->uri_for('/thanks'),
+        'Should redirect to /thanks';
 
     # And now Tom Lane should be registered.
     PGXN::Manager->conn->run(sub {
@@ -244,8 +246,10 @@ test_psgi $app => sub {
         nickname => 'tgl',
         why      => 'In short, +1 from me. Regards, Tom Lane',
     ]), 'POST valid tgl to /register again';
+    my $req = PGXN::Manager::Request->new(req_to_psgi($res->request));
     ok $res->is_redirect, 'It should be a redirect response';
-    is $res->headers->header('location'), '/thanks', 'Should redirect to /thanks';
+    is $res->headers->header('location'), $req->uri_for('/thanks'),
+        'Should redirect to /thanks';
 
     # And now Tom Lane should be registered.
     PGXN::Manager->conn->run(sub {

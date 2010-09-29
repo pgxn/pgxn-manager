@@ -397,7 +397,9 @@ test_psgi +PGXN::Manager::Router->app => sub {
 
     ok my $res = $cb->($req), 'GET acceptance for bob';
     ok $res->is_redirect, 'Response should be a redirect';
-    is $res->headers->header('location'), $uri, "Should redirect to $uri";
+    $req = PGXN::Manager::Request->new(req_to_psgi($req));
+    is $res->headers->header('location'), $req->uri_for($uri),
+        "Should redirect to $uri";
 };
 
 # Has bob been accepted?

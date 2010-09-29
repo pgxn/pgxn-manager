@@ -154,7 +154,8 @@ test_psgi $app => sub {
         Content => [ archive => [$distzip] ],
     )), 'POST zip archive to /auth/upload';
     ok $res->is_redirect, 'Response should be a redirect';
-    is $res->headers->header('location'), '/auth/upload',
+    my $req = PGXN::Manager::Request->new(req_to_psgi($res->request));
+    is $res->headers->header('location'), $req->uri_for('/auth/upload'),
         'Should redirect to /auth/upload';
 };
 

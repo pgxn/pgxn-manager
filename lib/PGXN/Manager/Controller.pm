@@ -26,7 +26,7 @@ sub render {
 sub redirect {
     my ($self, $uri, $req) = @_;
     my $res = $req->new_response;
-    $res->redirect($uri);
+    $res->redirect($req->uri_for($uri));
     return $res->finalize;
 }
 
