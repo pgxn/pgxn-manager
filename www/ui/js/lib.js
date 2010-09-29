@@ -21,13 +21,16 @@ PGXN = {
                 e.stopPropagation();
             });
 
-            $('.actions .accept, .actions .reject').click(function (e) {
+            $('.actions .button').click(function (e) {
                 e.preventDefault();
                 $('.userplay').next().fadeOut(100);
-                var tr = $(this).parents('tr');
+                var tr   = $(this).parents('tr');
+                var form = $(this).parents('form');
                 $.ajax({
-                    url: this.href,
+                    type: 'POST',
+                    url: form.attr('action'),
                     dataType: 'html',
+                    data: form.serialize(),
                     beforeSend: function() {
 				        tr.children().css({'backgroundColor':'#fb6c6c'});
 			        },

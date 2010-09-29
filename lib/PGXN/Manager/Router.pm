@@ -17,8 +17,7 @@ get  '/register'            => sub { Controller->request(@_)     };
 post '/register'            => sub { Controller->register(@_)    };
 get  '/thanks'              => sub { Controller->thanks(@_)      };
 get  '/auth/admin/moderate' => sub { Controller->moderate(@_)    };
-get  '/auth/admin/accept/:nick' => sub { Controller->accept(@_)  };
-get  '/auth/admin/reject/:nick' => sub { Controller->reject(@_)  };
+post '/auth/admin/user/:nick/status' => sub { Controller->set_status(@_) };
 
 sub app {
     my $router = shift->router;

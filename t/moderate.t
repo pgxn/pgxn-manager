@@ -2,7 +2,7 @@
 
 use 5.12.0;
 use utf8;
-use Test::More tests => 214;
+use Test::More tests => 250;
 #use Test::More 'no_plan';
 use Plack::Test;
 use HTTP::Request::Common;
@@ -198,37 +198,127 @@ test_psgi +PGXN::Manager::Router->app => sub {
                             '............... It should have a class'
                         );
                         $tx->is('count(./*)', 2, '............... And three subelements');
-                        $tx->is('count(./a)', 2, '............... Both anchors');
-                        $tx->ok('./a[1]', '............... Test first anchor', sub {
+                        $tx->is('count(./form)', 2, '............... Both forms');
+                        $tx->ok('./form[1]', '............... Test first form', sub {
                             $tx->is(
-                                './@href',
-                                $req->uri_for("/auth/admin/accept/bob"),
-                                '.................. It should have the accept uri'
+                                './@enctype',
+                                'application/x-www-form-urlencoded; charset=UTF-8',
+                                '................. Should have enctype');
+                            $tx->is(
+                                './@method',
+                                'post',
+                                '.................. Should have method=post'
                             );
                             $tx->is(
-                                'count(./*)', 1,
-                                '.................. Should have 1 subelement'
+                                './@class',
+                                'accept',
+                                '.................. It should have the "accept" class'
                             );
-                            my $uri = $req->uri_for('/ui/img/accept.png');
+                            $tx->is(
+                                './@action',
+                                $req->uri_for('/auth/admin/user/bob/status'),
+                                '.................. It should have the status uri'
+                            );
+                            $tx->is(
+                                'count(./*)', 2,
+                                '.................. Should have 2 subelements'
+                            );
                             $tx->ok(
-                                qq{./img[\@src="$uri"]},
-                                '.................. Which should be the accept image'
+                                './input[@type="hidden"]',
+                                '.................. Test hidden input',
+                                sub {
+                                    $tx->is(
+                                        './@name', 'status',
+                                        '..................... Name should be "status"'
+                                    );
+                                    $tx->is(
+                                        './@value', 'active',
+                                        '..................... Value should be "active"'
+                                    );
+                                }
+                            );
+
+                            $tx->ok(
+                                './input[@type="image"]',
+                                '.................. Test image input',
+                                sub {
+                                    $tx->is(
+                                        './@class', 'button',
+                                        '..................... Class should be "button"'
+
+                                    );
+                                    $tx->is(
+                                        './@name', 'submit',
+                                        '..................... Name should be "submit"'
+
+                                    );
+                                    $tx->is(
+                                        './@src',
+                                        $req->uri_for('/ui/img/accept.png'),
+                                        '..................... Source should be accept.png'
+                                    );
+                                }
                             );
                         });
-                        $tx->ok('./a[2]', '............... Test second anchor', sub {
+                        $tx->ok('./form[2]', '............... Test second form', sub {
                             $tx->is(
-                                'count(./*)', 1,
-                                '.................. Should have 1 subelement'
+                                './@enctype',
+                                'application/x-www-form-urlencoded; charset=UTF-8',
+                                '................. Should have enctype');
+                            $tx->is(
+                                './@method',
+                                'post',
+                                '.................. Should have method=post'
                             );
                             $tx->is(
-                                './@href',
-                                $req->uri_for("/auth/admin/reject/bob"),
-                                '.................. It should have the reject uri'
+                                './@class',
+                                'reject',
+                                '.................. It should have the "reject" class'
                             );
-                            my $uri = $req->uri_for('/ui/img/reject.png');
+                            $tx->is(
+                                './@action',
+                                $req->uri_for('/auth/admin/user/bob/status'),
+                                '.................. It should have the status uri'
+                            );
+                            $tx->is(
+                                'count(./*)', 2,
+                                '.................. Should have 2 subelements'
+                            );
                             $tx->ok(
-                                qq{./img[\@src="$uri"]},
-                                '.................. Which should be the reject image'
+                                './input[@type="hidden"]',
+                                '.................. Test hidden input',
+                                sub {
+                                    $tx->is(
+                                        './@name', 'status',
+                                        '..................... Name should be "status"'
+                                    );
+                                    $tx->is(
+                                        './@value', 'deleted',
+                                        '..................... Value should be "deleted"'
+                                    );
+                                }
+                            );
+
+                            $tx->ok(
+                                './input[@type="image"]',
+                                '.................. Test image input',
+                                sub {
+                                    $tx->is(
+                                        './@class', 'button',
+                                        '..................... Class should be "button"'
+
+                                    );
+                                    $tx->is(
+                                        './@name', 'submit',
+                                        '..................... Name should be "submit"'
+
+                                    );
+                                    $tx->is(
+                                        './@src',
+                                        $req->uri_for('/ui/img/reject.png'),
+                                        '..................... Source should be accept.png'
+                                    );
+                                }
                             );
                         });
                     });
@@ -305,37 +395,127 @@ test_psgi +PGXN::Manager::Router->app => sub {
                             '............... It should have a class'
                         );
                         $tx->is('count(./*)', 2, '............... And two subelements');
-                        $tx->is('count(./a)', 2, '............... Both anchors');
-                        $tx->ok('./a[1]', '............... Test first anchor', sub {
+                        $tx->is('count(./form)', 2, '............... Both forms');
+                        $tx->ok('./form[1]', '............... Test first form', sub {
                             $tx->is(
-                                'count(./*)', 1,
-                                '.................. Should have 1 subelement'
+                                './@enctype',
+                                'application/x-www-form-urlencoded; charset=UTF-8',
+                                '................. Should have enctype');
+                            $tx->is(
+                                './@method',
+                                'post',
+                                '.................. Should have method=post'
                             );
                             $tx->is(
-                                './@href',
-                                $req->uri_for("/auth/admin/accept/joe"),
-                                '.................. It should have the accept uri'
+                                './@class',
+                                'accept',
+                                '.................. It should have the "accept" class'
                             );
-                            my $uri = $req->uri_for('/ui/img/accept.png');
+                            $tx->is(
+                                './@action',
+                                $req->uri_for('/auth/admin/user/joe/status'),
+                                '.................. It should have the status uri'
+                            );
+                            $tx->is(
+                                'count(./*)', 2,
+                                '.................. Should have 2 subelements'
+                            );
                             $tx->ok(
-                                qq{./img[\@src="$uri"]},
-                                '.................. Which should be the accept image'
+                                './input[@type="hidden"]',
+                                '.................. Test hidden input',
+                                sub {
+                                    $tx->is(
+                                        './@name', 'status',
+                                        '..................... Name should be "status"'
+                                    );
+                                    $tx->is(
+                                        './@value', 'active',
+                                        '..................... Value should be "active"'
+                                    );
+                                }
+                            );
+
+                            $tx->ok(
+                                './input[@type="image"]',
+                                '.................. Test image input',
+                                sub {
+                                    $tx->is(
+                                        './@class', 'button',
+                                        '..................... Class should be "button"'
+
+                                    );
+                                    $tx->is(
+                                        './@name', 'submit',
+                                        '..................... Name should be "submit"'
+
+                                    );
+                                    $tx->is(
+                                        './@src',
+                                        $req->uri_for('/ui/img/accept.png'),
+                                        '..................... Source should be accept.png'
+                                    );
+                                }
                             );
                         });
-                        $tx->ok('./a[2]', '............... Test second anchor', sub {
+                        $tx->ok('./form[2]', '............... Test second form', sub {
                             $tx->is(
-                                'count(./*)', 1,
-                                '.................. Should have 1 subelement'
+                                './@enctype',
+                                'application/x-www-form-urlencoded; charset=UTF-8',
+                                '................. Should have enctype');
+                            $tx->is(
+                                './@method',
+                                'post',
+                                '.................. Should have method=post'
                             );
                             $tx->is(
-                                './@href',
-                                $req->uri_for("/auth/admin/reject/joe"),
-                                '.................. It should have the reject uri'
+                                './@class',
+                                'reject',
+                                '.................. It should have the "reject" class'
                             );
-                            my $uri = $req->uri_for('/ui/img/reject.png');
+                            $tx->is(
+                                './@action',
+                                $req->uri_for('/auth/admin/user/joe/status'),
+                                '.................. It should have the status uri'
+                            );
+                            $tx->is(
+                                'count(./*)', 2,
+                                '.................. Should have 2 subelements'
+                            );
                             $tx->ok(
-                                qq{./img[\@src="$uri"]},
-                                '.................. Which should be the reject image'
+                                './input[@type="hidden"]',
+                                '.................. Test hidden input',
+                                sub {
+                                    $tx->is(
+                                        './@name', 'status',
+                                        '..................... Name should be "status"'
+                                    );
+                                    $tx->is(
+                                        './@value', 'deleted',
+                                        '..................... Value should be "deleted"'
+                                    );
+                                }
+                            );
+
+                            $tx->ok(
+                                './input[@type="image"]',
+                                '.................. Test image input',
+                                sub {
+                                    $tx->is(
+                                        './@class', 'button',
+                                        '..................... Class should be "button"'
+
+                                    );
+                                    $tx->is(
+                                        './@name', 'submit',
+                                        '..................... Name should be "submit"'
+
+                                    );
+                                    $tx->is(
+                                        './@src',
+                                        $req->uri_for('/ui/img/reject.png'),
+                                        '..................... Source should be accept.png'
+                                    );
+                                }
                             );
                         });
                     });
@@ -390,12 +570,13 @@ PGXN::Manager->conn->run(sub {
 # Accept bob.
 test_psgi +PGXN::Manager::Router->app => sub {
     my $cb     = shift;
-    my $req    = GET(
-        '/auth/admin/accept/bob',
-        Authorization => 'Basic ' . encode_base64("$admin:****")
+    my $req    = POST(
+        '/auth/admin/user/bob/status',
+        Authorization => 'Basic ' . encode_base64("$admin:****"),
+        Content => [ status => 'active' ],
     );
 
-    ok my $res = $cb->($req), 'GET acceptance for bob';
+    ok my $res = $cb->($req), 'POST acceptance for bob';
     ok $res->is_redirect, 'Response should be a redirect';
     $req = PGXN::Manager::Request->new(req_to_psgi($req));
     is $res->headers->header('location'), $req->uri_for($uri),
@@ -418,13 +599,14 @@ PGXN::Manager->conn->run(sub {
 # Send an Ajax request to reject joe.
 test_psgi +PGXN::Manager::Router->app => sub {
     my $cb     = shift;
-    my $req    = GET(
-        '/auth/admin/reject/joe',
+    my $req    = POST(
+        '/auth/admin/user/joe/status',
         'X-Requested-With' => 'XMLHttpRequest',
-        Authorization => 'Basic ' . encode_base64("$admin:****")
+        Authorization => 'Basic ' . encode_base64("$admin:****"),
+        Content => [status => 'deleted'],
     );
 
-    ok my $res = $cb->($req), 'GET rejection for joe';
+    ok my $res = $cb->($req), 'POST rejection for joe';
     ok $res->is_success, 'Response should be success';
     is $res->content, $mt->maketext('Success'),
         'And the content should say so';

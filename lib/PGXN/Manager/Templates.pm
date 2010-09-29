@@ -377,18 +377,28 @@ template moderate => sub {
                         };
                         cell {
                             class is 'actions';
-                            a {
-                                class is 'accept';
-                                href is $req->uri_for("/auth/admin/accept/$user->{nickname}");
-                                title is T q{Accept [_1]'s request}, $user->{nickname};
-                                img { src is $req->uri_for('/ui/img/accept.png' ) };
-                            };
-                            a {
-                                class is 'reject';
-                                href is $req->uri_for("/auth/admin/reject/$user->{nickname}");
-                                title is T q{Reject [_1]'s request}, $user->{nickname};
-                                img { src is $req->uri_for('/ui/img/reject.png' ) };
-                            };
+                            for my $spec (
+                                [accept => 'active' ],
+                                [reject => 'deleted' ],
+                            ) {
+                                form {
+                                    class is $spec->[0];
+                                    action  is $req->uri_for("/auth/admin/user/$user->{nickname}/status");
+                                    enctype is 'application/x-www-form-urlencoded; charset=UTF-8';
+                                    method  is 'post';
+                                    input {
+                                        type  is 'hidden';
+                                        name  is 'status';
+                                        value is $spec->[1];
+                                    };
+                                    input {
+                                        class is 'button';
+                                        type is 'image';
+                                        name is 'submit';
+                                        src is $req->uri_for("/ui/img/$spec->[0].png")
+                                    };
+                                };
+                            }
                         };
                     }
                 }

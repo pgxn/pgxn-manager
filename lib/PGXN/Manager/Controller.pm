@@ -228,24 +228,12 @@ sub moderate {
     $self->render('/moderate', { req => $req, vars => { sth => $sth }});
 }
 
-sub accept {
-    my $ret = shift->_set_status(@_, 'active');
-    # XXX Reset the user's password and send an email.
-    return $ret;
-}
-
-sub reject {
-    my $ret = shift->_set_status(@_, 'deleted');
-    # XXX Send the user an email. Maybe require a note to be entered by the
-    # admin?
-    return $ret;
-}
-
-sub _set_status {
+sub set_status {
     my $self = shift;
     my $req  = Request->new(shift);
-    my ($params, $status) = @_;
     return $self->respond_with('forbidden', $req) unless $req->user_is_admin;
+    my $params = shift;
+    my $status = $req->body_parameters->{status};
 
     PGXN::Manager->conn->run(sub {
         shift->selectcol_arrayref(
@@ -253,6 +241,11 @@ sub _set_status {
             undef, $req->user, $params->{nick}, $status
         )->[0];
     }) or return $self->respond_with('notfound', $req);
+
+    # XXX Send the user an email on failure. Maybe require a note to be
+    # entered by the admin?
+
+    # XXX On success, reset the user's password and send an email.
 
     # Simple response for XHR request.
     return $self->respond_with('success', $req) if $req->is_xhr;
@@ -351,13 +344,9 @@ Thanks the user for registering for an account.
 
 Administrative interface for moderating user requests.
 
-=head3 C<accept>
+=head3 C<set_status>
 
-Accepts a user account request.
-
-=head3 C<reject>
-
-Rejects a user account request.
+Accepts C<POST>s for an administrator to change the status of a user.
 
 =head3 C<show_upload>
 

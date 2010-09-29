@@ -6,6 +6,7 @@
         "password": ""
     },
     "middleware": [
+        ["AccessLog"],
         ["StackTrace"],
         ["Debug"],
         ["Lint"]
