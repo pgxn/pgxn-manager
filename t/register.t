@@ -287,7 +287,7 @@ test_psgi $app => sub {
         $tx->is('count(./*)', 4, '... It should have four subelements');
         $tx->is('./h1', $h1, '... The title h1 should be set');
         $tx->is('./p[1]', $p, '... Intro paragraph should be set');
-        my $err = "Looks like you might already have an account. Need to reset your password?\n   ";
+        my $err = $mt->maketext('Looks like you might already have an account. Need to reset your password?');
         $tx->is('./p[@class="error"]', $err, '... Error paragraph should be set');
 
         # Check the form fields.
@@ -351,8 +351,9 @@ test_psgi $app => sub {
         ]
     )), 'POST yodude via Ajax to /register';
     is $res->code, 409, 'Should have 409 status code';
-    like $res->content, qr/Looks like you might already have an account/,
-        'And the error message should be in the response';
+    is $res->content,
+        $mt->maketext('Looks like you might already have an account. Need to reset your password?'),
+        'And the content should reflect that error';
 };
 
 # Start a new test transaction and post with missing data.

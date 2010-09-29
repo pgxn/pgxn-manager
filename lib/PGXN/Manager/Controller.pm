@@ -151,10 +151,15 @@ sub register {
                         delete $params->{nickname}
                     ];
                 } else {
-                    $msg = [
-                        'Looks like you might already have an account. Need to <a href="/reset?email=[_1]">reset your password</a>?',
-                        encode_entities delete $params->{email},
-                    ];
+                    if ($req->respond_with eq 'html') {
+                        $msg = [
+                            'Looks like you might already have an account. Need to <a href="/reset?email=[_1]">reset your password</a>?',
+                            encode_entities delete $params->{email},
+                        ];
+                    } else {
+                        $msg = ['Looks like you might already have an account. Need to reset your password?'];
+                        delete $params->{email},
+                    }
                 }
             } when ('23514') {
                 # Domain label violation.
