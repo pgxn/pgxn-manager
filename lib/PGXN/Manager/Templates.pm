@@ -296,6 +296,19 @@ template notfound => sub {
     } $req, $args;
 };
 
+template conflict => sub {
+    my ($self, $req, $args) = @_;
+    my $msg = $args->{maketext}
+        || [q{Sorry, there is a conflict in that resource. Please fix and resubmit}];
+    wrapper {
+        h1 { T 'Confflict' };
+        p {
+            class is 'error';
+            T @{ $msg };
+        };
+    } $req, $args;
+};
+
 template moderate => sub {
     my ($self, $req, $args) = @_;
     wrapper {

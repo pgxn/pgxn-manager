@@ -34,29 +34,37 @@ my %message_for = (
     success   => q{Success},
     forbidden => q{Sorry, you do not have permission to access this resource.},
     notfound  => q{Resource not found.},
+    conflict  => q{There is a conflict in the current state of the resource.}, # Bleh
 );
 
 my %code_for = (
     success   => 200,
     forbidden => 403,
     notfound  => 404,
+    conflict  => 409,
 );
 
 sub respond_with {
-    my ($self, $status, $req) = @_;
+    my ($self, $status, $req, $err) = @_;
     my $code = $code_for{$status} or die qq{No error code for status "$status"};
 
-    return $self->render("/$status", { req => $req, code => $code })
+    return $self->render("/$status", { req => $req, code => $code, maketext => $err })
         unless $req->is_xhr;
 
-    my $l    = PGXN::Manager::Locale->accept($req->env->{HTTP_ACCEPT_LANGUAGE});
-    my $msg  = $message_for{ $status } or die qq{No message for status "$status"};
-    $msg     = $l->maketext($msg);
+    my $l  = PGXN::Manager::Locale->accept($req->env->{HTTP_ACCEPT_LANGUAGE});
+    my $msg = do {
+        if (ref $err) {
+            $l->maketext(@$err);
+        } else {
+            my $txt = $message_for{ $status } or die qq{No message for status "$status"};
+            $l->maketext($txt);
+        }
+    };
 
     my $type;
     given (scalar $req->respond_with) {
         when ('html') {
-            $msg = '<p class="error">' . encode_entities(encode_utf8 $msg) . '</p>';
+            $msg = '<p class="error">' . encode_utf8 encode_entities($msg) . '</p>';
             $type = 'text/html; charset=UTF-8';
         } when ('json') {
             $msg = encode_json { message => $msg };
@@ -64,7 +72,7 @@ sub respond_with {
         }
         when ('atom') {
             # XXX WTF to do here?
-            $type = 'text/plain';
+            $type = 'text/plain; charset=UTF-8';
             $msg = encode_utf8 $msg;
         }
         default {
@@ -178,6 +186,7 @@ sub register {
             }
         }
 
+        # XXX Make it redirect if it's not xhr.
         $self->render('/request', { req => $req, code => $code, vars => {
             %{ $params },
             highlight => $highlight,
@@ -250,16 +259,33 @@ sub show_upload {
 }
 
 sub upload {
-    # my $self = shift;
-    # my $req  = Request->new(shift);
-    # my $upload = $req->uploads->{distribution};
-    # my $dist = Distribution->new(
-    #     archive  => $upload->path,
-    #     basename => $upload->basename,
-    #     owner    => $req->remote_user,
-    # );
-    # $dist->process or $self->respond_with('XXX', $req, $dist->error);
-    # $self->render('/done', { req => $req });
+    my $self = shift;
+    my $req  = Request->new(shift);
+    my $upload = $req->uploads->{archive};
+    my $dist = Distribution->new(
+        archive  => $upload->path,
+        basename => $upload->basename,
+        owner    => $req->user,
+    );
+
+    if ($dist->process) {
+        # Success!
+        return $req->is_xhr
+            ? $self->respond_with('success', $req)
+            : $self->redirect($req->path_info, $req);
+    }
+
+    # Error.
+    return $self->respond_with(
+        'conflict', $req, scalar $dist->error
+    ) if $req->is_xhr;
+
+    # XXX Make it redirect.
+    return $self->render('/show_upload', {
+        req => $req,
+        code => $code_for{conflict},
+        vars => { error => scalar $dist->error }
+    });
 }
 
 1;

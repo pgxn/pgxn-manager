@@ -397,7 +397,7 @@ test_psgi +PGXN::Manager::Router->app => sub {
 
     ok my $res = $cb->($req), 'GET acceptance for bob';
     ok $res->is_redirect, 'Response should be a redirect';
-    is $res->headers->header('location'), $uri, 'Should redirect to /moderate';
+    is $res->headers->header('location'), $uri, "Should redirect to $uri";
 };
 
 # Has bob been accepted?
