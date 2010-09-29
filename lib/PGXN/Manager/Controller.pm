@@ -153,8 +153,8 @@ sub register {
                 } else {
                     if ($req->respond_with eq 'html') {
                         $msg = [
-                            'Looks like you might already have an account. Need to <a href="/reset?email=[_1]">reset your password</a>?',
-                            encode_entities delete $params->{email},
+                            'Looks like you might already have an account. Need to <a href="[_1]">reset your password</a>?',
+                            $req->uri_for('/reset', email => delete $params->{email}),
                         ];
                     } else {
                         $msg = ['Looks like you might already have an account. Need to reset your password?'];

@@ -2,7 +2,7 @@
 
 use 5.12.0;
 use utf8;
-use Test::More tests => 529;
+use Test::More tests => 530;
 #use Test::More 'no_plan';
 use Plack::Test;
 use HTTP::Request::Common;
@@ -264,13 +264,17 @@ test_psgi $app => sub {
 # Now try a conflicting email address.
 test_psgi $app => sub {
     my $cb = shift;
-    ok my $res = $cb->(POST '/register', [
-        name     => 'Tom Lane',
-        email    => 'tgl@pgxn.org',
-        uri      => 'http://tgl.example.org/',
-        nickname => 'yodude',
-        why      => 'In short, +1 from me. Regards, Tom Lane',
-    ]), 'POST yodude to /register';
+    ok my $res = $cb->(POST(
+        '/register',
+        Accept => 'text/html',
+        Content => [
+            name     => 'Tom Lane',
+            email    => 'tgl@pgxn.org',
+            uri      => 'http://tgl.example.org/',
+            nickname => 'yodude',
+            why      => 'In short, +1 from me. Regards, Tom Lane',
+        ],
+    )), 'POST yodude to /register';
     ok !$res->is_redirect, 'It should not be a redirect response';
     is $res->code, 409, 'Should have 409 status code';
 
@@ -287,8 +291,13 @@ test_psgi $app => sub {
         $tx->is('count(./*)', 4, '... It should have four subelements');
         $tx->is('./h1', $h1, '... The title h1 should be set');
         $tx->is('./p[1]', $p, '... Intro paragraph should be set');
-        my $err = $mt->maketext('Looks like you might already have an account. Need to reset your password?');
+        my $err = $mt->maketext('Looks like you might already have an account. Need to reset your password?') . "\n   ";
         $tx->is('./p[@class="error"]', $err, '... Error paragraph should be set');
+        $tx->is(
+            './p[@class="error"]/a/@href',
+            $req->uri_for('/reset', email => 'tgl@pgxn.org'),
+            '... And it should have a link'
+        );
 
         # Check the form fields.
         $tx->ok('./form[@id="reqform"]/fieldset[1]', '... Check first fieldset', sub {
