@@ -131,9 +131,11 @@ sub register {
         );
 
         # Success!
-        # XXX Consider returning 201 and URI to the user profile.
+        return $self->respond_with('success', $req) if $req->is_xhr;
+
+        # XXX Consider returning 201 and URI to the user profile?
         $req->session->{name} = $req->param('nickname');
-        $self->redirect('/thanks', $req);
+        return $self->redirect('/thanks', $req);
 
     }, sub {
         # Failure!
@@ -185,7 +187,8 @@ sub register {
             }
         }
 
-        # XXX Respond differently for xhr request.
+        # Respond with error code for XHR request.
+        return $self->respond_with('conflict', $req, $msg) if $req->is_xhr;
 
         $self->render('/request', { req => $req, code => $code_for{conflict}, vars => {
             %{ $params },

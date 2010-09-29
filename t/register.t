@@ -2,7 +2,7 @@
 
 use 5.12.0;
 use utf8;
-use Test::More tests => 522;
+use Test::More tests => 529;
 #use Test::More 'no_plan';
 use Plack::Test;
 use HTTP::Request::Common;
@@ -263,7 +263,6 @@ test_psgi $app => sub {
 
 # Now try a conflicting email address.
 test_psgi $app => sub {
-    local $ENV{FOO} = 1;
     my $cb = shift;
     ok my $res = $cb->(POST '/register', [
         name     => 'Tom Lane',
@@ -308,6 +307,52 @@ test_psgi $app => sub {
             );
         });
     });
+};
+
+# Start a new test transaction and create Tom via an API request.
+TxnTest->restart;
+test_psgi $app => sub {
+    my $cb = shift;
+    ok my $res = $cb->(POST(
+        '/register',
+        'X-Requested-With' => 'XMLHttpRequest',
+        Content => [
+        name     => 'Tom Lane',
+        email    => 'tgl@pgxn.org',
+        uri      => '',
+        nickname => 'tgl',
+        why      => 'In short, +1 from me. Regards, Tom Lane',
+    ])), 'POST valid XMLHttpRequest for tgl to /register again';
+    ok $res->is_success, 'It should be a successful response';
+    is $res->content, $mt->maketext('Success'), 'And the content should say so';
+
+    # And now Tom Lane should be registered.
+    PGXN::Manager->conn->run(sub {
+        is_deeply $_->selectrow_arrayref(q{
+            SELECT full_name, email, uri, status
+              FROM users
+             WHERE nickname = ?
+        }, undef, 'tgl'), ['Tom Lane', 'tgl@pgxn.org', undef, 'new'], 'TGL should exist';
+    });
+};
+
+# Now use a conflicting email address, also submitted via XMLHttpRequest.
+test_psgi $app => sub {
+    my $cb = shift;
+    ok my $res = $cb->(POST(
+        '/register',
+        'X-Requested-With' => 'XMLHttpRequest',
+        Content => [
+            name     => 'Tom Lane',
+            email    => 'tgl@pgxn.org',
+            uri      => 'http://tgl.example.org/',
+            nickname => 'yodude',
+            why      => 'In short, +1 from me. Regards, Tom Lane',
+        ]
+    )), 'POST yodude via Ajax to /register';
+    is $res->code, 409, 'Should have 409 status code';
+    like $res->content, qr/Looks like you might already have an account/,
+        'And the error message should be in the response';
 };
 
 # Start a new test transaction and post with missing data.
