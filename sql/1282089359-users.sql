@@ -18,6 +18,7 @@ CREATE TABLE users (
     full_name  TEXT        NOT NULL,
     email      EMAIL       NOT NULL UNIQUE,
     uri        URI         NULL,
+    twitter    CITEXT      NOT NULL DEFAULT '',
     why        TEXT        NOT NULL DEFAULT '',
     status     STATUS      NOT NULL DEFAULT 'new',
     set_by     LABEL       NOT NULL REFERENCES users(nickname),
@@ -32,10 +33,11 @@ GRANT SELECT ON users TO pgxn;
 CREATE OR REPLACE FUNCTION insert_user(
     nickname   LABEL,
     password   TEXT,
-    full_name  TEXT  DEFAULT '',
-    email      EMAIL DEFAULT NULL,
-    uri        URI   DEFAULT NULL,
-    why        TEXT  DEFAULT NULL
+    full_name  TEXT   DEFAULT '',
+    email      EMAIL  DEFAULT NULL,
+    uri        URI    DEFAULT NULL,
+    twitter    CITEXT DEFAULT NULL,
+    why        TEXT   DEFAULT NULL
 ) RETURNS BOOLEAN LANGUAGE plpgsql SECURITY DEFINER AS $$
 /*
 
@@ -45,6 +47,7 @@ CREATE OR REPLACE FUNCTION insert_user(
         full_name := 'David Wheeler',
         email     := 'theory@pgxn.org',
         uri       := 'http://justatheory.com/',
+        twitter   := 'theory',
         why       := 'Because I’m a bitchin’ Pg developer, yo.'
     );
      insert_user 
@@ -67,6 +70,9 @@ uri
 : Optional URI for the user. Should be a valid URI as verified by
   [Data::Validate::URI](http://search.cpan.org/perldoc?Data::Validate::URI).
 
+twitter
+: Optional Twitter username. Case-insensitive.
+
 why
 : Optional text from the user explaining why she should be allowed access.
 
@@ -83,6 +89,7 @@ BEGIN
         full_name,
         email,
         uri,
+        twitter,
         why,
         set_by
     )
@@ -92,6 +99,7 @@ BEGIN
         COALESCE(insert_user.full_name, ''),
         insert_user.email,
         insert_user.uri,
+        COALESCE(insert_user.twitter, ''),
         COALESCE(insert_user.why, ''),
         insert_user.nickname
     );
@@ -133,9 +141,10 @@ $$;
 
 CREATE OR REPLACE FUNCTION update_user(
     nickname   LABEL,
-    full_name  TEXT  DEFAULT NULL,
-    email      EMAIL DEFAULT NULL,
-    uri        URI   DEFAULT NULL
+    full_name  TEXT   DEFAULT NULL,
+    email      EMAIL  DEFAULT NULL,
+    uri        URI    DEFAULT NULL,
+    twitter    CITEXT DEFAULT NULL
 ) RETURNS BOOLEAN LANGUAGE plpgsql SECURITY DEFINER AS $$
 /*
 
@@ -143,7 +152,8 @@ CREATE OR REPLACE FUNCTION update_user(
         nickname  := 'theory',
         full_name := 'David E. Wheeler',
         email     := 'justatheory@pgxn.org',
-        uri       := 'http://www.justatheory.com/'
+        uri       := 'http://www.justatheory.com/',
+        twitter   :- 'theory'
     );
      update_user 
     ─────────────
@@ -164,6 +174,9 @@ uri
 : Optional URI for the user. Should be a valid URI as verified by
   [Data::Validate::URI](http://search.cpan.org/perldoc?Data::Validate::URI).
 
+twitter
+: Optional Twitter username.
+
 Returns true if the user was updated, and false if not.
 
 */
@@ -172,6 +185,7 @@ BEGIN
        SET full_name      = COALESCE(update_user.full_name, users.full_name),
            email          = COALESCE(update_user.email,     users.email),
            uri            = COALESCE(update_user.uri,       users.uri),
+           twitter        = COALESCE(update_user.twitter,   users.twitter),
            updated_at     = NOW()
      WHERE users.nickname = update_user.nickname
        AND users.status   = 'active';
