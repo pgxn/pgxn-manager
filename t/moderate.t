@@ -63,7 +63,7 @@ PGXN::Manager->conn->run(sub {
     my $dbh = shift;
     $dbh->do(
         'SELECT insert_user(?, ?, email := ?, uri := ?, full_name := ?, why := ?)',
-        undef, 'joe', '****', 'joe@pgxn.org', 'http://foo.com/', 'Joe Dog', 'I am awesome',
+        undef, 'joe', '****', 'joe@pgxn.org', 'http://foo.com/', 'Joe Dög', 'I am awesome',
     );
     $dbh->do(
         'SELECT insert_user(?, ?, email := ?, why := ?)',
@@ -278,7 +278,7 @@ test_psgi +PGXN::Manager::Router->app => sub {
                                 '............... It should have the user uri'
                             );
                             $tx->is(
-                                './text()', 'Joe Dog',
+                                './text()', 'Joe Dög',
                                 '............... And the text shoul be the full name');
                         });
                     });
