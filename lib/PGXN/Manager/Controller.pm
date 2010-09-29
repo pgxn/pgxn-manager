@@ -132,7 +132,7 @@ sub register {
 
         # Success!
         # XXX Consider returning 201 and URI to the user profile.
-        $req->session->{name} = $req->param('name') || $req->param('nickname');
+        $req->session->{name} = $req->param('nickname');
         $self->redirect('/thanks', $req);
 
     }, sub {
