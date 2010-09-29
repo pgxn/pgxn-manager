@@ -71,7 +71,7 @@ uri
   [Data::Validate::URI](http://search.cpan.org/perldoc?Data::Validate::URI).
 
 twitter
-: Optional Twitter username. Case-insensitive.
+: Optional Twitter username. Case-insensitive. A leading "@" will be removed.
 
 why
 : Optional text from the user explaining why she should be allowed access.
@@ -99,7 +99,7 @@ BEGIN
         COALESCE(insert_user.full_name, ''),
         insert_user.email,
         insert_user.uri,
-        COALESCE(insert_user.twitter, ''),
+        COALESCE(trim(leading '@' FROM insert_user.twitter), ''),
         COALESCE(insert_user.why, ''),
         insert_user.nickname
     );
@@ -175,7 +175,7 @@ uri
   [Data::Validate::URI](http://search.cpan.org/perldoc?Data::Validate::URI).
 
 twitter
-: Optional Twitter username.
+: Optional Twitter username. A leading "@" wil be removed.
 
 Returns true if the user was updated, and false if not.
 
@@ -185,7 +185,7 @@ BEGIN
        SET full_name      = COALESCE(update_user.full_name, users.full_name),
            email          = COALESCE(update_user.email,     users.email),
            uri            = COALESCE(update_user.uri,       users.uri),
-           twitter        = COALESCE(update_user.twitter,   users.twitter),
+           twitter        = COALESCE(trim(leading '@' FROM update_user.twitter), users.twitter),
            updated_at     = NOW()
      WHERE users.nickname = update_user.nickname
        AND users.status   = 'active';

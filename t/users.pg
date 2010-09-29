@@ -174,7 +174,7 @@ SELECT ok(
         full_name := 'Julie Wheeler',
         email     := 'strongrrl@pgxn.org',
         uri       := 'http://www.strongrrl.com/',
-        twitter   := 'strongrrl',
+        twitter   := '@strongrrl',
         why       := 'I rock!'
     ), 'Insert user "strongrrl"'
 );
@@ -462,7 +462,7 @@ SELECT ok(
         full_name := 'David E. Wheeler',
         email     := 'david@pgxn.org',
         uri       := 'http://justatheory.com/',
-        twitter   := 'theory'
+        twitter   := '@theory'
     ), 'Should get true value for updating a user'
 );
 
