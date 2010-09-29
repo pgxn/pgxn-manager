@@ -14,6 +14,21 @@ use namespace::autoclean;
 
 Template::Declare->init( dispatch_to => ['PGXN::Manager::Templates'] );
 
+my %message_for = (
+    success   => q{Success},
+    forbidden => q{Sorry, you do not have permission to access this resource.},
+    notfound  => q{Resource not found.},
+    conflict  => q{There is a conflict in the current state of the resource.}, # Bleh
+);
+
+my %code_for = (
+    success   => 200,
+    seeother  => 303,
+    forbidden => 403,
+    notfound  => 404,
+    conflict  => 409,
+);
+
 sub render {
     my ($self, $template, $p) = @_;
     my $req = $p->{req} ||= Request->new($p->{env});
@@ -24,25 +39,11 @@ sub render {
 }
 
 sub redirect {
-    my ($self, $uri, $req) = @_;
+    my ($self, $uri, $req, $code) = @_;
     my $res = $req->new_response;
-    $res->redirect($req->uri_for($uri));
+    $res->redirect($req->uri_for($uri), $code || $code_for{see_other});
     return $res->finalize;
 }
-
-my %message_for = (
-    success   => q{Success},
-    forbidden => q{Sorry, you do not have permission to access this resource.},
-    notfound  => q{Resource not found.},
-    conflict  => q{There is a conflict in the current state of the resource.}, # Bleh
-);
-
-my %code_for = (
-    success   => 200,
-    forbidden => 403,
-    notfound  => 404,
-    conflict  => 409,
-);
 
 sub respond_with {
     my ($self, $status, $req, $err) = @_;
@@ -101,7 +102,7 @@ sub register {
 
     if ($params->{nickname} && $params->{email} && (!$params->{why} || $params->{why} !~ /\w+/ || length $params->{why} < 5)) {
         delete $params->{why};
-        return $self->render('/request', { req => $req, code => 409, vars => {
+        return $self->render('/request', { req => $req, code => $code_for{conflict}, vars => {
             %{ $params },
             highlight => 'why',
             error => [
@@ -137,11 +138,10 @@ sub register {
     }, sub {
         # Failure!
         my $err = shift;
-        my ($msg, $code, $highlight);
+        my ($msg, $highlight);
         given ($err->state) {
             when ('23505') {
                 # Unique constraint violation.
-                $code = 409;
                 if ($err->errstr =~ /\busers_pkey\b/) {
                     $highlight = 'nickname';
                     $msg = [
@@ -156,7 +156,6 @@ sub register {
                 }
             } when ('23514') {
                 # Domain label violation.
-                $code = 409;
                 given ($err->errstr) {
                     when (/\blabel_check\b/) {
                     $highlight = 'nickname';
@@ -186,8 +185,9 @@ sub register {
             }
         }
 
-        # XXX Make it redirect if it's not xhr.
-        $self->render('/request', { req => $req, code => $code, vars => {
+        # XXX Respond differently for xhr request.
+
+        $self->render('/request', { req => $req, code => $code_for{conflict}, vars => {
             %{ $params },
             highlight => $highlight,
             error     => $msg,
@@ -280,7 +280,7 @@ sub upload {
         'conflict', $req, scalar $dist->error
     ) if $req->is_xhr;
 
-    # XXX Make it redirect.
+    # Re-display the form.
     return $self->render('/show_upload', {
         req => $req,
         code => $code_for{conflict},
