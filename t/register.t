@@ -2,7 +2,7 @@
 
 use 5.12.0;
 use utf8;
-use Test::More tests => 530;
+use Test::More tests => 541;
 #use Test::More 'no_plan';
 use Plack::Test;
 use HTTP::Request::Common;
@@ -63,7 +63,7 @@ test_psgi $app => sub {
         $tx->is('count(./*)', 3, '... It should have three subelements');
         $tx->ok('./fieldset[1]', '... Test first fieldset', sub {
             $tx->is('./@id', 'reqessentials', '...... It should have the proper id');
-            $tx->is('count(./*)', 9, '...... It should have nine subelements');
+            $tx->is('count(./*)', 11, '...... It should have 11 subelements');
             $tx->is(
                 './legend',
                 $mt->maketext('The Essentials'),
@@ -102,6 +102,14 @@ test_psgi $app => sub {
                     type  => 'text',
                     phold => 'bobama',
                     class => 'required',
+                },
+                {
+                    id    => 'twitter',
+                    title => $mt->maketext('Got a Twitter account? Tell us the username and your uploads will be tweeted!'),
+                    label => $mt->maketext('Twitter'),
+                    type  => 'text',
+                    phold => '@barackobama',
+                    class => '',
                 },
             ) {
                 ++$i;
@@ -177,11 +185,11 @@ test_psgi $app => sub {
     # And now Tom Lane should be registered.
     PGXN::Manager->conn->run(sub {
         is_deeply $_->selectrow_arrayref(q{
-            SELECT full_name, email, uri, why, status
+            SELECT full_name, email, uri, twitter, why, status
               FROM users
              WHERE nickname = ?
         }, undef, 'tgl'), [
-            'Tom Lane', 'tgl@pgxn.org', undef,
+            'Tom Lane', 'tgl@pgxn.org', undef, '',
             'In short, +1 from me. Regards, Tom Lane', 'new'
         ], 'TGL should exist';
     });
@@ -242,8 +250,9 @@ test_psgi $app => sub {
     ok my $res = $cb->(POST '/register', [
         name     => 'Tom Lane',
         email    => 'tgl@pgxn.org',
-        uri      => '',
+        uri      => 'http://tgl.example.org/',
         nickname => 'tgl',
+        twitter  => 'tomlane',
         why      => 'In short, +1 from me. Regards, Tom Lane',
     ]), 'POST valid tgl to /register again';
     my $req = PGXN::Manager::Request->new(req_to_psgi($res->request));
@@ -254,10 +263,12 @@ test_psgi $app => sub {
     # And now Tom Lane should be registered.
     PGXN::Manager->conn->run(sub {
         is_deeply $_->selectrow_arrayref(q{
-            SELECT full_name, email, uri, status
+            SELECT full_name, email, uri, twitter, status
               FROM users
              WHERE nickname = ?
-        }, undef, 'tgl'), ['Tom Lane', 'tgl@pgxn.org', undef, 'new'], 'TGL should exist';
+        }, undef, 'tgl'),
+            ['Tom Lane', 'tgl@pgxn.org', 'http://tgl.example.org/', 'tomlane', 'new'],
+            'TGL should exist';
     });
 };
 

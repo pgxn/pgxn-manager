@@ -119,6 +119,7 @@ sub register {
                 full_name := ?,
                 email     := ?,
                 why       := ?,
+                twitter   := ?,
                 uri       := ?
             );},
             undef,
@@ -127,6 +128,7 @@ sub register {
                 name
                 email
                 why
+                twitter
             )}, $params->{uri} || undef,
         );
 
