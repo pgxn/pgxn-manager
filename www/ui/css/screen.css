@@ -20,13 +20,10 @@ a:hover
 {color:#505050; text-decoration:underline;}
 
 img
-{float:left; margin:0 15px 15px 0; padding:1px; background:#ffffff; border:1px solid #d0d0d0;}
+{float:left; margin:0 15px 15px 0; padding:1px; border:1px solid #d0d0d0;}
 
 a img
 {border-color:#236691;}
-
-a img:hover
-{background:#236691; border-color:#236691;}
 
 /**************** Sidebar area styles ****************/
 
@@ -152,7 +149,7 @@ label.invalid:after
 table
 {width:100%;}
 
-th 
+th
 {font-weight:bold; font-size:90%; color:#236691; border-right:1px solid #C1DAD7; border-bottom:1px solid #C1DAD7; border-top:1px solid #C1DAD7; text-align:left; padding:6px 6px 6px 12px; background:#CAE8EA url(../img/thbg.png) no-repeat;}
 
 th:first-child, td:first-child
@@ -162,31 +159,31 @@ th.nobg
 {text-transform:uppercase; border-top:0; border-left:0; border-right:1px solid #C1DAD7; background:none;}
 
 tr.specalt a
-{color:#91867c;font-weight:bold;}
+{font-weight:bold;}
 
 tr.spec th
-{border-left:1px solid #C1DAD7; border-top:0; background:#fff url(../img/wedge_brown.gif) no-repeat; font-weight:bold; font-size:90%;}
+{border-left:1px solid #C1DAD7; border-top:0; background:#fff url(../img/wedge_brown.png) 2px 2px no-repeat; font-weight:bold; font-size:90%;}
 
 tr.specalt th
-{border-left:1px solid #C1DAD7; border-top:0; background:#fff url(../img/wedge_blue.gif) no-repeat; font-weight:bold; font-size:90%; color:#91867c;}
+{border-left:1px solid #C1DAD7; border-top:0; background:#eaf7fb url(../img/wedge_blue.png) 2px 2px no-repeat; font-weight:bold; font-size:90%;}
 
 td
-{ border-right:1px solid #C1DAD7; border-bottom:1px solid #C1DAD7; background:#fff; padding:6px 6px 6px 12px; color:#236691;}
+{ border-right:1px solid #C1DAD7; border-bottom:1px solid #C1DAD7; background:#fff; padding:6px 6px 6px 12px;}
 
 tr.specalt td
-{background:#f5fafa; color:#91867c;}
+{background:#eaf7fb;}
 
 tr {line-height:24px;vertical-align:top;}
 
 td.actions
 {width:64px;}
 
-#userlist img
+td.actions img, th img
 {border:0;margin:0 .5em 0 0;padding:0;}
 
 #userlist th img {display:block; float:left;}
 
-#userlist .userinfo {display:none;background:transparent url(../img/bubup.png) 34px 0 no-repeat;margin:0;width:20em;}
+#userlist .userinfo {display:none;background:transparent url(../img/bubup.png) 34px 0 no-repeat;margin:0;width:20em;padding-top:12px;}
 #userlist .userinfo .why {padding-bottom:0;margin-right:0;margin:0;}
 #userlist .userinfo blockquote {margin-left:-40px;margin-right:10px;font-style:italic;font-size:80%}
 #userlist .userinfo blockquote p {white-space:pre-wrap;}

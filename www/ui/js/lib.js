@@ -14,8 +14,8 @@ PGXN = {
                 var bub = $(this).next();
                 bub.css({
                     position:'absolute',
-                    left:$(this).offset().left - 20,
-                    top:$(this).offset().top + 31
+                    left:$(this).offset().left - 64,
+                    top:$(this).offset().top + 21
                 }).toggle();
                 bub.click(function () { $(this).hide() });
                 e.stopPropagation();

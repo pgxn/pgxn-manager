@@ -291,6 +291,24 @@ sub upload {
     });
 }
 
+sub distributions {
+    my $self = shift;
+    my $req  = Request->new(shift);
+
+    my $sth = PGXN::Manager->conn->run(sub {
+        shift->prepare(q{
+            SELECT name || '-' || version AS dist,
+                   relstatus,
+                   to_char(created_at, 'IYYY-MM-DD') AS date
+              FROM distributions
+             WHERE owner = ?
+             ORDER BY name, version USING <
+        });
+    });
+    $sth->execute($req->user);
+    $self->render('/distributions', { req => $req, vars => { sth => $sth }});
+}
+
 1;
 
 =head1 Name
@@ -353,6 +371,10 @@ Accepts C<POST>s for an administrator to change the status of a user.
 =head3 C<show_upload>
 
 Shows the form for uploading a distribution archive.
+
+=head3 C<distributions>
+
+Shows list of distributions owned by a user.
 
 =head2 Methods
 

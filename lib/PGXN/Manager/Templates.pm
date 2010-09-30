@@ -348,6 +348,7 @@ template moderate => sub {
                                 href is '#';
                                 title is T q{Review [_1]'s }, $user->{nickname};
                                 img { src is $req->uri_for('/ui/img/play.png' ) };
+                                outs $user->{nickname};
                             };
                             div {
                                 class is 'userinfo';
@@ -360,7 +361,6 @@ template moderate => sub {
                                     };
                                 };
                             };
-                            span { $user->{nickname} };
                         };
                         cell {
                             if (my $uri = $user->{uri}) {
@@ -469,6 +469,64 @@ template 'show_upload' => sub {
         page_title => 'Release a distribution archive on the network',
         $args ? %{ $args } : ()
     }
+};
+
+template distributions => sub {
+    my ($self, $req, $args) = @_;
+    wrapper {
+        h1 { T 'Your Distributions' };
+        table {
+            id is 'distlist';
+            summary is T 'List of distributions owned by [_1]', $req->user;
+            cellspacing is 0;
+            thead {
+                row {
+                    th { scope is 'col'; class is 'nobg'; T 'Distributions' };
+                    th { scope is 'col'; T 'Status'   };
+                    th { scope is 'col'; T 'Released' };
+                };
+            };
+            tbody {
+                my $i = 0;
+                while (my $row = $args->{sth}->fetchrow_hashref) {
+                    row {
+                        class is ++$i % 2 ? 'spec' : 'specalt';
+                        th {
+                            scope is 'row';
+                            a {
+                                class is 'show';
+                                href  is $req->uri_for("/auth/distributions/$row->{dist}/");
+                                img {
+                                    src is $req->uri_for('/ui/img/forward.png');
+                                };
+                                outs $row->{dist};
+                            };
+                        };
+                        cell { $row->{relstatus} };
+                        cell { $row->{date} };
+                    }
+                }
+                unless ($i) {
+                    # No distributions.
+                    row {
+                        class is 'spec';
+                        cell {
+                            colspan is 3;
+                            outs T q{You haven't uploaded a distribution yet.};
+                            a {
+                                id is 'upload';
+                                href is $req->uri_for('/auth/upload');
+                                T 'Release one now!';
+                            };
+                        };
+                    };
+                }
+            }
+        };
+    } $req, {
+        page_title => 'Your distributions',
+        $args ? %{ $args } : (),
+    };
 };
 
 1;
