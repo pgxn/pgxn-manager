@@ -114,11 +114,11 @@ BEGIN { create_wrapper wrapper => sub {
                     id is $req->user ? 'usermenu' : 'publicmenu';
                     for my $item (
                         ($req->user ? (
-                            [ '/auth/upload',      'Upload a Distribution', 'upload'      ],
-                            [ '/auth/show',        'Show my Files',         'show',       ],
-                            [ '/auth/permissions', 'Show Permissions',      'permissions' ],
-                            [ '/auth/user',        'Edit Account',          'account'     ],
-                            [ '/auth/pass',        'Change Password',       'passwd'      ],
+                            [ '/auth/upload',           'Upload a Distribution', 'upload'      ],
+                            [ '/auth/distributions',    'Your Distributions',    'dists'       ],
+                            [ '/auth/permissions',      'Show Permissions',      'permissions' ],
+                            [ '/auth/account',          'Edit Account',          'account'     ],
+                            [ '/auth/account/password', 'Change Password',       'passwd'      ],
                         ) : (
                             [ '/auth',     'Log In',          'login'   ],
                             [ '/register', 'Request Account', 'request' ],
@@ -140,7 +140,8 @@ BEGIN { create_wrapper wrapper => sub {
                         class is 'menu';
                         id is 'adminmenu';
                         for my $item (
-                            [ '/auth/admin/moderate', 'Moderate Requests', 'moderate' ],
+                            [ '/auth/admin/moderate', 'Moderate Requests',   'moderate' ],
+                            [ '/auth/admin/users',    'User Administration', 'users'    ],
                         ) {
                             li { a {
                                 id is $item->[2];

@@ -128,11 +128,11 @@ sub test_basics {
 
                 my $i = 0;
                 for my $spec (
-                    [ '/auth/upload',      'Upload a Distribution', 'upload'      ],
-                    [ '/auth/show',        'Show my Files',         'show',       ],
-                    [ '/auth/permissions', 'Show Permissions',      'permissions' ],
-                    [ '/auth/user',        'Edit Account',          'account'     ],
-                    [ '/auth/pass',        'Change Password',       'passwd'      ],
+                    [ '/auth/upload',           'Upload a Distribution', 'upload'      ],
+                    [ '/auth/distributions',    'Your Distributions',    'dists'       ],
+                    [ '/auth/permissions',      'Show Permissions',      'permissions' ],
+                    [ '/auth/account',          'Edit Account',          'account'     ],
+                    [ '/auth/account/password', 'Change Password',       'passwd'      ],
                 ) {
                     $i++;
                     $_->is(
@@ -155,12 +155,13 @@ sub test_basics {
                 # We have another menu.
                 $_->is('./h3', $mt->maketext('Admin Menu'), 'Should have admin menu header');
                 $_->ok('./ul[@id="adminmenu"]', 'Test admin menu', sub {
-                    $_->is('count(./*)', 1, 'Should have 1 menu subelement');
-                    $_->is('count(./li)', 1, 'And it should be a list item');
+                    $_->is('count(./*)', 2, 'Should have s menu subelements');
+                    $_->is('count(./li)', 2, 'And they should be list items');
 
                     my $i = 0;
                     for my $spec (
-                        [ '/auth/admin/moderate', 'Moderate Requests', 'moderate' ],
+                        [ '/auth/admin/moderate', 'Moderate Requests',   'moderate' ],
+                        [ '/auth/admin/users',    'User Administration', 'users'    ],
                     ) {
                         $i++;
                         $_->is(
