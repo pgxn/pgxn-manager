@@ -2,7 +2,14 @@ use strict;
 use warnings;
 use Module::Build::DB;
 
-Module::Build::DB->new(
+my $class = Module::Build::DB->subclass(
+    class => 'PGXN::Build',
+    code => q{
+        sub valid_licenses { { postgresql => 'PostgreSQL' } }
+    },
+);
+
+$class->new(
     module_name        => 'PGXN::Manager',
     license            => 'postgresql',
     script_files       => 'bin',
