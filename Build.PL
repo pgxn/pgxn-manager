@@ -4,7 +4,7 @@ use Module::Build::DB;
 
 Module::Build::DB->new(
     module_name        => 'PGXN::Manager',
-    license            => 'perl',
+    license            => 'postgresql',
     script_files       => 'bin',
     test_file_exts     => [qw(.t .pg)],
     db_config_key      => 'dbi',

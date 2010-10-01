@@ -2,7 +2,7 @@
  * PGXN JavaScript Library
  * http://pgxn.org/
  *
- * Copyright 2010, David E. Wheeler. Some Rights Reserved.
+ * Copyright (c) 2010 PostgreSQL Experts and David E. Wheeler.
  *
  */
 
