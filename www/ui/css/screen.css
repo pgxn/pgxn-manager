@@ -8,7 +8,7 @@ body
 {margin:0; padding:0; color:#303030; background:#e0e0e0 url(../img/bodybg.gif) top left repeat-y; font-family: 'trebuchet ms', Helvetica, sans-serif;}
 
 ul
-{list-style:square; margin:15px 0 20px 0; padding:0; font-size:0.9em;}
+{list-style:square; margin:15px 0 20px 0; padding:0;}
 
 li
 {margin:0 0 8px 25px;}
@@ -17,13 +17,16 @@ a
 {color:#236691; font-weight:bold; text-decoration:none;}
 
 a:hover
-{color:#505050; text-decoration:underline;}
+{color:#505050;}
 
-img
-{float:left; margin:0 15px 15px 0; padding:1px; border:1px solid #d0d0d0;}
+pre
+{overflow:scroll;line-height:1.5em;};
+
+/* img */
+/* {float:left; margin:0 15px 15px 0; padding:1px; border:1px solid #d0d0d0;} */
 
 a img
-{border-color:#236691;}
+{border:none;}
 
 /**************** Sidebar area styles ****************/
 
@@ -187,3 +190,22 @@ td.actions img, th img
 #userlist .userinfo .why {padding-bottom:0;margin-right:0;margin:0;}
 #userlist .userinfo blockquote {margin-left:-40px;margin-right:10px;font-style:italic;font-size:80%}
 #userlist .userinfo blockquote p {white-space:pre-wrap;}
+
+/**************** Definition Lists ****************/
+#content dt
+{font-weight:bold;color:#236691;float:left;clear:left;width:6em;text-align:right;line-height:1.5em;}
+#content dt:after
+{content:":";}
+#content dd
+{margin: 0 0 0 6.5em;}
+#content dd li {padding-top:.1em;}
+
+#distlinks
+{ border:1px solid; margin:10px 4px; padding:15px 10px 15px 50px;color:#00529b;background-color:#bde5f8;width:8em;position:relative;left:20px;top:-110px;list-style:none;padding:10px;margin:0;float:right;}
+#distlinks li
+{margin:0 0 .5em 0;}
+#distlinks img
+{border:0;vertical-align:middle;}
+
+#content p.dist
+{width:440px;}

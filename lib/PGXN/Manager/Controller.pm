@@ -273,9 +273,13 @@ sub upload {
 
     if ($dist->process) {
         # Success!
-        return $req->is_xhr
-            ? $self->respond_with('success', $req)
-            : $self->redirect($req->path_info, $req);
+        return $self->respond_with('success', $req) if $req->is_xhr;
+        $req->session->{success} = 1;
+        my $meta = $dist->distmeta;
+        return $self->redirect(
+            "/auth/distributions/$meta->{name}/$meta->{version}",
+            $req
+        );
     }
 
     # Error.
@@ -297,8 +301,7 @@ sub distributions {
 
     my $sth = PGXN::Manager->conn->run(sub {
         shift->prepare(q{
-            SELECT name || '-' || version AS dist,
-                   relstatus,
+            SELECT name, version, relstatus,
                    to_char(created_at, 'IYYY-MM-DD') AS date
               FROM distributions
              WHERE owner = ?
@@ -307,6 +310,23 @@ sub distributions {
     });
     $sth->execute($req->user);
     $self->render('/distributions', { req => $req, vars => { sth => $sth }});
+}
+
+sub distribution {
+    my $self = shift;
+    my $req  = Request->new(shift);
+    my $p    = shift;
+
+    my $dist = PGXN::Manager->conn->run(sub {
+        shift->selectrow_hashref(q{
+            SELECT name::text, version, abstract, description, relstatus, owner,
+                   sha1, meta, extensions, tags::text[]
+              FROM distribution_details
+             WHERE name = ?
+               AND version = ?
+        }, undef, $p->{dist}, $p->{version});
+    });
+    $self->render('/distribution', { req => $req, vars => { dist => $dist }});
 }
 
 1;
@@ -375,6 +395,10 @@ Shows the form for uploading a distribution archive.
 =head3 C<distributions>
 
 Shows list of distributions owned by a user.
+
+=head3 C<distribution>
+
+Shows details of a single distribution.
 
 =head2 Methods
 

@@ -9,6 +9,7 @@
         ["StackTrace"]
     ],
     "mirror_root": "/tmp/pgxn-root-test",
+    "mirror_uri": "http://localhost/mirror",
     "uri_templates": {
         "dist":         "/dist/{dist}/{dist}-{version}.pgz",
         "readme":       "/dist/{dist}/{dist}-{version}.readme",

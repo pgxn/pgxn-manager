@@ -19,6 +19,7 @@ get  '/thanks'              => sub { Controller->thanks(@_)      };
 get  '/auth/admin/moderate' => sub { Controller->moderate(@_)    };
 post '/auth/admin/user/:nick/status' => sub { Controller->set_status(@_) };
 get  '/auth/distributions'  => sub { Controller->distributions(@_) };
+get  '/auth/distributions/:dist/:version' => sub { Controller->distribution(@_) };
 
 sub app {
     my $router = shift->router;

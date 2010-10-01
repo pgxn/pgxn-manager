@@ -1,7 +1,7 @@
 SET search_path = public,contrib,tap;
 
 BEGIN;
-SELECT plan(91);
+SELECT plan(92);
 --SELECT * FROM no_plan();
 
 -- Check that we have the functions we think we have.
@@ -850,6 +850,52 @@ SELECT bag_eq(
        ('pair', '0.0.3', 'pair', '0.0.3')
     $$,
     'We should have the expected distribution extensions'
+);
+
+/****************************************************************************/
+-- Now that we have all that data, have a look at distribution_details.
+SELECT row_eq(
+    $$ SELECT * FROM distribution_details WHERE name = 'pair' AND version = '0.0.1' $$,
+    ROW('pair', '0.0.1', 'Ordered pair', 'An ordered pair for PostgreSQL',
+        'testing', 'theory', 'pshaw', '{
+   "name": "pair",
+   "abstract": "Ordered pair",
+   "description": "An ordered pair for PostgreSQL",
+   "version": "0.0.1",
+   "maintainer": "theory",
+   "release_status": "testing",
+   "owner": "theory",
+   "sha1": "pshaw",
+   "license": "postgresql",
+   "prereqs": {
+      "runtime": {
+         "recommends": {
+            "PostgreSQL": "8.4.0"
+         },
+         "requires": {
+            "PostGIS": "1.5.0",
+            "PostgreSQL": "8.0.0"
+         }
+      }
+   },
+   "provides": {
+      "pair": {
+         "file": "pair.sql.in",
+         "version": "0.2.2"
+      },
+      "trip": {
+         "file": "trip.sql.in",
+         "version": "0.2.1"
+      }
+   },
+   "tags": ["foo", "bar", "baz"],
+   "resources": {
+      "homepage": "http://pgxn.org/dist/pair/"
+   }
+}
+', ARRAY[['pair','0.2.2'], ['trip', '0.2.1']],
+   ARRAY['bar', 'baz', 'foo'])::distribution_details,
+   'Should get proper dist details for pair 0.0.1'
 );
 
 SELECT * FROM finish();

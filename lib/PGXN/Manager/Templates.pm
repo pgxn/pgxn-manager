@@ -488,6 +488,7 @@ template distributions => sub {
             };
             tbody {
                 my $i = 0;
+                my $forward = $req->uri_for('/ui/img/forward.png');
                 while (my $row = $args->{sth}->fetchrow_hashref) {
                     row {
                         class is ++$i % 2 ? 'spec' : 'specalt';
@@ -495,11 +496,11 @@ template distributions => sub {
                             scope is 'row';
                             a {
                                 class is 'show';
-                                href  is $req->uri_for("/auth/distributions/$row->{dist}/");
+                                href  is $req->uri_for("/auth/distributions/$row->{name}/$row->{version}");
                                 img {
-                                    src is $req->uri_for('/ui/img/forward.png');
+                                    src is $forward;
                                 };
-                                outs $row->{dist};
+                                outs "$row->{name}-$row->{version}";
                             };
                         };
                         cell { $row->{relstatus} };
@@ -527,6 +528,96 @@ template distributions => sub {
         page_title => 'Your distributions',
         $args ? %{ $args } : (),
     };
+};
+
+template distribution => sub {
+    my ($self, $req, $args) = @_;
+    my $dist = $args->{dist};
+    my $name = "$dist->{name}-$dist->{version}";
+    $name .= " ($dist->{relstatus})" if $dist->{relstatus} ne 'stable';
+    my $uri_templates = PGXN::Manager->uri_templates;
+    my $mirror_uri    = PGXN::Manager->config->{mirror_uri};
+    my @uri_vars      = (
+        dist => $dist->{name},
+        version => $dist->{version},
+    );
+
+    wrapper {
+        h1 { $name };
+        p { class is 'absract'; $dist->{abstract} };
+        ul {
+            id is 'distlinks';
+            li {
+                a {
+                    my $uri = URI->new($mirror_uri . $uri_templates->{dist}->process_to_string(
+                        @uri_vars
+                    ));
+                    href is $uri;
+                    title is T 'Download [_1].', $name;
+                    img { src is $req->uri_for('/ui/img/download.png') };
+                    span { T 'Archive' };
+                };
+            };
+            if (-e File::Spec->catdir(
+                PGXN::Manager->config->{mirror_root},
+                $uri_templates->{readme}->process(@uri_vars)
+            )) {
+                li {
+                    a {
+                        my $uri = URI->new($mirror_uri . $uri_templates->{readme}->process_to_string(
+                            @uri_vars
+                        ));
+                        href is $uri;
+                        title is T 'Download the [_1] README.', $name;
+                        img { src is $req->uri_for('/ui/img/warning.png') };
+                        span { T 'README' };
+                    };
+                };
+            }
+            li {
+                a {
+                    my $uri = URI->new($mirror_uri . $uri_templates->{meta}->process_to_string(
+                        @uri_vars
+                    ));
+                    href is $uri;
+                    title is T 'Download tge [_1] Metadata.', $name;
+                    img { src is $req->uri_for('/ui/img/info.png') };
+                    span { T 'Metadata' };
+                };
+            };
+        };
+        if (delete $req->session->{success}) {
+            p {
+                class is 'success dist';
+                T 'Congratulations! This distribution has been released on PGXN.';
+            };
+        }
+        dl {
+            if (my $desc = $dist->{description}) {
+                dt { T 'Description' };
+                dd { p { $desc } };
+            }
+            dt { T 'Owner' };
+            dd { p { $dist->{owner} } };
+            dt { T 'Status' };
+            dd { p { $dist->{relstatus} } };
+            dt { T 'SHA1' };
+            dd { p { $dist->{sha1} } };
+            dt { T 'Extensions' };
+            dd {
+                ul {
+                    li { p{ "$_->[0] $_->[1]" } } for @{ $dist->{extensions } };
+                };
+            };
+            if (my $tags = $dist->{tags}) {
+                dt { T 'Tags' };
+                dd { ul { li { $_ } for @{ $tags } } };
+            }
+        };
+    } $req, {
+        page_title => $name,
+        $args ? %{ $args } : (),
+    }
 };
 
 1;
