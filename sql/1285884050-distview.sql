@@ -5,10 +5,19 @@ SET log_min_messages    TO warning;
 
 BEGIN;
 
+CREATE AGGREGATE multi_array_agg ( text[] ) (
+    SFUNC    = array_cat,
+    STYPE    = text[],
+    INITCOND = '{}'
+);
+
 CREATE VIEW distribution_details AS
 SELECT d.name, d.version, d.abstract, d.description, d.relstatus, d.owner,
        d.sha1, d.meta,
-       ('{' || string_agg(DISTINCT ARRAY[de.extension, de.ext_version]::text, ',' ORDER BY ARRAY[de.extension, de.ext_version]::text) || '}')::text[][] AS extensions,
+       multi_array_agg(
+       DISTINCT ARRAY[[de.extension, de.ext_version]]
+          ORDER BY ARRAY[[de.extension, de.ext_version]]
+       ) AS extensions,
        array_agg(DISTINCT dt.tag ORDER BY dt.tag) AS tags
   FROM distributions d
   JOIN distribution_extensions de
