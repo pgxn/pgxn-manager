@@ -326,7 +326,6 @@ template moderate => sub {
         table {
             id is 'userlist';
             summary is T 'List of requests for users accounts';
-            cellspacing is 0;
             thead {
                 row {
                     th { scope is 'col'; class is 'nobg'; T 'Requests' };
@@ -478,7 +477,6 @@ template distributions => sub {
         table {
             id is 'distlist';
             summary is T 'List of distributions owned by [_1]', $req->user;
-            cellspacing is 0;
             thead {
                 row {
                     th { scope is 'col'; class is 'nobg'; T 'Distributions' };
@@ -495,15 +493,15 @@ template distributions => sub {
                         th {
                             scope is 'row';
                             a {
+                                my $name = "$row->{name}-$row->{version}";
                                 class is 'show';
+                                title is T q{See [_1]'s details}, $name;
                                 href  is $req->uri_for("/auth/distributions/$row->{name}/$row->{version}");
-                                img {
-                                    src is $forward;
-                                };
-                                outs "$row->{name}-$row->{version}";
+                                img { src is $forward; };
+                                outs $name;
                             };
                         };
-                        cell { $row->{relstatus} };
+                        cell { T $row->{relstatus} };
                         cell { $row->{date} };
                     }
                 }
@@ -515,7 +513,7 @@ template distributions => sub {
                             colspan is 3;
                             outs T q{You haven't uploaded a distribution yet.};
                             a {
-                                id is 'upload';
+                                id is 'iupload';
                                 href is $req->uri_for('/auth/upload');
                                 T 'Release one now!';
                             };

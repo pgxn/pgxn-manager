@@ -150,7 +150,7 @@ label.invalid:after
 /**************** Tables ****************/
 /* Borrowed from http://veerle-v2.duoh.com/blog/comments/a_css_styled_table/ */
 table
-{width:100%;}
+{width:100%;border-spacing:0;border-collapse:collapse;}
 
 th
 {font-weight:bold; font-size:90%; color:#236691; border-right:1px solid #C1DAD7; border-bottom:1px solid #C1DAD7; border-top:1px solid #C1DAD7; text-align:left; padding:6px 6px 6px 12px; background:#CAE8EA url(../img/thbg.png) no-repeat;}
@@ -176,7 +176,7 @@ td
 tr.specalt td
 {background:#eaf7fb;}
 
-tr {line-height:24px;vertical-align:top;}
+tr {vertical-align:top;}
 
 td.actions
 {width:64px;}
@@ -184,7 +184,7 @@ td.actions
 td.actions img, th img
 {border:0;margin:0 .5em 0 0;padding:0;}
 
-#userlist th img {display:block; float:left;}
+table th img {display:block; float:left;}
 
 #userlist .userinfo {display:none;background:transparent url(../img/bubup.png) 34px 0 no-repeat;margin:0;width:20em;padding-top:12px;}
 #userlist .userinfo .why {padding-bottom:0;margin-right:0;margin:0;}
