@@ -1,7 +1,7 @@
 SET search_path = public,contrib,tap;
 
 BEGIN;
-SELECT plan(29);
+SELECT plan(32);
 --SELECT * FROM no_plan();
 
 SELECT has_function('multi_array_agg');
@@ -51,6 +51,48 @@ SELECT has_column(  'distribution_details', 'extensions' );
 SELECT col_type_is( 'distribution_details', 'extensions', 'text[]' );
 SELECT has_column(  'distribution_details', 'tags' );
 SELECT col_type_is( 'distribution_details', 'tags', 'citext[]' );
+
+/*****************************************************************************/
+-- Make sure that the pgxn user can use the view.
+GRANT USAGE ON SCHEMA tap TO pgxn;
+SET ROLE pgxn;
+
+SELECT ok(
+    insert_user('theory', 'wet blanket', email := 'theory@pgxn.org'),
+    'Insert user "theory"'
+);
+
+SELECT lives_ok(
+    $$ SELECT add_distribution('theory', 'foo', '{
+        "name":        "pair",
+        "version":     "0.0.1",
+        "license":     "postgresql",
+        "maintainer":  "theory",
+        "abstract":    "whatever"
+    }') $$,
+    'Add a distribution'
+);
+
+SELECT results_eq(
+    'SELECT * FROM distribution_details',
+    $$ VALUES('pair'::citext,'0.0.1'::semver, 'whatever', '','stable'::relstatus,'theory'::label,'foo'::citext,'{
+   "name": "pair",
+   "abstract": "whatever",
+   "version": "0.0.1",
+   "maintainer": "theory",
+   "release_status": "stable",
+   "owner": "theory",
+   "sha1": "foo",
+   "license": "postgresql",
+   "provides": {
+      "pair": {
+         "version": "0.0.1"
+      }
+   }
+}
+', ARRAY[['pair','0.0.1']],'{}'::citext[]) $$,
+   'PGXN user should be able to select from the view'
+);
 
 SELECT * FROM finish();
 ROLLBACK;
