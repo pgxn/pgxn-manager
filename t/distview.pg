@@ -1,0 +1,56 @@
+SET search_path = public,contrib,tap;
+
+BEGIN;
+SELECT plan(29);
+--SELECT * FROM no_plan();
+
+SELECT has_function('multi_array_agg');
+SELECT has_function('multi_array_agg', ARRAY['text[]']);
+SELECT is_aggregate('multi_array_agg');
+SELECT is_aggregate('multi_array_agg', ARRAY['text[]']);
+SELECT volatility_is('multi_array_agg', ARRAY['text[]'], 'immutable');
+SELECT function_returns('multi_array_agg', ARRAY['text[]'], 'text[]');
+SELECT function_lang_is('multi_array_agg', ARRAY['text[]'], 'internal');
+
+SELECT has_view(
+    'public',
+    'distribution_details',
+    'Should have view public.distribution_details'
+);
+
+SELECT columns_are('public', 'distribution_details', ARRAY[
+    'name',
+    'version',
+    'abstract',
+    'description',
+    'relstatus',
+    'owner',
+    'sha1',
+    'meta',
+    'extensions',
+    'tags'
+]);
+
+SELECT has_column(  'distribution_details', 'name' );
+SELECT col_type_is( 'distribution_details', 'name', 'citext' );
+SELECT has_column(  'distribution_details', 'version' );
+SELECT col_type_is( 'distribution_details', 'version', 'semver' );
+SELECT has_column(  'distribution_details', 'abstract' );
+SELECT col_type_is( 'distribution_details', 'abstract', 'text' );
+SELECT has_column(  'distribution_details', 'description' );
+SELECT col_type_is( 'distribution_details', 'description', 'text' );
+SELECT has_column(  'distribution_details', 'relstatus' );
+SELECT col_type_is( 'distribution_details', 'relstatus', 'relstatus' );
+SELECT has_column(  'distribution_details', 'owner' );
+SELECT col_type_is( 'distribution_details', 'owner', 'label' );
+SELECT has_column(  'distribution_details', 'sha1' );
+SELECT col_type_is( 'distribution_details', 'sha1', 'citext' );
+SELECT has_column(  'distribution_details', 'meta' );
+SELECT col_type_is( 'distribution_details', 'meta', 'text' );
+SELECT has_column(  'distribution_details', 'extensions' );
+SELECT col_type_is( 'distribution_details', 'extensions', 'text[]' );
+SELECT has_column(  'distribution_details', 'tags' );
+SELECT col_type_is( 'distribution_details', 'tags', 'citext[]' );
+
+SELECT * FROM finish();
+ROLLBACK;
