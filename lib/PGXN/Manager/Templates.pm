@@ -178,6 +178,14 @@ template home => sub {
     my ($self, $req, $args) = @_;
     wrapper {
         h1 { T 'Welcome' };
+        p {
+            outs T q{PGXN Manger is a Webapp that allows you to upload PostgreSQL extension distributions and have them be distributed to the PostgreSQL Extension Network.};
+            a {
+                href is $req->uri_for('/about');
+                T q{See "About" for details on how to get started.};
+            };
+        };
+
     } $req, { page_title => 'home_page_title', $args ? %{ $args } : () };
 };
 
