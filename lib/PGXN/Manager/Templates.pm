@@ -542,7 +542,7 @@ template distribution => sub {
 
     wrapper {
         h1 { $name };
-        p { class is 'absract'; $dist->{abstract} };
+        p { class is 'abstract'; $dist->{abstract} };
         ul {
             id is 'distlinks';
             li {
@@ -578,7 +578,7 @@ template distribution => sub {
                         @uri_vars
                     ));
                     href is $uri;
-                    title is T 'Download tge [_1] Metadata.', $name;
+                    title is T 'Download the [_1] Metadata.', $name;
                     img { src is $req->uri_for('/ui/img/info.png') };
                     span { T 'Metadata' };
                 };

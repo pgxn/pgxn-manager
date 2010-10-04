@@ -320,12 +320,15 @@ sub distribution {
     my $dist = PGXN::Manager->conn->run(sub {
         shift->selectrow_hashref(q{
             SELECT name::text, version, abstract, description, relstatus, owner,
-                   sha1, meta, extensions, tags::text[]
+                   sha1, meta, extensions, tags::text[], owner = ? AS is_owner
               FROM distribution_details
-             WHERE name = ?
+             WHERE name    = ?
                AND version = ?
-        }, undef, $p->{dist}, $p->{version});
-    });
+        }, undef, $req->user, $p->{dist}, $p->{version});
+    }) or return $self->respond_with('notfound', $req);
+
+    return $self->respond_with('forbidden', $req) unless $dist->{is_owner};
+
     $self->render('/distribution', { req => $req, vars => { dist => $dist }});
 }
 

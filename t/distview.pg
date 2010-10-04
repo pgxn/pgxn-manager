@@ -1,7 +1,7 @@
 SET search_path = public,contrib,tap;
 
 BEGIN;
-SELECT plan(32);
+SELECT plan(34);
 --SELECT * FROM no_plan();
 
 SELECT has_function('multi_array_agg');
@@ -92,6 +92,51 @@ SELECT results_eq(
 }
 ', ARRAY[['pair','0.0.1']],'{}'::citext[]) $$,
    'PGXN user should be able to select from the view'
+);
+
+-- Create another distribution with multiple extensions and tags.
+SELECT lives_ok(
+    $$ SELECT add_distribution('theory', 'ick', '{
+        "name":        "whatevs",
+        "version":     "0.1.0",
+        "license":     "postgresql",
+        "maintainer":  "theory",
+        "release_status": "testing",
+        "description": "Whatever you want",
+        "abstract":    "whatevers",
+        "provides": {
+            "what": { "version": "0.1.2" },
+            "that": { "version": "0.1.0" }
+        },
+        "tags": ["this","that","other"]
+    }') $$,
+    'Add anoter distribution'
+);
+
+SELECT results_eq(
+    $$ SELECT * FROM distribution_details WHERE name = 'whatevs' $$,
+    $$ VALUES('whatevs'::citext,'0.1.0'::semver, 'whatevers', 'Whatever you want','testing'::relstatus,'theory'::label,'ick'::citext,'{
+   "name": "whatevs",
+   "abstract": "whatevers",
+   "description": "Whatever you want",
+   "version": "0.1.0",
+   "maintainer": "theory",
+   "release_status": "testing",
+   "owner": "theory",
+   "sha1": "ick",
+   "license": "postgresql",
+   "provides": {
+      "that": {
+         "version": "0.1.0"
+      },
+      "what": {
+         "version": "0.1.2"
+      }
+   },
+   "tags": ["this", "that", "other"]
+}
+', ARRAY[['that','0.1.0'],['what','0.1.2']],'{other,that,this}'::citext[]) $$,
+   'Should be able to get results with tags, description, etc.'
 );
 
 SELECT * FROM finish();
