@@ -18,7 +18,12 @@ SELECT d.name, d.version, d.abstract, d.description, d.relstatus, d.owner,
        DISTINCT ARRAY[[de.extension, de.ext_version]]
           ORDER BY ARRAY[[de.extension, de.ext_version]]
        ) AS extensions,
-       array_agg(DISTINCT dt.tag ORDER BY dt.tag) AS tags
+       -- I sure wish you could make array_agg() exclude NULLs.
+       ARRAY(
+           SELECT x
+             FROM unnest(array_agg(DISTINCT dt.tag ORDER BY dt.tag)) g(x)
+            WHERE x IS NOT NULL
+       ) AS tags
   FROM distributions d
   JOIN distribution_extensions de
     ON d.name    = de.distribution
