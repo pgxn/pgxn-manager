@@ -10,6 +10,7 @@ use PGXN::Manager;
 
 # The routing table. Define all new routes here.
 get  '/'                    => sub { Controller->home(@_)        };
+get  '/about'               => sub { Controller->about(@_)       };
 get  '/auth'                => sub { Controller->home(@_)        };
 get  '/auth/upload'         => sub { Controller->show_upload(@_) };
 post '/auth/upload'         => sub { Controller->upload(@_)      };

@@ -181,6 +181,49 @@ template home => sub {
     } $req, { page_title => 'home_page_title', $args ? %{ $args } : () };
 };
 
+# XXX Move to a static file?
+template about => sub {
+    my ($self, $req, $args) = @_;
+    wrapper {
+        h1 { T 'About PGXN Manager' };
+        p { T 'PGXN, the PostgreSQL Extension network, is a central distribution system for open-source PostgreSQL extension libraries. As of this writing, it consists of:' };
+        ul {
+            li { T 'An upload and distribution infrastructure for extension developers.' };
+            li { T 'A centralized index and API of distribution metadata.' };
+        };
+        p { T q{This Webapp handles the management of these parts of the infrastructure. So if you'd like to develop and release PostgreSQL estensions, you've come to the right place! Here's how to get started:} };
+        ul {
+            li {
+                a {
+                    href is $req->uri_for('/register');
+                    T 'Register for an acount.';
+                };
+            };
+            li {
+                outs T q{Once your account has been approved, you'll be notified via email.};
+                a {
+                    href is $req->uri_for('/auth');
+                    T 'Go ahead and login.';
+                };
+            };
+            li {
+                outs T q{Prepare your extension for distribution by creating a META.json file.};
+                a {
+                    href is 'http://github.com/theory/pgxn/wiki/PGXN-Meta-Spec';
+                    T 'See the PGXN Meta Spec.';
+                };
+            };
+            li {
+                outs T q{Package up your distribution into an archive file (zip, tarball, etc.).};
+                a {
+                    href is $req->uri_for('/auth/upload');
+                    T 'Upload it to release!';
+                };
+            };
+        };
+    } $req, { page_title => 'about_page_title', $args ? %{ $args } : () };
+};
+
 template request => sub {
     my ($self, $req, $args) = @_;
     $args->{highlight} //= '';

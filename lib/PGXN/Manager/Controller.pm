@@ -90,6 +90,11 @@ sub home {
     return $self->render('/home', { env => shift });
 }
 
+sub about {
+    my $self = shift;
+    return $self->render('/about', { env => shift });
+}
+
 sub request {
     my $self = shift;
     return $self->render('/request', { env => shift });
