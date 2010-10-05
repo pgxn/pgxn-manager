@@ -120,9 +120,9 @@ BEGIN { create_wrapper wrapper => sub {
                             [ '/auth/account',          'Edit Account',          'account'     ],
                             [ '/auth/account/password', 'Change Password',       'passwd'      ],
                         ) : (
-                            [ '/auth',     'Log In',          'login'   ],
-                            [ '/register', 'Request Account', 'request' ],
-                            [ '/reset',    'Reset Password',  'reset'   ],
+                            [ '/auth',              'Log In',          'login'   ],
+                            [ '/account/register',  'Request Account', 'request' ],
+                            [ '/account/forgotten', 'Reset Password',  'reset'   ],
                         )),
                     ) {
                         li { a {
@@ -178,6 +178,12 @@ template home => sub {
     my ($self, $req, $args) = @_;
     wrapper {
         h1 { T 'Welcome' };
+        if (delete $req->session->{reset_sent}) {
+            p {
+                class is 'success';
+                T q{Okay, we've emailed instructions for resetting your password. So go check your email! We'll be here when you get back.};
+            };
+        }
         p {
             outs T q{PGXN Manger is a Webapp that allows you to upload PostgreSQL extension distributions and have them be distributed to the PostgreSQL Extension Network.};
             a {
@@ -203,7 +209,7 @@ template about => sub {
         ul {
             li {
                 a {
-                    href is $req->uri_for('/register');
+                    href is $req->uri_for('/account/register');
                     T 'Register for an acount.';
                 };
             };
@@ -246,7 +252,7 @@ template request => sub {
         }
         form {
             id      is 'reqform';
-            action  is $req->uri_for('/register');
+            action  is $req->uri_for('/account/register');
             # Browser should send us UTF-8 if that's what we ask for.
             # http://www.unicode.org/mail-arch/unicode-ml/Archives-Old/UML023/0450.html
             enctype is 'application/x-www-form-urlencoded; charset=UTF-8';
@@ -667,6 +673,40 @@ template distribution => sub {
         page_title => $name,
         $args ? %{ $args } : (),
     }
+};
+
+template forgotten => sub {
+    my ($self, $req, $args) = @_;
+    wrapper {
+        h1 { T 'Forgot Your Password?' };
+        p { T q{Please type your email address or PGXN nickname below.} };
+        form {
+            id      is 'forgotform';
+            action  is $req->uri_for('/account/forgotten');
+            enctype is 'application/x-www-form-urlencoded; charset=UTF-8';
+            method  is 'post';
+
+            fieldset {
+                legend { T 'Who Are You?' };
+                input {
+                    type is 'text';
+                    name is 'who';
+                    id   is 'who';
+                    placeholder is 'bobama@pgxn.org';
+                };
+            };
+            input {
+                class is 'submit';
+                type  is 'submit';
+                name  is 'submit';
+                id    is 'submit';
+                value is T 'Send Instructions';
+            };
+        };
+    } $req, {
+        page_title => 'Forgot your password? Reset it here',
+        $args ? %{ $args } : (),
+    };
 };
 
 1;

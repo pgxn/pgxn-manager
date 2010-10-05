@@ -607,7 +607,7 @@ test_psgi +PGXN::Manager::Router->app => sub {
     like $email->get_body, qr{Your PGXN account request has been approved[.] Ready to get started[?]
 Great! Just click this link to set your password and get going:
 
-    http://localhost/reset/\w{4,}
+    http://localhost/account/reset/\w{4,}
 
 Best,
 

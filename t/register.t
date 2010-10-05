@@ -32,7 +32,7 @@ my $hparams  = {
 # Request a registration form.
 test_psgi $app => sub {
     my $cb = shift;
-    ok my $res = $cb->(GET '/register'), 'Fetch /register';
+    ok my $res = $cb->(GET '/account/register'), 'Fetch /register';
     ok $res->is_success, 'Should get a successful response';
     is_well_formed_xml $res->content, 'The HTML should be well-formed';
     my $tx = Test::XPath->new( xml => $res->content, is_html => 1 );
@@ -50,7 +50,7 @@ test_psgi $app => sub {
     # Now examine the form.
     $tx->ok('/html/body/div[@id="content"]/form[@id="reqform"]', sub {
         for my $attr (
-            [action  => $req->uri_for('/register')],
+            [action  => $req->uri_for('/account/register')],
             [enctype => 'application/x-www-form-urlencoded; charset=UTF-8'],
             [method  => 'post']
         ) {
@@ -170,7 +170,7 @@ test_psgi $app => sub {
 # Okay, let's submit the form.
 test_psgi $app => sub {
     my $cb = shift;
-    ok my $res = $cb->(POST '/register', [
+    ok my $res = $cb->(POST '/account/register', [
         name     => 'Tom Lane',
         email    => 'tgl@pgxn.org',
         uri      => '',
@@ -179,8 +179,8 @@ test_psgi $app => sub {
     ]), 'POST tgl to /register';
     ok $res->is_redirect, 'It should be a redirect response';
     my $req = PGXN::Manager::Request->new(req_to_psgi($res->request));
-    is $res->headers->header('location'), $req->uri_for('/thanks'),
-        'Should redirect to /thanks';
+    is $res->headers->header('location'), $req->uri_for('/account/thanks'),
+        'Should redirect to /account/thanks';
 
     # And now Tom Lane should be registered.
     PGXN::Manager->conn->run(sub {
@@ -198,7 +198,7 @@ test_psgi $app => sub {
 # Awesome. Let's get a nickname conflict and see how it handles it.
 test_psgi $app => sub {
     my $cb = shift;
-    ok my $res = $cb->(POST '/register', [
+    ok my $res = $cb->(POST '/account/register', [
         name     => 'Tom Lane',
         email    => 'tgl@pgxn.org',
         uri      => 'http://tgl.example.org/',
@@ -247,7 +247,7 @@ test_psgi $app => sub {
 TxnTest->restart;
 test_psgi $app => sub {
     my $cb = shift;
-    ok my $res = $cb->(POST '/register', [
+    ok my $res = $cb->(POST '/account/register', [
         name     => 'Tom Lane',
         email    => 'tgl@pgxn.org',
         uri      => 'http://tgl.example.org/',
@@ -257,8 +257,8 @@ test_psgi $app => sub {
     ]), 'POST valid tgl to /register again';
     my $req = PGXN::Manager::Request->new(req_to_psgi($res->request));
     ok $res->is_redirect, 'It should be a redirect response';
-    is $res->headers->header('location'), $req->uri_for('/thanks'),
-        'Should redirect to /thanks';
+    is $res->headers->header('location'), $req->uri_for('/account/thanks'),
+        'Should redirect to /account/thanks';
 
     # And now Tom Lane should be registered.
     PGXN::Manager->conn->run(sub {
@@ -276,7 +276,7 @@ test_psgi $app => sub {
 test_psgi $app => sub {
     my $cb = shift;
     ok my $res = $cb->(POST(
-        '/register',
+        '/account/register',
         Accept => 'text/html',
         Content => [
             name     => 'Tom Lane',
@@ -334,7 +334,7 @@ TxnTest->restart;
 test_psgi $app => sub {
     my $cb = shift;
     ok my $res = $cb->(POST(
-        '/register',
+        '/account/register',
         'X-Requested-With' => 'XMLHttpRequest',
         Content => [
         name     => 'Tom Lane',
@@ -360,7 +360,7 @@ test_psgi $app => sub {
 test_psgi $app => sub {
     my $cb = shift;
     ok my $res = $cb->(POST(
-        '/register',
+        '/account/register',
         'X-Requested-With' => 'XMLHttpRequest',
         Content => [
             name     => 'Tom Lane',
@@ -380,7 +380,7 @@ test_psgi $app => sub {
 TxnTest->restart;
 test_psgi $app => sub {
     my $cb = shift;
-    ok my $res = $cb->(POST '/register', [
+    ok my $res = $cb->(POST '/account/register', [
         name     => '',
         email    => '',
         uri      => '',
@@ -416,7 +416,7 @@ test_psgi $app => sub {
 TxnTest->restart;
 test_psgi $app => sub {
     my $cb = shift;
-    ok my $res = $cb->(POST '/register', [
+    ok my $res = $cb->(POST '/account/register', [
         name     => '',
         email    => '',
         uri      => '',
@@ -451,7 +451,7 @@ test_psgi $app => sub {
 TxnTest->restart;
 test_psgi $app => sub {
     my $cb = shift;
-    ok my $res = $cb->(POST '/register', [
+    ok my $res = $cb->(POST '/account/register', [
         name     => '',
         email    => 'getme at whatever dot com',
         uri      => '',
@@ -486,7 +486,7 @@ test_psgi $app => sub {
 TxnTest->restart;
 test_psgi $app => sub {
     my $cb = shift;
-    ok my $res = $cb->(POST '/register', [
+    ok my $res = $cb->(POST '/account/register', [
         name     => '',
         uri      => 'http:\\foo.com/',
         email    => 'foo@bar.com',
@@ -521,7 +521,7 @@ test_psgi $app => sub {
 TxnTest->restart;
 test_psgi $app => sub {
     my $cb = shift;
-    ok my $res = $cb->(POST '/register', [
+    ok my $res = $cb->(POST '/account/register', [
         name     => '',
         uri      => 'http://foo.com/',
         email    => 'foo@bar.com',

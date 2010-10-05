@@ -144,7 +144,7 @@ sub register {
 
         # XXX Consider returning 201 and URI to the user profile?
         $req->session->{name} = $req->param('nickname');
-        return $self->redirect('/thanks', $req);
+        return $self->redirect('/account/thanks', $req);
 
     }, sub {
         # Failure!
@@ -212,6 +212,55 @@ sub register {
     });
 }
 
+sub forgotten {
+    my $self = shift;
+    return $self->render('/forgotten', { env => shift });
+}
+
+sub send_reset {
+    my $self = shift;
+    my $req  = Request->new(shift);
+    my $who  = $req->body_parameters->{who};
+
+    my $token = PGXN::Manager->conn->run(sub {
+        my $sql = $who =~ /@/
+            ? 'SELECT forgot_password(nickname) FROM users WHERE email = ?'
+            : 'SELECT forgot_password(?)';
+        shift->selectcol_arrayref($sql, undef, $who)->[0];
+    });
+
+    if ($token) {
+        my $uri = $req->uri_for("/account/reset/$token->[0]");
+        # Create and send the email.
+        my $email = Email::MIME->create(
+            header     => [
+                From => PGXN::Manager->config->{admin_email},
+                To   => $token->[1],
+                Subject => 'Reset Your Password',
+            ],
+            attributes => {
+                content_type => 'text/plain',
+                charset      => 'UTF-8',
+            },
+            body => "Click the link below to reset your PGXN password. But do it soon!\n"
+                  . "This link will expire in 24 hours:\n\n"
+                  . "    $uri\n\n"
+                  . "Best,\n\n"
+                  . "PGXN Management\n"
+        );
+        Email::Sender::Simple->send($email, {
+            transport => PGXN::Manager->email_transport
+        });
+    }
+
+    # Simple response for XHR request.
+    return $self->respond_with('success', $req) if $req->is_xhr;
+
+    # Redirect for normal request.
+    $req->session->{reset_sent} = 1;
+    return $self->redirect('/', $req);
+}
+
 sub thanks {
     my $self = shift;
     my $req  = Request->new(shift);
@@ -261,7 +310,7 @@ sub set_status {
             )->[0];
         });
 
-        my $uri = $req->uri_for("/reset/$token->[0]");
+        my $uri = $req->uri_for("/account/reset/$token->[0]");
         $to   = $token->[1];
         $subj = 'Welcome to PGXN!';
         $body = "Your PGXN account request has been approved. Ready to get started?\n"
@@ -461,6 +510,15 @@ Shows list of distributions owned by a user.
 =head3 C<distribution>
 
 Shows details of a single distribution.
+
+=head3 C<forgotten>
+
+Shows for for user to fill out when password forgotten.
+
+=head3 C<send_reset>
+
+Handles POST from C<forgotten> form. Generates a reset token and sends a reset
+email.
 
 =head2 Methods
 

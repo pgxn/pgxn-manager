@@ -21,6 +21,7 @@ Template::Declare->init( dispatch_to => ['PGXN::Manager::Templates'] );
 
 ok my $req = PGXN::Manager::Request->new(req_to_psgi(GET '/')),
     'Create a Plack request object';
+$req->env->{'psgix.session'} = {};
 my $mt = PGXN::Manager::Locale->accept($req->env->{HTTP_ACCEPT_LANGUAGE});
 
 ok my $html = Template::Declare->show('home', $req, {
@@ -53,6 +54,7 @@ $req->env->{HTTP_ACCEPT_LANGUAGE} = 'en';
 my $user = TxnTest->user;
 ok $req = PGXN::Manager::Request->new(req_to_psgi(GET '/')),
     'Create another Plack request object';
+$req->env->{'psgix.session'} = {};
 $mt = PGXN::Manager::Locale->accept($req->env->{HTTP_ACCEPT_LANGUAGE});
 $req->env->{REMOTE_USER} = $user;
 is $req->user, $user, 'User should be authenicated';
@@ -75,6 +77,7 @@ XPathTest->test_basics($tx, $req, $mt, {
 my $admin = TxnTest->admin;
 ok $req = PGXN::Manager::Request->new(req_to_psgi(GET '/')),
     'Create another Plack request object';
+$req->env->{'psgix.session'} = {};
 $mt = PGXN::Manager::Locale->accept($req->env->{HTTP_ACCEPT_LANGUAGE});
 $req->env->{REMOTE_USER} = $admin;
 is $req->user, $admin, 'User should be authenicated';

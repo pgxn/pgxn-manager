@@ -3,6 +3,7 @@ package PGXN::Manager v0.0.1;
 use 5.12.0;
 use utf8;
 use MooseX::Singleton;
+use Moose::Util::TypeConstraints;
 use DBIx::Connector;
 use Exception::Class::DBI;
 use File::Spec;
@@ -115,12 +116,17 @@ Should be used wherever mail is sent, so that the transport is consistent.
 
 =cut
 
-has email_transport => (is => 'ro', does => 'Email::Sender::Transport', lazy => 1, default => sub {
-    my $config = shift->config;
-    my $class  = $config->{email_transport} or return;
-    eval "require $class" or die $@;
-    return $class->new($config->{email_transport_params} || {});
-});
+has email_transport => (
+    is     => 'ro',
+    isa    => maybe_type(role_type('Email::Sender::Transport')),
+    lazy   => 1,
+    default => sub {
+        my $config = shift->config;
+        my $class  = $config->{email_transport} or return;
+        eval "require $class" or die $@;
+        return $class->new($config->{email_transport_params} || {});
+    }
+);
 
 =head2 Instance Methods
 
