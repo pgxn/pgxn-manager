@@ -29,6 +29,7 @@ my %code_for = (
     forbidden => 403,
     notfound  => 404,
     conflict  => 409,
+    gone      => 410,
 );
 
 sub render {
@@ -51,8 +52,11 @@ sub respond_with {
     my ($self, $status, $req, $err) = @_;
     my $code = $code_for{$status} or die qq{No error code for status "$status"};
 
-    return $self->render("/$status", { req => $req, code => $code, maketext => $err })
-        unless $req->is_xhr;
+    return $self->render("/$status", {
+        req  => $req,
+        code => $code,
+        vars => { maketext => $err }
+    }) unless $req->is_xhr;
 
     my $l = PGXN::Manager::Locale->accept($req->env->{HTTP_ACCEPT_LANGUAGE});
     my $msg = do {
@@ -259,6 +263,44 @@ sub send_reset {
     # Redirect for normal request.
     $req->session->{reset_sent} = 1;
     return $self->redirect('/', $req);
+}
+
+sub reset_form {
+    my $self = shift;
+    return $self->render('/reset_form', { env => shift });
+}
+
+sub reset_pass {
+    my $self  = shift;
+    my $req   = Request->new(shift);
+    my $token = shift->{tok};
+
+    my $new_pass = $req->body_parameters->{new_pass};
+    if ($new_pass ne $req->body_parameters->{verify}) {
+        return $self->render('/reset_form', { req => $req, vars => { nomatch => 1 } });
+    }
+    say STDERR "$token: $new_pass";
+    PGXN::Manager->conn->run(sub {
+        shift->selectcol_arrayref(
+            'SELECT reset_password(?, ?)',
+            undef, $token, $new_pass
+        )->[0];
+    }) or return $self->respond_with(
+        'gone',
+        $req,
+        ['Sorry, but that password reset token has expired.']
+    );
+
+    # Simple response for XHR request.
+    return $self->respond_with('success', $req) if $req->is_xhr;
+
+    # Redirect for normal request.
+    return $self->redirect('/account/changed', $req);
+}
+
+sub pass_changed {
+    my $self = shift;
+    return $self->render('/pass_changed', { env => shift });
 }
 
 sub thanks {
@@ -519,6 +561,18 @@ Shows for for user to fill out when password forgotten.
 
 Handles POST from C<forgotten> form. Generates a reset token and sends a reset
 email.
+
+=head3 C<reset_form>
+
+Displays the form for a user to change her password.
+
+=head3 C<reset_pass>
+
+Handles the POST with a token for a user to change her password.
+
+=head3 C<pass_changed>
+
+Displays a page when a user has successfully reset her password.
 
 =head2 Methods
 

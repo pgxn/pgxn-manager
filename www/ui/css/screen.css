@@ -209,3 +209,9 @@ table th img {display:block; float:left;}
 
 #content p.dist
 {width:440px;}
+
+#changeform label
+{width: 8em;}
+
+#changeform fieldset input
+{margin-left:7.5em;width:29em;}

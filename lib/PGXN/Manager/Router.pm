@@ -21,6 +21,7 @@ post '/account/forgotten'   => sub { Controller->send_reset(@_)  };
 get  '/account/thanks'      => sub { Controller->thanks(@_)      };
 get  '/account/reset/:tok'  => sub { Controller->reset_form(@_)  };
 post '/account/reset/:tok'  => sub { Controller->reset_pass(@_)  };
+get  '/account/changed'     => sub { Controller->pass_changed(@_) };
 get  '/auth/admin/moderate' => sub { Controller->moderate(@_)    };
 post '/auth/admin/user/:nick/status' => sub { Controller->set_status(@_) };
 get  '/auth/distributions'  => sub { Controller->distributions(@_) };

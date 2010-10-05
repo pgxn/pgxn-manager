@@ -368,6 +368,19 @@ template conflict => sub {
     } $req, $args;
 };
 
+template gone => sub {
+    my ($self, $req, $args) = @_;
+    wrapper {
+        h1 { T 'Resource Gone' };
+        p {
+            class is 'error';
+            T $args->{maketext}
+                ? @{ $args->{maketext} }
+                : 'Sorry, the resource you requested is gone';
+        };
+    } $req, $args;
+};
+
 template moderate => sub {
     my ($self, $req, $args) = @_;
     wrapper {
@@ -707,6 +720,73 @@ template forgotten => sub {
         page_title => 'Forgot your password? Reset it here',
         $args ? %{ $args } : (),
     };
+};
+
+template reset_form => sub {
+    my ($self, $req, $args) = @_;
+    wrapper {
+        h1 { T 'Reset Your PGXN Password' };
+        p { T q{Please choose a password to use for your PGXN account.} };
+        if ($args->{nomatch}) {
+            p {
+                class is 'error';
+                outs T 'Passwords do not match. Please try again';
+            };
+        }
+        form {
+            id      is 'changeform';
+            action  is $req->uri_for($req->path_info);
+            enctype is 'application/x-www-form-urlencoded; charset=UTF-8';
+            method  is 'post';
+
+            fieldset {
+                legend { T 'Change Password' };
+                label {
+                    attr { for => 'password', title => T 'Must be at least four charcters long.' };
+                    T 'New Password';
+                };
+                input {
+                    type is 'password';
+                    name is 'new_pass';
+                    id   is 'new_pass';
+                };
+                label {
+                    attr { for => 'verify', title => T 'Must be the same as the new password.' };
+                    T 'Verify Password';
+                };
+                input {
+                    type is 'password';
+                    name is 'verify';
+                    id   is 'verify';
+                };
+            };
+            input {
+                class is 'submit';
+                type  is 'submit';
+                name  is 'submit';
+                id    is 'submit';
+                value is T 'Change';
+            };
+        };
+    } $req, {
+        page_title => 'Forgot your password? Reset it here',
+        $args ? %{ $args } : (),
+    };
+};
+
+template pass_changed => sub {
+    my ($self, $req, $args) = @_;
+    wrapper {
+        h1 { T 'Password Changed' };
+        p {
+            class is 'success';
+            outs T 'W00t! Your password has been changed. So what are you waiting for?';
+            a {
+                href is $req->uri_for('/auth');
+                T 'Go log in!'
+            }
+        };
+    } $req, { page_title => 'Password Changed' };
 };
 
 1;
