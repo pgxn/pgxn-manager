@@ -2,7 +2,7 @@
 
 use 5.12.0;
 use utf8;
-use Test::More tests => 33;
+use Test::More tests => 35;
 #use Test::More 'no_plan';
 use JSON::XS;
 use Test::File;
@@ -67,3 +67,8 @@ file_exists_ok $index, "$index should still exist";
 ok my $tmpl = $pgxn->uri_templates, 'Get URI templates';
 isa_ok $tmpl, 'HASH', 'Their storage';
 isa_ok $tmpl->{$_}, 'URI::Template', "Template $_" for keys %{ $tmpl };
+
+# Test email_transport.
+ok my $trans = $pgxn->email_transport, 'Should have email transport';
+ok $trans->DOES('Email::Sender::Transport'),
+    'And it should do Email::Sender::Transport';
