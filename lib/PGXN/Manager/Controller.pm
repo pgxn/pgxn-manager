@@ -412,6 +412,12 @@ it doesn't do much, but it's a start.
 
 Displays the HTML for the home page.
 
+=head3 C<about>
+
+  PGXN::Manager::Controller->about($env);
+
+Displays the HTML for the "About" page.
+
 =head3 C<auth>
 
   PGXN::Manager::Controller->auth($env);
