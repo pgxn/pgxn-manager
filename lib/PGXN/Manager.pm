@@ -94,6 +94,34 @@ has uri_templates => (is => 'ro', isa => 'HashRef', lazy => 1, default => sub {
     return { map { $_ => URI::Template->new($tmpl->{$_}) } keys %{ $tmpl } };
 });
 
+=head3 C<email_transport>
+
+  Email::Sender::Simple->send($email, {
+      transport => PGXN::Manager->email_transport
+  });
+
+An Email::Sender::Transport object, constructed from the C<email_transport>
+and C<email_transport_params> configuration options. The former is a class
+name, such as L<Email::Sender::Transport::SMTP>, while the latter is the
+parameters to pass to its constructor. Example configuration:
+
+    "email_transport": "Email::Sender::Transport::SMTP",
+    "email_transport_params": {
+        "host": "localhost",
+        "port": 25
+    },
+
+Should be used wherever mail is sent, so that the transport is consistent.
+
+=cut
+
+has email_transport => (is => 'ro', does => 'Email::Sender::Transport', lazy => 1, default => sub {
+    my $config = shift->config;
+    my $class  = $config->{email_transport} or return;
+    eval "require $class" or die $@;
+    return $class->new($config->{email_transport_params} || {});
+});
+
 =head2 Instance Methods
 
 =head3 C<init_root>

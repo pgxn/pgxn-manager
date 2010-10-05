@@ -42,6 +42,8 @@ $class->new(
         'DBI'                        => '1.608',
         'DBIx::Connector'            => '0.20',
         'Email::Valid'               => '0.184',
+        'Email::MIME'                => '1.905',
+        'Email::Sender'              => '0.102370',
         'Exception::Class::DBI'      => '1.00',
         'HTTP::Negotiate'            => '5.835',
         'I18N::LangTags::Detect'     => '1.04',

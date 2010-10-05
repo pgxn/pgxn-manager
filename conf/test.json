@@ -10,6 +10,12 @@
     ],
     "mirror_root": "/tmp/pgxn-root-test",
     "mirror_uri": "http://localhost/mirror",
+    "admin_email": "PGXN Admins <pgxn@pgexperts.com>",
+    "email_transport": "Email::Sender::Transport::SMTP",
+    "email_transport_params": {
+        "host": "localhost",
+        "port": 25
+    },
     "uri_templates": {
         "dist":         "/dist/{dist}/{dist}-{version}.pgz",
         "readme":       "/dist/{dist}/{dist}-{version}.readme",

@@ -8,6 +8,8 @@ use PGXN::Manager::Locale;
 use PGXN::Manager::Templates;
 use aliased 'PGXN::Manager::Distribution';
 use HTML::Entities;
+use Email::MIME;
+use Email::Sender::Simple;
 use JSON::XS;
 use Encode;
 use namespace::autoclean;
@@ -52,7 +54,7 @@ sub respond_with {
     return $self->render("/$status", { req => $req, code => $code, maketext => $err })
         unless $req->is_xhr;
 
-    my $l  = PGXN::Manager::Locale->accept($req->env->{HTTP_ACCEPT_LANGUAGE});
+    my $l = PGXN::Manager::Locale->accept($req->env->{HTTP_ACCEPT_LANGUAGE});
     my $msg = do {
         if (ref $err) {
             $l->maketext(@$err);
@@ -249,10 +251,56 @@ sub set_status {
         )->[0];
     }) or return $self->respond_with('notfound', $req);
 
-    # XXX Send the user an email on failure. Maybe require a note to be
-    # entered by the admin?
+    my ($to, $subj, $body);
+    if ($status eq 'active') {
+        # Generate a password-changing token.
+        my $token = PGXN::Manager->conn->run(sub {
+            shift->selectcol_arrayref(
+                'SELECT forgot_password(?)',
+                undef, $params->{nick}
+            )->[0];
+        });
 
-    # XXX On success, reset the user's password and send an email.
+        my $uri = $req->uri_for("/reset/$token->[0]");
+        $to   = $token->[1];
+        $subj = 'Welcome to PGXN!';
+        $body = "Your PGXN account request has been approved. Ready to get started?\n"
+              . "Great! Just click this link to set your password and get going:\n\n"
+              . "    $uri\n\n"
+              . "Best,\n\n"
+              . "PGXN Management\n";
+    } else {
+        # XXX Maybe require a note to be entered by the admin?
+        $to   = PGXN::Manager->conn->run(sub {
+            shift->selectcol_arrayref(
+                'SELECT email FROM users WHERE nickname = ?',
+                undef, $params->{nick}
+            )->[0];
+        });
+        $subj = 'Account Request Rejected';
+        $body = "I'm sorry to report that your request for a PGXN account has been\n"
+              . "rejected. If you think there has been an error, please reply to this\n"
+              . "message\n\n"
+              . "Best,\n\n"
+              . "PGXN Management\n";
+    }
+
+    # Create and send the email.
+    my $email = Email::MIME->create(
+        header     => [
+            From => PGXN::Manager->config->{admin_email},
+            To   => Email::Address->new( $params->{nick}, $to ),
+            Subject => $subj,
+        ],
+        attributes => {
+            content_type => 'text/plain',
+            charset      => 'UTF-8',
+        },
+        body => $body,
+    );
+    Email::Sender::Simple->send($email, {
+        transport => PGXN::Manager->email_transport
+    });
 
     # Simple response for XHR request.
     return $self->respond_with('success', $req) if $req->is_xhr;

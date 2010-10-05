@@ -2,7 +2,9 @@
 
 use 5.12.0;
 use utf8;
-use Test::More tests => 252;
+BEGIN { $ENV{EMAIL_SENDER_TRANSPORT} = 'Test' }
+
+use Test::More tests => 266;
 #use Test::More 'no_plan';
 use Plack::Test;
 use HTTP::Request::Common;
@@ -589,6 +591,29 @@ test_psgi +PGXN::Manager::Router->app => sub {
     $req = PGXN::Manager::Request->new(req_to_psgi($req));
     is $res->headers->header('location'), $req->uri_for($uri),
         "Should redirect to $uri";
+
+    # Did we send him email?
+    ok my $deliveries = Email::Sender::Simple->default_transport->deliveries,
+        'Should have email deliveries.';
+    is @{ $deliveries }, 1, 'Should have one message';
+    is @{ $deliveries->[0]{successes} }, 1, 'Should have been successfully delivered';
+    my $email = $deliveries->[0]{email};
+    is $email->get_header('Subject'), 'Welcome to PGXN!',
+        'The subject should be set';
+    is $email->get_header('From'), PGXN::Manager->config->{admin_email},
+        'From header should be set';
+    is $email->get_header('To'), Email::Address->new(bob => 'bob@pgxn.org'),
+        'To header should be set';
+    like $email->get_body, qr{Your PGXN account request has been approved[.] Ready to get started[?]
+Great! Just click this link to set your password and get going:
+
+    http://localhost/reset/\w{4,}
+
+Best,
+
+PGXN Management}ms,
+        'Should have accept body';
+    Email::Sender::Simple->default_transport->clear_deliveries
 };
 
 # Has bob been accepted?
@@ -618,6 +643,28 @@ test_psgi +PGXN::Manager::Router->app => sub {
     ok $res->is_success, 'Response should be success';
     is $res->content, $mt->maketext('Success'),
         'And the content should say so';
+
+    # Did we send him email?
+    ok my $deliveries = Email::Sender::Simple->default_transport->deliveries,
+        'Should have email deliveries.';
+    is @{ $deliveries }, 1, 'Should have one message';
+    is @{ $deliveries->[0]{successes} }, 1, 'Should have been successfully delivered';
+    my $email = $deliveries->[0]{email};
+    is $email->get_header('Subject'), 'Account Request Rejected',
+        'The subject should be set';
+    is $email->get_header('From'), PGXN::Manager->config->{admin_email},
+        'From header should be set';
+    is $email->get_header('To'), Email::Address->new(joe => 'joe@pgxn.org'),
+        'To header should be set';
+    is $email->get_body, q{I'm sorry to report that your request for a PGXN account has been
+rejected. If you think there has been an error, please reply to this
+message
+
+Best,
+
+PGXN Management
+}, 'Should have accept body';
+    Email::Sender::Simple->default_transport->clear_deliveries
 };
 
 # Has joe been rejected?
