@@ -378,7 +378,10 @@ template gone => sub {
                 ? @{ $args->{maketext} }
                 : 'Sorry, the resource you requested is gone';
         };
-    } $req, $args;
+    } $req, {
+        page_title => 'Resource Gone',
+        $args ? %{ $args } : (),
+    };
 };
 
 template moderate => sub {
@@ -717,7 +720,7 @@ template forgotten => sub {
             };
         };
     } $req, {
-        page_title => 'Forgot your password? Reset it here',
+        page_title => 'Forgot your password? Request a reset link',
         $args ? %{ $args } : (),
     };
 };
@@ -741,23 +744,27 @@ template reset_form => sub {
 
             fieldset {
                 legend { T 'Change Password' };
+                my $title = T 'Must be at least four charcters long.';
                 label {
-                    attr { for => 'password', title => T 'Must be at least four charcters long.' };
+                    attr { for => 'new_pass', title => $title };
                     T 'New Password';
                 };
                 input {
-                    type is 'password';
-                    name is 'new_pass';
-                    id   is 'new_pass';
+                    type  is 'password';
+                    name  is 'new_pass';
+                    id    is 'new_pass';
+                    title is $title;
                 };
+                $title = T 'Must be the same as the new password.';
                 label {
-                    attr { for => 'verify', title => T 'Must be the same as the new password.' };
+                    attr { for => 'verify', title => $title };
                     T 'Verify Password';
                 };
                 input {
-                    type is 'password';
-                    name is 'verify';
-                    id   is 'verify';
+                    type  is 'password';
+                    name  is 'verify';
+                    id    is 'verify';
+                    title is $title;
                 };
             };
             input {
@@ -769,7 +776,7 @@ template reset_form => sub {
             };
         };
     } $req, {
-        page_title => 'Forgot your password? Reset it here',
+        page_title => 'Reset Your Password',
         $args ? %{ $args } : (),
     };
 };

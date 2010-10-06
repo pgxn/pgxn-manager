@@ -279,7 +279,7 @@ sub reset_pass {
     if ($new_pass ne $req->body_parameters->{verify}) {
         return $self->render('/reset_form', { req => $req, vars => { nomatch => 1 } });
     }
-    say STDERR "$token: $new_pass";
+
     PGXN::Manager->conn->run(sub {
         shift->selectcol_arrayref(
             'SELECT reset_password(?, ?)',

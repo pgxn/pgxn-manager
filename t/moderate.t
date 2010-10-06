@@ -13,10 +13,10 @@ use PGXN::Manager::Router;
 use HTTP::Message::PSGI;
 use Test::XML;
 use Test::XPath;
+use MIME::Base64;
 use lib 't/lib';
 use TxnTest;
 use XPathTest;
-use MIME::Base64;
 
 my $app      = PGXN::Manager::Router->app;
 my $mt       = PGXN::Manager::Locale->accept('en');
