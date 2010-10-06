@@ -101,6 +101,11 @@ sub about {
     return $self->render('/about', { env => shift });
 }
 
+sub contact {
+    my $self = shift;
+    return $self->render('/contact', { env => shift });
+}
+
 sub request {
     my $self = shift;
     return $self->render('/request', { env => shift });
@@ -508,6 +513,12 @@ Displays the HTML for the home page.
   PGXN::Manager::Controller->about($env);
 
 Displays the HTML for the "About" page.
+
+=head3 C<contact>
+
+  PGXN::Manager::Controller->contact($env);
+
+Displays the HTML for the "Contact" page.
 
 =head3 C<auth>
 

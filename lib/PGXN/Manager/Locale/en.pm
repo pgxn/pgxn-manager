@@ -16,6 +16,7 @@ our %Lexicon = (
     'Resource not found.' => 'Hrm. I can’t find a resource at this address. I looked over here and over there and could find nothing. Sorry about that, I’m fresh out of ideas.',
     'Not Found' => 'Where’d It Go?',
     about_page_title => 'All about PGXN, the PostgreSQL Extension Network',
+    contact_page_title => 'How to get in touch with the responsible parties',
 );
 
 1;

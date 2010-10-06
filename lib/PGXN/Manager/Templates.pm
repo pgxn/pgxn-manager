@@ -238,6 +238,52 @@ template about => sub {
     } $req, { page_title => 'about_page_title', $args ? %{ $args } : () };
 };
 
+template contact => sub {
+    my ($self, $req, $args) = @_;
+    wrapper {
+        h1 { T 'Contact Us' };
+        p { T q{Noticed an issue with PGXN? Got a bug to report? Just want to send kudos or complaints? Here's how.}};
+        dl{
+            dt { T 'Bug Reports' };
+            dd {
+                p {
+                    outs T 'Please send bug reports to the';
+                    a {
+                        href is 'http://github.com/theory/pgxn-manager/issues';
+                        T 'PGXN Manager Issue Tracker.';
+                    };
+                };
+            };
+            dt { T 'Source Code' };
+            dd {
+                p {
+                    outs T 'PGXN Manager is released under the';
+                    a {
+                        href is 'http://www.opensource.org/licenses/postgresql';
+                        T 'PostgreSQL License.';
+                    };
+                    outs T 'Download PGXN Manager releases from';
+                    a {
+                        href is 'http://github.com/theory/pgxn-manager/downloads';
+                        T 'GitHub Downloads';
+                    };
+                };
+            };
+            dt { T 'Repository' };
+            dd {
+                p {
+                    outs T 'The PGXN Manager source is availabe in a Git reposotory';
+                    a {
+                        href is 'http://github.com/theory/pgxn-manager';
+                        T 'on GitHub.';
+                    };
+                    outs T 'Fork and enjoy.';
+                };
+            };
+        };
+    } $req, { page_title => 'contact_page_title', $args ? %{ $args } : () };
+};
+
 template request => sub {
     my ($self, $req, $args) = @_;
     $args->{highlight} //= '';
