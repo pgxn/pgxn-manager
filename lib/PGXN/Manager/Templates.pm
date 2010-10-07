@@ -304,36 +304,7 @@ template request => sub {
             enctype is 'application/x-www-form-urlencoded; charset=UTF-8';
             method  is 'post';
 
-            fieldset {
-                id is 'reqessentials';
-                legend { T 'The Essentials' };
-                for my $spec (
-                    [qw(name     Name     text),  'Barack Obama', T 'What does your mother call you?'    ],
-                    [qw(email    Email    email), 'you@example.com', T('Where can we get hold of you?'), 'required email' ],
-                    [qw(uri      URI      url),   'http://blog.example.com/', T 'Got a blog or personal site?'  ],
-                    [qw(nickname Nickname text),  'bobama', T('By what name would you like to be known? Letters, numbers, and dashes only, please.'), 'required' ],
-                    [qw(twitter  Twitter   text),   '@barackobama', T 'Got a Twitter account? Tell us the username and your uploads will be tweeted!'  ],
-                ) {
-                    label {
-                        attr { for => $spec->[0], title => $spec->[4] };
-                        class is 'highlight' if $args->{highlight} eq $spec->[0];
-                        T $spec->[1];
-                    };
-                    input {
-                        id    is $spec->[0];
-                        name  is $spec->[0];
-                        type  is $spec->[2];
-                        title is $spec->[4];
-                        value is $args->{$spec->[0]} || '';
-                        my $class = join( ' ',
-                            ($spec->[5] ? $spec->[5] : ()),
-                            ($args->{highlight} eq $spec->[0] ? 'highlight' : ()),
-                        );
-                        class is $class if $class;
-                        placeholder is $spec->[3];
-                    };
-                }
-            };
+            show 'essentials', $req, { id => 'reqessentials', %{ $args } };
 
             fieldset {
                 id is 'reqwhy';
@@ -840,6 +811,77 @@ template pass_changed => sub {
             }
         };
     } $req, { page_title => 'Password Changed' };
+};
+
+template show_account => sub {
+    my ($self, $req, $args) = @_;
+    $args ||= {};
+    $args->{highlight} //= '';
+    wrapper {
+        h1 { T 'Edit Your Account' };
+        p { T q{Keep your account info up-to-date!} };
+        if (my $err = $args->{error}) {
+            p {
+                class is 'error';
+                outs_raw T @{ $err };
+            };
+        }
+        form {
+            id      is 'accform';
+            action  is $req->uri_for('/auth/account');
+            # Browser should send us UTF-8 if that's what we ask for.
+            # http://www.unicode.org/mail-arch/unicode-ml/Archives-Old/UML023/0450.html
+            enctype is 'application/x-www-form-urlencoded; charset=UTF-8';
+            method  is 'post';
+
+            show 'essentials', $req, { id => 'accessentials', nonick => 1, %{ $args } };
+            input {
+                class is 'submit';
+                type  is 'submit';
+                name  is 'submit';
+                id    is 'submit';
+                value is T 'Make it so!';
+            };
+        };
+    } $req, {
+        validate_form => '#accform',
+        page_title    => 'Edit your account information',
+        %{ $args },
+    }
+};
+
+template essentials => sub {
+    my ($self, $req, $args) = @_;
+    fieldset {
+        id is $args->{id};
+        legend { T 'The Essentials' };
+        for my $spec (
+            [qw(full_name Name     text),  'Barack Obama', T 'What does your mother call you?'    ],
+            [qw(email     Email    email), 'you@example.com', T('Where can we get hold of you?'), 'required email' ],
+            [qw(uri       URI      url),   'http://blog.example.com/', T 'Got a blog or personal site?'  ],
+            ($args->{nonick} ? () : [qw(nickname  Nickname text),  'bobama', T('By what name would you like to be known? Letters, numbers, and dashes only, please.'), 'required' ]),
+            [qw(twitter   Twitter   text),   '@barackobama', T 'Got a Twitter account? Tell us the username and your uploads will be tweeted!'  ],
+        ) {
+            label {
+                attr { for => $spec->[0], title => $spec->[4] };
+                class is 'highlight' if $args->{highlight} eq $spec->[0];
+                T $spec->[1];
+            };
+            input {
+                id    is $spec->[0];
+                name  is $spec->[0];
+                type  is $spec->[2];
+                title is $spec->[4];
+                value is $args->{$spec->[0]} || '';
+                my $class = join( ' ',
+                    ($spec->[5] ? $spec->[5] : ()),
+                    ($args->{highlight} eq $spec->[0] ? 'highlight' : ()),
+                );
+                class is $class if $class;
+                placeholder is $spec->[3];
+            };
+        }
+    };
 };
 
 1;

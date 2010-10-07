@@ -141,11 +141,12 @@ sub register {
             undef,
             @{ $params }{qw(
                 nickname
-                name
+                full_name
                 email
                 why
                 twitter
-            )}, $params->{uri} || undef,
+                uri
+            )}
         );
 
         # Success!
@@ -323,7 +324,7 @@ sub moderate {
 
     my $sth = PGXN::Manager->conn->run(sub {
         shift->prepare(q{
-            SELECT nickname, full_name, email, uri, why
+            SELECT nickname::text, full_name::text, email::text, uri::text, why
               FROM users
              WHERE status = 'new'
              ORDER BY nickname
@@ -481,6 +482,105 @@ sub distribution {
     $self->render('/distribution', { req => $req, vars => { dist => $dist }});
 }
 
+sub show_account {
+    my $self = shift;
+    my $req  = Request->new(shift);
+
+    my $user = PGXN::Manager->conn->run(sub {
+        shift->selectrow_hashref(q{
+            SELECT nickname::text, email::text, uri::text, full_name::text,
+                   twitter::text
+              FROM users
+             WHERE nickname = ?
+        }, undef, $req->user);
+    });
+
+    return $self->render('/show_account', { req => $req, vars => $user });
+}
+
+sub update_account {
+    my $self   = shift;
+    my $req    = Request->new(shift);
+    my $params = $req->body_parameters;
+
+    PGXN::Manager->conn->run(sub {
+        $_->do(
+            q{SELECT update_user(
+                nickname  := ?,
+                full_name := ?,
+                email     := ?,
+                twitter   := ?,
+                uri       := ?
+            );},
+            undef,
+            $req->user,
+            @{ $params }{qw(
+                full_name
+                email
+                twitter
+                uri
+            )}
+        );
+
+        # Success!
+        return $self->respond_with('success', $req) if $req->is_xhr;
+
+        $req->session->{updated} = 1;
+        return $self->redirect($req->path_info, $req);
+
+    }, sub {
+        # Failure!
+        my $err = shift;
+        my ($msg, $highlight);
+        given ($err->state) {
+            when ('23505') {
+                # Unique constraint violation.
+                $msg = [
+                    'Do you have two accounts? Because the email address “[_1]” is associated with another account.',
+                    delete $params->{email}
+                ];
+                $params->{email} = PGXN::Manager->conn->run(sub{
+                    shift->selectcol_arrayref(
+                        'SELECT email FROM users WHERE nickname = ?',
+                        undef, $req->user
+                    )->[0];
+                });
+            } when ('23514') {
+                # Domain label violation.
+                given ($err->errstr) {
+                    when (/\bemail_check\b/) {
+                        $highlight = 'email';
+                        $msg = [
+                            q{Hrm, “[_1]” doesn't look like an email address. Care to try again?},
+                            encode_entities delete $params->{email},
+                        ];
+                    } when (/\buri_check\b/) {
+                        $highlight = 'uri';
+                        $msg = [
+                            q{Hrm, “[_1]” doesn't look like a URI. Care to try again?},
+                            encode_entities delete $params->{uri},
+                        ];
+                    } default {
+                        die $err;
+                    }
+                }
+            }
+            default {
+                die $err;
+            }
+        }
+
+        # Respond with error code for XHR request.
+        return $self->respond_with('conflict', $req, $msg) if $req->is_xhr;
+
+        $self->render('/show_account', { req => $req, code => $code_for{conflict}, vars => {
+            %{ $params },
+            highlight => $highlight,
+            error     => $msg,
+        }});
+    });
+}
+
 1;
 
 =head1 Name
@@ -584,6 +684,14 @@ Handles the POST with a token for a user to change her password.
 =head3 C<pass_changed>
 
 Displays a page when a user has successfully reset her password.
+
+=head3 C<show_account>
+
+Shows a user's account information in a form for updating.
+
+=head3 C<update_account>
+
+Handles a POST request to update an account.
 
 =head2 Methods
 

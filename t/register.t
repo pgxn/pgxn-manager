@@ -72,7 +72,7 @@ test_psgi $app => sub {
             my $i = 0;
             for my $spec (
                 {
-                    id    => 'name',
+                    id    => 'full_name',
                     title => $mt->maketext('What does your mother call you?'),
                     label => $mt->maketext('Name'),
                     type  => 'text',
@@ -171,11 +171,11 @@ test_psgi $app => sub {
 test_psgi $app => sub {
     my $cb = shift;
     ok my $res = $cb->(POST '/account/register', [
-        name     => 'Tom Lane',
-        email    => 'tgl@pgxn.org',
-        uri      => '',
-        nickname => 'tgl',
-        why      => 'In short, +1 from me. Regards, Tom Lane',
+        full_name => 'Tom Lane',
+        email     => 'tgl@pgxn.org',
+        uri       => '',
+        nickname  => 'tgl',
+        why       => 'In short, +1 from me. Regards, Tom Lane',
     ]), 'POST tgl to /register';
     ok $res->is_redirect, 'It should be a redirect response';
     my $req = PGXN::Manager::Request->new(req_to_psgi($res->request));
@@ -189,7 +189,7 @@ test_psgi $app => sub {
               FROM users
              WHERE nickname = ?
         }, undef, 'tgl'), [
-            'Tom Lane', 'tgl@pgxn.org', undef, '',
+            'Tom Lane', 'tgl@pgxn.org', '', '',
             'In short, +1 from me. Regards, Tom Lane', 'new'
         ], 'TGL should exist';
     });
@@ -199,11 +199,11 @@ test_psgi $app => sub {
 test_psgi $app => sub {
     my $cb = shift;
     ok my $res = $cb->(POST '/account/register', [
-        name     => 'Tom Lane',
-        email    => 'tgl@pgxn.org',
-        uri      => 'http://tgl.example.org/',
-        nickname => 'tgl',
-        why      => 'In short, +1 from me. Regards, Tom Lane',
+        full_name => 'Tom Lane',
+        email     => 'tgl@pgxn.org',
+        uri       => 'http://tgl.example.org/',
+        nickname  => 'tgl',
+        why       => 'In short, +1 from me. Regards, Tom Lane',
     ]), 'POST tgl to /register again';
     ok !$res->is_redirect, 'It should not be a redirect response';
     is $res->code, 409, 'Should have 409 status code';
@@ -226,7 +226,7 @@ test_psgi $app => sub {
 
         # Check the form fields.
         $tx->ok('./form[@id="reqform"]/fieldset[1]', '... Check first fieldset', sub {
-            $tx->is('./input[@id="name"]/@value', 'Tom Lane', '...... Name should be set');
+            $tx->is('./input[@id="full_name"]/@value', 'Tom Lane', '...... Name should be set');
             $tx->is('./input[@id="email"]/@value', 'tgl@pgxn.org', '...... Email should be set');
             $tx->is('./input[@id="uri"]/@value', 'http://tgl.example.org/', '...... URI should be set');
             $tx->is('./input[@id="nickname"]/@value', '', '...... Nickname should not be set');
@@ -248,12 +248,12 @@ TxnTest->restart;
 test_psgi $app => sub {
     my $cb = shift;
     ok my $res = $cb->(POST '/account/register', [
-        name     => 'Tom Lane',
-        email    => 'tgl@pgxn.org',
-        uri      => 'http://tgl.example.org/',
-        nickname => 'tgl',
-        twitter  => 'tomlane',
-        why      => 'In short, +1 from me. Regards, Tom Lane',
+        full_name => 'Tom Lane',
+        email     => 'tgl@pgxn.org',
+        uri       => 'http://tgl.example.org/',
+        nickname  => 'tgl',
+        twitter   => 'tomlane',
+        why       => 'In short, +1 from me. Regards, Tom Lane',
     ]), 'POST valid tgl to /register again';
     my $req = PGXN::Manager::Request->new(req_to_psgi($res->request));
     ok $res->is_redirect, 'It should be a redirect response';
@@ -279,11 +279,11 @@ test_psgi $app => sub {
         '/account/register',
         Accept => 'text/html',
         Content => [
-            name     => 'Tom Lane',
-            email    => 'tgl@pgxn.org',
-            uri      => 'http://tgl.example.org/',
-            nickname => 'yodude',
-            why      => 'In short, +1 from me. Regards, Tom Lane',
+            full_name => 'Tom Lane',
+            email     => 'tgl@pgxn.org',
+            uri       => 'http://tgl.example.org/',
+            nickname  => 'yodude',
+            why       => 'In short, +1 from me. Regards, Tom Lane',
         ],
     )), 'POST yodude to /register';
     ok !$res->is_redirect, 'It should not be a redirect response';
@@ -312,7 +312,7 @@ test_psgi $app => sub {
 
         # Check the form fields.
         $tx->ok('./form[@id="reqform"]/fieldset[1]', '... Check first fieldset', sub {
-            $tx->is('./input[@id="name"]/@value', 'Tom Lane', '...... Name should be set');
+            $tx->is('./input[@id="full_name"]/@value', 'Tom Lane', '...... Name should be set');
             $tx->is('./input[@id="email"]/@value', '', '...... Email should be blank');
             $tx->is('./input[@id="email"]/@class', 'required email', '...... And it should not be highlighted');
             $tx->is('./input[@id="uri"]/@value', 'http://tgl.example.org/', '...... URI should be set');
@@ -337,11 +337,11 @@ test_psgi $app => sub {
         '/account/register',
         'X-Requested-With' => 'XMLHttpRequest',
         Content => [
-        name     => 'Tom Lane',
-        email    => 'tgl@pgxn.org',
-        uri      => '',
-        nickname => 'tgl',
-        why      => 'In short, +1 from me. Regards, Tom Lane',
+        full_name => 'Tom Lane',
+        email     => 'tgl@pgxn.org',
+        uri       => '',
+        nickname  => 'tgl',
+        why       => 'In short, +1 from me. Regards, Tom Lane',
     ])), 'POST valid XMLHttpRequest for tgl to /register again';
     ok $res->is_success, 'It should be a successful response';
     is $res->content, $mt->maketext('Success'), 'And the content should say so';
@@ -352,7 +352,7 @@ test_psgi $app => sub {
             SELECT full_name, email, uri, status
               FROM users
              WHERE nickname = ?
-        }, undef, 'tgl'), ['Tom Lane', 'tgl@pgxn.org', undef, 'new'], 'TGL should exist';
+        }, undef, 'tgl'), ['Tom Lane', 'tgl@pgxn.org', '', 'new'], 'TGL should exist';
     });
 };
 
@@ -363,11 +363,11 @@ test_psgi $app => sub {
         '/account/register',
         'X-Requested-With' => 'XMLHttpRequest',
         Content => [
-            name     => 'Tom Lane',
-            email    => 'tgl@pgxn.org',
-            uri      => 'http://tgl.example.org/',
-            nickname => 'yodude',
-            why      => 'In short, +1 from me. Regards, Tom Lane',
+            full_name => 'Tom Lane',
+            email     => 'tgl@pgxn.org',
+            uri       => 'http://tgl.example.org/',
+            nickname  => 'yodude',
+            why       => 'In short, +1 from me. Regards, Tom Lane',
         ]
     )), 'POST yodude via Ajax to /register';
     is $res->code, 409, 'Should have 409 status code';
@@ -381,11 +381,11 @@ TxnTest->restart;
 test_psgi $app => sub {
     my $cb = shift;
     ok my $res = $cb->(POST '/account/register', [
-        name     => '',
-        email    => '',
-        uri      => '',
-        nickname => '',
-        why      => '',
+        full_name => '',
+        email     => '',
+        uri       => '',
+        nickname  => '',
+        why       => '',
     ]), 'POST empty form to /register yet again';
     ok !$res->is_redirect, 'It should not be a redirect response';
     is $res->code, 409, 'Should have 409 status code';
@@ -417,11 +417,11 @@ TxnTest->restart;
 test_psgi $app => sub {
     my $cb = shift;
     ok my $res = $cb->(POST '/account/register', [
-        name     => '',
-        email    => '',
-        uri      => '',
-        nickname => '-@@-',
-        why      => '',
+        full_name => '',
+        email     => '',
+        uri       => '',
+        nickname  => '-@@-',
+        why       => '',
     ]), 'POST form with bogus nickname to /register';
     ok !$res->is_redirect, 'It should not be a redirect response';
     is $res->code, 409, 'Should have 409 status code';
@@ -452,11 +452,11 @@ TxnTest->restart;
 test_psgi $app => sub {
     my $cb = shift;
     ok my $res = $cb->(POST '/account/register', [
-        name     => '',
-        email    => 'getme at whatever dot com',
-        uri      => '',
-        nickname => 'foo',
-        why      => 'I rock',
+        full_name => '',
+        email     => 'getme at whatever dot com',
+        uri       => '',
+        nickname  => 'foo',
+        why       => 'I rock',
     ]), 'POST form with bogus email to /register';
     ok !$res->is_redirect, 'It should not be a redirect response';
     is $res->code, 409, 'Should have 409 status code';
@@ -487,11 +487,11 @@ TxnTest->restart;
 test_psgi $app => sub {
     my $cb = shift;
     ok my $res = $cb->(POST '/account/register', [
-        name     => '',
-        uri      => 'http:\\foo.com/',
-        email    => 'foo@bar.com',
-        nickname => 'foo',
-        why      => 'I rock',
+        full_name => '',
+        uri       => 'http:\\foo.com/',
+        email     => 'foo@bar.com',
+        nickname  => 'foo',
+        why       => 'I rock',
     ]), 'POST form with bogus URI to /register';
     ok !$res->is_redirect, 'It should not be a redirect response';
     is $res->code, 409, 'Should have 409 status code';
@@ -522,11 +522,11 @@ TxnTest->restart;
 test_psgi $app => sub {
     my $cb = shift;
     ok my $res = $cb->(POST '/account/register', [
-        name     => '',
-        uri      => 'http://foo.com/',
-        email    => 'foo@bar.com',
-        nickname => 'foo',
-        why      => '    ',
+        full_name => '',
+        uri       => 'http://foo.com/',
+        email     => 'foo@bar.com',
+        nickname  => 'foo',
+        why       => '    ',
     ]), 'POST form with empty why to /register';
     ok !$res->is_redirect, 'It should not be a redirect response';
     is $res->code, 409, 'Should have 409 status code';

@@ -60,7 +60,7 @@ CREATE DOMAIN email AS CITEXT CHECK ( VALUE IS NULL OR is_email( VALUE ) );
 CREATE OR REPLACE FUNCTION is_uri(
     uri CITEXT
 )RETURNS BOOLEAN LANGUAGE 'plperl' IMMUTABLE AS $$
-    return 'true' if Data::Validate::URI::is_uri( $_[0] );
+    return 'true' if Data::Validate::URI::is_uri( $_[0] ) || $_[0] eq '';
     return 'false';
 $$;
 

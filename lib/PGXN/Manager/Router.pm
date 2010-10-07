@@ -9,23 +9,25 @@ use aliased 'PGXN::Manager::Controller';
 use PGXN::Manager;
 
 # The routing table. Define all new routes here.
-get  '/'                    => sub { Controller->home(@_)        };
-get  '/about'               => sub { Controller->about(@_)       };
-get  '/contact'             => sub { Controller->contact(@_)     };
-get  '/auth'                => sub { Controller->home(@_)        };
-get  '/auth/upload'         => sub { Controller->show_upload(@_) };
-post '/auth/upload'         => sub { Controller->upload(@_)      };
-get  '/account/register'    => sub { Controller->request(@_)     };
-post '/account/register'    => sub { Controller->register(@_)    };
-get  '/account/forgotten'   => sub { Controller->forgotten(@_)   };
-post '/account/forgotten'   => sub { Controller->send_reset(@_)  };
-get  '/account/thanks'      => sub { Controller->thanks(@_)      };
-get  '/account/reset/:tok'  => sub { Controller->reset_form(@_)  };
-post '/account/reset/:tok'  => sub { Controller->reset_pass(@_)  };
-get  '/account/changed'     => sub { Controller->pass_changed(@_) };
-get  '/auth/admin/moderate' => sub { Controller->moderate(@_)    };
+get  '/'                    => sub { Controller->home(@_)                };
+get  '/about'               => sub { Controller->about(@_)               };
+get  '/contact'             => sub { Controller->contact(@_)             };
+get  '/auth'                => sub { Controller->home(@_)                };
+get  '/auth/account'        => sub { Controller->show_account(@_)        };
+post '/auth/account'        => sub { Controller->update_account(@_)      };
+get  '/auth/upload'         => sub { Controller->show_upload(@_)         };
+post '/auth/upload'         => sub { Controller->upload(@_)              };
+get  '/account/register'    => sub { Controller->request(@_)             };
+post '/account/register'    => sub { Controller->register(@_)            };
+get  '/account/forgotten'   => sub { Controller->forgotten(@_)           };
+post '/account/forgotten'   => sub { Controller->send_reset(@_)          };
+get  '/account/thanks'      => sub { Controller->thanks(@_)              };
+get  '/account/reset/:tok'  => sub { Controller->reset_form(@_)          };
+post '/account/reset/:tok'  => sub { Controller->reset_pass(@_)          };
+get  '/account/changed'     => sub { Controller->pass_changed(@_)        };
+get  '/auth/admin/moderate' => sub { Controller->moderate(@_)            };
 post '/auth/admin/user/:nick/status' => sub { Controller->set_status(@_) };
-get  '/auth/distributions'  => sub { Controller->distributions(@_) };
+get  '/auth/distributions'  => sub { Controller->distributions(@_)       };
 get  '/auth/distributions/:dist/:version' => sub { Controller->distribution(@_) };
 
 sub app {

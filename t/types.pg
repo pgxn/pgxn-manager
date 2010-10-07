@@ -140,12 +140,11 @@ SELECT lives_ok(
     'A mailto: URL is a valid URI'
 );
 
-SELECT throws_ok(
+SELECT lives_ok(
     'SELECT ''''::uri',
-    '23514',
-    'value for domain uri violates check constraint "uri_check"',
-    'An empty string is not a URI'
+    'An empty string should be allowed as a URI'
 );
+
 SELECT throws_ok(
     'SELECT ''hey me://foo.com''::uri',
     '23514',
