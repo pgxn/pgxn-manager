@@ -215,7 +215,7 @@ test_psgi $app => sub {
                 [ Description => 'A widget is just thing thing, you know' ],
                 [ Owner       => $user ],
                 [ Status      => 'stable' ],
-                [ SHA1        => '009f5fa9d854aa39e78bd0fee1e6dfa314314d90' ],
+                [ SHA1        => 'a6e176b99792f90e9c51022edf445a1d88379da9' ],
                 [ Extensions  => undef ], # see below
                 [ Tags        => undef ], # see below
             ) {
