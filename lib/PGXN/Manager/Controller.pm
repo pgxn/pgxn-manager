@@ -581,6 +581,61 @@ sub update_account {
     });
 }
 
+sub show_password {
+    my $self = shift;
+    return $self->render('/show_password', { env => shift });
+}
+
+sub update_password {
+    my $self   = shift;
+    my $req    = Request->new(shift);
+    my $params = $req->body_parameters;
+
+    my $err;
+    if ($params->{new_pass} ne $params->{new_pass2}) {
+        $err = q{D'oh! The passwords you typed in don't match. Would you mind trying again? Thanks.};
+    } elsif (length $params->{new_pass} < 4) {
+        $err = q{So sorry! Passwords must be at least four characters long.};
+    }
+
+    if ($err) {
+        return $self->respond_with('conflict', $req, [$err]) if $req->is_xhr;
+        return $self->render('/show_password', {
+            req => $req,
+            code => $code_for{conflict},
+            vars => { error => [ $err ] }
+        });
+    }
+
+    my $ret = PGXN::Manager->conn->run(sub {
+        shift->selectcol_arrayref(
+            'SELECT change_password(?, ?, ?)',
+            undef, $req->user, $params->{old_pass}, $params->{new_pass}
+        )->[0];
+    });
+
+    if ($ret) {
+        # Simple response for XHR request.
+        return $self->respond_with('success', $req) if $req->is_xhr;
+
+        # Redirect for normal request.
+        $req->session->{password_reset} = 1;
+        return $self->redirect($req->path_info, $req);
+    }
+
+    # Failed.
+    my $err = [
+        q{I don't think that was really your existing password. Care to try again?}
+    ];
+    return $self->respond_with('conflict', $req, $err) if $req->is_xhr;
+
+    return $self->render('/show_password', {
+        req => $req,
+        code => $code_for{conflict},
+        vars => { error => $err }
+    });
+}
+
 1;
 
 =head1 Name
@@ -692,6 +747,14 @@ Shows a user's account information in a form for updating.
 =head3 C<update_account>
 
 Handles a POST request to update an account.
+
+=head3 C<show_password>
+
+Shows a user's password information in a form for updating.
+
+=head3 C<update_password>
+
+Handles a POST request to update an password.
 
 =head2 Methods
 

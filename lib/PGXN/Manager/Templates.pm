@@ -884,6 +884,69 @@ template essentials => sub {
     };
 };
 
+template show_password => sub {
+    my ($self, $req, $args) = @_;
+    $args ||= {};
+    wrapper {
+        h1 { T 'Change Your Password' };
+        if (delete $req->session->{password_reset}) {
+            p {
+                class is 'success';
+                T q{Rock on! Your password has been successfully reset.};
+            };
+        }
+        p { T q{There's nothing better than the smell of a fresh password in the morning, don't you agree?} };
+        if (my $err = $args->{error}) {
+            p {
+                class is 'error';
+                outs_raw T @{ $err };
+            };
+        }
+        form {
+            id      is 'passform';
+            action  is $req->uri_for('/auth/account/password');
+            enctype is 'application/x-www-form-urlencoded; charset=UTF-8';
+            method  is 'post';
+
+            fieldset {
+                id is 'accpass';
+                legend { T 'Password' };
+                for my $spec (
+                    ['old_pass', 'Old Password', 'password', T q{What's your current password?} ],
+                    ['new_pass', 'New Password', 'password', T q{What would you like your new password to be?}    ],
+                    ['new_pass2', 'Verify Password', 'password', T q{What was that again?} ],
+                ) {
+                    label {
+                        attr { for => $spec->[0], title => $spec->[3] };
+                        class is 'highlight' if $args->{highlight} eq $spec->[0];
+                        T $spec->[1];
+                    };
+                    input {
+                        id    is $spec->[0];
+                        name  is $spec->[0];
+                        type  is $spec->[2];
+                        title is $spec->[3];
+                        class is 'required';
+                        value is $args->{$spec->[0]} || '';
+                    };
+                }
+            };
+
+            input {
+                class is 'submit';
+                type  is 'submit';
+                name  is 'submit';
+                id    is 'submit';
+                value is T 'Ch-ch-ch-ch-change it!'
+            };
+        };
+    } $req, {
+        validate_form => '#passform',
+        page_title    => 'Change your password',
+        %{ $args },
+    }
+};
+
 1;
 
 =head1 Name

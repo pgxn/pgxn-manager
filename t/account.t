@@ -2,7 +2,6 @@
 
 use 5.12.0;
 use utf8;
-BEGIN { $ENV{EMAIL_SENDER_TRANSPORT} = 'Test' }
 
 use Test::More tests => 291;
 #use Test::More 'no_plan';
