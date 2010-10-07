@@ -19,6 +19,7 @@ get  '/auth/account/password' => sub { Controller->show_password(@_)     };
 post '/auth/account/password' => sub { Controller->update_password(@_)   };
 get  '/auth/upload'           => sub { Controller->show_upload(@_)       };
 post '/auth/upload'           => sub { Controller->upload(@_)            };
+get  '/auth/permissions'      => sub { Controller->show_perms(@_)        };
 get  '/account/register'      => sub { Controller->request(@_)           };
 post '/account/register'      => sub { Controller->register(@_)          };
 get  '/account/forgotten'     => sub { Controller->forgotten(@_)         };
@@ -29,6 +30,7 @@ post '/account/reset/:tok'    => sub { Controller->reset_pass(@_)        };
 get  '/account/changed'       => sub { Controller->pass_changed(@_)      };
 get  '/auth/admin/moderate'   => sub { Controller->moderate(@_)          };
 post '/auth/admin/user/:nick/status' => sub { Controller->set_status(@_) };
+get  '/auth/admin/users'      => sub { Controller->show_users(@_)        };
 get  '/auth/distributions'    => sub { Controller->distributions(@_)     };
 get  '/auth/distributions/:dist/:version' => sub { Controller->distribution(@_) };
 

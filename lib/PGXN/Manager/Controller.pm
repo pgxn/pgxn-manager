@@ -636,6 +636,16 @@ sub update_password {
     });
 }
 
+sub show_perms {
+    my $self = shift;
+    return $self->render('/show_perms', { env => shift });
+}
+
+sub show_users {
+    my $self = shift;
+    return $self->render('/show_users', { env => shift });
+}
+
 1;
 
 =head1 Name
@@ -755,6 +765,14 @@ Shows a user's password information in a form for updating.
 =head3 C<update_password>
 
 Handles a POST request to update an password.
+
+=head3 C<show_perms>
+
+Shows a user's extension permissions.
+
+=head3 C<show_users>
+
+Shows interface for administering users.
 
 =head2 Methods
 

@@ -947,6 +947,28 @@ template show_password => sub {
     }
 };
 
+template show_perms => sub {
+    my ($self, $req, $args) = @_;
+    wrapper {
+        h1 { T 'Your Extension Permissions' };
+        p {
+            class is 'info';
+            T 'Not yet implemented. Sorry. Do come again';
+        };
+    } $req, { page_title => 'View and edit your extension permissions' };
+};
+
+template show_users => sub {
+    my ($self, $req, $args) = @_;
+    wrapper {
+        h1 { T 'User Administration' };
+        p {
+            class is 'info';
+            T 'Not yet implemented. Sorry. Do come again';
+        };
+    } $req, { page_title => 'Edit user settings' };
+};
+
 1;
 
 =head1 Name
