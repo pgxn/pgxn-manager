@@ -5,6 +5,10 @@ Revision history for Perl extension PGXN::Manager
       - Added missing dependency Plack::Middleware::Session to `Build.PL`.
       - Added `conf/prod.json`. I think the usage will be pretty typical, and
         it will be nicer for folks just to have a file to edit.
+      - Changed Archive::Extract error handling in PGXN::Manager::Distribution
+        to always die with our custom erorr message, rather than try to parse
+        the original error message, which can vary depending on the
+        implementation of `tar`.
 
 0.1.0 2010-10-08T01:51:55Z 
       - Initial version.

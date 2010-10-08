@@ -380,12 +380,7 @@ sub _zip_error_handler {
 my $CWD = cwd;
 sub _ae_error_handler {
     chdir $CWD; # Go back to where we belong.
-    given (shift) {
-        when (/(?:Cannot determine file type|Unrecognized archive format)/) {
-            die ['“[_1]” doesn’t look like a distribution archive'];
-        }
-        default { die [$_] }
-    }
+    die ['“[_1]” doesn’t look like a distribution archive'];
 }
 
 __PACKAGE__->meta->make_immutable(inline_constructor => 0);
