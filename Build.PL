@@ -45,6 +45,7 @@ $class->new(
         'Email::Valid'               => '0.184',
         'Email::MIME'                => '1.905',
         'Email::Sender'              => '0.102370',
+        'Email::Address'             => '1.892',
         'Exception::Class::DBI'      => '1.00',
         'HTTP::Negotiate'            => '5.835',
         'I18N::LangTags::Detect'     => '1.04',
