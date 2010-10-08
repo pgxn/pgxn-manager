@@ -76,7 +76,7 @@ Installation
 
 * Fire up the app:
 
-      plackup -E prod bin/pgxn_manager.psgi
+      sudo -u pgxn plackup -E prod bin/pgxn_manager.psgi
 
 * Connect to port 5000 on your host and you should see the UI!
 

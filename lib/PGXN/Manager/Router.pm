@@ -43,7 +43,7 @@ sub app {
         mount '/' => builder {
             my $sessdir = File::Spec->catdir(
                 File::Spec->tmpdir,
-                'pgxn-session-' . $ENV{PLACK_ENV} || 'test'
+                'pgxn-session-' . ($ENV{PLACK_ENV} || 'test')
             );
             mkdir $sessdir unless -e $sessdir;
 
