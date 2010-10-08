@@ -15,6 +15,9 @@ Revision history for Perl extension PGXN::Manager
         string to a string-overloaded Email::Address object. Just turn the
         Email::Address into a string to compare instead.
       - Initialize the mirror root on startup in `bin/pgxn_manager.psgi`.
+      - User access time is now updated on authentication. Conveniently, the
+        `authenticate_user()` function is called every time the user visits
+        the site and is logged in.
 
 0.1.0 2010-10-08T01:51:55Z 
       - Initial version.

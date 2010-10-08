@@ -299,7 +299,7 @@ $$;
 CREATE OR REPLACE FUNCTION authenticate_user(
    nickname CITEXT,
    password TEXT
-) RETURNS BOOLEAN LANGUAGE sql STABLE SECURITY DEFINER AS $$
+) RETURNS BOOLEAN LANGUAGE plpgsql VOLATILE SECURITY DEFINER AS $$
 /*
 
     % select authenticate_user('admin', '*****');
@@ -308,16 +308,19 @@ CREATE OR REPLACE FUNCTION authenticate_user(
      t
 
 Returns true if the user with the specified nickname exists, is active, and
-the password matches. Otherwise returns false.
+the password matches. Also updates the value of the `visited_at` column for
+the user to the current timestamp. Returns false if the nickname and password
+don't match or the user is not active.
 
 */
-    SELECT EXISTS(
-        SELECT TRUE
-          FROM users
-         WHERE nickname = $1
-           AND status = 'active'
-           AND password = crypt($2, password)
-    );
+BEGIN
+    UPDATE users
+       SET visited_at     = NOW()
+     WHERE users.nickname = authenticate_user.nickname
+       AND status         = 'active'
+       AND users.password = crypt(authenticate_user.password, users.password);
+    RETURN FOUND;
+END;
 $$;
 
 COMMIT;

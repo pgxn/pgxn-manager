@@ -1,7 +1,7 @@
 SET search_path = public,contrib,tap;
 
 BEGIN;
-SELECT plan(227);
+SELECT plan(232);
 --SELECT * FROM no_plan();
 
 SELECT has_enum('status');
@@ -661,8 +661,8 @@ SELECT has_function(    'authenticate_user' );
 SELECT has_function(    'authenticate_user', ARRAY['citext', 'text'] );
 SELECT is_definer(      'authenticate_user', ARRAY['citext', 'text'] );
 SELECT function_returns('authenticate_user', 'boolean' );
-SELECT function_lang_is('authenticate_user', 'sql' );
-SELECT volatility_is(   'authenticate_user', 'stable' );
+SELECT function_lang_is('authenticate_user', 'plpgsql' );
+SELECT volatility_is(   'authenticate_user', 'volatile' );
 SELECT ok(
     has_function_privilege(
         'pgxn',
@@ -678,11 +678,25 @@ SELECT ok(
     'authenticate(non-user) should return false'
 );
 
+SELECT is(
+    visited_at,
+    '2010-08-20 14:01:03.306399+00',
+    'Check user visted_at'
+) FROM users WHERE nickname = 'theory';
+
 -- Try valid user.
 SELECT ok(
     authenticate_user('theory', 'pgtap rulez'),
     'authenticate(user, pass) should return true'
 );
+
+SELECT is(
+    visited_at,
+    '2010-08-21 22:01:03.306399+00',
+    'User visted_at should be updated'
+) FROM users WHERE nickname = 'theory';
+
+SELECT * FROM set_now('2010-08-23 11:01:03.306399+00');
 
 -- Invalid password.
 SELECT ok(
@@ -690,11 +704,23 @@ SELECT ok(
     'authenticate(user, invald pass) should return false'
 );
 
+SELECT is(
+    visited_at,
+    '2010-08-21 22:01:03.306399+00',
+    'User visted_at should not be updated'
+) FROM users WHERE nickname = 'theory';
+
 -- Try inactive user.
 SELECT ok(
     NOT authenticate_user('strongrrl', 'wet blanket'),
     'authenticate(new user, pass) should return false'
 );
+
+SELECT isnt(
+    visited_at,
+    '2010-08-23 11:01:03.306399+00',
+    'Strongrrl visted_at should not be updated'
+) FROM users WHERE nickname = 'strongrrl';
 
 -- Activate her.
 UPDATE users SET status = 'active' WHERE nickname = 'strongrrl';
@@ -702,6 +728,12 @@ SELECT ok(
     authenticate_user('strongrrl', 'wet blanket'),
     'authenticate(active user, pass) should return true'
 );
+
+SELECT is(
+    visited_at,
+    '2010-08-23 11:01:03.306399+00',
+    'Strongrrl visted_at should now be updated'
+) FROM users WHERE nickname = 'strongrrl';
 
 /*****************************************************************************/
 -- Try with limited permission role.
