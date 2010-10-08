@@ -11,6 +11,9 @@ Revision history for Perl extension PGXN::Manager
         the original error message, which can vary depending on the
         implementation of `tar`.
       - Fixed a test failure when looking at the sha1 in `t/distview.t`.
+      - Fixed a test failure on Test::More 0.95_01 or higher when comparing a
+        string to a string-overloaded Email::Address object. Just turn the
+        Email::Address into a string to compare instead.
 
 0.1.0 2010-10-08T01:51:55Z 
       - Initial version.

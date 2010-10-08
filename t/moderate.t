@@ -602,7 +602,7 @@ test_psgi +PGXN::Manager::Router->app => sub {
         'The subject should be set';
     is $email->get_header('From'), PGXN::Manager->config->{admin_email},
         'From header should be set';
-    is $email->get_header('To'), Email::Address->new(bob => 'bob@pgxn.org'),
+    is $email->get_header('To'), Email::Address->new(bob => 'bob@pgxn.org')->format,
         'To header should be set';
     like $email->get_body, qr{Your PGXN account request has been approved[.] Ready to get started[?]
 Great! Just click this link to set your password and get going:
@@ -654,7 +654,7 @@ test_psgi +PGXN::Manager::Router->app => sub {
         'The subject should be set';
     is $email->get_header('From'), PGXN::Manager->config->{admin_email},
         'From header should be set';
-    is $email->get_header('To'), Email::Address->new(joe => 'joe@pgxn.org'),
+    is $email->get_header('To'), Email::Address->new(joe => 'joe@pgxn.org')->format,
         'To header should be set';
     is $email->get_body, q{I'm sorry to report that your request for a PGXN account has been
 rejected. If you think there has been an error, please reply to this
