@@ -14,6 +14,7 @@ Revision history for Perl extension PGXN::Manager
       - Fixed a test failure on Test::More 0.95_01 or higher when comparing a
         string to a string-overloaded Email::Address object. Just turn the
         Email::Address into a string to compare instead.
+      - Initialize the mirror root on startup in `bin/pgxn_manager.psgi`.
 
 0.1.0 2010-10-08T01:51:55Z 
       - Initial version.
