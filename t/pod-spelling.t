@@ -19,3 +19,7 @@ uploader
 tuples
 jQuery
 UTF
+SQL
+PostgreSQL
+API
+metadata
