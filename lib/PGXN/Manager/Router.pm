@@ -5,6 +5,7 @@ use utf8;
 use Plack::Builder;
 use Router::Simple::Sinatraish;
 use Plack::App::File;
+use Plack::Session::Store::File;
 use aliased 'PGXN::Manager::Controller';
 use PGXN::Manager;
 
@@ -40,8 +41,16 @@ sub app {
     builder {
         mount '/ui' => Plack::App::File->new(root => './www/ui/');
         mount '/' => builder {
+            my $sessdir = File::Spec->catdir(
+                File::Spec->tmpdir,
+                'pgxn-session-' . $ENV{PLACK_ENV} || 'test'
+            );
+            mkdir $sessdir unless -e $sessdir;
+
             enable 'JSONP';
-            enable 'Session', store => 'File';
+            enable 'Session', store => Plack::Session::Store::File->new(
+                dir => $sessdir
+            );
             if (my $mids = PGXN::Manager->instance->config->{middleware}) {
                 enable @$_ for @$mids;
             }

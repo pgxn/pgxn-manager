@@ -18,6 +18,9 @@ Revision history for Perl extension PGXN::Manager
       - User access time is now updated on authentication. Conveniently, the
         `authenticate_user()` function is called every time the user visits
         the site and is logged in.
+      - Now using a subdirectory of the temp directory named
+        "pgxn-session-$ENV{PLACK_ENV}" to store the session files. This
+        prevents the polution of /tmp with a lot of junk.
 
 0.1.0 2010-10-08T01:51:55Z 
       - Initial version.
