@@ -55,6 +55,7 @@ $class->new(
         'parent'                     => '0.223',
         'perl'                       => 5.012,
         'Plack'                      => '0.9946',
+        'Plack::Middleware::Session' => '0.12',
         'namespace::autoclean'       => '0.11',
         'Router::Simple::Sinatraish' => '0.02',
         'SemVer'                     => '0.1.0',

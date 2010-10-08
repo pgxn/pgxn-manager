@@ -1,4 +1,10 @@
 Revision history for Perl extension PGXN::Manager
 
+0.1.1
+      - Added build and installation instructions to `README.md`.
+      - Added missing dependency Plack::Middleware::Session to `Build.PL`.
+      - Added `conf/prod.json`. I think the usage will be pretty typical, and
+        it will be nicer for folks just to have a file to edit.
+
 0.1.0 2010-10-08T01:51:55Z 
       - Initial version.
