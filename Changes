@@ -9,6 +9,7 @@ Revision history for Perl extension PGXN::Manager
         to always die with our custom erorr message, rather than try to parse
         the original error message, which can vary depending on the
         implementation of `tar`.
+      - Fixed a test failure when looking at the sha1 in `t/distview.t`.
 
 0.1.0 2010-10-08T01:51:55Z 
       - Initial version.

@@ -69,6 +69,7 @@ ok my $dist = PGXN::Manager::Distribution->new(
     basename => 'widget-0.2.5.pgz',
 ), 'Create a widget-0.2.5 distribution';
 ok $dist->process, 'Process the widget-0.2.5 distribution';
+my $sha1 = $dist->sha1;
 
 # Create another one, widget-0.2.6, with no README'
 my $meta = $dist->distmeta;
@@ -215,7 +216,7 @@ test_psgi $app => sub {
                 [ Description => 'A widget is just thing thing, you know' ],
                 [ Owner       => $user ],
                 [ Status      => 'stable' ],
-                [ SHA1        => 'a6e176b99792f90e9c51022edf445a1d88379da9' ],
+                [ SHA1        => $sha1 ],
                 [ Extensions  => undef ], # see below
                 [ Tags        => undef ], # see below
             ) {
