@@ -65,8 +65,9 @@ $class->new(
         'URI::Template'              => '0.15',
     },
     recommends => {
-        'Test::Pod'           => '1.41',
-        'Test::Pod::Coverage' => '1.06',
+        'Plack::Middleware::ReverseProxy' => '0.07',
+        'Test::Pod'                       => '1.41',
+        'Test::Pod::Coverage'             => '1.06',
     },
     tap_harness_args => {
         sources => {
