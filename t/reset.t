@@ -24,7 +24,7 @@ my $mt       = PGXN::Manager::Locale->accept('en');
 # Fetch the forgotten form.
 test_psgi $app => sub {
     my $cb = shift;
-    ok my $res = $cb->(GET '/account/forgotten'), 'Fetch /account/forgotten';
+    ok my $res = $cb->(GET '/pub/account/forgotten'), 'Fetch /account/forgotten';
     ok $res->is_success, 'Should get a successful response';
     is_well_formed_xml $res->content, 'The HTML should be well-formed';
     my $tx = Test::XPath->new( xml => $res->content, is_html => 1 );
@@ -47,7 +47,7 @@ test_psgi $app => sub {
         # Check out the form.
         $tx->ok('./form[@id="forgotform"]', '... Test change form', sub {
             for my $attr (
-                [action  => $req->uri_for('/account/forgotten')],
+                [action  => $req->uri_for('/pub/account/forgotten')],
                 [enctype => 'application/x-www-form-urlencoded; charset=UTF-8'],
                 [method  => 'post']
             ) {
@@ -97,7 +97,7 @@ test_psgi $app => sub {
     my $sess = {};
     $mock->mock( session => sub { $sess });
 
-    ok my $res = $cb->(POST '/account/forgotten', [
+    ok my $res = $cb->(POST '/pub/account/forgotten', [
         who => 'nobody',
     ]), 'POST nobody to /account/forgotten';
 
@@ -123,7 +123,7 @@ test_psgi $app => sub {
     $mock->mock( session => sub { $sess });
 
     my $user = TxnTest->user;
-    ok my $res = $cb->(POST '/account/forgotten', [
+    ok my $res = $cb->(POST '/pub/account/forgotten', [
         who => $user,
     ]), "POST $user to /account/forgotten";
 
@@ -163,7 +163,7 @@ my $tok2;
 test_psgi +PGXN::Manager::Router->app => sub {
     my $cb     = shift;
     my $req    = POST(
-        '/account/forgotten',
+        '/pub/account/forgotten',
         'X-Requested-With' => 'XMLHttpRequest',
         Content => [who => 'user@pgxn.org'],
     );
@@ -202,7 +202,7 @@ PGXN Management}ms,
 # Let's see what the reset form looks like, eh?
 test_psgi $app => sub {
     my $cb = shift;
-    ok my $res = $cb->(GET "/account/reset/$tok"), "Fetch /account/reset/$tok";
+    ok my $res = $cb->(GET "/pub/account/reset/$tok"), "Fetch /account/reset/$tok";
     ok $res->is_success, 'Should get a successful response';
     is_well_formed_xml $res->content, 'The HTML should be well-formed';
     my $tx = Test::XPath->new( xml => $res->content, is_html => 1 );
@@ -225,7 +225,7 @@ test_psgi $app => sub {
         # Check out the form.
         $tx->ok('./form[@id="changeform"]', '... Test change form', sub {
             for my $attr (
-                [action  => $req->uri_for("/account/reset/$tok")],
+                [action  => $req->uri_for("/pub/account/reset/$tok")],
                 [enctype => 'application/x-www-form-urlencoded; charset=UTF-8'],
                 [method  => 'post']
             ) {
@@ -305,14 +305,14 @@ test_psgi $app => sub {
     my $sess = {};
     $mock->mock( session => sub { $sess });
 
-    ok my $res = $cb->(POST "/account/reset/$tok", [
+    ok my $res = $cb->(POST "/pub/account/reset/$tok", [
         new_pass => 'whatever',
         verify   => 'whatever',
     ]), "Send POST to /account/reset/$tok";
 
     ok $res->is_redirect, 'Should get a redirect response';
     my $req = PGXN::Manager::Request->new(req_to_psgi($res->request));
-    is $res->headers->header('location'), $req->uri_for('/account/changed'),
+    is $res->headers->header('location'), $req->uri_for('/pub/account/changed'),
         "Should redirect to /account/changed";
 };
 
@@ -333,7 +333,7 @@ test_psgi $app => sub {
     my $sess = {};
     $mock->mock( session => sub { $sess });
 
-    ok my $res = $cb->(POST "/account/reset/$tok", [
+    ok my $res = $cb->(POST "/pub/account/reset/$tok", [
         new_pass => 'whatever',
         verify   => 'whatever',
     ]), 'Send POST toe /account/reset/expired';
@@ -369,7 +369,7 @@ test_psgi $app => sub {
     $mock->mock( session => sub { $sess });
 
     ok my $res = $cb->(POST(
-        "/account/reset/$tok",
+        "/pub/account/reset/$tok",
         'X-Requested-With' => 'XMLHttpRequest',
         Content => [
             new_pass => 'whatever',
@@ -393,7 +393,7 @@ test_psgi $app => sub {
     $mock->mock( session => sub { $sess });
 
     ok my $res = $cb->(POST(
-        "/account/reset/$tok2",
+        "/pub/account/reset/$tok2",
         'X-Requested-With' => 'XMLHttpRequest',
         Content => [
             new_pass => 'fünkmusic',
@@ -418,7 +418,7 @@ test_psgi +PGXN::Manager::Router->app => sub {
 # Have a look at /account/changed.
 test_psgi $app => sub {
     my $cb = shift;
-    ok my $res = $cb->(GET '/account/changed'), 'Fetch /account/changed';
+    ok my $res = $cb->(GET '/pub/account/changed'), 'Fetch /account/changed';
     ok $res->is_success, 'Should get a successful response';
     is_well_formed_xml $res->content, 'The HTML should be well-formed';
     my $tx = Test::XPath->new( xml => $res->content, is_html => 1 );

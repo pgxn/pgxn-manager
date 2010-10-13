@@ -121,8 +121,8 @@ BEGIN { create_wrapper wrapper => sub {
                             [ '/auth/account/password', 'Change Password',       'passwd'      ],
                         ) : (
                             [ '/auth',              'Log In',          'login'   ],
-                            [ '/account/register',  'Request Account', 'request' ],
-                            [ '/account/forgotten', 'Reset Password',  'reset'   ],
+                            [ '/pub/account/register',  'Request Account', 'request' ],
+                            [ '/pub/account/forgotten', 'Reset Password',  'reset'   ],
                         )),
                     ) {
                         li { a {
@@ -157,8 +157,8 @@ BEGIN { create_wrapper wrapper => sub {
                     class is 'menu';
                     id is 'allmenu';
                     for my $item (
-                        [ '/about',   'About',   'about'   ],
-                        [ '/contact', 'Contact', 'contact' ],
+                        [ '/pub/about',   'About',   'about'   ],
+                        [ '/pub/contact', 'Contact', 'contact' ],
                     ) {
                         li { a {
                             id is $item->[2];
@@ -209,7 +209,7 @@ template about => sub {
         ul {
             li {
                 a {
-                    href is $req->uri_for('/account/register');
+                    href is $req->uri_for('/pub/account/register');
                     T 'Register for an acount.';
                 };
             };
@@ -298,7 +298,7 @@ template request => sub {
         }
         form {
             id      is 'reqform';
-            action  is $req->uri_for('/account/register');
+            action  is $req->uri_for('/pub/account/register');
             # Browser should send us UTF-8 if that's what we ask for.
             # http://www.unicode.org/mail-arch/unicode-ml/Archives-Old/UML023/0450.html
             enctype is 'application/x-www-form-urlencoded; charset=UTF-8';
@@ -715,7 +715,7 @@ template forgotten => sub {
         p { T q{Please type your email address or PGXN nickname below.} };
         form {
             id      is 'forgotform';
-            action  is $req->uri_for('/account/forgotten');
+            action  is $req->uri_for('/pub/account/forgotten');
             enctype is 'application/x-www-form-urlencoded; charset=UTF-8';
             method  is 'post';
 

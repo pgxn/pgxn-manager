@@ -189,8 +189,8 @@ sub test_basics {
                 my $i = 0;
                 for my $spec (
                     [ '/auth',     'Log In',          'login'   ],
-                    [ '/account/register',  'Request Account', 'request' ],
-                    [ '/account/forgotten', 'Reset Password',  'reset'   ],
+                    [ '/pub/account/register',  'Request Account', 'request' ],
+                    [ '/pub/account/forgotten', 'Reset Password',  'reset'   ],
                 ) {
                     $i++;
                     $_->is(
@@ -218,8 +218,8 @@ sub test_basics {
 
             my $i = 0;
             for my $spec (
-                [ '/about',   'About' ],
-                [ '/contact', 'Contact' ],
+                [ '/pub/about',   'About' ],
+                [ '/pub/contact', 'Contact' ],
             ) {
                 $i++;
                 $_->is(

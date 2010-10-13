@@ -2,7 +2,7 @@
 
 use 5.12.0;
 use utf8;
-use Test::More tests => 25;
+use Test::More tests => 28;
 #use Test::More 'no_plan';
 use Plack::Test;
 use HTTP::Request::Common;
@@ -21,6 +21,15 @@ BEGIN {
 test_psgi +PGXN::Manager::Router->app => sub {
     my $cb = shift;
     ok my $res = $cb->(GET '/'), 'Fetch /';
+    ok $res->is_redirect, 'Should get a redirect response';
+    is $res->headers->header('location'), 'http://localhost/pub',
+        'Should redirect to /pub';
+};
+
+# Test home page.
+test_psgi +PGXN::Manager::Router->app => sub {
+    my $cb = shift;
+    ok my $res = $cb->(GET '/pub'), 'Fetch /pub';
     is $res->code, 200, 'Should get 200 response';
     like $res->content, qr/Welcome/, 'The body should look correct';
 };

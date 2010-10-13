@@ -91,6 +91,11 @@ sub respond_with {
     return [$code, ['Content-Type' => $type], [$msg]];
 }
 
+sub root {
+    my $self = shift;
+    return $self->redirect('/pub', Request->new(shift));
+}
+
 sub home {
     my $self = shift;
     return $self->render('/home', { env => shift });
@@ -154,7 +159,7 @@ sub register {
 
         # XXX Consider returning 201 and URI to the user profile?
         $req->session->{name} = $req->param('nickname');
-        return $self->redirect('/account/thanks', $req);
+        return $self->redirect('/pub/account/thanks', $req);
 
     }, sub {
         # Failure!
@@ -301,7 +306,7 @@ sub reset_pass {
     return $self->respond_with('success', $req) if $req->is_xhr;
 
     # Redirect for normal request.
-    return $self->redirect('/account/changed', $req);
+    return $self->redirect('/pub/account/changed', $req);
 }
 
 sub pass_changed {
@@ -666,6 +671,12 @@ it doesn't do much, but it's a start.
 =head1 Interface
 
 =head2 Actions
+
+=head3 C<root>
+
+  PGXN::Manager::Controller->root($env);
+
+Handles request for /, redirecting to C</pub>.
 
 =head3 C<home>
 
