@@ -3,38 +3,94 @@ package PGXN::Manager::Router;
 use 5.12.0;
 use utf8;
 use Plack::Builder;
-use Router::Simple::Sinatraish;
+use Router::Resource;
 use Plack::App::File;
 use Plack::Session::Store::File;
 use aliased 'PGXN::Manager::Controller';
 use PGXN::Manager;
 
 # The routing table. Define all new routes here.
-get  '/'                       => sub { Controller->root(@_)              };
-get  '/pub'                    => sub { Controller->home(@_)              };
-get  '/pub/about'              => sub { Controller->about(@_)             };
-get  '/pub/contact'            => sub { Controller->contact(@_)           };
-get  '/pub/account/register'   => sub { Controller->request(@_)           };
-post '/pub/account/register'   => sub { Controller->register(@_)          };
-get  '/pub/account/forgotten'  => sub { Controller->forgotten(@_)         };
-post '/pub/account/forgotten'  => sub { Controller->send_reset(@_)        };
-get  '/pub/account/thanks'     => sub { Controller->thanks(@_)            };
-get  '/pub/account/reset/:tok' => sub { Controller->reset_form(@_)        };
-post '/pub/account/reset/:tok' => sub { Controller->reset_pass(@_)        };
-get  '/pub/account/changed'    => sub { Controller->pass_changed(@_)      };
-get  '/auth'                   => sub { Controller->home(@_)              };
-get  '/auth/account'           => sub { Controller->show_account(@_)      };
-post '/auth/account'           => sub { Controller->update_account(@_)    };
-get  '/auth/account/password'  => sub { Controller->show_password(@_)     };
-post '/auth/account/password'  => sub { Controller->update_password(@_)   };
-get  '/auth/upload'            => sub { Controller->show_upload(@_)       };
-post '/auth/upload'            => sub { Controller->upload(@_)            };
-get  '/auth/permissions'       => sub { Controller->show_perms(@_)        };
-get  '/auth/admin/moderate'    => sub { Controller->moderate(@_)          };
-post '/auth/admin/user/:nick/status' => sub { Controller->set_status(@_) };
-get  '/auth/admin/users'       => sub { Controller->show_users(@_)        };
-get  '/auth/distributions'     => sub { Controller->distributions(@_)     };
-get  '/auth/distributions/:dist/:version' => sub { Controller->distribution(@_) };
+resource '/' => sub {
+    GET { Controller->root(@_) };
+};
+
+resource '/pub' => sub {
+    GET { Controller->home(@_) };
+};
+
+resource '/pub/about' => sub {
+    GET { Controller->about(@_) };
+};
+
+resource '/pub/contact' => sub {
+    GET { Controller->contact(@_) };
+};
+
+resource '/pub/account/register' => sub {
+    GET  { Controller->request(@_)  };
+    POST { Controller->register(@_) };
+};
+
+resource '/pub/account/forgotten' => sub {
+    GET  { Controller->forgotten(@_)  };
+    POST { Controller->send_reset(@_) };
+};
+
+resource '/pub/account/thanks' => sub {
+    GET { Controller->thanks(@_) };
+};
+
+resource '/pub/account/reset/:tok' => sub {
+    GET  { Controller->reset_form(@_) };
+    POST { Controller->reset_pass(@_) };
+};
+
+resource  '/pub/account/changed' => sub {
+    GET { Controller->pass_changed(@_) };
+};
+
+resource '/auth' => sub {
+    GET { Controller->home(@_) };
+};
+
+resource  '/auth/account' => sub {
+    GET  { Controller->show_account(@_)   };
+    POST { Controller->update_account(@_) };
+};
+
+resource  '/auth/account/password' => sub {
+    GET  { Controller->show_password(@_)   };
+    POST { Controller->update_password(@_) };
+};
+
+resource '/auth/upload' => sub {
+    GET  { Controller->show_upload(@_) };
+    POST { Controller->upload(@_)      };
+};
+
+resource '/auth/permissions' => sub {
+    GET { Controller->show_perms(@_) };
+};
+
+resource '/auth/admin/moderate' => sub {
+    GET { Controller->moderate(@_) };
+};
+
+resource '/auth/admin/user/:nick/status' => sub {
+    POST { Controller->set_status(@_) };
+};
+
+resource '/auth/admin/users' => sub {
+    GET { Controller->show_users(@_) };
+};
+
+resource '/auth/distributions' => sub {
+    GET { Controller->distributions(@_) };
+};
+
+resource '/auth/distributions/:dist/:version' => sub {
+    GET { Controller->distribution(@_) };
+};
 
 sub app {
     my $router = shift->router;
@@ -73,7 +129,7 @@ sub app {
                     'notfound',
                     PGXN::Manager::Request->new($env)
                 );
-                return $route->{code}->($env, $route);
+                return $route->();
             };
         };
     };
