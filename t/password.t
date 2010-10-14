@@ -48,6 +48,7 @@ test_psgi +PGXN::Manager::Router->app => sub {
 
     $req = PGXN::Manager::Request->new(req_to_psgi($req));
     $req->env->{REMOTE_USER} = $user;
+    $req->env->{SCRIPT_NAME} = '/auth';
     XPathTest->test_basics($tx, $req, $mt, $head);
 
     $tx->ok('/html/body/div[@id="content"]', 'Look at the content', sub {
@@ -62,7 +63,7 @@ test_psgi +PGXN::Manager::Router->app => sub {
     # Now examine the form.
     $tx->ok('/html/body/div[@id="content"]/form[@id="passform"]', sub {
         for my $attr (
-            [action  => $req->uri_for('/auth/account/password')],
+            [action  => $req->uri_for('/account/password')],
             [enctype => 'application/x-www-form-urlencoded; charset=UTF-8'],
             [method  => 'post']
         ) {
@@ -212,6 +213,7 @@ test_psgi $app => sub {
 
     my $req = PGXN::Manager::Request->new(req_to_psgi($res->request));
     $req->env->{REMOTE_USER} = $user;
+    $req->env->{SCRIPT_NAME} = '/auth';
     XPathTest->test_basics($tx, $req, $mt, $head);
 
     # Make sure we've got an error message.
@@ -280,6 +282,7 @@ test_psgi $app => sub {
 
     my $req = PGXN::Manager::Request->new(req_to_psgi($res->request));
     $req->env->{REMOTE_USER} = $user;
+    $req->env->{SCRIPT_NAME} = '/auth';
     XPathTest->test_basics($tx, $req, $mt, $head);
 
     # Make sure we've got an error message.
@@ -348,6 +351,7 @@ test_psgi $app => sub {
 
     my $req = PGXN::Manager::Request->new(req_to_psgi($res->request));
     $req->env->{REMOTE_USER} = $user;
+    $req->env->{SCRIPT_NAME} = '/auth';
     XPathTest->test_basics($tx, $req, $mt, $head);
 
     # Make sure we've got an error message.

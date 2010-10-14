@@ -102,7 +102,7 @@ BEGIN { create_wrapper wrapper => sub {
                 id is 'sidebar';
                 a {
                     id is 'logo';
-                    href is $req->uri_for($req->user ? '/auth' : '/');
+                    href is $req->uri_for('/');
                     img { src is $req->uri_for('/ui/img/logo.png') };
                 };
                 h1 { T 'PGXN Manager' };
@@ -114,15 +114,15 @@ BEGIN { create_wrapper wrapper => sub {
                     id is $req->user ? 'usermenu' : 'publicmenu';
                     for my $item (
                         ($req->user ? (
-                            [ '/auth/upload',           'Upload a Distribution', 'upload'      ],
-                            [ '/auth/distributions',    'Your Distributions',    'dists'       ],
-                            [ '/auth/permissions',      'Show Permissions',      'permissions' ],
-                            [ '/auth/account',          'Edit Account',          'account'     ],
-                            [ '/auth/account/password', 'Change Password',       'passwd'      ],
+                            [ '/upload',           'Upload a Distribution', 'upload'      ],
+                            [ '/distributions',    'Your Distributions',    'dists'       ],
+                            [ '/permissions',      'Show Permissions',      'permissions' ],
+                            [ '/account',          'Edit Account',          'account'     ],
+                            [ '/account/password', 'Change Password',       'passwd'      ],
                         ) : (
-                            [ '/auth',              'Log In',          'login'   ],
-                            [ '/pub/account/register',  'Request Account', 'request' ],
-                            [ '/pub/account/forgotten', 'Reset Password',  'reset'   ],
+                            [ '/',                  'Log In',          'login'   ],
+                            [ '/account/register',  'Request Account', 'request' ],
+                            [ '/account/forgotten', 'Reset Password',  'reset'   ],
                         )),
                     ) {
                         li { a {
@@ -140,8 +140,8 @@ BEGIN { create_wrapper wrapper => sub {
                         class is 'menu';
                         id is 'adminmenu';
                         for my $item (
-                            [ '/auth/admin/moderate', 'Moderate Requests',   'moderate' ],
-                            [ '/auth/admin/users',    'User Administration', 'users'    ],
+                            [ '/admin/moderate', 'Moderate Requests',   'moderate' ],
+                            [ '/admin/users',    'User Administration', 'users'    ],
                         ) {
                             li { a {
                                 id is $item->[2];
@@ -157,11 +157,12 @@ BEGIN { create_wrapper wrapper => sub {
                     class is 'menu';
                     id is 'allmenu';
                     for my $item (
-                        [ '/pub/about',   'About',   'about'   ],
-                        [ '/pub/contact', 'Contact', 'contact' ],
+                        [ '/about',   'About',   'about'   ],
+                        [ '/contact', 'Contact', 'contact' ],
                     ) {
                         li { a {
                             id is $item->[2];
+                            my $uri = 
                             href is $req->uri_for($item->[0]);
                             class is 'active' if $path eq $item->[0];
                             T $item->[1];
@@ -216,7 +217,7 @@ template about => sub {
             li {
                 outs T q{Once your account has been approved, you'll be notified via email.};
                 a {
-                    href is $req->uri_for('/auth');
+                    href is $req->uri_for('/');
                     T 'Go ahead and login.';
                 };
             };
@@ -230,7 +231,7 @@ template about => sub {
             li {
                 outs T q{Package up your distribution into an archive file (zip, tarball, etc.).};
                 a {
-                    href is $req->uri_for('/auth/upload');
+                    href is $req->uri_for('/upload');
                     T 'Upload it to release!';
                 };
             };
@@ -474,7 +475,7 @@ template moderate => sub {
                             ) {
                                 form {
                                     class is $spec->[0];
-                                    action  is $req->uri_for("/auth/admin/user/$user->{nickname}/status");
+                                    action  is $req->uri_for("/admin/user/$user->{nickname}/status");
                                     enctype is 'application/x-www-form-urlencoded; charset=UTF-8';
                                     method  is 'post';
                                     input {
@@ -526,7 +527,7 @@ template 'show_upload' => sub {
         }
         form {
             id      is 'upform';
-            action  is $req->uri_for('/auth/upload');
+            action  is $req->uri_for('/upload');
             enctype is 'multipart/form-data';
             method  is 'post';
             fieldset {
@@ -586,7 +587,7 @@ template distributions => sub {
                                 my $name = "$row->{name}-$row->{version}";
                                 class is 'show';
                                 title is T q{See [_1]'s details}, $name;
-                                href  is $req->uri_for("/auth/distributions/$row->{name}/$row->{version}");
+                                href  is $req->uri_for("/distributions/$row->{name}/$row->{version}");
                                 img { src is $forward; };
                                 outs $name;
                             };
@@ -604,7 +605,7 @@ template distributions => sub {
                             outs T q{You haven't uploaded a distribution yet.};
                             a {
                                 id is 'iupload';
-                                href is $req->uri_for('/auth/upload');
+                                href is $req->uri_for('/upload');
                                 T 'Release one now!';
                             };
                         };
@@ -806,7 +807,7 @@ template pass_changed => sub {
             class is 'success';
             outs T 'W00t! Your password has been changed. So what are you waiting for?';
             a {
-                href is $req->uri_for('/auth');
+                href is $req->uri_for('/');
                 T 'Go log in!'
             }
         };
@@ -828,7 +829,7 @@ template show_account => sub {
         }
         form {
             id      is 'accform';
-            action  is $req->uri_for('/auth/account');
+            action  is $req->uri_for('/account');
             # Browser should send us UTF-8 if that's what we ask for.
             # http://www.unicode.org/mail-arch/unicode-ml/Archives-Old/UML023/0450.html
             enctype is 'application/x-www-form-urlencoded; charset=UTF-8';
@@ -904,7 +905,7 @@ template show_password => sub {
         }
         form {
             id      is 'passform';
-            action  is $req->uri_for('/auth/account/password');
+            action  is $req->uri_for('/account/password');
             enctype is 'application/x-www-form-urlencoded; charset=UTF-8';
             method  is 'post';
 

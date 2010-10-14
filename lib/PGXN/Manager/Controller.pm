@@ -93,7 +93,7 @@ sub respond_with {
 
 sub root {
     my $self = shift;
-    return $self->redirect('/pub', Request->new(shift));
+    return $self->redirect('/pub/', Request->new(shift));
 }
 
 sub home {
@@ -408,7 +408,7 @@ sub set_status {
     return $self->respond_with('success', $req) if $req->is_xhr;
 
     # Redirect for normal request.
-    return $self->redirect('/auth/admin/moderate', $req);
+    return $self->redirect('/admin/moderate', $req);
 }
 
 sub show_upload {
@@ -432,7 +432,7 @@ sub upload {
         $req->session->{success} = 1;
         my $meta = $dist->distmeta;
         return $self->redirect(
-            "/auth/distributions/$meta->{name}/$meta->{version}",
+            "/distributions/$meta->{name}/$meta->{version}",
             $req
         );
     }

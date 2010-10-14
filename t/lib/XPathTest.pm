@@ -56,11 +56,11 @@ sub test_basics {
 
         $_->is(
             './link[@type="text/css"][@rel="stylesheet"]/@href',
-            $req->base . 'ui/css/screen.css',
+            $req->uri_for('/ui/css/screen.css'),
             'Should load the CSS',
         );
 
-        my $ie_uri = $req->base . 'ui/css/fix.css';
+        my $ie_uri = $req->uri_for('/ui/css/fix.css');
         $_->is(
             './comment()',
             "[if IE 6]>\n"
@@ -70,7 +70,7 @@ sub test_basics {
 
         $_->is(
             './link[@rel="shortcut icon"]/@href',
-            $req->base . 'ui/img/favicon.png',
+            $req->uri_for('/ui/img/favicon.png'),
             'Should specify the favicon',
         );
 
@@ -112,10 +112,10 @@ sub test_basics {
         $_->ok('./a[@id="logo"]', 'Should have logo link', sub {
             $_->is(
                 './@href',
-                $req->base . ($req->user ? 'auth' : ''),
+                $req->uri_for('/'),
                'It should link to the right place'
             );
-            $_->is('./img/@src', $req->base . 'ui/img/logo.png', 'Should have logo');
+            $_->is('./img/@src', $req->uri_for('/ui/img/logo.png'), 'Should have logo');
         });
         $_->is('./h1', $mt->maketext('PGXN Manager'), 'Should have name');
         $_->is('./h2', $mt->maketext('tagline'), 'Should have tagline');
@@ -128,22 +128,22 @@ sub test_basics {
 
                 my $i = 0;
                 for my $spec (
-                    [ '/auth/upload',           'Upload a Distribution', 'upload'      ],
-                    [ '/auth/distributions',    'Your Distributions',    'dists'       ],
-                    [ '/auth/permissions',      'Show Permissions',      'permissions' ],
-                    [ '/auth/account',          'Edit Account',          'account'     ],
-                    [ '/auth/account/password', 'Change Password',       'passwd'      ],
+                    [ '/upload',           'Upload a Distribution', 'upload'      ],
+                    [ '/distributions',    'Your Distributions',    'dists'       ],
+                    [ '/permissions',      'Show Permissions',      'permissions' ],
+                    [ '/account',          'Edit Account',          'account'     ],
+                    [ '/account/password', 'Change Password',       'passwd'      ],
                 ) {
                     $i++;
                     $_->is(
                         "count(./li[$i]/*)", 1,
                         "Should be one subelement of menu item $i"
                     );
+                    my $uri = $req->uri_for($spec->[0]);
                     $_->is(
                         "./li[$i]/a/\@class", 'active',
                         "Link $i should be active"
-                    ) if $req->path eq $spec->[0];
-                    my $uri = $req->uri_for($spec->[0]);
+                    ) if $req->path eq $uri->path;
                     $_->is(
                         qq{./li[$i]/a[\@id="$spec->[2]"][\@href="$uri"]},
                         $mt->maketext($spec->[1]),
@@ -160,19 +160,19 @@ sub test_basics {
 
                     my $i = 0;
                     for my $spec (
-                        [ '/auth/admin/moderate', 'Moderate Requests',   'moderate' ],
-                        [ '/auth/admin/users',    'User Administration', 'users'    ],
+                        [ '/admin/moderate', 'Moderate Requests',   'moderate' ],
+                        [ '/admin/users',    'User Administration', 'users'    ],
                     ) {
                         $i++;
                         $_->is(
                             "count(./li[$i]/*)", 1,
                             "Should be one subelement of menu item $i"
                         );
+                        my $uri = $req->uri_for($spec->[0]);
                         $_->is(
                             "./li[$i]/a/\@class", 'active',
                             "Link $i should be active"
-                        ) if $req->path eq $spec->[0];
-                        my $uri = $req->uri_for($spec->[0]);
+                        ) if $req->path eq $uri->path;
                         $_->is(
                             qq{./li[$i]/a[\@id="$spec->[2]"][\@href="$uri"]},
                             $mt->maketext($spec->[1]),
@@ -188,20 +188,20 @@ sub test_basics {
 
                 my $i = 0;
                 for my $spec (
-                    [ '/auth',     'Log In',          'login'   ],
-                    [ '/pub/account/register',  'Request Account', 'request' ],
-                    [ '/pub/account/forgotten', 'Reset Password',  'reset'   ],
+                    [ '/',     'Log In',          'login'   ],
+                    [ '/account/register',  'Request Account', 'request' ],
+                    [ '/account/forgotten', 'Reset Password',  'reset'   ],
                 ) {
                     $i++;
                     $_->is(
                         "count(./li[$i]/*)", 1,
                         "Should be one subelement of menu item $i"
                     );
+                    my $uri = $req->uri_for($spec->[0]);
                     $_->is(
                         "./li[$i]/a/\@class", 'active',
                         "Link $i should be active"
-                    ) if $req->path eq $spec->[0];
-                    my $uri = $req->uri_for($spec->[0]);
+                    ) if $req->path eq $uri->path;
                     $_->is(
                         qq{./li[$i]/a[\@id="$spec->[2]"][\@href="$uri"]},
                         $mt->maketext($spec->[1]),
@@ -218,19 +218,19 @@ sub test_basics {
 
             my $i = 0;
             for my $spec (
-                [ '/pub/about',   'About' ],
-                [ '/pub/contact', 'Contact' ],
+                [ '/about',   'About' ],
+                [ '/contact', 'Contact' ],
             ) {
                 $i++;
                 $_->is(
                     "count(./li[$i]/*)", 1,
                     "Should be one subelement of menu item $i"
                 );
+                my $uri = $req->uri_for($spec->[0]);
                 $_->is(
                     "./li[$i]/a/\@class", 'active',
                     "Link $i should be active"
-                ) if $req->path eq $spec->[0];
-                my $uri = $req->uri_for($spec->[0]);
+                ) if $req->path eq $uri->path;
                 $_->is(
                     qq{./li[$i]/a[\@href="$uri"]},
                     $mt->maketext($spec->[1]),

@@ -113,6 +113,7 @@ test_psgi $app => sub {
 
     $req = PGXN::Manager::Request->new(req_to_psgi($req));
     $req->env->{REMOTE_USER} = $user;
+    $req->env->{SCRIPT_NAME} = '/auth';
     XPathTest->test_basics($tx, $req, $mt, {
         h1 => 'widget-0.2.5',
         page_title => 'widget-0.2.5',
@@ -266,6 +267,7 @@ test_psgi $app => sub {
 
     $req = PGXN::Manager::Request->new(req_to_psgi($req));
     $req->env->{REMOTE_USER} = $user;
+    $req->env->{SCRIPT_NAME} = '/auth';
     XPathTest->test_basics($tx, $req, $mt, {
         h1 => 'widget-0.2.6 (testing)',
         page_title => 'widget-0.2.6 (testing)',
@@ -327,6 +329,7 @@ test_psgi $app => sub {
 
     $req = PGXN::Manager::Request->new(req_to_psgi($req));
     $req->env->{REMOTE_USER} = $admin;
+    $req->env->{SCRIPT_NAME} = '/auth';
     XPathTest->test_basics($tx, $req, $mt, {
         h1 => 'pgTAP-0.35.0 (testing)',
         page_title => 'pgTAP-0.35.0 (testing)',

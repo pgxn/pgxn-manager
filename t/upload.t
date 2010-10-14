@@ -55,6 +55,7 @@ test_psgi $app => sub {
 
     my $req = PGXN::Manager::Request->new(req_to_psgi($res->request));
     $req->env->{REMOTE_USER} = $user;
+    $req->env->{SCRIPT_NAME} = '/auth';
     XPathTest->test_basics($tx, $req, $mt, $hparams);
 
     # Check content.
@@ -68,7 +69,7 @@ test_psgi $app => sub {
         $tx->ok('./form[@id="upform"]', 'Test upload form', sub {
             $tx->is(
                 './@action',
-                $req->uri_for('/auth/upload'),
+                $req->uri_for('/upload'),
                 '......Should have proper action'
             );
             $tx->is('./@enctype', 'multipart/form-data', '...... Should have enctype');
@@ -155,8 +156,9 @@ test_psgi $app => sub {
     )), 'POST zip archive to /auth/upload';
     ok $res->is_redirect, 'Response should be a redirect';
     my $req = PGXN::Manager::Request->new(req_to_psgi($res->request));
+    $req->env->{SCRIPT_NAME} = '/auth';
     is $res->headers->header('location'),
-        $req->uri_for('/auth/distributions/widget/0.2.5'),
+        $req->uri_for('/distributions/widget/0.2.5'),
         'Should redirect to /auth/distributions/widget/0.2.5';
 };
 
@@ -240,7 +242,8 @@ test_psgi $app => sub {
     my $tx = Test::XPath->new( xml => $res->content, is_html => 1 );
 
     my $req = PGXN::Manager::Request->new(req_to_psgi($res->request));
-    $req->env->{REMOTE_USER} = $user;
+    $req->env->{REMOTE_USER} = TxnTest->admin;
+    $req->env->{SCRIPT_NAME} = '/auth';
     XPathTest->test_basics($tx, $req, $mt, $hparams);
 
     # Now verify that we have the error message and that the form fields are

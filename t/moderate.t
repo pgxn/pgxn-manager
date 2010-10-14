@@ -45,6 +45,7 @@ test_psgi +PGXN::Manager::Router->app => sub {
 
     $req = PGXN::Manager::Request->new(req_to_psgi($req));
     $req->env->{REMOTE_USER} = $user;
+    $req->env->{SCRIPT_NAME} = '/auth';
     XPathTest->test_basics($tx, $req, $mt, {
         h1 => 'Permission Denied',
         page_title => q{Whoops! I don't think you belong here},
@@ -85,6 +86,7 @@ test_psgi +PGXN::Manager::Router->app => sub {
 
     $req = PGXN::Manager::Request->new(req_to_psgi($req));
     $req->env->{REMOTE_USER} = $admin;
+    $req->env->{SCRIPT_NAME} = '/auth';
     XPathTest->test_basics($tx, $req, $mt, {
         h1 => 'Moderate Account Requests',
         with_jquery => 1,
@@ -222,7 +224,7 @@ test_psgi +PGXN::Manager::Router->app => sub {
                             );
                             $tx->is(
                                 './@action',
-                                $req->uri_for('/auth/admin/user/bob/status'),
+                                $req->uri_for('/admin/user/bob/status'),
                                 '.................. It should have the status uri'
                             );
                             $tx->is(
@@ -283,7 +285,7 @@ test_psgi +PGXN::Manager::Router->app => sub {
                             );
                             $tx->is(
                                 './@action',
-                                $req->uri_for('/auth/admin/user/bob/status'),
+                                $req->uri_for('/admin/user/bob/status'),
                                 '.................. It should have the status uri'
                             );
                             $tx->is(
@@ -423,7 +425,7 @@ test_psgi +PGXN::Manager::Router->app => sub {
                             );
                             $tx->is(
                                 './@action',
-                                $req->uri_for('/auth/admin/user/joe/status'),
+                                $req->uri_for('/admin/user/joe/status'),
                                 '.................. It should have the status uri'
                             );
                             $tx->is(
@@ -484,7 +486,7 @@ test_psgi +PGXN::Manager::Router->app => sub {
                             );
                             $tx->is(
                                 './@action',
-                                $req->uri_for('/auth/admin/user/joe/status'),
+                                $req->uri_for('/admin/user/joe/status'),
                                 '.................. It should have the status uri'
                             );
                             $tx->is(
@@ -589,7 +591,8 @@ test_psgi +PGXN::Manager::Router->app => sub {
     ok my $res = $cb->($req), 'POST acceptance for bob';
     ok $res->is_redirect, 'Response should be a redirect';
     $req = PGXN::Manager::Request->new(req_to_psgi($req));
-    is $res->headers->header('location'), $req->uri_for($uri),
+    $req->env->{SCRIPT_NAME} = '/auth';
+    is $res->headers->header('location'), $req->uri_for('/admin/moderate'),
         "Should redirect to $uri";
 
     # Did we send him email?
@@ -607,7 +610,7 @@ test_psgi +PGXN::Manager::Router->app => sub {
     like $email->get_body, qr{Your PGXN account request has been approved[.] Ready to get started[?]
 Great! Just click this link to set your password and get going:
 
-    http://localhost/account/reset/\w{4,}
+    http://localhost/auth/account/reset/\w{4,}
 
 Best,
 

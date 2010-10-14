@@ -1,134 +1,177 @@
+package PGXN::Manager::Router::Pub;
+
+use 5.12.0;
+use utf8;
+use Router::Resource;
+use aliased 'PGXN::Manager::Controller';
+
+# The public table
+resource '/' => sub {
+    GET { Controller->home(@_) };
+};
+
+resource '/about' => sub {
+    GET { Controller->about(@_) };
+};
+
+resource '/contact' => sub {
+    GET { Controller->contact(@_) };
+};
+
+resource '/account/register' => sub {
+    GET  { Controller->request(@_)  };
+    POST { Controller->register(@_) };
+};
+
+resource '/account/forgotten' => sub {
+    GET  { Controller->forgotten(@_)  };
+    POST { Controller->send_reset(@_) };
+};
+
+resource '/account/thanks' => sub {
+    GET { Controller->thanks(@_) };
+};
+
+resource '/account/reset/:tok' => sub {
+    GET  { Controller->reset_form(@_) };
+    POST { Controller->reset_pass(@_) };
+};
+
+resource  '/account/changed' => sub {
+    GET { Controller->pass_changed(@_) };
+};
+
+package PGXN::Manager::Router::Priv;
+
+use 5.12.0;
+use utf8;
+use Router::Resource;
+use aliased 'PGXN::Manager::Controller';
+
+# The public table
+resource '/' => sub {
+    GET { Controller->home(@_) };
+};
+
+resource '/about' => sub {
+    GET { Controller->about(@_) };
+};
+
+resource '/contact' => sub {
+    GET { Controller->contact(@_) };
+};
+
+resource  '/account' => sub {
+    GET  { Controller->show_account(@_)   };
+    POST { Controller->update_account(@_) };
+};
+
+resource  '/account/password' => sub {
+    GET  { Controller->show_password(@_)   };
+    POST { Controller->update_password(@_) };
+};
+
+resource '/upload' => sub {
+    GET  { Controller->show_upload(@_) };
+    POST { Controller->upload(@_)      };
+};
+
+resource '/permissions' => sub {
+    GET { Controller->show_perms(@_) };
+};
+
+resource '/admin/moderate' => sub {
+    GET { Controller->moderate(@_) };
+};
+
+resource '/admin/user/:nick/status' => sub {
+    POST { Controller->set_status(@_) };
+};
+
+resource '/admin/users' => sub {
+    GET { Controller->show_users(@_) };
+};
+
+resource '/distributions' => sub {
+    GET { Controller->distributions(@_) };
+};
+
+resource '/distributions/:dist/:version' => sub {
+    GET { Controller->distribution(@_) };
+};
+
+use 5.12.0;
+use utf8;
+use Router::Resource;
+
 package PGXN::Manager::Router;
 
 use 5.12.0;
 use utf8;
 use Plack::Builder;
-use Router::Resource;
 use Plack::App::File;
 use Plack::Session::Store::File;
 use aliased 'PGXN::Manager::Controller';
 use PGXN::Manager;
 
-# The routing table. Define all new routes here.
-resource '/' => sub {
-    GET { Controller->root(@_) };
-};
-
-resource '/pub' => sub {
-    GET { Controller->home(@_) };
-};
-
-resource '/pub/about' => sub {
-    GET { Controller->about(@_) };
-};
-
-resource '/pub/contact' => sub {
-    GET { Controller->contact(@_) };
-};
-
-resource '/pub/account/register' => sub {
-    GET  { Controller->request(@_)  };
-    POST { Controller->register(@_) };
-};
-
-resource '/pub/account/forgotten' => sub {
-    GET  { Controller->forgotten(@_)  };
-    POST { Controller->send_reset(@_) };
-};
-
-resource '/pub/account/thanks' => sub {
-    GET { Controller->thanks(@_) };
-};
-
-resource '/pub/account/reset/:tok' => sub {
-    GET  { Controller->reset_form(@_) };
-    POST { Controller->reset_pass(@_) };
-};
-
-resource  '/pub/account/changed' => sub {
-    GET { Controller->pass_changed(@_) };
-};
-
-resource '/auth' => sub {
-    GET { Controller->home(@_) };
-};
-
-resource  '/auth/account' => sub {
-    GET  { Controller->show_account(@_)   };
-    POST { Controller->update_account(@_) };
-};
-
-resource  '/auth/account/password' => sub {
-    GET  { Controller->show_password(@_)   };
-    POST { Controller->update_password(@_) };
-};
-
-resource '/auth/upload' => sub {
-    GET  { Controller->show_upload(@_) };
-    POST { Controller->upload(@_)      };
-};
-
-resource '/auth/permissions' => sub {
-    GET { Controller->show_perms(@_) };
-};
-
-resource '/auth/admin/moderate' => sub {
-    GET { Controller->moderate(@_) };
-};
-
-resource '/auth/admin/user/:nick/status' => sub {
-    POST { Controller->set_status(@_) };
-};
-
-resource '/auth/admin/users' => sub {
-    GET { Controller->show_users(@_) };
-};
-
-resource '/auth/distributions' => sub {
-    GET { Controller->distributions(@_) };
-};
-
-resource '/auth/distributions/:dist/:version' => sub {
-    GET { Controller->distribution(@_) };
-};
-
 sub app {
-    my $router = shift->router;
-
     builder {
-        mount '/ui' => Plack::App::File->new(root => './www/ui/');
-        mount '/' => builder {
-            my $sessdir = File::Spec->catdir(
-                File::Spec->tmpdir,
-                'pgxn-session-' . ($ENV{PLACK_ENV} || 'test')
-            );
-            mkdir $sessdir unless -e $sessdir;
+        my $sessdir = File::Spec->catdir(
+            File::Spec->tmpdir,
+            'pgxn-session-' . ($ENV{PLACK_ENV} || 'test')
+        );
+        mkdir $sessdir unless -e $sessdir;
+        my $store = Plack::Session::Store::File->new( dir => $sessdir );
+        my $mids  = PGXN::Manager->instance->config->{middleware} || [];
+        my $files = Plack::App::File->new(root => './www/ui/');
 
-            enable 'Session', store => Plack::Session::Store::File->new(
-                dir => $sessdir
-            );
-            if (my $mids = PGXN::Manager->instance->config->{middleware}) {
-                enable @$_ for @$mids;
-            }
-            # Authenticate all requests undef /auth
-            enable_if {
-                shift->{PATH_INFO} =~ m{^/auth\b}
-            } 'Auth::Basic', realm => 'PGXN Users Only', authenticator => sub {
-                my ($username, $password) = @_;
-                PGXN::Manager->conn->run(sub {
-                    return ($_->selectrow_array(
-                        'SELECT authenticate_user(?, ?)',
-                        undef, $username, $password
-                    ))[0];
-                });
+        # First app is simple redirect to /pub.
+        mount '/'   => sub { Controller->root(@_) };
+
+        # Public app.
+        mount '/pub' => builder {
+            mount '/ui' => $files;
+            mount '/'   => builder {
+                my $router = PGXN::Manager::Router::Pub->router;
+                enable 'Session', store => $store;
+                enable @{ $_ } for @{ $mids };
+                sub {
+                    my $env = shift;
+                    my $route = $router->match($env) or return Controller->respond_with(
+                        'notfound',
+                        PGXN::Manager::Request->new($env)
+                    );
+                    return $route->();
+                };
             };
-            sub {
-                my $env = shift;
-                my $route = $router->match($env) or return Controller->respond_with(
-                    'notfound',
-                    PGXN::Manager::Request->new($env)
-                );
-                return $route->();
+        };
+
+        # Authenticated app.
+        mount '/auth' => builder {
+            mount '/ui' => $files;
+            mount '/'   => builder {
+                my $router = PGXN::Manager::Router::Priv->router;
+                enable 'Session', store => $store;
+                enable @{ $_ } for @{ $mids };
+
+                # Authenticate all requests.
+                enable 'Auth::Basic', realm => 'PGXN Users Only', authenticator => sub {
+                    my ($username, $password) = @_;
+                    PGXN::Manager->conn->run(sub {
+                        return ($_->selectrow_array(
+                            'SELECT authenticate_user(?, ?)',
+                            undef, $username, $password
+                        ))[0];
+                    });
+                };
+                sub {
+                    my $env = shift;
+                    my $route = $router->match($env) or return Controller->respond_with(
+                        'notfound',
+                        PGXN::Manager::Request->new($env)
+                    );
+                    return $route->();
+                };
             };
         };
     };

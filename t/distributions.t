@@ -47,6 +47,7 @@ test_psgi +PGXN::Manager::Router->app => sub {
 
     $req = PGXN::Manager::Request->new(req_to_psgi($req));
     $req->env->{REMOTE_USER} = $user;
+    $req->env->{SCRIPT_NAME} = '/auth';
     XPathTest->test_basics($tx, $req, $mt, {
         h1 => 'Your Distributions',
         page_title => 'Your distributions',
@@ -198,6 +199,7 @@ test_psgi +PGXN::Manager::Router->app => sub {
 
     $req = PGXN::Manager::Request->new(req_to_psgi($req));
     $req->env->{REMOTE_USER} = $user;
+    $req->env->{SCRIPT_NAME} = '/auth';
     XPathTest->test_basics($tx, $req, $mt, {
         h1 => 'Your Distributions',
         page_title => 'Your distributions',
@@ -260,7 +262,7 @@ test_psgi +PGXN::Manager::Router->app => sub {
                             );
                             $tx->is(
                                 './@href',
-                                $req->uri_for('/auth/distributions/pair/1.3.0'),
+                                $req->uri_for('/distributions/pair/1.3.0'),
                                 '.................. Should have href'
                             );
                             $tx->is(
@@ -299,7 +301,7 @@ test_psgi +PGXN::Manager::Router->app => sub {
                             );
                             $tx->is(
                                 './@href',
-                                $req->uri_for('/auth/distributions/widget/0.2.5'),
+                                $req->uri_for('/distributions/widget/0.2.5'),
                                 '.................. Should have href'
                             );
                             $tx->is(
@@ -338,7 +340,7 @@ test_psgi +PGXN::Manager::Router->app => sub {
                             );
                             $tx->is(
                                 './@href',
-                                $req->uri_for('/auth/distributions/widget/0.2.6'),
+                                $req->uri_for('/distributions/widget/0.2.6'),
                                 '.................. Should have href'
                             );
                             $tx->is(
@@ -382,6 +384,7 @@ test_psgi +PGXN::Manager::Router->app => sub {
 
     $req = PGXN::Manager::Request->new(req_to_psgi($req));
     $req->env->{REMOTE_USER} = $admin;
+    $req->env->{SCRIPT_NAME} = '/auth';
     XPathTest->test_basics($tx, $req, $mt, {
         h1 => 'Your Distributions',
         page_title => 'Your distributions',
@@ -443,7 +446,7 @@ test_psgi +PGXN::Manager::Router->app => sub {
                             );
                             $tx->is(
                                 './@href',
-                                $req->uri_for('/auth/distributions/pgTAP/0.35.0'),
+                                $req->uri_for('/distributions/pgTAP/0.35.0'),
                                 '.................. Should have href'
                             );
                             $tx->is(

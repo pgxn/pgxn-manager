@@ -38,6 +38,7 @@ test_psgi $app => sub {
     my $tx = Test::XPath->new( xml => $res->content, is_html => 1 );
 
     my $req = PGXN::Manager::Request->new(req_to_psgi($res->request));
+    $req->env->{SCRIPT_NAME} = '/pub';
     XPathTest->test_basics($tx, $req, $mt, $hparams);
 
     # Check the content
@@ -179,6 +180,7 @@ test_psgi $app => sub {
     ]), 'POST tgl to /register';
     ok $res->is_redirect, 'It should be a redirect response';
     my $req = PGXN::Manager::Request->new(req_to_psgi($res->request));
+    $req->env->{SCRIPT_NAME} = '/pub';
     is $res->headers->header('location'), $req->uri_for('/pub/account/thanks'),
         'Should redirect to /account/thanks';
 
@@ -213,6 +215,7 @@ test_psgi $app => sub {
     my $tx = Test::XPath->new( xml => $res->content, is_html => 1 );
 
     my $req = PGXN::Manager::Request->new(req_to_psgi($res->request));
+    $req->env->{SCRIPT_NAME} = '/pub';
     XPathTest->test_basics($tx, $req, $mt, $hparams);
 
     # Now verify that we have the error message and that the form fields are
@@ -256,6 +259,7 @@ test_psgi $app => sub {
         why       => 'In short, +1 from me. Regards, Tom Lane',
     ]), 'POST valid tgl to /register again';
     my $req = PGXN::Manager::Request->new(req_to_psgi($res->request));
+    $req->env->{SCRIPT_NAME} = '/pub';
     ok $res->is_redirect, 'It should be a redirect response';
     is $res->headers->header('location'), $req->uri_for('/pub/account/thanks'),
         'Should redirect to /account/thanks';
@@ -294,6 +298,7 @@ test_psgi $app => sub {
     my $tx = Test::XPath->new( xml => $res->content, is_html => 1 );
 
     my $req = PGXN::Manager::Request->new(req_to_psgi($res->request));
+    $req->env->{SCRIPT_NAME} = '/pub';
     XPathTest->test_basics($tx, $req, $mt, $hparams);
 
     # Now verify that we have the error message and that the form fields are
@@ -395,6 +400,7 @@ test_psgi $app => sub {
     my $tx = Test::XPath->new( xml => $res->content, is_html => 1 );
 
     my $req = PGXN::Manager::Request->new(req_to_psgi($res->request));
+    $req->env->{SCRIPT_NAME} = '/pub';
     XPathTest->test_basics($tx, $req, $mt, $hparams);
 
     # Now verify that we have the error message.
@@ -431,6 +437,7 @@ test_psgi $app => sub {
     my $tx = Test::XPath->new( xml => $res->content, is_html => 1 );
 
     my $req = PGXN::Manager::Request->new(req_to_psgi($res->request));
+    $req->env->{SCRIPT_NAME} = '/pub';
     XPathTest->test_basics($tx, $req, $mt, $hparams);
 
     # Now verify that we have the error message.
@@ -466,6 +473,7 @@ test_psgi $app => sub {
     my $tx = Test::XPath->new( xml => $res->content, is_html => 1 );
 
     my $req = PGXN::Manager::Request->new(req_to_psgi($res->request));
+    $req->env->{SCRIPT_NAME} = '/pub';
     XPathTest->test_basics($tx, $req, $mt, $hparams);
 
     # Now verify that we have the error message.
@@ -501,6 +509,7 @@ test_psgi $app => sub {
     my $tx = Test::XPath->new( xml => $res->content, is_html => 1 );
 
     my $req = PGXN::Manager::Request->new(req_to_psgi($res->request));
+    $req->env->{SCRIPT_NAME} = '/pub';
     XPathTest->test_basics($tx, $req, $mt, $hparams);
 
     # Now verify that we have the error message.
@@ -536,6 +545,7 @@ test_psgi $app => sub {
     my $tx = Test::XPath->new( xml => $res->content, is_html => 1 );
 
     my $req = PGXN::Manager::Request->new(req_to_psgi($res->request));
+    $req->env->{SCRIPT_NAME} = '/pub';
     XPathTest->test_basics($tx, $req, $mt, $hparams);
 
     # Now verify that we have the error message.

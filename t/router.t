@@ -22,14 +22,14 @@ test_psgi +PGXN::Manager::Router->app => sub {
     my $cb = shift;
     ok my $res = $cb->(GET '/'), 'Fetch /';
     ok $res->is_redirect, 'Should get a redirect response';
-    is $res->headers->header('location'), 'http://localhost/pub',
-        'Should redirect to /pub';
+    is $res->headers->header('location'), 'http://localhost/pub/',
+        'Should redirect to /pub/';
 };
 
 # Test home page.
 test_psgi +PGXN::Manager::Router->app => sub {
     my $cb = shift;
-    ok my $res = $cb->(GET '/pub'), 'Fetch /pub';
+    ok my $res = $cb->(GET '/pub/'), 'Fetch /pub/';
     is $res->code, 200, 'Should get 200 response';
     like $res->content, qr/Welcome/, 'The body should look correct';
 };
@@ -37,7 +37,7 @@ test_psgi +PGXN::Manager::Router->app => sub {
 # Test static file.
 test_psgi +PGXN::Manager::Router->app => sub {
     my $cb = shift;
-    ok my $res = $cb->(GET '/ui/css/screen.css'), 'Fetch /ui/css/screen.css';
+    ok my $res = $cb->(GET '/pub/ui/css/screen.css'), 'Fetch /pub/ui/css/screen.css';
     is $res->code, 200, 'Should get 200 response';
     file_contents_is 'www/ui/css/screen.css', $res->content,
         'The file should have been served';
@@ -46,7 +46,7 @@ test_psgi +PGXN::Manager::Router->app => sub {
 # Test bogus URL.
 test_psgi +PGXN::Manager::Router->app => sub {
     my $cb = shift;
-    ok my $res = $cb->(GET '/nonexistentpage'), 'Fetch /nonexistentpage';
+    ok my $res = $cb->(GET '/pub/nonexistentpage'), 'Fetch /pub/nonexistentpage';
     is $res->code, 404, 'Should get 404 response';
     like decode_utf8($res->content), qr/Where’d It Go\?/,
         'The body should have the error';
@@ -67,7 +67,7 @@ my $admin = TxnTest->admin;
 # Test authentication.
 test_psgi +PGXN::Manager::Router->app => sub {
     my $cb = shift;
-    my $req = GET '/auth', Authorization => 'Basic ' . encode_base64("$admin:****");
+    my $req = GET '/auth/', Authorization => 'Basic ' . encode_base64("$admin:****");
     ok my $res = $cb->($req), 'Fetch /auth with auth token';
     is $res->code, 200, 'Should get 200 response';
     like $res->content, qr/Welcome/,
@@ -88,7 +88,7 @@ test_psgi +PGXN::Manager::Router->app => sub {
 my $user = TxnTest->user;
 test_psgi +PGXN::Manager::Router->app => sub {
     my $cb = shift;
-    my $req = GET '/auth', Authorization => 'Basic ' . encode_base64("$user:****");
+    my $req = GET '/auth/', Authorization => 'Basic ' . encode_base64("$user:****");
     ok my $res = $cb->($req), 'Fetch /auth with user auth token';
     is $res->code, 200, 'Should get 200 response';
     like $res->content, qr/Welcome/,
