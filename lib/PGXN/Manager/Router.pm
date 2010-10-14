@@ -104,7 +104,6 @@ sub app {
             );
             mkdir $sessdir unless -e $sessdir;
 
-            enable 'JSONP';
             enable 'Session', store => Plack::Session::Store::File->new(
                 dir => $sessdir
             );
