@@ -120,7 +120,7 @@ To install this module, type the following:
 Copyright and Licence
 ---------------------
 
-Copyright (c) 2010 PostgreSQL Experts and David E. Wheeler.
+Copyright (c) 2010 David E. Wheeler.
 
 This module is free software; you can redistribute it and/or modify it under
 the [PostgreSQL License](http://www.opensource.org/licenses/postgresql).
