@@ -10,11 +10,12 @@ use namespace::autoclean;
 use Encode;
 
 my $CHECK = Encode::FB_CROAK | Encode::LEAVE_SRC;
+my $script_name_header = PGXN::Manager->config->{uri_script_name_key} || 'SCRIPT_NAME';
 
 sub uri_for {
     my ($self, $path) = (shift, shift);
     my $uri = $self->base;
-    my $relpath = $self->script_name;
+    my $relpath = $self->env->{$script_name_header};
     if ($path !~ m{^/}) {
         $relpath = $self->path_info;
         $relpath .= '/' if $relpath !~ s{/$}{};
