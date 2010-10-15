@@ -1,113 +1,8 @@
-package PGXN::Manager::Router::Pub;
-
-use 5.12.0;
-use utf8;
-use Router::Resource;
-use aliased 'PGXN::Manager::Controller';
-
-# The public table
-resource '/' => sub {
-    GET { Controller->home(@_) };
-};
-
-resource '/about' => sub {
-    GET { Controller->about(@_) };
-};
-
-resource '/contact' => sub {
-    GET { Controller->contact(@_) };
-};
-
-resource '/account/register' => sub {
-    GET  { Controller->request(@_)  };
-    POST { Controller->register(@_) };
-};
-
-resource '/account/forgotten' => sub {
-    GET  { Controller->forgotten(@_)  };
-    POST { Controller->send_reset(@_) };
-};
-
-resource '/account/thanks' => sub {
-    GET { Controller->thanks(@_) };
-};
-
-resource '/account/reset/:tok' => sub {
-    GET  { Controller->reset_form(@_) };
-    POST { Controller->reset_pass(@_) };
-};
-
-resource  '/account/changed' => sub {
-    GET { Controller->pass_changed(@_) };
-};
-
-package PGXN::Manager::Router::Priv;
-
-use 5.12.0;
-use utf8;
-use Router::Resource;
-use aliased 'PGXN::Manager::Controller';
-
-# The public table
-resource '/' => sub {
-    GET { Controller->home(@_) };
-};
-
-resource '/about' => sub {
-    GET { Controller->about(@_) };
-};
-
-resource '/contact' => sub {
-    GET { Controller->contact(@_) };
-};
-
-resource  '/account' => sub {
-    GET  { Controller->show_account(@_)   };
-    POST { Controller->update_account(@_) };
-};
-
-resource  '/account/password' => sub {
-    GET  { Controller->show_password(@_)   };
-    POST { Controller->update_password(@_) };
-};
-
-resource '/upload' => sub {
-    GET  { Controller->show_upload(@_) };
-    POST { Controller->upload(@_)      };
-};
-
-resource '/permissions' => sub {
-    GET { Controller->show_perms(@_) };
-};
-
-resource '/admin/moderate' => sub {
-    GET { Controller->moderate(@_) };
-};
-
-resource '/admin/user/:nick/status' => sub {
-    POST { Controller->set_status(@_) };
-};
-
-resource '/admin/users' => sub {
-    GET { Controller->show_users(@_) };
-};
-
-resource '/distributions' => sub {
-    GET { Controller->distributions(@_) };
-};
-
-resource '/distributions/:dist/:version' => sub {
-    GET { Controller->distribution(@_) };
-};
-
-use 5.12.0;
-use utf8;
-use Router::Resource;
-
 package PGXN::Manager::Router;
 
 use 5.12.0;
 use utf8;
+use Router::Resource;
 use Plack::Builder;
 use Plack::App::File;
 use Plack::Session::Store::File;
@@ -130,27 +25,118 @@ sub app {
 
         # Public app.
         mount '/pub' => builder {
+            my $router = router {
+                missing {
+                    Controller->respond_with(
+                        'notfound',
+                        PGXN::Manager::Request->new(shift)
+                    );
+                };
+                resource '/' => sub {
+                    GET { Controller->home(@_) };
+                };
+
+                resource '/about' => sub {
+                    GET { Controller->about(@_) };
+                };
+
+                resource '/contact' => sub {
+                    GET { Controller->contact(@_) };
+                };
+
+                resource '/account/register' => sub {
+                    GET  { Controller->request(@_)  };
+                    POST { Controller->register(@_) };
+                };
+
+                resource '/account/forgotten' => sub {
+                    GET  { Controller->forgotten(@_)  };
+                    POST { Controller->send_reset(@_) };
+                };
+
+                resource '/account/thanks' => sub {
+                    GET { Controller->thanks(@_) };
+                };
+
+                resource '/account/reset/:tok' => sub {
+                    GET  { Controller->reset_form(@_) };
+                    POST { Controller->reset_pass(@_) };
+                };
+
+                resource  '/account/changed' => sub {
+                    GET { Controller->pass_changed(@_) };
+                };
+            };
             mount '/ui' => $files;
             mount '/'   => builder {
-                my $router = PGXN::Manager::Router::Pub->router;
                 enable 'Session', store => $store;
                 enable @{ $_ } for @{ $mids };
-                sub {
-                    my $env = shift;
-                    my $route = $router->match($env) or return Controller->respond_with(
-                        'notfound',
-                        PGXN::Manager::Request->new($env)
-                    );
-                    return $route->();
-                };
+                sub { $router->dispatch(shift) };
             };
         };
 
         # Authenticated app.
         mount '/auth' => builder {
+            my $router = router {
+                missing {
+                    Controller->respond_with(
+                        'notfound',
+                        PGXN::Manager::Request->new(shift)
+                    );
+                };
+                resource '/' => sub {
+                    GET { Controller->home(@_) };
+                };
+
+                resource '/about' => sub {
+                    GET { Controller->about(@_) };
+                };
+
+                resource '/contact' => sub {
+                    GET { Controller->contact(@_) };
+                };
+
+                resource  '/account' => sub {
+                    GET  { Controller->show_account(@_)   };
+                    POST { Controller->update_account(@_) };
+                };
+
+                resource  '/account/password' => sub {
+                    GET  { Controller->show_password(@_)   };
+                    POST { Controller->update_password(@_) };
+                };
+
+                resource '/upload' => sub {
+                    GET  { Controller->show_upload(@_) };
+                    POST { Controller->upload(@_)      };
+                };
+
+                resource '/permissions' => sub {
+                    GET { Controller->show_perms(@_) };
+                };
+
+                resource '/admin/moderate' => sub {
+                    GET { Controller->moderate(@_) };
+                };
+
+                resource '/admin/user/:nick/status' => sub {
+                    POST { Controller->set_status(@_) };
+                };
+
+                resource '/admin/users' => sub {
+                    GET { Controller->show_users(@_) };
+                };
+
+                resource '/distributions' => sub {
+                    GET { Controller->distributions(@_) };
+                };
+
+                resource '/distributions/:dist/:version' => sub {
+                    GET { Controller->distribution(@_) };
+                };
+            };
             mount '/ui' => $files;
             mount '/'   => builder {
-                my $router = PGXN::Manager::Router::Priv->router;
                 enable 'Session', store => $store;
                 enable @{ $_ } for @{ $mids };
 
@@ -164,14 +150,7 @@ sub app {
                         ))[0];
                     });
                 };
-                sub {
-                    my $env = shift;
-                    my $route = $router->match($env) or return Controller->respond_with(
-                        'notfound',
-                        PGXN::Manager::Request->new($env)
-                    );
-                    return $route->();
-                };
+                sub { $router->dispatch(shift) };
             };
         };
     };
