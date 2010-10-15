@@ -26,12 +26,7 @@ sub app {
         # Public app.
         mount '/pub' => builder {
             my $router = router {
-                missing {
-                    Controller->respond_with(
-                        'notfound',
-                        PGXN::Manager::Request->new(shift)
-                    );
-                };
+                missing { Controller->missing(@_) };
                 resource '/' => sub {
                     GET { Controller->home(@_) };
                 };
@@ -78,12 +73,7 @@ sub app {
         # Authenticated app.
         mount '/auth' => builder {
             my $router = router {
-                missing {
-                    Controller->respond_with(
-                        'notfound',
-                        PGXN::Manager::Request->new(shift)
-                    );
-                };
+                missing { Controller->missing(@_) };
                 resource '/' => sub {
                     GET { Controller->home(@_) };
                 };

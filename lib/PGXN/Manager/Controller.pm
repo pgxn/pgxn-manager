@@ -17,19 +17,22 @@ use namespace::autoclean;
 Template::Declare->init( dispatch_to => ['PGXN::Manager::Templates'] );
 
 my %message_for = (
-    success   => q{Success},
-    forbidden => q{Sorry, you do not have permission to access this resource.},
-    notfound  => q{Resource not found.},
-    conflict  => q{There is a conflict in the current state of the resource.}, # Bleh
+    success    => q{Success},
+    forbidden  => q{Sorry, you do not have permission to access this resource.},
+    notfound   => q{Resource not found.},
+    notallowed => q{The requted method is not allowed for the resource.},
+    conflict   => q{There is a conflict in the current state of the resource.}, # Bleh
+    gone       => q{The resource is no longer available.},
 );
 
 my %code_for = (
-    success   => 200,
-    seeother  => 303,
-    forbidden => 403,
-    notfound  => 404,
-    conflict  => 409,
-    gone      => 410,
+    success    => 200,
+    seeother   => 303,
+    forbidden  => 403,
+    notfound   => 404,
+    notallowed => 405,
+    conflict   => 409,
+    gone       => 410,
 );
 
 sub render {
@@ -46,6 +49,16 @@ sub redirect {
     my $res = $req->new_response;
     $res->redirect($req->uri_for($uri), $code || $code_for{see_other});
     return $res->finalize;
+}
+
+sub missing {
+    my ($self, $env, $data) = @_;
+    my $res = $self->respond_with(
+        $data->{code} == 404 ? 'notfound' : 'notallowed',
+        PGXN::Manager::Request->new($env),
+    );
+    push @{ $res->[1] }, @{ $data->{headers} };
+    return $res;
 }
 
 sub respond_with {
@@ -789,23 +802,29 @@ Shows interface for administering users.
 
 =head3 C<render>
 
-  $root->render('/home', $req, @template_args);
+  $controller->render('/home', $req, @template_args);
 
 Renders the response to the request using L<PGXN::Manager::Templates>.
 
 =head3 C<redirect>
 
-  $root->render('/home', $req);
+  $controller->render('/home', $req);
 
 Redirect the request to a new page.
 
 =head3 C<respond_with>
 
-  $root->respond_with('forbidden', $req);
+  $controller->respond_with('forbidden', $req);
 
 Returns simple response to the requester. This method detects the preferred
 response data type and responds accordingly. A simple status message is
 included in the body of the response. The currently-supported responses are:
+
+=head3 C<missing>
+
+  $controller->missing($env, $data);
+
+Handles 404 and 405 errors from Router::Resource.
 
 =over
 
