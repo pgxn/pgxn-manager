@@ -15,7 +15,7 @@ my $script_name_header = PGXN::Manager->config->{uri_script_name_key} || 'SCRIPT
 sub uri_for {
     my ($self, $path) = (shift, shift);
     my $uri = $self->base;
-    my $relpath = $self->env->{$script_name_header};
+    my $relpath = $self->env->{$script_name_header} || $self->env->{SCRIPT_NAME};
     if ($path !~ m{^/}) {
         $relpath = $self->path_info;
         $relpath .= '/' if $relpath !~ s{/$}{};
