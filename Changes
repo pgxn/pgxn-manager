@@ -21,6 +21,20 @@ Revision history for Perl extension PGXN::Manager
       - Now using a subdirectory of the temp directory named
         "pgxn-session-$ENV{PLACK_ENV}" to store the session files. This
         prevents the polution of /tmp with a lot of junk.
+      - Change mounts so that the public site is mounted under /pub/ and the
+        auth site is mounted under /auth/. They are now effectively separate
+        apps. This allows them to be separately reverse-proxied.
+      - Rename `conf/prod.json` to `conf/local.json`. The `README` now says
+        to copy this file to `conf/prod.json` and edit the copied file.
+      - Added  `conf/proxied.json`. This will serve as an example for setting
+        up PGXN::Manager to run behind a reverse proxy server.
+      - Recommend Plack::Middleware::ReverseProxy. I think it's likely that
+        the app will usually be run behind a reverse proxy server.
+      - Added the `uri_script_name_key` and `login_uri` configuration keys.
+        They have useful defaults but should be tweaked if /pub/ and /auth/
+        are behind separate reverse proxy servers.
+      - Switched router to Router::Resource. It's more RESTy and also offers
+        handling of 404s and 405s.
 
 0.1.0 2010-10-08T01:51:55Z 
       - Initial version.
