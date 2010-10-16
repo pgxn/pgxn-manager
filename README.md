@@ -39,9 +39,9 @@ Installation
   your Web server to serve this directory. For proper networking, it should
   also be copy-able via anonymous `rsync` connections.
 
-* Edit the `conf/prod.json` configuration file. Change the DSN if you'd like
-  to use a different database name or connect to another host. (Consult the
-  [DBI](http://search.cpan.org/perldoc?DBI) and
+* Copy `conf/local.json` to `conf/prod.json` and edit it. Change the DSN if
+  you'd like to use a different database name or connect to another host.
+  (Consult the [DBI](http://search.cpan.org/perldoc?DBI) and
   [DBD::Pg](http://search.cpan.org/perldoc?DBD::Pg) documentation for details
   on the attributes that can be included in the DSN). You can also change the
   templates for the files that will be managed on the master mirror, though

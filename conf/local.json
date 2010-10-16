@@ -1,0 +1,22 @@
+{
+    "name": "PGXN Manager",
+    "dbi": {
+        "dsn": "dbi:Pg:dbname=pgxn_manager",
+        "username": "pgxn",
+        "password": ""
+    },
+    "middleware": [
+    ],
+    "mirror_root": "/var/www/master.pgxn.org",
+    "mirror_uri": "http://master.pgxn.org",
+    "admin_email": "PGXN Admins <pgxn@pgexperts.com>",
+    "uri_templates": {
+        "dist":         "/dist/{dist}/{dist}-{version}.pgz",
+        "readme":       "/dist/{dist}/{dist}-{version}.readme",
+        "meta":         "/dist/{dist}/{dist}-{version}.json",
+        "by-dist":      "/by/dist/{dist}.json",
+        "by-extension": "/by/extension/{extension}.json",
+        "by-owner":     "/by/owner/{owner}.json",
+        "by-tag":       "/by/tag/{tag}.json"
+    }
+}
