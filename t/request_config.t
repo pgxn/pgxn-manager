@@ -2,15 +2,20 @@
 
 use 5.12.0;
 use utf8;
-use Test::More tests => 6;
+use Test::More tests => 7;
 #use Test::More 'no_plan';
 use HTTP::Request::Common;
 use HTTP::Message::PSGI;
 
 use PGXN::Manager;
 
-# Change the script name key before loading the request object.
-BEGIN { PGXN::Manager->config->{uri_script_name_key} = 'HTTP_X_SCRIPT_NAME' }
+BEGIN {
+    # Change the script name key before loading the request object.
+    PGXN::Manager->config->{uri_script_name_key} = 'HTTP_X_SCRIPT_NAME';
+
+    # Set the login URI.
+    PGXN::Manager->config->{login_uri} = 'https://manager.pgxn.org/';
+}
 
 use PGXN::Manager::Request;
 
@@ -30,5 +35,6 @@ ok $req = PGXN::Manager::Request->new(req_to_psgi(GET(
 is $req->uri_for('foo'), $base . 'app/foo', 'app uri_for(foo)';
 is $req->uri_for('/foo'), $base . 'hi/foo', 'app uri_for(/foo)';
 
-
+# Make sure we get the configured login URI.
+is $req->login_uri, URI->new('https://manager.pgxn.org/');
 

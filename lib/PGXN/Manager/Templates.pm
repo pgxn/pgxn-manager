@@ -111,7 +111,16 @@ BEGIN { create_wrapper wrapper => sub {
                 my $path = $req->path;
                 ul {
                     class is 'menu';
-                    id is $req->user ? 'usermenu' : 'publicmenu';
+                    if ($req->user) {
+                        id is 'usermenu';
+                    } else {
+                        id is 'publicmenu';
+                        li { a {
+                            id is 'login';
+                            href is $req->login_uri;
+                            T 'Log In';
+                        } };
+                    }
                     for my $item (
                         ($req->user ? (
                             [ '/upload',           'Upload a Distribution', 'upload'      ],
@@ -120,7 +129,6 @@ BEGIN { create_wrapper wrapper => sub {
                             [ '/account',          'Edit Account',          'account'     ],
                             [ '/account/password', 'Change Password',       'passwd'      ],
                         ) : (
-                            [ '/',                  'Log In',          'login'   ],
                             [ '/account/register',  'Request Account', 'request' ],
                             [ '/account/forgotten', 'Reset Password',  'reset'   ],
                         )),
@@ -217,7 +225,7 @@ template about => sub {
             li {
                 outs T q{Once your account has been approved, you'll be notified via email.};
                 a {
-                    href is $req->uri_for('/');
+                    href is $req->login_uri;
                     T 'Go ahead and login.';
                 };
             };
@@ -807,7 +815,7 @@ template pass_changed => sub {
             class is 'success';
             outs T 'W00t! Your password has been changed. So what are you waiting for?';
             a {
-                href is $req->uri_for('/');
+                href is $req->login_uri;
                 T 'Go log in!'
             }
         };

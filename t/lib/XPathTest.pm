@@ -188,7 +188,7 @@ sub test_basics {
 
                 my $i = 0;
                 for my $spec (
-                    [ '/',     'Log In',          'login'   ],
+                    [ '/auth/',             'Log In',          'login'   ],
                     [ '/account/register',  'Request Account', 'request' ],
                     [ '/account/forgotten', 'Reset Password',  'reset'   ],
                 ) {
@@ -197,7 +197,9 @@ sub test_basics {
                         "count(./li[$i]/*)", 1,
                         "Should be one subelement of menu item $i"
                     );
-                    my $uri = $req->uri_for($spec->[0]);
+                    my $uri = $spec->[0] eq '/auth/'
+                        ? URI->new($spec->[0])
+                        : $req->uri_for($spec->[0]);
                     $_->is(
                         "./li[$i]/a/\@class", 'active',
                         "Link $i should be active"

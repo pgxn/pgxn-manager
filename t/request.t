@@ -2,7 +2,7 @@
 
 use 5.12.0;
 use utf8;
-use Test::More tests => 46;
+use Test::More tests => 47;
 #use Test::More 'no_plan';
 use HTTP::Request::Common;
 use HTTP::Message::PSGI;
@@ -37,6 +37,10 @@ is $req->uri_for('foo', bar => 'baz'), $base . 'app/foo?bar=baz',
 is $req->uri_for('foo', bar => 'baz', 'foo' => 1),
     $base . 'app/foo?bar=baz;foo=1',
     'app uri_for(foo, bar => baz, foo => 1)';
+
+##############################################################################
+# Test login_uri()
+is $req->login_uri, URI->new('/auth/'), 'Should have default login URI';
 
 ##############################################################################
 # Test respond_with()
