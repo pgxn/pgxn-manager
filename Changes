@@ -35,6 +35,8 @@ Revision history for Perl extension PGXN::Manager
         are behind separate reverse proxy servers.
       - Switched router to Router::Resource. It's more RESTy and also offers
         handling of 404s and 405s.
+      - Copyright retroactively assigned exclusively to David E. Wheeler,
+        rather than to both PostgreSQL Experts and David.
 
 0.1.0 2010-10-08T01:51:55Z 
       - Initial version.
