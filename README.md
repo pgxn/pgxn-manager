@@ -39,16 +39,19 @@ Installation
   your Web server to serve this directory. For proper networking, it should
   also be copy-able via anonymous `rsync` connections.
 
-* Copy `conf/local.json` to `conf/prod.json` and edit it. Change the DSN if
-  you'd like to use a different database name or connect to another host.
-  (Consult the [DBI](http://search.cpan.org/perldoc?DBI) and
+* Create the configuration file. The easiest way is to copy one of the templates:
+
+      cp conf/local.json conf/prod.json
+
+  Change the DSN if you'd like to use a different database name or connect to
+  another host. (Consult the [DBI](http://search.cpan.org/perldoc?DBI) and
   [DBD::Pg](http://search.cpan.org/perldoc?DBD::Pg) documentation for details
   on the attributes that can be included in the DSN). You can also change the
   templates for the files that will be managed on the master mirror, though
   only changing the extension of the "dist" template from ".pgz" to whatever
   is appropriate for your network is really recommended.
 
-* Build PGXN:
+* Build PGXN::Manager:
 
       perl Build.PL --db_super_user postgres \
                     --db_client /usr/local/pgsql/bin/psql \
@@ -56,8 +59,7 @@ Installation
       ./Build
       ./Build db
 
-* If you'd like to run the test suite, edit `conf/test.json` so that it will
-  connect to a separate database then run the tests. Create that database and
+* If you'd like to run the test suite, create a test database database and
   install [pgTAP](http://pgtap.org/) into it under the schema named "tap":
 
       PATH=$PATH:/usr/local/pgsql/bin
@@ -66,7 +68,9 @@ Installation
       make install
       psql -U postgres -d pgxn_manager_test -f pgrap.sql
 
-  Then run the tests:
+  Then edit the DSN in `conf/test.json` so that it will connect to the test
+  database. Then run the tests, which will need to be able to find `psql` in
+  the system path:
 
       PATH=$PATH:/usr/local/pgsql/bin ./Build test --context test
 
@@ -107,15 +111,81 @@ Installation
 
 * Profit!
 
-Installation
-------------
+Running a Proxy Server
+----------------------
 
-To install this module, type the following:
+PGXN::Manager is actually two apps in one. The public site runs under /pub/
+and the site for users authenticated via Basic Auth runs under /auth/. A nice
+way to separate these is to set up two reverse proxy servers: One to serve
+/pub/ on port 80 and one to serve /auth/ on port 443. Here's how to do that.
 
-    perl Build.PL
-    ./Build
-    ./Build test
-    ./Build install
+* Get or create an SSL certificate and install it in your system.
+
+* Create the reverse proxy hosts. Here's what the
+  [mod_proxy](http://httpd.apache.org/docs/2.2/mod/mod_proxy.html)
+  configuration for manager.pgxn.org looks like, both apps to a a
+  PGXN::Manager instance running locally on port 7496:
+
+      <VirtualHost *:80>
+          ServerName manager.pgxn.org
+          ProxyPass / http://localhost:7496/pub/
+          ProxyPassReverse / http://localhost:7496/pub/
+          RequestHeader set X-Forwarded-HTTPS %{HTTPS}s
+          RequestHeader set X-Forwaded-Proto http
+          RequestHeader set X-Forwarded-Port 80
+          RequestHeader set X-Forwarded-Script-Name ""
+      </VirtualHost>
+
+      <VirtualHost *:443>
+          ServerName manager.pgxn.org
+          SSLEngine On
+          SSLCertificateFile /path/to/certs/manager.pgxn.org.crt
+          SSLCertificateKeyFile /path/to/private/manager.pgxn.org.key
+          SSLCipherSuite ALL:!ADH:!EXPORT:!SSLv2:RC4+RSA:+HIGH:+MEDIUM
+          ProxyPass / http://localhost:7496/auth/
+          ProxyPassReverse / http://localhost:7496/auth/
+          RequestHeader set X-Forwarded-HTTPS %{HTTPS}s
+          RequestHeader set X-Forwaded-Proto https
+          RequestHeader set X-Forwarded-Port 443
+          RequestHeader set X-Forwarded-Script-Name ""
+      </VirtualHost>
+
+  Note that to do this, you need to have
+  [mod_proxy](http://httpd.apache.org/docs/2.2/mod/mod_proxy.html),
+  [mod_headers](http://httpd.apache.org/docs/2.2/mod/mod_headers.html), and
+  [mod_ssl](http://httpd.apache.org/docs/2.2/mod/mod_ssl.html) built and
+  installed in your Apache server (most distributions do).
+
+* Install
+  [Plack::Middleware::ReverseProxy](http://search.cpan.org/perloc?Plack::Middleware::ReverseProxy)
+  from CPAN:
+
+      cpan Plack::Middleware::ReverseProxy
+
+* Edit the production configuration file. The there are only additional keys
+  to edit:
+  
+    1. Add the ReverseProxy middleware:
+
+        "middleware": [
+            ["ReverseProxy"]
+        ], 
+
+    2. Tell PGXN::Manager to use the X-Forwarded-Script-Name header to create
+    proper URLs (otherwise no images, CSS, or JavaScript will work):
+
+        "uri_script_name_key": "HTTP_X_FORWARDED_SCRIPT_NAME",
+
+    3. Tell the public site what link to use to the authenticated site:
+  
+        "login_uri": "https://manager.pgxn.org/",
+
+  You'll also find these settings in `conf/proxied.json` to help get you
+  started.
+
+* Restart your Apache server and then your PGXN Manager server. You should now
+  be able to hit the public site at the root of your domain on port 80, and at
+  the authenticated site at the root of your domain on port 443.
 
 Copyright and Licence
 ---------------------
