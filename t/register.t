@@ -2,7 +2,9 @@
 
 use 5.12.0;
 use utf8;
-use Test::More tests => 541;
+BEGIN { $ENV{EMAIL_SENDER_TRANSPORT} = 'Test' }
+
+use Test::More tests => 558;
 #use Test::More 'no_plan';
 use Plack::Test;
 use HTTP::Request::Common;
@@ -147,7 +149,7 @@ test_psgi $app => sub {
 
 * foo
 * bar
-* baz', '......... It should have its placeholder'));
+* baz'), '......... It should have its placeholder');
                 $_->is('./text()', '', '......... And it should be empty')
             });
         });
@@ -195,6 +197,30 @@ test_psgi $app => sub {
             'In short, +1 from me. Regards, Tom Lane', 'new'
         ], 'TGL should exist';
     });
+
+    # And an email should have been sent.
+    ok my $deliveries = Email::Sender::Simple->default_transport->deliveries,
+        'Should have email deliveries.';
+    is @{ $deliveries }, 1, 'Should have one message';
+    is @{ $deliveries->[0]{successes} }, 1, 'Should have been successfully delivered';
+
+    my $email = $deliveries->[0]{email};
+    is $email->get_header('Subject'), 'New User Request for tgl',
+        'The subject should be set';
+    is $email->get_header('From'), PGXN::Manager->config->{admin_email},
+        'From header should be set';
+    is $email->get_header('To'), PGXN::Manager->config->{alert_email},
+        'To header should be set';
+    is $email->get_body, 'A new PGXN account has been requted from localhost:
+
+     Name: Tom Lane
+ Nickname: tgl
+    Email: tgl@pgxn.org
+   Reason:
+
+> In short, +1 from me. Regards, Tom Lane
+', 'The body should be correct';
+    Email::Sender::Simple->default_transport->clear_deliveries;
 };
 
 # Awesome. Let's get a nickname conflict and see how it handles it.
@@ -209,6 +235,9 @@ test_psgi $app => sub {
     ]), 'POST tgl to /register again';
     ok !$res->is_redirect, 'It should not be a redirect response';
     is $res->code, 409, 'Should have 409 status code';
+
+    is @{ Email::Sender::Simple->default_transport->deliveries },
+        0, 'No email should have been sent';
 
     # So check the content.
     is_well_formed_xml $res->content, 'The HTML should be well-formed';
@@ -274,6 +303,10 @@ test_psgi $app => sub {
             ['Tom Lane', 'tgl@pgxn.org', 'http://tgl.example.org/', 'tomlane', 'new'],
             'TGL should exist';
     });
+
+    is @{ Email::Sender::Simple->default_transport->deliveries },
+        1, 'And an admin email should have been sent';
+    Email::Sender::Simple->default_transport->clear_deliveries;
 };
 
 # Now try a conflicting email address.
@@ -292,6 +325,9 @@ test_psgi $app => sub {
     )), 'POST yodude to /register';
     ok !$res->is_redirect, 'It should not be a redirect response';
     is $res->code, 409, 'Should have 409 status code';
+
+    is @{ Email::Sender::Simple->default_transport->deliveries },
+        0, 'No email should have been sent';
 
     # So check the content.
     is_well_formed_xml $res->content, 'The HTML should be well-formed';
@@ -359,6 +395,10 @@ test_psgi $app => sub {
              WHERE nickname = ?
         }, undef, 'tgl'), ['Tom Lane', 'tgl@pgxn.org', '', 'new'], 'TGL should exist';
     });
+
+    is @{ Email::Sender::Simple->default_transport->deliveries },
+       1, 'And an admin email should have been sent';
+    Email::Sender::Simple->default_transport->clear_deliveries;
 };
 
 # Now use a conflicting email address, also submitted via XMLHttpRequest.
@@ -376,6 +416,9 @@ test_psgi $app => sub {
         ]
     )), 'POST yodude via Ajax to /register';
     is $res->code, 409, 'Should have 409 status code';
+    is @{ Email::Sender::Simple->default_transport->deliveries },
+        0, 'No email should have been sent';
+
     is $res->content,
         $mt->maketext('Looks like you might already have an account. Need to reset your password?'),
         'And the content should reflect that error';
@@ -394,6 +437,9 @@ test_psgi $app => sub {
     ]), 'POST empty form to /register yet again';
     ok !$res->is_redirect, 'It should not be a redirect response';
     is $res->code, 409, 'Should have 409 status code';
+
+    is @{ Email::Sender::Simple->default_transport->deliveries },
+        0, 'No email should have been sent';
 
     # So check the content.
     is_well_formed_xml $res->content, 'The HTML should be well-formed';
@@ -432,6 +478,9 @@ test_psgi $app => sub {
     ok !$res->is_redirect, 'It should not be a redirect response';
     is $res->code, 409, 'Should have 409 status code';
 
+    is @{ Email::Sender::Simple->default_transport->deliveries },
+        0, 'No email should have been sent';
+
     # So check the content.
     is_well_formed_xml $res->content, 'The HTML should be well-formed';
     my $tx = Test::XPath->new( xml => $res->content, is_html => 1 );
@@ -467,6 +516,9 @@ test_psgi $app => sub {
     ]), 'POST form with bogus email to /register';
     ok !$res->is_redirect, 'It should not be a redirect response';
     is $res->code, 409, 'Should have 409 status code';
+
+    is @{ Email::Sender::Simple->default_transport->deliveries },
+        0, 'No email should have been sent';
 
     # So check the content.
     is_well_formed_xml $res->content, 'The HTML should be well-formed';
@@ -504,6 +556,9 @@ test_psgi $app => sub {
     ok !$res->is_redirect, 'It should not be a redirect response';
     is $res->code, 409, 'Should have 409 status code';
 
+    is @{ Email::Sender::Simple->default_transport->deliveries },
+        0, 'No email should have been sent';
+
     # So check the content.
     is_well_formed_xml $res->content, 'The HTML should be well-formed';
     my $tx = Test::XPath->new( xml => $res->content, is_html => 1 );
@@ -539,6 +594,9 @@ test_psgi $app => sub {
     ]), 'POST form with empty why to /register';
     ok !$res->is_redirect, 'It should not be a redirect response';
     is $res->code, 409, 'Should have 409 status code';
+
+    is @{ Email::Sender::Simple->default_transport->deliveries },
+        0, 'No email should have been sent';
 
     # So check the content.
     is_well_formed_xml $res->content, 'The HTML should be well-formed';

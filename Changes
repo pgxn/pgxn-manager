@@ -37,6 +37,8 @@ Revision history for Perl extension PGXN::Manager
         handling of 404s and 405s.
       - Copyright retroactively assigned exclusively to David E. Wheeler,
         rather than to both PostgreSQL Experts and David.
+      - An email is now sent when a new user registers. This is so that admins
+        can be quickly alerted to registrations and moderate them ASAP.
 
 0.1.0 2010-10-08T01:51:55Z 
       - Initial version.

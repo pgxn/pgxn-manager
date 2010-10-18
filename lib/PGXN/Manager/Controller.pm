@@ -167,7 +167,34 @@ sub register {
             )}
         );
 
-        # Success!
+        # Success! Notify the admins.
+        my $host = $req->remote_host || $req->address;
+        my $name = $params->{full_name} ? "     Name: $params->{full_name}\n" : '';
+        my $twit = $params->{twitter}   ? "  Twitter: http://twitter.com/$params->{twitter}\n" : '';
+        my $uri  = $params->{uri}       ? "      URI: $params->{uri}\n" : '';
+        (my $why = $params->{why}) =~ s/^/> /g;
+        my $email = Email::MIME->create(
+            header     => [
+                From => PGXN::Manager->config->{admin_email},
+                To   => PGXN::Manager->config->{alert_email},
+                Subject => "New User Request for $params->{nickname}",
+            ],
+            attributes => {
+                content_type => 'text/plain',
+                charset      => 'UTF-8',
+            },
+            body => "A new PGXN account has been requted from $host:\n\n"
+                  . $name
+                  . " Nickname: $params->{nickname}\n"
+                  . "    Email: $params->{email}\n"
+                  . $uri
+                  . $twit
+                  . "   Reason:\n\n$why\n"
+        );
+        Email::Sender::Simple->send($email, {
+            transport => PGXN::Manager->email_transport
+        });
+
         return $self->respond_with('success', $req) if $req->is_xhr;
 
         # XXX Consider returning 201 and URI to the user profile?

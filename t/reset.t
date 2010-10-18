@@ -112,7 +112,6 @@ test_psgi $app => sub {
 
     is @{ Email::Sender::Simple->default_transport->deliveries },
         0, 'But no email should have been sent'
-
 };
 
 # Now submit for an actual user.
