@@ -164,12 +164,12 @@ way to separate these is to set up two reverse proxy servers: One to serve
 
 * Edit the production configuration file. The there are only additional keys
   to edit:
-  
+
     1. Add the ReverseProxy middleware:
 
         "middleware": [
             ["ReverseProxy"]
-        ], 
+        ],
 
     2. Tell PGXN::Manager to use the X-Forwarded-Script-Name header to create
     proper URLs (otherwise no images, CSS, or JavaScript will work):
@@ -177,7 +177,7 @@ way to separate these is to set up two reverse proxy servers: One to serve
         "uri_script_name_key": "HTTP_X_FORWARDED_SCRIPT_NAME",
 
     3. Tell the public site what link to use to the authenticated site:
-  
+
         "login_uri": "https://manager.pgxn.org/",
 
   You'll also find these settings in `conf/proxied.json` to help get you
