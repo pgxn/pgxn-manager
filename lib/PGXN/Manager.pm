@@ -1,4 +1,4 @@
-package PGXN::Manager v0.1.1;
+package PGXN::Manager v0.2.0;
 
 use 5.12.0;
 use utf8;
