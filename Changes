@@ -1,6 +1,6 @@
 Revision history for Perl extension PGXN::Manager
 
-0.2.1
+0.2.1 2010-10-19T06:07:02
       - Added version, copyright, and license to footer.
       - Fixed display of form legends on Firefox so that they're not floating
         above the fieldset with which they're associated.
