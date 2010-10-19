@@ -158,7 +158,7 @@ BEGIN { create_wrapper wrapper => sub {
                                 T $item->[1];
                             } };
                         }
-                }; # /ul id="allmenu"
+                    }; # /ul id="allmenu"
                 }
 
                 ul {
@@ -177,8 +177,14 @@ BEGIN { create_wrapper wrapper => sub {
                         } };
                     }
                 }; # /ul id="allmenu"
-
             }; # /div id="sidebar"
+            div {
+                id is 'footer';
+                p {
+                    outs 'PGXN::Manager ' . PGXN::Manager->VERSION;
+                    outs_raw '. © 2010 <a href="http://justatheory.com/">David E. Wheeler</a>. <a href="http://github.com/theory/pgxn-manager">Distributed</a> under the <a href="http://www.opensource.org/licenses/postgresql">PostgreSQL License</a>.';
+                };
+            };
         }; # /body
     };
 } };

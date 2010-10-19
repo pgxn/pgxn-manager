@@ -53,6 +53,12 @@ body > #sidebar
 
 #sidebar img {border:0; padding:0;}
 
+#footer
+{position: relative;
+     left: 305px;
+     font-size:70%;
+};
+
 /**************** Navigation menu styles ****************/
 
 .menu {
@@ -95,7 +101,7 @@ fieldset
 {margin-bottom:1em;border:2px solid #236691;background:#dee7ef;}
 
 legend
-{background:#236691; padding:.2em .5em; margin-bottom:2em; color:#fff; font-weight: bold;}
+{background:#236691; padding:.2em .5em; color:#fff; font-weight: bold;}
 
 label
 {width: 5em; float:left; clear:left; text-align:right; margin-right:0.5em; display:block;margin-bottom:.5em;padding-top:.3em;font-weight:bold;}

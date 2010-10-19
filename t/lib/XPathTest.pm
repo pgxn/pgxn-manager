@@ -97,7 +97,7 @@ sub test_basics {
     });
 
     # Test the body.
-    $tx->is('count(/html/body/*)', 2, 'Should have two elements below body');
+    $tx->is('count(/html/body/*)', 3, 'Should have two elements below body');
 
     # Check the content section.
     $tx->ok('/html/body/div[@id="content"]', 'Test content', sub {
@@ -240,6 +240,13 @@ sub test_basics {
                 );
             }
         });
+    });
+
+    # Test the footer.
+    $tx->ok('/html/body/div[@id="footer"]', 'Test footer', sub {
+        $tx->is('count(./*)', 1, 'Should have 1 subelement');
+        $tx->like('./p', qr/© 2010(?:-\d{4})?/, 'It should have the copyright');
+        $tx->like('./p', qr/PostgreSQL License/, 'It should have the license');
     });
 }
 
