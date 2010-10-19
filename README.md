@@ -187,7 +187,7 @@ way to separate these is to set up two reverse proxy servers: One to serve
   be able to hit the public site at the root of your domain on port 80, and at
   the authenticated site at the root of your domain on port 443.
 
-Copyright and Licence
+Copyright and License
 ---------------------
 
 Copyright (c) 2010 David E. Wheeler.
