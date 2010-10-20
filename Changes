@@ -1,6 +1,8 @@
 Revision history for Perl extension PGXN::Manager
 
 0.2.2
+      - Added Error document support for production.
+      - Fixed registration form URL to point to the right place.
 
 0.2.1 2010-10-19T06:07:02
       - Added version, copyright, and license to footer.

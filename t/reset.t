@@ -48,7 +48,7 @@ test_psgi $app => sub {
         # Check out the form.
         $tx->ok('./form[@id="forgotform"]', '... Test change form', sub {
             for my $attr (
-                [action  => $req->uri_for('/pub/account/forgotten')],
+                [action  => $req->uri_for('/account/forgotten')],
                 [enctype => 'application/x-www-form-urlencoded; charset=UTF-8'],
                 [method  => 'post']
             ) {

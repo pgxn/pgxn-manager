@@ -53,7 +53,7 @@ test_psgi $app => sub {
     # Now examine the form.
     $tx->ok('/html/body/div[@id="content"]/form[@id="reqform"]', sub {
         for my $attr (
-            [action  => $req->uri_for('/pub/account/register')],
+            [action  => $req->uri_for('/account/register')],
             [enctype => 'application/x-www-form-urlencoded; charset=UTF-8'],
             [method  => 'post']
         ) {
