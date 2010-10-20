@@ -211,7 +211,7 @@ test_psgi $app => sub {
         'From header should be set';
     is $email->get_header('To'), PGXN::Manager->config->{alert_email},
         'To header should be set';
-    is $email->get_body, 'A new PGXN account has been requted from localhost:
+    is $email->get_body, 'A new PGXN account has been requested from localhost:
 
      Name: Tom Lane
  Nickname: tgl
@@ -219,6 +219,8 @@ test_psgi $app => sub {
    Reason:
 
 > In short, +1 from me. Regards, Tom Lane
+
+Moderate at ' . $req->login_uri . 'admin/moderate.
 ', 'The body should be correct';
     Email::Sender::Simple->default_transport->clear_deliveries;
 };

@@ -183,13 +183,14 @@ sub register {
                 content_type => 'text/plain',
                 charset      => 'UTF-8',
             },
-            body => "A new PGXN account has been requted from $host:\n\n"
+            body => "A new PGXN account has been requested from $host:\n\n"
                   . $name
                   . " Nickname: $params->{nickname}\n"
                   . "    Email: $params->{email}\n"
                   . $uri
                   . $twit
-                  . "   Reason:\n\n$why\n"
+                  . "   Reason:\n\n$why\n\n"
+                  . "Moderate at " . $req->login_uri . "admin/moderate.\n"
         );
         Email::Sender::Simple->send($email, {
             transport => PGXN::Manager->email_transport
