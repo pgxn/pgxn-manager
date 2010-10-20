@@ -178,7 +178,7 @@ way to separate these is to set up two reverse proxy servers: One to serve
 
     3. Tell the public site what link to use to the authenticated site:
 
-        "login_uri": "https://manager.pgxn.org/",
+        "auth_uri": "https://manager.pgxn.org/",
 
   You'll also find these settings in `conf/proxied.json` to help get you
   started.

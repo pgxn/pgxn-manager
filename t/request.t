@@ -39,8 +39,8 @@ is $req->uri_for('foo', bar => 'baz', 'foo' => 1),
     'app uri_for(foo, bar => baz, foo => 1)';
 
 ##############################################################################
-# Test login_uri()
-is $req->login_uri, URI->new('/auth/'), 'Should have default login URI';
+# Test auth_uri()
+is $req->auth_uri, URI->new('/auth/'), 'Should have default login URI';
 
 ##############################################################################
 # Test respond_with()

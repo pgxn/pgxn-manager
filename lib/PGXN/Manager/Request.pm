@@ -25,9 +25,9 @@ sub uri_for {
     $uri;
 }
 
-my $login_uri = URI->new( PGXN::Manager->config->{login_uri} || '/auth/');
+my $auth_uri = URI->new( PGXN::Manager->config->{auth_uri} || '/auth/');
 
-sub login_uri { $login_uri }
+sub auth_uri { $auth_uri }
 
 my $variants = [
     #  ID     QS  Content-Type         Encoding  Charset  Lang  Size
@@ -114,11 +114,11 @@ example, if the current request is to C</foo>:
   my $rel = $req->uri_for('bar');  # http://localhost/foo/bar
   my $abs = $req->uri_for('/yow'); # http://localhost/yow
 
-=head3 C<login_uri>
+=head3 C<auth_uri>
 
-  my $uri = $req->login_uri;
+  my $uri = $req->auth_uri;
 
-Returns the log in URI link. Normally this will be C</auth/>. But
+Returns the authenticated site URI. Normally this will be C</auth/>. But
 administrators can override it to use any URI, which is handy for a proxy
 server that serves the authenticated site separately from the public site.
 

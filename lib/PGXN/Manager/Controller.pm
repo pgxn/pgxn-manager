@@ -190,7 +190,7 @@ sub register {
                   . $uri
                   . $twit
                   . "   Reason:\n\n$why\n\n"
-                  . "Moderate at " . $req->login_uri . "admin/moderate.\n"
+                  . "Moderate at " . $req->auth_uri . "admin/moderate.\n"
         );
         Email::Sender::Simple->send($email, {
             transport => PGXN::Manager->email_transport

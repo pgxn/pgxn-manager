@@ -14,7 +14,7 @@ BEGIN {
     PGXN::Manager->config->{uri_script_name_key} = 'HTTP_X_SCRIPT_NAME';
 
     # Set the login URI.
-    PGXN::Manager->config->{login_uri} = 'https://manager.pgxn.org/';
+    PGXN::Manager->config->{auth_uri} = 'https://manager.pgxn.org/';
 }
 
 use PGXN::Manager::Request;
@@ -36,5 +36,5 @@ is $req->uri_for('foo'), $base . 'app/foo', 'app uri_for(foo)';
 is $req->uri_for('/foo'), $base . 'hi/foo', 'app uri_for(/foo)';
 
 # Make sure we get the configured login URI.
-is $req->login_uri, URI->new('https://manager.pgxn.org/');
+is $req->auth_uri, URI->new('https://manager.pgxn.org/');
 

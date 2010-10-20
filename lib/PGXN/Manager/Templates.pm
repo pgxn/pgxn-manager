@@ -117,7 +117,7 @@ BEGIN { create_wrapper wrapper => sub {
                         id is 'publicmenu';
                         li { a {
                             id is 'login';
-                            href is $req->login_uri;
+                            href is $req->auth_uri;
                             T 'Log In';
                         } };
                     }
@@ -231,7 +231,7 @@ template about => sub {
             li {
                 outs T q{Once your account has been approved, you'll be notified via email.};
                 a {
-                    href is $req->login_uri;
+                    href is $req->auth_uri;
                     T 'Go ahead and login.';
                 };
             };
@@ -821,7 +821,7 @@ template pass_changed => sub {
             class is 'success';
             outs T 'W00t! Your password has been changed. So what are you waiting for?';
             a {
-                href is $req->login_uri;
+                href is $req->auth_uri;
                 T 'Go log in!'
             }
         };

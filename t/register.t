@@ -220,7 +220,7 @@ test_psgi $app => sub {
 
 > In short, +1 from me. Regards, Tom Lane
 
-Moderate at ' . $req->login_uri . 'admin/moderate.
+Moderate at ' . $req->auth_uri . 'admin/moderate.
 ', 'The body should be correct';
     Email::Sender::Simple->default_transport->clear_deliveries;
 };
