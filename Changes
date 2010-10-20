@@ -9,6 +9,10 @@ Revision history for Perl extension PGXN::Manager
         configuration setting to same.
       - Added `Request->auth_uri_for()` and updated places in the public site
         that link to the auth site to use it.
+      - Moved the password reset form (to which a link is set when a new user
+        account is accepted or a user fills in the forgotten password form) to
+        the auth site, where it belongs. This is the only part of the auth
+        site that does not require authentication.
 
 0.2.2 2010-10-20T00:29:41
       - Added Error document support for production.

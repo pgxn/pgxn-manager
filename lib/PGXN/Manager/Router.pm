@@ -52,15 +52,6 @@ sub app {
                 resource '/account/thanks' => sub {
                     GET { Controller->thanks(@_) };
                 };
-
-                resource '/account/reset/:tok' => sub {
-                    GET  { Controller->reset_form(@_) };
-                    POST { Controller->reset_pass(@_) };
-                };
-
-                resource  '/account/changed' => sub {
-                    GET { Controller->pass_changed(@_) };
-                };
             };
             mount '/ui' => $files;
             mount '/'   => builder {
@@ -94,6 +85,15 @@ sub app {
                 resource  '/account/password' => sub {
                     GET  { Controller->show_password(@_)   };
                     POST { Controller->update_password(@_) };
+                };
+
+                resource '/account/reset/:tok' => sub {
+                    GET  { Controller->reset_form(@_) };
+                    POST { Controller->reset_pass(@_) };
+                };
+
+                resource  '/account/changed' => sub {
+                    GET { Controller->pass_changed(@_) };
                 };
 
                 resource '/upload' => sub {
@@ -131,7 +131,9 @@ sub app {
                 enable @{ $_ } for @{ $mids };
 
                 # Authenticate all requests.
-                enable 'Auth::Basic', realm => 'PGXN Users Only', authenticator => sub {
+                enable_if {
+                    shift->{PATH_INFO} !~ m{^/account/(?:reset/|changed)}
+                } 'Auth::Basic', realm => 'PGXN Users Only', authenticator => sub {
                     my ($username, $password) = @_;
                     PGXN::Manager->conn->run(sub {
                         return ($_->selectrow_array(

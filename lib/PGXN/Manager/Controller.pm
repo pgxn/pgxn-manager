@@ -286,7 +286,7 @@ sub send_reset {
     });
 
     if ($token) {
-        my $uri = $req->uri_for("/account/reset/$token->[0]");
+        my $uri = $req->auth_uri_for("/account/reset/$token->[0]");
         # Create and send the email.
         my $email = Email::MIME->create(
             header     => [
@@ -404,7 +404,7 @@ sub set_status {
             )->[0];
         });
 
-        my $uri = $req->uri_for("/account/reset/$token->[0]");
+        my $uri = $req->auth_uri_for("/account/reset/$token->[0]");
         $to   = $token->[1];
         $subj = 'Welcome to PGXN!';
         $body = "Your PGXN account request has been approved. Ready to get started?\n"
