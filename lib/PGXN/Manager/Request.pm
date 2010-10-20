@@ -25,9 +25,28 @@ sub uri_for {
     $uri;
 }
 
-my $auth_uri = URI->new( PGXN::Manager->config->{auth_uri} || '/auth/');
+my $auth_uri = PGXN::Manager->config->{auth_uri}
+    ? URI->new(PGXN::Manager->config->{auth_uri})
+    : undef;
 
-sub auth_uri { $auth_uri }
+sub auth_uri { $auth_uri || do {
+    my $self = shift;
+    my $path = 'auth/';
+    if ($self->{$script_name_header} =~ m{/pub\b}) {
+        ($path = $self->env->{$script_name_header}) =~ s{\bpub\b}{auth};
+    }
+    my $uri = $self->base->clone;
+    $uri->path($path);
+    $uri;
+}}
+
+sub auth_uri_for {
+    my ($self, $path) = (shift, shift);
+    my $uri = $self->auth_uri->clone;
+    $uri->path_segments(grep { $_ ne '' } $uri->path_segments, split m{/} => $path );
+    $uri->query_form([@_], ';') if @_;
+    $uri;
+}
 
 my $variants = [
     #  ID     QS  Content-Type         Encoding  Charset  Lang  Size
@@ -121,6 +140,14 @@ example, if the current request is to C</foo>:
 Returns the authenticated site URI. Normally this will be C</auth/>. But
 administrators can override it to use any URI, which is handy for a proxy
 server that serves the authenticated site separately from the public site.
+
+=head3 C<auth_uri_for>
+
+  my $uri = $req->auth_uri_for('/foo', bar => 'baz');
+
+Creates and returns a L<URI> relative to the C<auth_uri>. Should only be used
+from the public site to create links to the authenticated site, and all URIs
+should be absolute.
 
 =head3 C<respond_with>
 

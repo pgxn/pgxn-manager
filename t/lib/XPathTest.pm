@@ -198,7 +198,7 @@ sub test_basics {
                         "Should be one subelement of menu item $i"
                     );
                     my $uri = $spec->[0] eq '/auth/'
-                        ? URI->new($spec->[0])
+                        ? $req->auth_uri
                         : $req->uri_for($spec->[0]);
                     $_->is(
                         "./li[$i]/a/\@class", 'active',

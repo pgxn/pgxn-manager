@@ -18,7 +18,6 @@
         "port": 25
     },
     "uri_script_name_key": "SCRIPT_NAME",
-    "auth_uri": "/auth/",
     "uri_templates": {
         "dist":         "/dist/{dist}/{dist}-{version}.pgz",
         "readme":       "/dist/{dist}/{dist}-{version}.readme",
