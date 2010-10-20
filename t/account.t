@@ -3,7 +3,7 @@
 use 5.12.0;
 use utf8;
 
-use Test::More tests => 307;
+use Test::More tests => 319;
 #use Test::More 'no_plan';
 use Plack::Test;
 use HTTP::Request::Common;
@@ -76,7 +76,7 @@ test_psgi +PGXN::Manager::Router->app => sub {
         $tx->is('count(./*)', 2, '... It should have two subelements');
         $tx->ok('./fieldset', '... Test fieldset', sub {
             $tx->is('./@id', 'accessentials', '...... It should have the proper id');
-            $tx->is('count(./*)', 9, '...... It should have 9 subelements');
+            $tx->is('count(./*)', 13, '...... It should have 9 subelements');
             $tx->is(
                 './legend',
                 $mt->maketext('The Essentials'),
@@ -130,6 +130,10 @@ test_psgi +PGXN::Manager::Router->app => sub {
                     $_->is('./@title', $spec->{title}, '......... Check "title" attr' );
                     $_->is('./@class', $spec->{class}, '......... Check "class" attr' );
                     $_->is('./@placeholder', $spec->{phold}, '......... Check "placeholder" attr' );
+                });
+                $tx->ok("./p[$i]", "...... Test $spec->{id} hint", sub {
+                    $_->is('./@class', 'hint', '......... Check "class" attr' );
+                    $_->is('./text()', $spec->{title}, '......... Check hint body' );
                 });
             }
         });

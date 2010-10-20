@@ -4,7 +4,7 @@ use 5.12.0;
 use utf8;
 BEGIN { $ENV{EMAIL_SENDER_TRANSPORT} = 'Test' }
 
-use Test::More tests => 590;
+use Test::More tests => 606;
 #use Test::More 'no_plan';
 use Plack::Test;
 use HTTP::Request::Common;
@@ -66,7 +66,7 @@ test_psgi $app => sub {
         $tx->is('count(./*)', 3, '... It should have three subelements');
         $tx->ok('./fieldset[1]', '... Test first fieldset', sub {
             $tx->is('./@id', 'reqessentials', '...... It should have the proper id');
-            $tx->is('count(./*)', 11, '...... It should have 11 subelements');
+            $tx->is('count(./*)', 16, '...... It should have 16 subelements');
             $tx->is(
                 './legend',
                 $mt->maketext('The Essentials'),
@@ -129,11 +129,15 @@ test_psgi $app => sub {
                     $_->is('./@class', $spec->{class}, '......... Check "class" attr' );
                     $_->is('./@placeholder', $spec->{phold}, '......... Check "placeholder" attr' );
                 });
+                $tx->ok("./p[$i]", "...... Test $spec->{id} hint", sub {
+                    $_->is('./@class', 'hint', '......... Check "class" attr' );
+                    $_->is('./text()', $spec->{title}, '......... Check hint body' );
+                });
             }
         });
         $tx->ok('./fieldset[2]', '... Test second fieldset', sub {
             $tx->is('./@id', 'reqwhy', '...... It should have the proper id');
-            $tx->is('count(./*)', 3, '...... It should have three subelements');
+            $tx->is('count(./*)', 4, '...... It should have four subelements');
             $tx->is('./legend', $mt->maketext('Your Plans'), '...... It should have a legend');
             my $t = $mt->maketext('So what are your plans for PGXN? What do you wanna release?');
             $tx->ok('./label', '...... Test the label', sub {
@@ -152,6 +156,7 @@ test_psgi $app => sub {
 * baz'), '......... It should have its placeholder');
                 $_->is('./text()', '', '......... And it should be empty')
             });
+            $tx->is('./p[@class="hint"]', $t, '...... Should have the hint');
         });
         $tx->ok('./input[@type="submit"]', '... Test input', sub {
             for my $attr (

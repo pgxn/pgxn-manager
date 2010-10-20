@@ -338,6 +338,7 @@ template request => sub {
                     placeholder is T "I would like to release the following killer extensions on PGXN:\n\n* foo\n* bar\n* baz";
                     $args->{why} || '';
                 };
+                p { class is 'hint'; $why };
             };
 
             input {
@@ -869,6 +870,7 @@ template essentials => sub {
     my ($self, $req, $args) = @_;
     fieldset {
         id is $args->{id};
+        class is 'essentials';
         legend { T 'The Essentials' };
         for my $spec (
             [qw(full_name Name     text),  'Barack Obama', T 'What does your mother call you?'    ],
@@ -895,6 +897,7 @@ template essentials => sub {
                 class is $class if $class;
                 placeholder is $spec->[3];
             };
+            p { class is 'hint'; $spec->[4] };
         }
     };
 };

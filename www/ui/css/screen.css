@@ -56,7 +56,7 @@ body > #sidebar
 #footer
 {position: relative;
      left: 305px;
-     font-size:70%;
+     font-size:60%;
 };
 
 /**************** Navigation menu styles ****************/
@@ -114,6 +114,12 @@ input.submit
 
 fieldset input, fieldset textarea
 {margin-left:4.5em;display:block;width:32em;font-family: 'trebuchet ms', Helvetica, sans-serif; font-size:1em;margin-bottom:.5em;}
+
+.essentials input, .essentials textarea
+{margin:0}
+
+fieldset p.hint
+{padding-left:90px;font-size:70%;margin:0 0 5px !important;}
 
 textarea
 {height:8em;}
