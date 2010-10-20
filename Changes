@@ -1,6 +1,6 @@
 Revision history for Perl extension PGXN::Manager
 
-0.2.3
+0.2.3 2010-10-20T17:12:53
       - Built out the 500 error page, which is a static file, based on other
         error pages.
       - Fixed misspelling in the user registration alert email. Also added
