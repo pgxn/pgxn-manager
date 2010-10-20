@@ -183,7 +183,7 @@ test_psgi $app => sub {
     ok $res->is_redirect, 'It should be a redirect response';
     my $req = PGXN::Manager::Request->new(req_to_psgi($res->request));
     $req->env->{SCRIPT_NAME} = '/pub';
-    is $res->headers->header('location'), $req->uri_for('/pub/account/thanks'),
+    is $res->headers->header('location'), $req->uri_for('/account/thanks'),
         'Should redirect to /account/thanks';
 
     # And now Tom Lane should be registered.
@@ -292,7 +292,7 @@ test_psgi $app => sub {
     my $req = PGXN::Manager::Request->new(req_to_psgi($res->request));
     $req->env->{SCRIPT_NAME} = '/pub';
     ok $res->is_redirect, 'It should be a redirect response';
-    is $res->headers->header('location'), $req->uri_for('/pub/account/thanks'),
+    is $res->headers->header('location'), $req->uri_for('/account/thanks'),
         'Should redirect to /account/thanks';
 
     # And now Tom Lane should be registered.

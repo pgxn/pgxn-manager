@@ -316,7 +316,7 @@ test_psgi $app => sub {
     ok $res->is_redirect, 'Should get a redirect response';
     my $req = PGXN::Manager::Request->new(req_to_psgi($res->request));
     $req->env->{SCRIPT_NAME} = '/auth';
-    is $res->headers->header('location'), $req->uri_for('/pub/account/changed'),
+    is $res->headers->header('location'), $req->uri_for('/account/changed'),
         "Should redirect to /account/changed";
 };
 

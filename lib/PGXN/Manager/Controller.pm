@@ -200,7 +200,7 @@ sub register {
 
         # XXX Consider returning 201 and URI to the user profile?
         $req->session->{name} = $req->param('nickname');
-        return $self->redirect('/pub/account/thanks', $req);
+        return $self->redirect('/account/thanks', $req);
 
     }, sub {
         # Failure!
@@ -347,7 +347,7 @@ sub reset_pass {
     return $self->respond_with('success', $req) if $req->is_xhr;
 
     # Redirect for normal request.
-    return $self->redirect('/pub/account/changed', $req);
+    return $self->redirect('/account/changed', $req);
 }
 
 sub pass_changed {

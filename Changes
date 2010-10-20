@@ -1,6 +1,8 @@
 Revision history for Perl extension PGXN::Manager
 
 0.2.4
+      - Fixed redirection after successful registration and password reset to
+        go to the proper place.
 
 0.2.3 2010-10-20T17:12:53
       - Built out the 500 error page, which is a static file, based on other
