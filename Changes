@@ -1,6 +1,8 @@
 Revision history for Perl extension PGXN::Manager
 
 0.2.3
+      - Built out the 500 error page, which is a static file, based on other
+        error pages.
 
 0.2.2 2010-10-20T00:29:41
       - Added Error document support for production.
