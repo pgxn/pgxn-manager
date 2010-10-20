@@ -1,6 +1,6 @@
 Revision history for Perl extension PGXN::Manager
 
-0.2.5
+0.2.5 2010-10-20T23:06:48
       - Added descriptions of fields to the registration/profile form. Should
         make things less confusing to folks signing up. In response to a gripe
         from Damien Clochard.
