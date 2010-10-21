@@ -570,6 +570,14 @@ template 'show_upload' => sub {
     wrapper {
         h1 { T 'Upload a Distribution' };
         p { T q{So you've developed a PGXN extension and what to distribute it on PGXN. This is the place to upload it! Just find your distribution archive (.zip, .tgz, etc.) in the upload field below and you'll be good to go.} };
+        p {
+            outs T q{Don't know what this means? Want to know how to create great PostgreSQL extensions and distribute them to your fellow PostgreSQL enthusiasts via PGXN? Take a gander at our};
+            a {
+                href is $req->uri_for('/howto');
+                T 'How to';
+            };
+            outs T q{ for all the juicy details. It's not hard, we promise.};
+        };
         if (my $err = $args->{error}) {
             p {
                 class is 'error';

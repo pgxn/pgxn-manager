@@ -2,7 +2,7 @@
 
 use 5.12.0;
 use utf8;
-use Test::More tests => 178;
+use Test::More tests => 179;
 #use Test::More 'no_plan';
 use Test::File;
 use Plack::Test;
@@ -60,12 +60,14 @@ test_psgi $app => sub {
 
     # Check content.
     $tx->ok('/html/body/div[@id="content"]', 'Look at the content', sub {
-        $tx->is('count(./*)', 3, '... Should have three subelements');
+        $tx->is('count(./*)', 4, '... Should have four subelements');
         $tx->is(
-            './p',
+            './p[1]',
             $mt->maketext(q{So you've developed a PGXN extension and what to distribute it on PGXN. This is the place to upload it! Just find your distribution archive (.zip, .tgz, etc.) in the upload field below and you'll be good to go.}),
             'Paragraph should be there'
         );
+        my $t = quotemeta q{Don't know what this means? Want to know how to create great PostgreSQL extensions and distribute them to your fellow PostgreSQL enthusiasts via PGXN? Take a gander at our};
+        $tx->like( './p[2]', qr/$t/, 'Should have second paragraph');
         $tx->ok('./form[@id="upform"]', 'Test upload form', sub {
             $tx->is(
                 './@action',
