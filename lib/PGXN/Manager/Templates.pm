@@ -259,7 +259,7 @@ template contact => sub {
         h1 { T 'Contact Us' };
         p { T q{Noticed an issue with PGXN? Got a bug to report? Just want to send kudos or complaints? Here's how.}};
         dl{
-            dt { T 'Bug Reports' };
+            dt { T 'Bugs' };
             dd {
                 p {
                     outs T 'Please send bug reports to the';
@@ -269,7 +269,7 @@ template contact => sub {
                     };
                 };
             };
-            dt { T 'Source Code' };
+            dt { T 'Download' };
             dd {
                 p {
                     outs T 'PGXN Manager is released under the';
@@ -284,7 +284,7 @@ template contact => sub {
                     };
                 };
             };
-            dt { T 'Repository' };
+            dt { T 'Source' };
             dd {
                 p {
                     outs T 'The PGXN Manager source is availabe in a Git reposotory';
