@@ -4,6 +4,8 @@ Revision history for Perl extension PGXN::Manager
       - Added salutation to new user email.
       - Fixed a bunch of warnings emitted by the Perl code (found by turning
         on warnings in tests)
+      - Added "How To" page and tweaked the "Contact", "About Us", and
+        "Upload" pages, including appropriate links to "How To".
 
 0.2.5 2010-10-20T23:06:48
       - Added descriptions of fields to the registration/profile form. Should
