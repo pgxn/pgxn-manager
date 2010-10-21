@@ -220,36 +220,60 @@ template about => sub {
             li { T 'An upload and distribution infrastructure for extension developers.' };
             li { T 'A centralized index and API of distribution metadata.' };
         };
-        p { T q{This Webapp handles the management of these parts of the infrastructure. So if you'd like to develop and release PostgreSQL estensions, you've come to the right place! Here's how to get started:} };
+        p { T q{This Webapp handles the management of these parts of the infrastructure. So if you'd like to develop and release PostgreSQL estensions, you've come to the right place! For the impatient, here's how to get started:} };
         ul {
             li {
-                a {
-                    href is $req->uri_for('/account/register');
-                    T 'Register for an acount.';
-                };
+                if ($req->user) {
+                    T q{Register for an account. But it looks like you've already done that, [_1].},
+                      $req->user;
+                } else {
+                    a {
+                        href is $req->uri_for('/account/register');
+                        T 'Register for an acount.';
+                    };
+                }
             };
-            li {
-                outs T q{Once your account has been approved, you'll be notified via email.};
-                a {
-                    href is $req->auth_uri;
-                    T 'Go ahead and login.';
+            unless ($req->user) {
+                li {
+                    outs T q{Once your account has been approved, you'll be notified via email.};
+                    a {
+                        href is $req->auth_uri;
+                        T 'Go ahead and login.';
+                    };
                 };
-            };
+            }
             li {
-                outs T q{Prepare your extension for distribution by creating a META.json file.};
+                outs T q{Create an extension and package it up for distribution. Basically, that means using };
+                a {
+                    href is 'http://www.postgresql.org/docs/current/static/xfunc-c.html#XFUNC-C-PGXS';
+                    T 'PGXS'
+                };
+                outs T q{ to build your extension, and creating a};
+                code { 'META.json' };
+                outs T q{ file according to the};
                 a {
                     href is 'http://github.com/theory/pgxn/wiki/PGXN-Meta-Spec';
-                    T 'See the PGXN Meta Spec.';
+                    T 'PGXN Meta Spec';
                 };
+                outs '.';
             };
             li {
                 outs T q{Package up your distribution into an archive file (zip, tarball, etc.).};
                 a {
-                    href is $req->uri_for('/upload');
-                    T 'Upload it to release!';
+                    href is $req->auth_uri_for('/upload');
+                    T 'Upload it to release';
                 };
+                outs T '!';
             };
         };
+        p {
+            outs T q{For a more detailed discussion on creating PGXN distributions, please read the};
+            a {
+                href is $req->uri_for('/howto');
+                T 'How To';
+            };
+            outs '.';
+        }
     } $req, { page_title => 'about_page_title', $args ? %{ $args } : () };
 };
 
@@ -275,13 +299,15 @@ template contact => sub {
                     outs T 'PGXN Manager is released under the';
                     a {
                         href is 'http://www.opensource.org/licenses/postgresql';
-                        T 'PostgreSQL License.';
+                        T 'PostgreSQL License';
                     };
+                    outs '. ';
                     outs T 'Download PGXN Manager releases from';
                     a {
                         href is 'http://github.com/theory/pgxn-manager/downloads';
                         T 'GitHub Downloads';
                     };
+                    outs '.';
                 };
             };
             dt { T 'Source' };
@@ -290,8 +316,9 @@ template contact => sub {
                     outs T 'The PGXN Manager source is availabe in a Git reposotory';
                     a {
                         href is 'http://github.com/theory/pgxn-manager';
-                        T 'on GitHub.';
+                        T 'on GitHub';
                     };
+                    outs '. ';
                     outs T 'Fork and enjoy.';
                 };
             };
