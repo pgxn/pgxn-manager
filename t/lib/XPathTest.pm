@@ -215,12 +215,13 @@ sub test_basics {
 
         # Test the menu present for everyone.
         $_->ok('./ul[@id="allmenu"]', 'Test permanent menu', sub {
-            $_->is('count(./*)', 2, 'Should have 2 menu subelements');
-            $_->is('count(./li)', 2, 'And they should all be list items');
+            $_->is('count(./*)', 3, 'Should have 3 menu subelements');
+            $_->is('count(./li)', 3, 'And they should all be list items');
 
             my $i = 0;
             for my $spec (
-                [ '/about',   'About' ],
+                [ '/about',   'About'   ],
+                [ '/howto',   'How To'  ],
                 [ '/contact', 'Contact' ],
             ) {
                 $i++;

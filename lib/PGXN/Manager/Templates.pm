@@ -166,6 +166,7 @@ BEGIN { create_wrapper wrapper => sub {
                     id is 'allmenu';
                     for my $item (
                         [ '/about',   'About',   'about'   ],
+                        [ '/howto',   'How To',  'howto'   ],
                         [ '/contact', 'Contact', 'contact' ],
                     ) {
                         li { a {
