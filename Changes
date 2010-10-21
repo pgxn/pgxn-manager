@@ -1,6 +1,9 @@
 Revision history for Perl extension PGXN::Manager
 
 0.2.6
+      - Added salutation to new user email.
+      - Fixed a bunch of warnings emitted by the Perl code (found by turning
+        on warnings in tests)
 
 0.2.5 2010-10-20T23:06:48
       - Added descriptions of fields to the registration/profile form. Should
