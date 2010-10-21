@@ -124,6 +124,11 @@ sub contact {
     return $self->render('/contact', { env => shift });
 }
 
+sub howto {
+    my $self = shift;
+    return $self->render('/howto', { env => shift });
+}
+
 sub request {
     my $self = shift;
     return $self->render('/request', { env => shift });
@@ -737,6 +742,12 @@ Displays the HTML for the "About" page.
   PGXN::Manager::Controller->contact($env);
 
 Displays the HTML for the "Contact" page.
+
+=head3 C<howto>
+
+  PGXN::Manager::Controller->howto($env);
+
+Displays the HTML for the "How To" page.
 
 =head3 C<auth>
 

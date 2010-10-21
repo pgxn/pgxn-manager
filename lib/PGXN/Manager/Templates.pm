@@ -326,6 +326,14 @@ template contact => sub {
     } $req, { page_title => 'contact_page_title', $args ? %{ $args } : () };
 };
 
+template howto => sub {
+    my ($self, $req, $args) = @_;
+    wrapper {
+        h1 { T 'PGXN How To' };
+        outs_raw ${ $l->section_data('howto') };
+    } $req, { page_title => 'howto_page_title', $args ? %{ $args } : () };
+};
+
 template request => sub {
     my ($self, $req, $args) = @_;
     $args->{highlight} //= '';

@@ -4,6 +4,7 @@ use 5.12.0;
 use utf8;
 use parent 'Locale::Maketext';
 use I18N::LangTags::Detect;
+use Data::Section -setup;
 
 # Allow unknown phrases to just pass-through.
 our %Lexicon = ( _AUTO => 1 );

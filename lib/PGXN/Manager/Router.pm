@@ -39,6 +39,10 @@ sub app {
                     GET { Controller->contact(@_) };
                 };
 
+                resource '/howto' => sub {
+                    GET { Controller->howto(@_) };
+                };
+
                 resource '/account/register' => sub {
                     GET  { Controller->request(@_)  };
                     POST { Controller->register(@_) };
@@ -75,6 +79,10 @@ sub app {
 
                 resource '/contact' => sub {
                     GET { Controller->contact(@_) };
+                };
+
+                resource '/howto' => sub {
+                    GET { Controller->howto(@_) };
                 };
 
                 resource  '/account' => sub {

@@ -59,6 +59,7 @@ $class->new(
         'Plack::Middleware::Session' => '0.12',
         'namespace::autoclean'       => '0.11',
         'Router::Resource'           => '0.10',
+        'Data::Section'              => '0.101620',
         'SemVer'                     => '0.1.0',
         'Template::Declare'          => '0.43',
         'Try::Tiny'                  => '0.06',
