@@ -1,5 +1,7 @@
 Revision history for Perl extension PGXN::Manager
 
+0.3.1
+
 0.3.0 2010-10-21T23:31:46
       - Added salutation to new user email.
       - Fixed a bunch of warnings emitted by the Perl code (found by turning
