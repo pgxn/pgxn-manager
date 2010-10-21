@@ -1,4 +1,4 @@
-#!/usr/bin/env perl
+#!/usr/bin/env perl -w
 
 use 5.12.0;
 use utf8;
@@ -79,11 +79,11 @@ $req->headers->push_header(Accept => 'application/json;q=0.93');
 is $req->respond_with, 'json', 'Should now prefer json';
 
 # Try making JSON lower than atom.
-$req->headers->header(Accept => 'application/atom+xml;q=0.91,application/json;q=0.90)');
+$req->headers->header(Accept => 'application/atom+xml;q=0.91,application/json;q=0.90');
 is $req->respond_with, 'atom', 'Should prefer atom again';
 
 # Now have them tie. Smallest content-size should win.
-$req->headers->header(Accept => 'application/atom+xml;q=0.91,application/json;q=0.91)');
+$req->headers->header(Accept => 'application/atom+xml;q=0.91,application/json;q=0.91');
 is $req->respond_with, 'json', 'Should prefer json for a tie';
 
 isa_ok $req = PGXN::Manager::Request->new(req_to_psgi(GET(

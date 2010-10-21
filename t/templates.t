@@ -1,4 +1,4 @@
-#!/usr/bin/env perl
+#!/usr/bin/env perl -w
 
 use 5.12.0;
 use utf8;
@@ -42,7 +42,7 @@ XPathTest->test_basics($tx, $req, $mt, {
 $req->env->{HTTP_ACCEPT_LANGUAGE} = 'fr';
 ok $html = Template::Declare->show('home', $req ), 'Show French home';
 is_well_formed_xml $html, 'French HTML should be well-formed';
-my $tx = Test::XPath->new( xml => $html, is_html => 1 );
+$tx = Test::XPath->new( xml => $html, is_html => 1 );
 $tx->is(
     '/html/body/div[@id="content"]/h1',
     'Bienvenue',
@@ -59,13 +59,13 @@ $mt = PGXN::Manager::Locale->accept($req->env->{HTTP_ACCEPT_LANGUAGE});
 $req->env->{REMOTE_USER} = $user;
 is $req->user, $user, 'User should be authenicated';
 
-ok my $html = Template::Declare->show('home', $req, {
+ok $html = Template::Declare->show('home', $req, {
     description => 'Whatever desc',
     keywords    => 'yes,no',
 }), 'Show home';
 
 is_well_formed_xml $html, 'The HTML should be well-formed';
-my $tx = Test::XPath->new( xml => $html, is_html => 1 );
+$tx = Test::XPath->new( xml => $html, is_html => 1 );
 XPathTest->test_basics($tx, $req, $mt, {
     desc        => 'Whatever desc',
     keywords    => 'yes,no',
@@ -83,13 +83,13 @@ $req->env->{REMOTE_USER} = $admin;
 is $req->user, $admin, 'User should be authenicated';
 ok $req->user_is_admin, 'User should be admin';
 
-ok my $html = Template::Declare->show('home', $req, {
+ok $html = Template::Declare->show('home', $req, {
     description => 'Whatever desc',
     keywords    => 'yes,no',
 }), 'Show home';
 
 is_well_formed_xml $html, 'The HTML should be well-formed';
-my $tx = Test::XPath->new( xml => $html, is_html => 1 );
+$tx = Test::XPath->new( xml => $html, is_html => 1 );
 XPathTest->test_basics($tx, $req, $mt, {
     desc        => 'Whatever desc',
     keywords    => 'yes,no',

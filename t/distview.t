@@ -1,4 +1,4 @@
-#!/usr/bin/env perl
+#!/usr/bin/env perl -w
 
 use 5.12.0;
 use utf8;
@@ -254,7 +254,7 @@ test_psgi $app => sub {
 };
 
 # Try getting the one without a README.
-my $uri = '/auth/distributions/widget/0.2.6';
+$uri = '/auth/distributions/widget/0.2.6';
 
 test_psgi $app => sub {
     my $cb  = shift;
@@ -304,7 +304,7 @@ test_psgi $app => sub {
 };
 
 # Should be able to fetch own distribution though.
-my $uri = '/auth/distributions/pgTAP/0.35.0';
+$uri = '/auth/distributions/pgTAP/0.35.0';
 test_psgi $app => sub {
     my $cb  = shift;
     my $req = GET $uri, Authorization => 'Basic ' . encode_base64("$admin:****");

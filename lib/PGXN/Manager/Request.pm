@@ -32,6 +32,7 @@ my $auth_uri = PGXN::Manager->config->{auth_uri}
 sub auth_uri { $auth_uri || do {
     my $self = shift;
     my $path = 'auth/';
+    no warnings 'uninitialized';
     if ($self->{$script_name_header} =~ m{/pub\b}) {
         ($path = $self->env->{$script_name_header}) =~ s{\bpub\b}{auth};
     }
@@ -77,6 +78,7 @@ sub user_is_admin {
 }
 
 sub is_xhr {
+    no warnings 'uninitialized';
     shift->env->{HTTP_X_REQUESTED_WITH} eq 'XMLHttpRequest';
 }
 

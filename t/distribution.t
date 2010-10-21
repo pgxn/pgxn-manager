@@ -1,4 +1,4 @@
-#!/usr/bin/env perl
+#!/usr/bin/env perl -w
 
 use 5.12.0;
 use utf8;
@@ -86,7 +86,7 @@ is $dist->zip, undef, 'Should have no zip attribute';
 ok $dist->extract, 'Extract the distribution';
 file_exists_ok $extdir, 'Should now have extraction directory';
 ok $dist->modified, 'The zip should be modified';
-isa_ok my $zip = $dist->zip, 'Archive::Zip', 'Should now have a zip attribute';
+isa_ok $zip = $dist->zip, 'Archive::Zip', 'Should now have a zip attribute';
 is_deeply [sort $zip->memberNames ], [
     'widget/',
     map { "widget/$_"} qw(META.json Makefile README widget.sql.in)
@@ -390,7 +390,7 @@ PGXN::Manager->conn->run(sub {
         "Distribution JSON file should be correct";
 
     # Check by-extension JSON.
-    my ($json) = $dbh->selectrow_array(
+    ($json) = $dbh->selectrow_array(
         'SELECT json FROM by_extension_json(?, ?)',
         undef, 'widget', '0.2.5',
     );

@@ -936,6 +936,7 @@ template show_password => sub {
                 ) {
                     label {
                         attr { for => $spec->[0], title => $spec->[3] };
+                        no warnings 'uninitialized';
                         class is 'highlight' if $args->{highlight} eq $spec->[0];
                         T $spec->[1];
                     };
