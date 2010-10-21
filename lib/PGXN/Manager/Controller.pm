@@ -407,7 +407,8 @@ sub set_status {
         my $uri = $req->auth_uri_for("/account/reset/$token->[0]");
         $to   = $token->[1];
         $subj = 'Welcome to PGXN!';
-        $body = "Your PGXN account request has been approved. Ready to get started?\n"
+        $body = "What up, $params->{nick}.\n\n"
+              . "Your PGXN account request has been approved. Ready to get started?\n"
               . "Great! Just click this link to set your password and get going:\n\n"
               . "    $uri\n\n"
               . "Best,\n\n"
@@ -670,7 +671,7 @@ sub update_password {
     }
 
     # Failed.
-    my $err = [
+    $err = [
         q{I don't think that was really your existing password. Care to try again?}
     ];
     return $self->respond_with('conflict', $req, $err) if $req->is_xhr;

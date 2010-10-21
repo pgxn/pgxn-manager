@@ -607,7 +607,9 @@ test_psgi +PGXN::Manager::Router->app => sub {
         'From header should be set';
     is $email->get_header('To'), Email::Address->new(bob => 'bob@pgxn.org')->format,
         'To header should be set';
-    like $email->get_body, qr{Your PGXN account request has been approved[.] Ready to get started[?]
+    like $email->get_body, qr{What up, bob[.]
+
+Your PGXN account request has been approved[.] Ready to get started[?]
 Great! Just click this link to set your password and get going:
 
     http://localhost/auth/account/reset/\w{4,}
