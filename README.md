@@ -165,14 +165,18 @@ way to separate these is to set up two reverse proxy servers: One to serve
 * Edit the production configuration file. The there are only additional keys
   to edit:
 
-    1. Add the ReverseProxy middleware:
+    1. Add the ReverseProxy middleware. The "middleware" key should end up
+       looking something like this:
 
         "middleware": [
+            ["ErrorDocument", 500, "/error", "subrequest", 1],
+            ["HTTPExceptions"],
+            ["StackTrace", "no_print_errors", 1],
             ["ReverseProxy"]
         ],
 
     2. Tell PGXN::Manager to use the X-Forwarded-Script-Name header to create
-    proper URLs (otherwise no images, CSS, or JavaScript will work):
+       proper URLs (otherwise no images, CSS, or JavaScript will work):
 
         "uri_script_name_key": "HTTP_X_FORWARDED_SCRIPT_NAME",
 
