@@ -1,5 +1,7 @@
 Revision history for Perl extension PGXN::Manager
 
+0.4.1
+
 0.4.0 2010-10-22T19:21:50
       - Improved internal server error handling. Now errors will be sent to
         the alert email address.
