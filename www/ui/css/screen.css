@@ -227,3 +227,8 @@ table th img {display:block; float:left;}
 
 #changeform fieldset input, #passform fieldset input
 {margin-left:7.5em;width:29em;}
+
+#credits dt
+{color:black;}
+#credits dd
+{line-height:1.5em;}

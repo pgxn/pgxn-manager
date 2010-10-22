@@ -274,7 +274,52 @@ template about => sub {
                 T 'How To';
             };
             outs '.';
-        }
+        };
+
+        div {
+            id is 'credits';
+            h3 { T 'Credits' };
+            dl {
+                dt { T 'Coding' };
+                dd {
+                    a {
+                        href is 'http://justatheory.com/';
+                        'David E. Wheeler';
+                    };
+                };
+                dt { T 'Logo' };
+                dd {
+                    a {
+                        href is 'http://strongrrl.com/';
+                        'Strongrrl';
+                    };
+                };
+                dt { T 'Site Design' };
+                dd {
+                    a {
+                        href is 'http://andreasviklund.com/';
+                        'Andreas Viklund';
+                    };
+                    outs ', ';
+                    a {
+                        href is 'http://jasoncole.ca';
+                        'Jason Cole';
+                    };
+                    outs ', and ';
+                    a {
+                        href is 'http://justatheory.com/';
+                        'David E. Wheeler';
+                    };
+                };
+                dt { T 'Funding' };
+                dd {
+                    a {
+                        href is 'http://pgxn.org/contributors.html';
+                        T 'Our generous sponsors';
+                    };
+                };
+            };
+        };
     } $req, { page_title => 'about_page_title', $args ? %{ $args } : () };
 };
 
