@@ -1,6 +1,9 @@
 Revision history for Perl extension PGXN::Manager
 
 0.4.1
+      - Changed error controller action so that it only sends email if called
+        as an `ErrorDocument` middleware subrequest. This is to prevent bogus
+        emails if people just hit its URL directly.
 
 0.4.0 2010-10-22T19:21:50
       - Improved internal server error handling. Now errors will be sent to

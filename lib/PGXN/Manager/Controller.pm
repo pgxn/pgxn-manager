@@ -130,33 +130,36 @@ sub contact {
 sub server_error {
     my ($self, $env) = @_;
 
+    # Pull together the original request environment.
     my $err_env = { map {
         my $k = $_;
         s/^psgix[.]errordocument[.]// ? ($_ => $env->{$k} ) : ();
     } keys %{ $env } };
     my $uri = Request->new($err_env)->uri_for($err_env->{PATH_INFO});
 
-    # Send an email to the administrators.
-    my $email = Email::MIME->create(
-        header     => [
-            From => PGXN::Manager->config->{admin_email},
-            To   => PGXN::Manager->config->{alert_email},
-            Subject => "PGXN Manager Internal Server Error",
-        ],
-        attributes => {
-            content_type => 'text/plain',
-            charset      => 'UTF-8',
-        },
-        body => "An error occurred during a request to $uri.\n\n"
-              . "Environment:\n\n" . pp($err_env)
-              . "\n\nTrace:\n\n"
-              . ($env->{'psgix.trace'} || 'None found. :-(')
-              . "\n"
-     );
+    if (%{ $err_env }) {
+        # Send an email to the administrators.
+        my $email = Email::MIME->create(
+            header     => [
+                From => PGXN::Manager->config->{admin_email},
+                To   => PGXN::Manager->config->{alert_email},
+                Subject => "PGXN Manager Internal Server Error",
+            ],
+            attributes => {
+                content_type => 'text/plain',
+                charset      => 'UTF-8',
+            },
+            body => "An error occurred during a request to $uri.\n\n"
+                  . "Environment:\n\n" . pp($err_env)
+                  . "\n\nTrace:\n\n"
+                  . ($env->{'psgix.trace'} || 'None found. :-(')
+                  . "\n"
+      );
 
-    Email::Sender::Simple->send($email, {
-        transport => PGXN::Manager->email_transport
-    });
+        Email::Sender::Simple->send($email, {
+            transport => PGXN::Manager->email_transport
+        });
+    }
 
     $self->respond_with('servererror', Request->new($env));
 }
