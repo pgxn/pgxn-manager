@@ -12,27 +12,30 @@ use Email::MIME;
 use Email::Sender::Simple;
 use JSON::XS;
 use Encode;
+use Data::Dump 'pp';
 use namespace::autoclean;
 
 Template::Declare->init( dispatch_to => ['PGXN::Manager::Templates'] );
 
 my %message_for = (
-    success    => q{Success},
-    forbidden  => q{Sorry, you do not have permission to access this resource.},
-    notfound   => q{Resource not found.},
-    notallowed => q{The requted method is not allowed for the resource.},
-    conflict   => q{There is a conflict in the current state of the resource.}, # Bleh
-    gone       => q{The resource is no longer available.},
+    success     => q{Success},
+    forbidden   => q{Sorry, you do not have permission to access this resource.},
+    notfound    => q{Resource not found.},
+    notallowed  => q{The requted method is not allowed for the resource.},
+    conflict    => q{There is a conflict in the current state of the resource.}, # Bleh
+    gone        => q{The resource is no longer available.},
+    servererror => q{Internal server error.}
 );
 
 my %code_for = (
-    success    => 200,
-    seeother   => 303,
-    forbidden  => 403,
-    notfound   => 404,
-    notallowed => 405,
-    conflict   => 409,
-    gone       => 410,
+    success     => 200,
+    seeother    => 303,
+    forbidden   => 403,
+    notfound    => 404,
+    notallowed  => 405,
+    conflict    => 409,
+    gone        => 410,
+    servererror => 200, # Only handled by ErrorDocument, which keeps 500.
 );
 
 sub render {
@@ -122,6 +125,40 @@ sub about {
 sub contact {
     my $self = shift;
     return $self->render('/contact', { env => shift });
+}
+
+sub server_error {
+    my ($self, $env) = @_;
+
+    my $err_env = { map {
+        my $k = $_;
+        s/^psgix[.]errordocument[.]// ? ($_ => $env->{$k} ) : ();
+    } keys %{ $env } };
+    my $uri = Request->new($err_env)->uri_for($err_env->{PATH_INFO});
+
+    # Send an email to the administrators.
+    my $email = Email::MIME->create(
+        header     => [
+            From => PGXN::Manager->config->{admin_email},
+            To   => PGXN::Manager->config->{alert_email},
+            Subject => "PGXN Manager Internal Server Error",
+        ],
+        attributes => {
+            content_type => 'text/plain',
+            charset      => 'UTF-8',
+        },
+        body => "An error occurred during a request to $uri.\n\n"
+              . "Environment:\n\n" . pp($err_env)
+              . "\n\nTrace:\n\n"
+              . ($env->{'psgix.trace'} || 'None found. :-(')
+              . "\n"
+     );
+
+    Email::Sender::Simple->send($email, {
+        transport => PGXN::Manager->email_transport
+    });
+
+    $self->respond_with('servererror', Request->new($env));
 }
 
 sub howto {
@@ -837,6 +874,18 @@ Shows a user's extension permissions.
 =head3 C<show_users>
 
 Shows interface for administering users.
+
+=head3 C<server_error>
+
+Handles subrequests from L<Plack::Middleware::ErrorDocument> when a 500 is
+returned. Best way to set it up is to add these three middlewares to the
+production configuration file:
+
+    "middleware": [
+        ["ErrorDocument", 500, "/error", "subrequest", 1],
+        ["HTTPExceptions"],
+        ["StackTrace", "no_print_errors", 1]
+    ],
 
 =head2 Methods
 

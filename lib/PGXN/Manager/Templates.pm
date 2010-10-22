@@ -429,7 +429,7 @@ template conflict => sub {
     my $msg = $args->{maketext}
         || [q{Sorry, there is a conflict in that resource. Please fix and resubmit}];
     wrapper {
-        h1 { T 'Confflict' };
+        h1 { T 'Conflict' };
         p {
             class is 'error';
             T @{ $msg };
@@ -449,6 +449,20 @@ template gone => sub {
         };
     } $req, {
         page_title => 'Resource Gone',
+        $args ? %{ $args } : (),
+    };
+};
+
+template servererror => sub {
+    my ($self, $req, $args) = @_;
+    wrapper {
+        h1 { T 'Ow ow ow ow ow ow…' };
+        p {
+            class is 'error';
+            T q{Whoops! Some sort of error occurred. We apologise for the fault in the server. Those responsible have been sacked. Mynd you, elephänt bites kan be pretty nasti…Please do try again.};
+        };
+    } $req, {
+        page_title => 'Internal Server Error',
         $args ? %{ $args } : (),
     };
 };

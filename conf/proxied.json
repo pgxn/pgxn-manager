@@ -6,8 +6,9 @@
         "password": ""
     },
     "middleware": [
-        ["ErrorDocument", 500, "www/ui/error.html"],
-        ["StackTrace"],
+        ["ErrorDocument", 500, "/error", "subrequest", 1],
+        ["HTTPExceptions"],
+        ["StackTrace", "no_print_errors", 1],
         ["ReverseProxy"]
     ],
     "mirror_root": "/var/www/master.pgxn.org",

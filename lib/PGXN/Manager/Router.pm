@@ -31,6 +31,10 @@ sub app {
                     GET { Controller->home(@_) };
                 };
 
+                resource '/error' => sub {
+                    GET { Controller->server_error(@_) };
+                };
+
                 resource '/about' => sub {
                     GET { Controller->about(@_) };
                 };
@@ -71,6 +75,10 @@ sub app {
                 missing { Controller->missing(@_) };
                 resource '/' => sub {
                     GET { Controller->home(@_) };
+                };
+
+                resource '/error' => sub {
+                    GET { Controller->server_error(@_) };
                 };
 
                 resource '/about' => sub {
