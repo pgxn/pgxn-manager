@@ -14,6 +14,7 @@
     "mirror_root": "/tmp/pgxn-root-dev",
     "mirror_uri": "http://localhost/mirror",
     "admin_email": "PGXN Admins <pgxn@pgexperts.com>",
+    "alert_email": "PGXN Admins <david@justatheory.com>",
     "uri_templates": {
         "dist":         "/dist/{dist}/{dist}-{version}.pgz",
         "readme":       "/dist/{dist}/{dist}-{version}.readme",
