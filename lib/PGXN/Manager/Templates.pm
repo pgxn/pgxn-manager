@@ -376,7 +376,7 @@ template howto => sub {
     my ($self, $req, $args) = @_;
     wrapper {
         h1 { T 'PGXN How To' };
-        outs_raw ${ $l->section_data('howto') };
+        outs_raw T 'howto_body';
     } $req, { page_title => 'howto_page_title', $args ? %{ $args } : () };
 };
 
