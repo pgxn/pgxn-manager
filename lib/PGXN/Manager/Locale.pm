@@ -115,10 +115,7 @@ make installcheck PGDATABASE=postgres
 
 <p>Once you&#8217;ve got your extension developed and well-tested, and your distribution just right and the <code>META.json</code> file all proof-read and solid, it&#8217;s time to upload the distribution to PGXN. What you want to do is to zip it up to create a distribution archive. Here&#8217;s what how the <code>pair</code> distribution &#8212; which is maintained in Git &#8212; was prepared:</p>
 
-<pre><code>git checkout-index -af --prefix ~/Desktop/pair-0.1.0/
-cd ~/Desktop/
-rm pair-0.1.0/.gitignore
-zip -r pair-0.1.0.zip pair-0.1.0
+<pre><code>git archive --format zip --prefix=pair-0.1.0/ --output ~/Desktop/pair-0.1.0.zip master
 </code></pre>
 
 <p>Then the <code>pair-0.1.0.zip</code> file was ready to upload. Simple, eh?</p>
