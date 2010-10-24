@@ -43,7 +43,7 @@ our %Lexicon = (
    "name": "pair",
    "abstract": "A key/value pair data type",
    "version": "0.1.0",
-   "maintainer": "David E. Wheeler &lt;david@justatheory.com&gt;",
+   "maintainer": "David E. Wheeler &lt;david@example.com&gt;",
    "license": "postgresql",
    "meta-spec": {
       "version": "1.0.0",
