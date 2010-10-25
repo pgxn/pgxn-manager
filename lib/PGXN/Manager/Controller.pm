@@ -152,7 +152,7 @@ sub server_error {
             body => "An error occurred during a request to $uri.\n\n"
                   . "Environment:\n\n" . pp($err_env)
                   . "\n\nTrace:\n\n"
-                  . ($env->{'plack.stacktrace'} || 'None found. :-(')
+                  . ($env->{'plack.stacktrace.text'} || 'None found. :-(')
                   . "\n"
       );
 
