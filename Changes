@@ -1,6 +1,7 @@
 Revision history for Perl extension PGXN::Manager
 
 0.4.4
+      - Updated `Makefile` example in /howto.
 
 0.4.3 2010-10-24T21:32:59
       - Fixed internal server error on /howto page. Turns out that

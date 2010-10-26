@@ -81,11 +81,11 @@ our %Lexicon = (
 
 <p>The <code>pair</code> distribution serves as an <a href="http://github.com/theory/kv-pair/blob/">example of this</a>. To make it all work, the <a href="http://github.com/theory/kv-pair/blob/master/Makefile">Makefile</a> is written like so:</p>
 
-<pre><code>DATA = sql/pair.sql sql/uninstall_pair.sql
+<pre><code>DATA = $(wildcard sql/*.sql)
+DOCS = $(wildcard doc/*.txt)
 TESTS = $(wildcard test/sql/*.sql)
 REGRESS = $(patsubst test/sql/%.sql,%,$(TESTS))
 REGRESS_OPTS = --inputdir=test
-DOCS = doc/pair.txt
 
 ifdef NO_PGXS
 top_builddir = ../..
