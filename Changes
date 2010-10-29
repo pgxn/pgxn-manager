@@ -1,6 +1,6 @@
 Revision history for Perl extension PGXN::Manager
 
-0.4.4
+0.4.4 2010-10-29T17:59:12
       - Updated `Makefile` example in /howto.
       - Updated meta spec URL in /howto.
 
