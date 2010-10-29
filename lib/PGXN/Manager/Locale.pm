@@ -35,7 +35,7 @@ our %Lexicon = (
 
 <h3>That&#8217;s So Meta</h3>
 
-<p>At its simplest, the only thing PGXN requires of a distribution is a single file, <code>META.json</code>, which describes the package. This is (currently) the only file that PGXN Manager uses to index a distribution, so it&#8217;s important to get it right. The <a href="http://github.com/theory/pgxn/wiki/PGXN-Meta-Spec">PGXN Meta Spec</a> has a rather complete example of a hypothetical pgTAP <code>META.json</code>. </p>
+<p>At its simplest, the only thing PGXN requires of a distribution is a single file, <code>META.json</code>, which describes the package. This is (currently) the only file that PGXN Manager uses to index a distribution, so it&#8217;s important to get it right. The <a href="http://pgxn.org/meta/spec.html">PGXN Meta Spec</a> has a rather complete example of a hypothetical pgTAP <code>META.json</code>. </p>
 
 <p>If you have only one .sql file for your extension and it&#8217;s the same name as the distribution (which is commonly the case), then you can make it pretty simple. For example, the <a href="http://master.pgxn.org/dist/pair/"><code>pair</code></a> distribution has only one SQL file. So the <code>META.json</code> could be:</p>
 
@@ -47,7 +47,7 @@ our %Lexicon = (
    "license": "postgresql",
    "meta-spec": {
       "version": "1.0.0",
-      "url": "http://github.com/theory/pgxn/wiki/PGXN-Meta-Spec"
+      "url": "http://pgxn.org/meta/spec.html"
    },
 }
 </code></pre>
@@ -57,11 +57,11 @@ our %Lexicon = (
 <p>In the short run, you won&#8217;t need anything more in your <code>META.json</code> file. But once the proposed <a href="http://wiki.postgresql.org/wiki/PGXN#Search_Site">search site</a> and <a href="http://wiki.postgresql.org/wiki/PGXN#PGXN_Client">command-line client</a> have been implemented, you&#8217;re probably going to want to do more. Other useful keys to include are:</p>
 
 <ul>
-<li><a href="http://github.com/theory/pgxn/wiki/PGXN-Meta-Spec#tags"><code>tags</code></a>: An array of tags to associate with a distribution. Will help with searching.</li>
-<li><a href="http://github.com/theory/pgxn/wiki/PGXN-Meta-Spec#prereqs"><code>prereqs</code></a>: A list of prerequisite extensions or PostgreSQL contrib modules (or PostgreSQL itself).</li>
-<li><a href="http://github.com/theory/pgxn/wiki/PGXN-Meta-Spec#provides"><code>provides</code></a>: A list of included extensions. Useful if you have more than one in a single distribution. It also will assign ownership of the specified extension names to you &#8212; if they haven&#8217;t been claimed by any previous distribution.</li>
-<li><a href="http://github.com/theory/pgxn/wiki/PGXN-Meta-Spec#release_status"><code>release_status</code></a>: To label a distribution as &#8220;stable,&#8221; &#8220;unstable,&#8221; or &#8220;testing.&#8221; The latter two are useful for distributing extensions for testing but that should not be installed by automated clients.</li>
-<li><a href="http://github.com/theory/pgxn/wiki/PGXN-Meta-Spec#resources"><code>resources</code></a>: A list of related links, such as to an SCM repository or bug tracker. The search site will output these links.</li>
+<li><a href="http://pgxn.org/meta/spec.html#tags"><code>tags</code></a>: An array of tags to associate with a distribution. Will help with searching.</li>
+<li><a href="http://pgxn.org/meta/spec.html#prereqs"><code>prereqs</code></a>: A list of prerequisite extensions or PostgreSQL contrib modules (or PostgreSQL itself).</li>
+<li><a href="http://pgxn.org/meta/spec.html#provides"><code>provides</code></a>: A list of included extensions. Useful if you have more than one in a single distribution. It also will assign ownership of the specified extension names to you &#8212; if they haven&#8217;t been claimed by any previous distribution.</li>
+<li><a href="http://pgxn.org/meta/spec.html#release_status"><code>release_status</code></a>: To label a distribution as &#8220;stable,&#8221; &#8220;unstable,&#8221; or &#8220;testing.&#8221; The latter two are useful for distributing extensions for testing but that should not be installed by automated clients.</li>
+<li><a href="http://pgxn.org/meta/spec.html#resources"><code>resources</code></a>: A list of related links, such as to an SCM repository or bug tracker. The search site will output these links.</li>
 </ul>
 
 <p>Have a look at the <a href="http://github.com/theory/kv-pair/blob/master/META.json"><code>pair</code> <code>META.json</code> file</a> for an extended example.</p>
