@@ -253,7 +253,7 @@ template about => sub {
                 code { 'META.json' };
                 outs T q{ file according to the};
                 a {
-                    href is 'http://pgxn.org/meta/spec.txt';
+                    href is 'http://pgxn.org/meta/spec.html';
                     T 'PGXN Meta Spec';
                 };
                 outs '.';

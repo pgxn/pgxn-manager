@@ -47,7 +47,7 @@ our %Lexicon = (
    "license": "postgresql",
    "meta-spec": {
       "version": "1.0.0",
-      "url": "http://pgxn.org/meta/spec.html"
+      "url": "http://pgxn.org/meta/spec.txt"
    },
 }
 </code></pre>
