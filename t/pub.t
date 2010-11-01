@@ -139,7 +139,7 @@ my $err_app = sub {
     $env->{'psgix.errordocument.SCRIPT_NAME'} = '/pub';
     $env->{'psgix.errordocument.SCRIPT_NAME'} = '/pub';
     $env->{'psgix.errordocument.HTTP_HOST'} = 'localhost';
-    $env->{'psgix.trace'} = 'This is the trace';
+    $env->{'plack.stacktrace.text'} = 'This is the trace';
     $app->($env);
 };
 

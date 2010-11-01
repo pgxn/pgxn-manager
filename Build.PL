@@ -55,7 +55,7 @@ $class->new(
         'MooseX::Singleton'          => '0.25',
         'parent'                     => '0.223',
         'perl'                       => 5.012,
-        'Plack'                      => '0.9946',
+        'Plack'                      => '0.9951',
         'Plack::Middleware::Session' => '0.12',
         'namespace::autoclean'       => '0.11',
         'Router::Resource'           => '0.10',
