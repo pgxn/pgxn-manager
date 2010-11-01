@@ -360,12 +360,13 @@ sub DEMOLISH {
 sub _mv {
     my ($src, $dest) = @_;
     make_path dirname $dest;
-    move $src, $dest and return;
-
-    # D'oh! Move failed. Try to clean up.
-    my $err = $!;
-    remove_tree $dest;
-    die qq{Failed to move $src" to "dest": $!\n};
+    move $src, $dest or do {
+        # D'oh! Move failed. Try to clean up.
+        my $err = $!;
+        remove_tree $dest;
+        die qq{Failed to move $src" to "dest": $!\n};
+    };
+    chmod 0644, $dest;
 }
 
 sub _zip_error_handler {
