@@ -1,5 +1,7 @@
 Revision history for Perl extension PGXN::Manager
 
+0.4.6
+
 0.4.5 2010-11-01T19:13:51
       - Updated for storage of stack trace by Plack::Middelware::StackTrace in
         Plack 0.9951.
