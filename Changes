@@ -5,6 +5,9 @@ Revision history for Perl extension PGXN::Manager
         Plack 0.9951.
       - Fixed permission inssue when an uploaded file is moved rather than
         rewritten.
+      - Removed stack trace from error environment in the 500 error emails. It
+        was ugly and redundant, considering that it's included as a separate
+        item.
 
 0.4.4 2010-10-29T17:59:12
       - Updated `Makefile` example in /howto.

@@ -133,7 +133,9 @@ sub server_error {
     # Pull together the original request environment.
     my $err_env = { map {
         my $k = $_;
-        s/^psgix[.]errordocument[.]// ? ($_ => $env->{$k} ) : ();
+        s/^psgix[.]errordocument[.]//
+            ? /plack[.]stacktrace[.]/ ? () : ($_ => $env->{$k} )
+            : ();
     } keys %{ $env } };
     my $uri = Request->new($err_env)->uri_for($err_env->{PATH_INFO});
 
