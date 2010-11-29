@@ -235,7 +235,7 @@ safe as browsers will submit in the same encoding as the form was rendered in.
 
   my $method = $req->method;
 
-This method works just like Plack::Request->method() except it allows for
+This method works just like C<< Plack::Request->method >> except it allows for
 tunneling of PUT and DELETE requests via a POST.
 
 Specifically, you can provide a form element named "x-tunneled-method" which
