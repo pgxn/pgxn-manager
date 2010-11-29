@@ -155,13 +155,14 @@ sub test_basics {
                 # We have another menu.
                 $_->is('./h3', $mt->maketext('Admin Menu'), 'Should have admin menu header');
                 $_->ok('./ul[@id="adminmenu"]', 'Test admin menu', sub {
-                    $_->is('count(./*)', 2, 'Should have s menu subelements');
-                    $_->is('count(./li)', 2, 'And they should be list items');
+                    $_->is('count(./*)', 3, 'Should have 3 menu subelements');
+                    $_->is('count(./li)', 3, 'And they should be list items');
 
                     my $i = 0;
                     for my $spec (
-                        [ '/admin/moderate', 'Moderate Requests',   'moderate' ],
-                        [ '/admin/users',    'User Administration', 'users'    ],
+                        [ '/admin/moderate', 'Moderate Requests',     'moderate' ],
+                        [ '/admin/users',    'User Administration',   'users'    ],
+                        [ '/admin/mirrors',  'Mirror Administration', 'mirrors'  ],
                     ) {
                         $i++;
                         $_->is(

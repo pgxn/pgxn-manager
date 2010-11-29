@@ -148,8 +148,9 @@ BEGIN { create_wrapper wrapper => sub {
                         class is 'menu';
                         id is 'adminmenu';
                         for my $item (
-                            [ '/admin/moderate', 'Moderate Requests',   'moderate' ],
-                            [ '/admin/users',    'User Administration', 'users'    ],
+                            [ '/admin/moderate', 'Moderate Requests',     'moderate' ],
+                            [ '/admin/users',    'User Administration',   'users'    ],
+                            [ '/admin/mirrors',  'Mirror Administration', 'mirrors'  ],
                         ) {
                             li { a {
                                 id is $item->[2];

@@ -2,7 +2,7 @@
 
 use 5.12.0;
 use utf8;
-use Test::More tests => 238;
+use Test::More tests => 240;
 #use Test::More 'no_plan';
 use Test::MockModule;
 use Plack::Test;
