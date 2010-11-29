@@ -1,0 +1,36 @@
+#!/usr/local/bin/perl
+
+use 5.12.0;
+
+use JSON;
+use LWP::UserAgent;
+my $days    = 4;
+my $timeout = 86400 * $days; # four days.
+
+my $file = shift or die "Usage $@ /path/to/mirrors.json\n";
+
+my $mirrors = decode_json do {
+    open my $fh, '<', $file or die "Cannot open $file: $!\n";
+    local $/;
+    <$fh>;
+};
+
+my $ua = LWP::UserAgent->new;
+$ua->timeout(60);
+for my $mirror ( values %{ $mirrors }) {
+    (my $url = $mirror->{url}) =~ s{/$}{};
+    $url .= '/meta/timestamp';
+    my $res = $ua->get($url);
+
+    if ($res->is_success) {
+        my ($time) = $res->decoded_content =~ /\A(\d+)/;
+        say STDERR "$url is more than $days days behind"
+            if time - $time > $timeout;
+    } else {
+        # XXX Do something here to record this and only complain if it has
+        # been a while.
+        say STDERR "Error retrieving $url -- " . $res->status_line;
+        next;
+    }
+}
+
