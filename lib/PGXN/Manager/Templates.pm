@@ -1092,6 +1092,17 @@ template show_users => sub {
     } $req, { page_title => 'Edit user settings' };
 };
 
+template show_mirrors => sub {
+    my ($self, $req, $args) = @_;
+    wrapper {
+        h1 { T 'Mirror Administration' };
+        p {
+            class is 'info';
+            T 'Not yet implemented. Sorry. Do come again';
+        };
+    } $req, { page_title => 'Administor project rsync mirrors' };
+};
+
 1;
 
 =head1 Name

@@ -133,6 +133,10 @@ sub app {
                     GET { Controller->show_users(@_) };
                 };
 
+                resource '/admin/mirrors' => sub {
+                    GET { Controller->show_mirrors(@_) };
+                };
+
                 resource '/distributions' => sub {
                     GET { Controller->distributions(@_) };
                 };

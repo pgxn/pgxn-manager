@@ -740,6 +740,11 @@ sub show_users {
     return $self->render('/show_users', { env => shift });
 }
 
+sub show_mirrors {
+    my $self = shift;
+    return $self->render('/show_mirrors', { env => shift });
+}
+
 1;
 
 =head1 Name
@@ -879,6 +884,10 @@ Shows a user's extension permissions.
 =head3 C<show_users>
 
 Shows interface for administering users.
+
+=head3 C<show_mirrors>
+
+Shows interface for administering mirrors.
 
 =head3 C<server_error>
 
