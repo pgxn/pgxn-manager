@@ -134,7 +134,17 @@ sub app {
                 };
 
                 resource '/admin/mirrors' => sub {
-                    GET { Controller->show_mirrors(@_) };
+                    GET  { Controller->show_mirrors(@_) };
+                    POST { Controller->insert_mirror(@_) };
+                };
+
+                resource '/admin/mirrors/new' => sub {
+                    GET { Controller->new_mirror(@_) };
+                };
+
+                resource '/admin/mirrors/*' => sub {
+                    GET { Controller->edit_mirror(@_) };
+                    PUT { Controller->update_mirror(@_) };
                 };
 
                 resource '/distributions' => sub {

@@ -742,7 +742,25 @@ sub show_users {
 
 sub show_mirrors {
     my $self = shift;
-    return $self->render('/show_mirrors', { env => shift });
+    my $req  = Request->new(shift);
+    return $self->respond_with('forbidden', $req) unless $req->user_is_admin;
+
+    my $sth = PGXN::Manager->conn->run(sub {
+        shift->prepare(q{
+            SELECT uri, organization, frequency, contact
+              FROM mirrors
+             ORDER BY uri
+        });
+    });
+    $sth->execute;
+    $self->render('/show_mirrors', { req => $req, vars => { sth => $sth }});
+}
+
+sub new_mirror {
+    my $self = shift;
+    my $req  = Request->new(shift);
+    return $self->respond_with('forbidden', $req) unless $req->user_is_admin;
+    return $self->render('/show_mirror', { req => $req });
 }
 
 1;
@@ -888,6 +906,10 @@ Shows interface for administering users.
 =head3 C<show_mirrors>
 
 Shows interface for administering mirrors.
+
+=head3 C<new_mirror>
+
+Show form for creating a new mirror.
 
 =head3 C<server_error>
 

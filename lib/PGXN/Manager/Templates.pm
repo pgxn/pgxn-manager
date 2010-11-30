@@ -1095,12 +1095,152 @@ template show_users => sub {
 template show_mirrors => sub {
     my ($self, $req, $args) = @_;
     wrapper {
-        h1 { T 'Mirror Administration' };
-        p {
-            class is 'info';
-            T 'Not yet implemented. Sorry. Do come again';
+        h1 { T 'Mirrors' };
+        table {
+            id is 'mirrorlist';
+            summary is T 'List of project mirrors';
+            thead {
+                row {
+                    th { scope is 'col'; class is 'nobg'; T 'Mirrors' };
+                    th { scope is 'col'; T 'Frequency' };
+                    th { scope is 'col'; T 'Contact'   };
+                };
+            };
+            tbody {
+                my $i = 0;
+                my $forward = $req->uri_for('/ui/img/forward.png');
+                while (my $row = $args->{sth}->fetchrow_hashref) {
+                    row {
+                        class is ++$i % 2 ? 'spec' : 'specalt';
+                        th {
+                            scope is 'row';
+                            a {
+                                class is 'show';
+                                title is T q{See details for [_1]}, $row->{uri};
+                                href  is $req->uri_for("/admin/mirrors/$row->{uri}");
+                                img { src is $forward; };
+                                outs $row->{uri};
+                            };
+                        };
+                        cell { T $row->{frequency} };
+                        cell {
+                            a {
+                                href  is URI->new("mailto:$row->{contact}")->canonical;
+                                title is T q{Email [_1]}, $row->{organization};
+                                $row->{organization};
+                            };
+                        };
+                    }
+                }
+                unless ($i) {
+                    # No distributions.
+                    row {
+                        class is 'spec';
+                        cell {
+                            colspan is 3;
+                            outs T q{No mirrors yet.};
+                            a {
+                                id is 'addmirror';
+                                href is $req->uri_for('/admin/mirrors/new');
+                                T 'Add one now!';
+                            };
+                        };
+                    };
+                }
+            }
         };
-    } $req, { page_title => 'Administor project rsync mirrors' };
+    } $req, {
+        page_title => 'Administer project rsync mirrors',
+        $args ? %{ $args } : (),
+    };
+};
+
+template show_mirror => sub {
+    my ($self, $req, $args) = @_;
+    $args->{highlight} //= '';
+    wrapper {
+        h1 { T 'New Mirror' };
+        p { T 'If someone has created a new mirror and sent in the essentials, update the mirror list by adding it here.' };
+        if (my $err = $args->{error}) {
+            p {
+                class is 'error';
+                outs_raw T @{ $err };
+            };
+        }
+        form {
+            id      is 'mirrorform';
+            action  is $req->uri_for('/admin/mirrors');
+            # Browser should send us UTF-8 if that's what we ask for.
+            # http://www.unicode.org/mail-arch/unicode-ml/Archives-Old/UML023/0450.html
+            enctype is 'application/x-www-form-urlencoded; charset=UTF-8';
+            method  is 'post';
+
+            fieldset {
+                id is 'mirroressentials';
+                class is 'essentials';
+                legend { T 'The Essentials' };
+                for my $spec (
+                    [qw(uri       URI      url),   'http://example.com/pgxn', T('What is the base URI for the mirror?'), 'required url' ],
+                    [qw(email Email email),   'pgxn@example.com', T('Whom should we blame when the mirror dies?'), 'required email' ],
+                    [qw(frequency Frequency text),   'daily/bidaily/.../weekly', T('How often is the mirror updated?'), 'required' ],
+                    [qw(location Location text),   'city, (area?, )country, continent (lon lat)', T('Where can we find this mirror, geographically speaking?'), 'required' ],
+                    ['timezone', 'TZ', 'text',   'area/Location zoneinfo tz', T('In what time zone can we find the mirror?'), 'required' ],
+                    [qw(bandwidth Bandwidth text),   '1Gbps, 100Mbps, DSL, etc.', T('How big is the pipe?'), 'required' ],
+                    [qw(src Source url),   'rsync://from.which.host/is/this/site/mirroring/from/', T('From what source is the mirror syncing?'), 'required' ],
+                ) {
+                    label {
+                        attr { for => $spec->[0], title => $spec->[4] };
+                        class is 'highlight' if $args->{highlight} eq $spec->[0];
+                        T $spec->[1];
+                    };
+                    input {
+                        id    is $spec->[0];
+                        name  is $spec->[0];
+                        type  is $spec->[2];
+                        title is $spec->[4];
+                        value is $args->{$spec->[0]} || '';
+                        my $class = join( ' ',
+                                          ($spec->[5] ? $spec->[5] : ()),
+                                          ($args->{highlight} eq $spec->[0] ? 'highlight' : ()),
+                                      );
+                        class is $class if $class;
+                        placeholder is $spec->[3];
+                    };
+                    p { class is 'hint'; $spec->[4] };
+                }
+            };
+
+            fieldset {
+                id is 'mirrornotes';
+                legend { T 'Notes' };
+                my $hint = T 'Anything else we should know about this mirror?';
+                label {
+                    attr { for => 'notes', title => $hint };
+                    T 'Notes';
+                };
+                textarea {
+                    id    is 'notes';
+                    name  is 'notes';
+                    title is $hint;
+                    $args->{notes} || '';
+                };
+                p { class is 'hint'; $hint };
+            };
+
+
+            input {
+                class is 'submit';
+                type  is 'submit';
+                name  is 'submit';
+                id    is 'submit';
+                value is T 'Mirror, Mirror';
+            };
+        };
+    } $req, {
+        page_title => 'Enter the mirror information provided by the contact',
+        validate_form => '#mirrorform',
+        $args ? %{ $args } : (),
+    };
 };
 
 1;
