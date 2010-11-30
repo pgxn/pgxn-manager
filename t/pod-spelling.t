@@ -24,6 +24,8 @@ UTF
 SQL
 PostgreSQL
 API
+APIs
 metadata
 middlewares
 subrequests
+http
