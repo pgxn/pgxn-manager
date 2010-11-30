@@ -248,7 +248,6 @@ sub test_basics {
     # Test the footer.
     $tx->ok('/html/body/div[@id="footer"]', 'Test footer', sub {
         $tx->is('count(./*)', 1, 'Should have 1 subelement');
-        $tx->like('./p', qr/© 2010(?:-\d{4})?/, 'It should have the copyright');
         $tx->like('./p', qr/PostgreSQL License/, 'It should have the license');
     });
 }

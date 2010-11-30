@@ -185,7 +185,7 @@ BEGIN { create_wrapper wrapper => sub {
                 id is 'footer';
                 p {
                     outs 'PGXN::Manager ' . PGXN::Manager->VERSION;
-                    outs_raw '. © 2010 <a href="http://justatheory.com/">David E. Wheeler</a>. <a href="http://github.com/theory/pgxn-manager">Distributed</a> under the <a href="http://www.opensource.org/licenses/postgresql">PostgreSQL License</a>.';
+                    outs_raw '. <a href="http://github.com/theory/pgxn-manager">Distributed</a> under the <a href="http://www.opensource.org/licenses/postgresql">PostgreSQL License</a>.';
                 };
             };
         }; # /body
