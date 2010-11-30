@@ -4,7 +4,7 @@ use 5.12.0;
 use utf8;
 BEGIN { $ENV{EMAIL_SENDER_TRANSPORT} = 'Test' }
 
-use Test::More tests => 409;
+use Test::More tests => 417;
 #use Test::More 'no_plan';
 use Plack::Test;
 use HTTP::Request::Common;

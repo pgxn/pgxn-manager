@@ -143,7 +143,7 @@ BEGIN { create_wrapper wrapper => sub {
                 }; # /ul id="usermenu|publicmenu"
 
                 if ($req->user_is_admin) {
-                    h3 { T 'Admin Menu' };
+                    hr {};
                     ul {
                         class is 'menu';
                         id is 'adminmenu';
@@ -162,6 +162,7 @@ BEGIN { create_wrapper wrapper => sub {
                     }; # /ul id="allmenu"
                 }
 
+                hr {};
                 ul {
                     class is 'menu';
                     id is 'allmenu';

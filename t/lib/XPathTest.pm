@@ -106,7 +106,7 @@ sub test_basics {
 
     # Test the sidebar section.
     $tx->ok( '/html/body/div[@id="sidebar"]', 'Test sidebar', sub {
-        my $c = $req->user_is_admin ? 7 : 5;
+        my $c = $req->user_is_admin ? 8 : 6;
         $_->is('count(./*)', $c, 'Should have four sidebar subelements');
 
         $_->ok('./a[@id="logo"]', 'Should have logo link', sub {
@@ -153,7 +153,7 @@ sub test_basics {
             });
             if ($req->user_is_admin) {
                 # We have another menu.
-                $_->is('./h3', $mt->maketext('Admin Menu'), 'Should have admin menu header');
+                $_->ok('./hr', 'Should have an hr' );
                 $_->ok('./ul[@id="adminmenu"]', 'Test admin menu', sub {
                     $_->is('count(./*)', 3, 'Should have 3 menu subelements');
                     $_->is('count(./li)', 3, 'And they should be list items');
@@ -215,6 +215,7 @@ sub test_basics {
         }
 
         # Test the menu present for everyone.
+        $_->ok('./hr', 'Should have an hr' );
         $_->ok('./ul[@id="allmenu"]', 'Test permanent menu', sub {
             $_->is('count(./*)', 3, 'Should have 3 menu subelements');
             $_->is('count(./li)', 3, 'And they should all be list items');

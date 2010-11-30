@@ -68,7 +68,7 @@ body > #sidebar
 .menu li {margin:0;}
 
 .menu a
-{display:block; padding:5px 18px 5px 0; color:#606060; background:#e0e0e0; border-right: 2px solid silver; font-size:1.3em; font-weight:normal; text-decoration:none; letter-spacing:-1px; line-height: 1.5em;}
+{display:block; padding:5px 18px 5px 0; color:#606060; background:#e0e0e0; border-right: 2px solid silver; border-bottom:2px solid transparent; border-top:2px solid transparent; font-size:1.1em; font-weight:normal; text-decoration:none; letter-spacing:-1px; line-height: 1.5em;}
 
 .menu a:hover
 {color:#303030; background:#caddf9;}
