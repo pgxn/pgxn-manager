@@ -583,7 +583,7 @@ template moderate => sub {
                             class is 'actions';
                             for my $spec (
                                 [accept => 'active' ],
-                                [reject => 'deleted' ],
+                                [remove => 'deleted' ],
                             ) {
                                 form {
                                     class is $spec->[0];
@@ -1102,9 +1102,21 @@ template show_mirrors => sub {
             summary is T 'List of project mirrors';
             thead {
                 row {
-                    th { scope is 'col'; class is 'nobg'; T 'Mirrors' };
+                    th {
+                        scope is 'col'; class is 'nobg'; outs T 'Mirrors';
+                        span {
+                            class is 'control';
+                            a {
+                                href is $req->uri_for('/admin/mirrors/new');
+                                title is T 'Create a new Mirror';
+                                img { src is $req->uri_for('/ui/img/add.png') };
+                                outs T 'Add';
+                            };
+                        };
+                    };
                     th { scope is 'col'; T 'Frequency' };
                     th { scope is 'col'; T 'Contact'   };
+                    th { scope is 'col'; T 'Delete' };
                 };
             };
             tbody {
@@ -1129,6 +1141,26 @@ template show_mirrors => sub {
                                 href  is URI->new("mailto:$row->{contact}")->canonical;
                                 title is T q{Email [_1]}, $row->{organization};
                                 $row->{organization};
+                            };
+                        };
+                        cell {
+                            class is 'actions';
+                            form {
+                                class is 'delete';
+                                action  is $req->uri_for("/admin/mirrors/$row->{uri}");
+                                enctype is 'application/x-www-form-urlencoded; charset=UTF-8';
+                                method  is 'post';
+                                input {
+                                    type  is 'hidden';
+                                    name  is 'x-tunneled-method';
+                                    value is 'DELETE';
+                                };
+                                input {
+                                    class is 'button';
+                                    type is 'image';
+                                    name is 'submit';
+                                    src is $req->uri_for("/ui/img/remove.png")
+                                };
                             };
                         };
                     }

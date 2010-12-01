@@ -2,7 +2,7 @@
 
 use 5.12.0;
 use utf8;
-use Test::More tests => 263;
+use Test::More tests => 312;
 #use Test::More 'no_plan';
 use Plack::Test;
 use HTTP::Request::Common;
@@ -93,16 +93,41 @@ test_psgi +PGXN::Manager::Router->app => sub {
             $tx->ok('./thead', '...... Test thead', sub {
                 $tx->is('count(./*)', 1, '......... Should have one subelement');
                 $tx->ok('./tr', '......... Should be a row', sub {
-                    $tx->is('count(./*)', 3, '............ Should have three subelements');
-                    $tx->is('count(./th)', 3, '........... All should be th');
+                    $tx->is('count(./*)', 4, '............ Should have four subelements');
+                    $tx->is('count(./th)', 4, '........... All should be th');
                     $tx->ok('./th[1]', '............ Test first th', sub {
                         $tx->is('./@scope', 'col', '............... Should be row scope');
                         $tx->is('./@class', 'nobg', '............... Should be class nobg');
-                        $tx->is(
+                        my $title = $mt->maketext('Mirrors');
+                        $tx->like(
                             './text()',
-                            $mt->maketext('Mirrors'),
+                            qr{\Q$title},
                             '............... Should be "Mirrors" th'
                         );
+                        $tx->ok('./span[@class="control"]/a', '............... Test control span', sub {
+                            $tx->is('count(./*)', 1, '............... Should have one subelement');
+                            $tx->is(
+                                './@title',
+                                $mt->maketext('Create a new Mirror'),
+                                '............... Should have create title',
+                            );
+                            $tx->is(
+                                './@href',
+                                $req->uri_for('/admin/mirrors/new'),
+                                '.................. Should have new href'
+                            );
+                            my $t = $mt->maketext('Add');
+                            $tx->like(
+                                './text()',
+                                qr{\Q$t},
+                                '.................. Should have title "Add"'
+                            );
+                            my $src = $req->uri_for('/ui/img/add.png');
+                            $tx->ok(
+                                qq{./img[\@src="$src"]},
+                                '.................. Should have add.png image'
+                            );
+                        });
                     });
                     $tx->ok('./th[2]', '............ Test second th', sub {
                         $tx->is('./@scope', 'col', '............... Should be row scope');
@@ -120,6 +145,10 @@ test_psgi +PGXN::Manager::Router->app => sub {
                             '............... Should be "Contact" th'
                         );
                     });
+                    $tx->is(
+                        './th[4][@scope="col"]', $mt->maketext('Delete'),
+                        '............ Should have "Delete" header'
+                    );
                 });
             });
             $tx->ok('./tbody', '...... Test tbody', sub {
@@ -227,16 +256,41 @@ test_psgi +PGXN::Manager::Router->app => sub {
             $tx->ok('./thead', '...... Test thead', sub {
                 $tx->is('count(./*)', 1, '......... Should have one subelement');
                 $tx->ok('./tr', '......... Should be a row', sub {
-                    $tx->is('count(./*)', 3, '............ Should have three subelements');
-                    $tx->is('count(./th)', 3, '........... All should be th');
+                    $tx->is('count(./*)', 4, '............ Should have four subelements');
+                    $tx->is('count(./th)', 4, '........... All should be th');
                     $tx->ok('./th[1]', '............ Test first th', sub {
                         $tx->is('./@scope', 'col', '............... Should be row scope');
                         $tx->is('./@class', 'nobg', '............... Should be class nobg');
-                        $tx->is(
+                        my $title = $mt->maketext('Mirrors');
+                        $tx->like(
                             './text()',
-                            $mt->maketext('Mirrors'),
+                            qr{\Q$title},
                             '............... Should be "Mirrors" th'
                         );
+                        $tx->ok('./span[@class="control"]/a', '............... Test control span', sub {
+                            $tx->is('count(./*)', 1, '............... Should have one subelement');
+                            $tx->is(
+                                './@title',
+                                $mt->maketext('Create a new Mirror'),
+                                '............... Should have create title',
+                            );
+                            $tx->is(
+                                './@href',
+                                $req->uri_for('/admin/mirrors/new'),
+                                '.................. Should have new href'
+                            );
+                            my $t = $mt->maketext('Add');
+                            $tx->like(
+                                './text()',
+                                qr{\Q$t},
+                                '.................. Should have title "Add"'
+                            );
+                            my $src = $req->uri_for('/ui/img/add.png');
+                            $tx->ok(
+                                qq{./img[\@src="$src"]},
+                                '.................. Should have add.png image'
+                            );
+                        });
                     });
                     $tx->ok('./th[2]', '............ Test second th', sub {
                         $tx->is('./@scope', 'col', '............... Should be row scope');
@@ -261,7 +315,9 @@ test_psgi +PGXN::Manager::Router->app => sub {
                 $tx->is('count(./tr)', 2, '......... Both should be tr');
                 $tx->ok('./tr[1]', '......... Test first tr', sub {
                     $tx->is('./@class', 'spec', '............ Class should be "spec"');
-                    $tx->is('count(./*)', 3, '............ Should have three subelements');
+                    $tx->is('count(./*)', 4, '............ Should have four subelements');
+                    $tx->is('count(./th)', 1, '............ One should be a th');
+                    $tx->is('count(./td)', 3, '............ The rest should be a td');
                     $tx->ok('./th[@scope="row"]', '............ Test th', sub {
                         $tx->is('count(./*)', 1, '............... Should have 1 subelement');
                         $tx->ok('./a[@class="show"]', '............... Test anchor', sub {
@@ -312,10 +368,79 @@ test_psgi +PGXN::Manager::Router->app => sub {
                             )
                         });
                     });
+                    $tx->ok('./td[3]', '............ Test third td', sub {
+                        $tx->is(
+                            './@class', 'actions',
+                            '............... It should have a class'
+                        );
+                        $tx->is('count(./*)', 1, '............... And one subelement');
+                        $tx->is('count(./form)', 1, '............... A form');
+                        $tx->ok('./form', '............... Test form', sub {
+                            $tx->is(
+                                './@enctype',
+                                'application/x-www-form-urlencoded; charset=UTF-8',
+                                '................. Should have enctype');
+                            $tx->is(
+                                './@method',
+                                'post',
+                                '.................. Should have method=post'
+                            );
+                            $tx->is(
+                                './@class',
+                                'delete',
+                                '.................. It should have the "delete" class'
+                            );
+                            $tx->is(
+                                './@action',
+                                $req->uri_for('/admin/mirrors/http://kineticode.com/pgxn/'),
+                                '.................. It should have the delete uri'
+                            );
+                            $tx->is(
+                                'count(./*)', 2,
+                                '.................. Should have 2 subelements'
+                            );
+                            $tx->ok(
+                                './input[@type="hidden"]',
+                                '.................. Test hidden input',
+                                sub {
+                                    $tx->is(
+                                        './@name', 'x-tunneled-method',
+                                        '..................... Name should be "x-tunneled-method"'
+                                    );
+                                    $tx->is(
+                                        './@value', 'DELETE',
+                                        '..................... Value should be "delete"'
+                                    );
+                                }
+                            );
+
+                            $tx->ok(
+                                './input[@type="image"]',
+                                '.................. Test image input',
+                                sub {
+                                    $tx->is(
+                                        './@class', 'button',
+                                        '..................... Class should be "button"'
+
+                                    );
+                                    $tx->is(
+                                        './@name', 'submit',
+                                        '..................... Name should be "submit"'
+
+                                    );
+                                    $tx->is(
+                                        './@src',
+                                        $req->uri_for('/ui/img/remove.png'),
+                                        '..................... Source should be remove.png'
+                                    );
+                                }
+                            );
+                        });
+                    })
                 });
-                $tx->ok('./tr[2]', '......... Test first tr', sub {
+                $tx->ok('./tr[2]', '......... Test second tr', sub {
                     $tx->is('./@class', 'specalt', '............ Class should be "specalt"');
-                    $tx->is('count(./*)', 3, '............ Should have three subelements');
+                    $tx->is('count(./*)', 4, '............ Should have four subelements');
                     $tx->ok('./th[@scope="row"]', '............ Test th', sub {
                         $tx->is('count(./*)', 1, '............... Should have 1 subelement');
                         $tx->ok('./a[@class="show"]', '............... Test anchor', sub {
@@ -366,6 +491,75 @@ test_psgi +PGXN::Manager::Router->app => sub {
                             )
                         });
                     });
+                    $tx->ok('./td[3]', '............ Test third td', sub {
+                        $tx->is(
+                            './@class', 'actions',
+                            '............... It should have a class'
+                        );
+                        $tx->is('count(./*)', 1, '............... And one subelement');
+                        $tx->is('count(./form)', 1, '............... A form');
+                        $tx->ok('./form', '............... Test form', sub {
+                            $tx->is(
+                                './@enctype',
+                                'application/x-www-form-urlencoded; charset=UTF-8',
+                                '................. Should have enctype');
+                            $tx->is(
+                                './@method',
+                                'post',
+                                '.................. Should have method=post'
+                            );
+                            $tx->is(
+                                './@class',
+                                'delete',
+                                '.................. It should have the "delete" class'
+                            );
+                            $tx->is(
+                                './@action',
+                                $req->uri_for('/admin/mirrors/http://pgxn.justatheory.com'),
+                                '.................. It should have the delete uri'
+                            );
+                            $tx->is(
+                                'count(./*)', 2,
+                                '.................. Should have 2 subelements'
+                            );
+                            $tx->ok(
+                                './input[@type="hidden"]',
+                                '.................. Test hidden input',
+                                sub {
+                                    $tx->is(
+                                        './@name', 'x-tunneled-method',
+                                        '..................... Name should be "x-tunneled-method"'
+                                    );
+                                    $tx->is(
+                                        './@value', 'DELETE',
+                                        '..................... Value should be "delete"'
+                                    );
+                                }
+                            );
+
+                            $tx->ok(
+                                './input[@type="image"]',
+                                '.................. Test image input',
+                                sub {
+                                    $tx->is(
+                                        './@class', 'button',
+                                        '..................... Class should be "button"'
+
+                                    );
+                                    $tx->is(
+                                        './@name', 'submit',
+                                        '..................... Name should be "submit"'
+
+                                    );
+                                    $tx->is(
+                                        './@src',
+                                        $req->uri_for('/ui/img/remove.png'),
+                                        '..................... Source should be remove.png'
+                                    );
+                                }
+                            );
+                        });
+                    })
                 });
             });
         });

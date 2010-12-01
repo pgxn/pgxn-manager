@@ -140,7 +140,7 @@ label.invalid:after
 
 .uploader {margin-left:5.5em;}
 
-.accept, .reject {display:inline;}
+.accept, .remove {display:inline;}
 
 /**************** Messages ****************/
 /* Borrowed from http://css.dzone.com/news/css-message-boxes-different-me */
@@ -165,7 +165,8 @@ table
 {width:100%;border-spacing:0;border-collapse:collapse;}
 
 th
-{font-weight:bold; font-size:90%; color:#236691; border-right:1px solid #C1DAD7; border-bottom:1px solid #C1DAD7; border-top:1px solid #C1DAD7; text-align:left; padding:6px 6px 6px 12px; background:#CAE8EA url(../img/thbg.png) no-repeat;}
+{font-weight:bold; font-size:90%; color:#236691; border-right:1px solid #C1DAD7; border-bottom:1px solid #C1DAD7; border-top:1px solid #C1DAD7; text-align:left; padding:6px; background:#CAE8EA url(../img/thbg.png) no-repeat;}
+
 
 th:first-child, td:first-child
 {border-left:1px solid#c1dad7;}
@@ -183,7 +184,7 @@ tr.specalt th
 {border-left:1px solid #C1DAD7; border-top:0; background:#eaf7fb url(../img/wedge_blue.png) 2px 2px no-repeat; font-weight:bold; font-size:90%;}
 
 td
-{ border-right:1px solid #C1DAD7; border-bottom:1px solid #C1DAD7; background:#fff; padding:6px 6px 6px 12px;}
+{ border-right:1px solid #C1DAD7; border-bottom:1px solid #C1DAD7; background:#fff; padding:8px 6px 0;}
 
 tr.specalt td
 {background:#eaf7fb;}
@@ -191,12 +192,19 @@ tr.specalt td
 tr {vertical-align:top;}
 
 td.actions
-{width:64px;}
+{text-align:center;}
+td.actions form {margin-top:-2px;}
 
-td.actions img, th img
-{border:0;margin:0 .5em 0 0;padding:0;}
+th img
+{border:0;margin:0 .5em 0;padding:0;vertical-align:-7px;}
 
-table th img {display:block; float:left;}
+thead th img
+{vertical-align:-9px;}
+
+table th .control
+{float:right; text-align:right;text-transform:none;}
+table th .control img
+{margin-right:2px;}
 
 #userlist .userinfo {display:none;background:transparent url(../img/bubup.png) 34px 0 no-repeat;margin:0;width:20em;padding-top:12px;}
 #userlist .userinfo .why {padding-bottom:0;margin-right:0;margin:0;}

@@ -143,8 +143,9 @@ sub app {
                 };
 
                 resource '/admin/mirrors/*' => sub {
-                    GET { Controller->edit_mirror(@_) };
-                    PUT { Controller->update_mirror(@_) };
+                    GET    { Controller->get_mirror(@_)    };
+                    PUT    { Controller->update_mirror(@_) };
+                    DELETE { Controller->delete_mirror(@_) };
                 };
 
                 resource '/distributions' => sub {

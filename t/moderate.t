@@ -205,7 +205,7 @@ test_psgi +PGXN::Manager::Router->app => sub {
                             './@class', 'actions',
                             '............... It should have a class'
                         );
-                        $tx->is('count(./*)', 2, '............... And three subelements');
+                        $tx->is('count(./*)', 2, '............... And two subelements');
                         $tx->is('count(./form)', 2, '............... Both forms');
                         $tx->ok('./form[1]', '............... Test first form', sub {
                             $tx->is(
@@ -280,8 +280,8 @@ test_psgi +PGXN::Manager::Router->app => sub {
                             );
                             $tx->is(
                                 './@class',
-                                'reject',
-                                '.................. It should have the "reject" class'
+                                'remove',
+                                '.................. It should have the "remove" class'
                             );
                             $tx->is(
                                 './@action',
@@ -323,8 +323,8 @@ test_psgi +PGXN::Manager::Router->app => sub {
                                     );
                                     $tx->is(
                                         './@src',
-                                        $req->uri_for('/ui/img/reject.png'),
-                                        '..................... Source should be accept.png'
+                                        $req->uri_for('/ui/img/remove.png'),
+                                        '..................... Source should be remove.png'
                                     );
                                 }
                             );
@@ -481,8 +481,8 @@ test_psgi +PGXN::Manager::Router->app => sub {
                             );
                             $tx->is(
                                 './@class',
-                                'reject',
-                                '.................. It should have the "reject" class'
+                                'remove',
+                                '.................. It should have the "remove" class'
                             );
                             $tx->is(
                                 './@action',
@@ -524,8 +524,8 @@ test_psgi +PGXN::Manager::Router->app => sub {
                                     );
                                     $tx->is(
                                         './@src',
-                                        $req->uri_for('/ui/img/reject.png'),
-                                        '..................... Source should be accept.png'
+                                        $req->uri_for('/ui/img/remove.png'),
+                                        '..................... Source should be remove.png'
                                     );
                                 }
                             );
