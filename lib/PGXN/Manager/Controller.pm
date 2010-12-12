@@ -13,6 +13,7 @@ use Email::Sender::Simple;
 use JSON::XS;
 use Encode;
 use Data::Dump 'pp';
+use Data::Validate::URI 'is_uri';
 use namespace::autoclean;
 
 Template::Declare->init( dispatch_to => ['PGXN::Manager::Templates'] );
@@ -763,6 +764,125 @@ sub new_mirror {
     return $self->render('/show_mirror', { req => $req });
 }
 
+sub insert_mirror {
+    my $self   = shift;
+    my $req    = Request->new(shift);
+    my $params = $req->body_parameters;
+
+    return $self->respond_with('forbidden', $req) unless $req->user_is_admin;
+
+    my @missing;
+    for my $key (qw(uri email frequency organization location timezone bandwidth src)) {
+        push @missing => $key if !$params->{$key} || $params->{$key} !~ /\w+/;
+        delete $params->{$key}if !$params->{$key} || $params->{$key} !~ /\w+/;
+    }
+
+    if (@missing) {
+        return $self->respond_with(
+            'conflict', $req, ['Missing values for [qlist,_1].', \@missing]
+        ) if $req->is_xhr;
+        return $self->render('/show_mirror', { req => $req, code => $code_for{conflict}, vars => {
+            %{ $params },
+            highlight => \@missing,
+            error     => [q{I think you left something out. Please fill in the missing data in the highlighted fields below.}]
+        }});
+    }
+
+    PGXN::Manager->conn->run(sub {
+        $_->do(
+            q{SELECT insert_mirror(
+                creator      := ?,
+                uri          := ?,
+                frequency    := ?,
+                location     := ?,
+                bandwidth    := ?,
+                organization := ?,
+                timezone     := ?,
+                contact      := ?,
+                src          := ?,
+                rsync        := ?,
+                notes        := ?
+            )},
+            undef,
+            $req->user,
+            @{ $params }{qw(
+                uri
+                frequency
+                location
+                bandwidth
+                organization
+                timezone
+                email
+                src
+                rsync
+                notes
+            )}
+        );
+
+        # Success!
+        return $self->respond_with('success', $req) if $req->is_xhr;
+
+        # XXX Consider returning 201 and URI to the mirror profile?
+        $req->session->{uri} = $req->param('uri');
+        return $self->redirect('/admin/mirrors', $req);
+
+    }, sub {
+        # Failure!
+        my $err = shift;
+        my ($msg, $highlight);
+        given ($err->state) {
+            when ('23505') {
+                # Unique constraint violation.
+                $highlight = ['uri'];
+                $msg = [
+                    'Looks like [_1] is already registered as a mirror.',
+                    delete $params->{uri},
+                ];
+            } when ('23514') {
+                # Domain label violation.
+                given ($err->errstr) {
+                    when (/\btimezone\b/) {
+                        $highlight = ['timezone'];
+                        $msg = [
+                            'Sorry, the time zone “[_1]” is invalid.',
+                            delete $params->{timezone},
+                        ];
+                    }
+                    when (/\bemail_check\b/) {
+                        $highlight = ['email'];
+                        $msg = [
+                            q{Hrm, “[_1]” doesn't look like an email address. Care to try again?},
+                            delete $params->{email},
+                        ];
+                    } when (/\buri_check\b/) {
+                        my $field = !is_uri($params->{src})   ? 'src'
+                                  : !is_uri($params->{rsync}) ? 'rsync'
+                                                              : 'uri';
+                        $highlight = [$field];
+                        $msg = [
+                            q{Hrm, “[_1]” doesn't look like a URI. Care to try again?},
+                            delete $params->{$field},
+                        ];
+                    } default {
+                        die $err;
+                    }
+                }
+            } default {
+                die $err;
+            }
+        }
+
+        # Respond with error code for XHR request.
+        return $self->respond_with('conflict', $req, $msg) if $req->is_xhr;
+
+        return $self->render('/show_mirror', { req => $req, code => $code_for{conflict}, vars => {
+            %{ $params },
+            highlight => $highlight,
+            error     => $msg,
+        }});
+    });
+}
+
 1;
 
 =head1 Name
@@ -910,6 +1030,10 @@ Shows interface for administering mirrors.
 =head3 C<new_mirror>
 
 Show form for creating a new mirror.
+
+=head3 C<insert_mirror>
+
+Create a new mirror.
 
 =head3 C<server_error>
 

@@ -215,7 +215,7 @@ C<listcomma> and C<listand> entries in their C<%Lexicon>s.
 
   # "Missing these keys: “foo”, “bar”, and “baz”
   say $mt->maketext(
-      'Missing these keys: [qlist,_1])'
+      'Missing these keys: [qlist,_1]'
       [qw(foo bar baz)],
   );
 

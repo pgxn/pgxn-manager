@@ -30,6 +30,7 @@ $class->new(
         'Test::Harness'                     => '3.18',
         'Test::MockModule'                  => '0.05',
         'Test::More'                        => '0.70',
+        'Test::XML'                         => '0.08',
         'Test::XPath'                       => '0.13',
     },
     requires => {
@@ -38,6 +39,7 @@ $class->new(
         'Archive::Zip'                 => '1.30',
         'Class::ISA'                   => '0.36',
         'Cwd'                          => '3.33',
+        'Data::Dump'                   => '1.19',
         'Data::Validate::URI'          => '0.05',
         'DBD::Pg'                      => '2.15.1',
         'DBI'                          => '1.608',

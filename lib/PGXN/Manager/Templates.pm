@@ -1190,7 +1190,7 @@ template show_mirrors => sub {
 
 template show_mirror => sub {
     my ($self, $req, $args) = @_;
-    $args->{highlight} //= '';
+    my %highlight = map { $_ => 1 } @{ $args->{highlight} || [] };
     wrapper {
         h1 { T 'New Mirror' };
         p { T 'If someone has created a new mirror and sent in the essentials, update the mirror list by adding it here.' };
@@ -1214,16 +1214,18 @@ template show_mirror => sub {
                 legend { T 'The Essentials' };
                 for my $spec (
                     [qw(uri       URI      url),   'http://example.com/pgxn', T('What is the base URI for the mirror?'), 'required url' ],
-                    [qw(email Email email),   'pgxn@example.com', T('Whom should we blame when the mirror dies?'), 'required email' ],
+                    [qw(organization Organization text),   'Full Organization Name', T('Whom should we blame when the mirror dies?'), 'required' ],
+                    [qw(email Email email),   'pgxn@example.com', T('Where can we get hold of the responsible party?'), 'required email' ],
                     [qw(frequency Frequency text),   'daily/bidaily/.../weekly', T('How often is the mirror updated?'), 'required' ],
                     [qw(location Location text),   'city, (area?, )country, continent (lon lat)', T('Where can we find this mirror, geographically speaking?'), 'required' ],
                     ['timezone', 'TZ', 'text',   'area/Location zoneinfo tz', T('In what time zone can we find the mirror?'), 'required' ],
                     [qw(bandwidth Bandwidth text),   '1Gbps, 100Mbps, DSL, etc.', T('How big is the pipe?'), 'required' ],
                     [qw(src Source url),   'rsync://from.which.host/is/this/site/mirroring/from/', T('From what source is the mirror syncing?'), 'required' ],
+                    [qw(rsync Rsync url),   'rsync://where.your.host/is/offering/a/mirror/', T('Is there a public rsync interface from which other hosts can mirror?') ],
                 ) {
                     label {
                         attr { for => $spec->[0], title => $spec->[4] };
-                        class is 'highlight' if $args->{highlight} eq $spec->[0];
+                        class is 'highlight' if $highlight{$spec->[0]};
                         T $spec->[1];
                     };
                     input {
@@ -1234,7 +1236,7 @@ template show_mirror => sub {
                         value is $args->{$spec->[0]} || '';
                         my $class = join( ' ',
                                           ($spec->[5] ? $spec->[5] : ()),
-                                          ($args->{highlight} eq $spec->[0] ? 'highlight' : ()),
+                                          ($highlight{$spec->[0]} ? 'highlight' : ()),
                                       );
                         class is $class if $class;
                         placeholder is $spec->[3];

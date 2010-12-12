@@ -104,7 +104,7 @@ legend
 {background:#236691; padding:.2em .5em; color:#fff; font-weight: bold;}
 
 label
-{width: 5em; float:left; clear:left; text-align:right; margin-right:0.5em; display:block;margin-bottom:.5em;padding-top:.3em;font-weight:bold;}
+{width: 8em; float:left; clear:left; text-align:right; margin-right:0.5em; display:block;margin-bottom:.5em;padding-top:.3em;font-weight:bold;}
 
 label:after
 {content: ":";}
@@ -113,7 +113,7 @@ input.submit
 {display:block;margin-left:10em;}
 
 fieldset input, fieldset textarea
-{margin-left:4.5em;display:block;width:32em;font-family: 'trebuchet ms', Helvetica, sans-serif; font-size:1em;margin-bottom:.5em;}
+{margin-left:7.5em;display:block;width:29em;font-family: 'trebuchet ms', Helvetica, sans-serif; font-size:1em;margin-bottom:.5em;}
 
 .essentials input, .essentials textarea
 {margin:0}
@@ -229,12 +229,6 @@ table th .control img
 
 #content p.dist
 {width:440px;}
-
-#changeform label, #passform label
-{width: 8em;}
-
-#changeform fieldset input, #passform fieldset input
-{margin-left:7.5em;width:29em;}
 
 #credits dt
 {color:black;}

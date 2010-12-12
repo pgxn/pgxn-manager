@@ -2,7 +2,7 @@
 
 use 5.12.0;
 use utf8;
-use Test::More tests => 250;
+use Test::More tests => 278;
 #use Test::More 'no_plan';
 use Plack::Test;
 use HTTP::Request::Common;
@@ -109,7 +109,7 @@ test_psgi +PGXN::Manager::Router->app => sub {
         $tx->ok('./fieldset[1]', '... Test first fieldset', sub {
             $tx->is('./@id', 'mirroressentials', '...... It should have the proper id');
             $tx->is('./@class', 'essentials', '...... It should have the proper class');
-            $tx->is('count(./*)', 22, '...... It should have 22 subelements');
+            $tx->is('count(./*)', 28, '...... It should have 22 subelements');
             $tx->is(
                 './legend',
                 $mt->maketext('The Essentials'),
@@ -127,8 +127,16 @@ test_psgi +PGXN::Manager::Router->app => sub {
                     class => 'required url',
                 },
                 {
-                    id    => 'email',
+                    id    => 'organization',
                     title => $mt->maketext('Whom should we blame when the mirror dies?'),
+                    label => $mt->maketext('Organization'),
+                    type  => 'text',
+                    phold => 'Full Organization Name',
+                    class => 'required',
+                },
+                {
+                    id    => 'email',
+                    title => $mt->maketext('Where can we get hold of the responsible party?'),
                     label => $mt->maketext('Email'),
                     type  => 'email',
                     phold => 'pgxn@example.com',
@@ -173,6 +181,14 @@ test_psgi +PGXN::Manager::Router->app => sub {
                     type  => 'url',
                     phold => 'rsync://from.which.host/is/this/site/mirroring/from/',
                     class => 'required',
+                },
+                {
+                    id    => 'rsync',
+                    title => $mt->maketext('Is there a public rsync interface from which other hosts can mirror?'),
+                    label => $mt->maketext('Rsync'),
+                    type  => 'url',
+                    phold => 'rsync://where.your.host/is/offering/a/mirror/',
+                    class => '',
                 },
             ) {
                 ++$i;
