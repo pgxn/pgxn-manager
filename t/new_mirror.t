@@ -2,7 +2,7 @@
 
 use 5.12.0;
 use utf8;
-use Test::More tests => 374;
+use Test::More tests => 1031;
 #use Test::More 'no_plan';
 use Plack::Test;
 use HTTP::Request::Common;
@@ -297,6 +297,48 @@ test_psgi $app => sub {
     });
 };
 
+# Now try an XMLHttpRequest
+test_psgi $app => sub {
+    my $cb = shift;
+    my $req = POST(
+        $uri,
+        Authorization => 'Basic ' . encode_base64("$admin:****"),
+        'X-Requested-With' => 'XMLHttpRequest',
+        Content       => [
+            uri          => 'http://pgxn.kineticode.com/',
+            frequency    => 'daily',
+            location     => 'Portland, OR',
+            organization => 'Kineticode, Inc.',
+            timezone     => 'America/Los_Angeles',
+            email        => 'pgxn@kineticode.com',
+            bandwidth    => '24 baud',
+            src          => 'rsync://master.pgxn.org/pgxn',
+            rsync        => '',
+            notes        => '',
+        ]
+    );
+
+    # Send the request.
+    ok my $res = $cb->($req), "POST mirror to $uri";
+    ok $res->is_success, 'It should be a success';
+    is $res->content, 'Success', 'And the content should say so';
+
+    # And now the mirror should exist.
+    PGXN::Manager->conn->run(sub {
+        is_deeply $_->selectrow_arrayref(q{
+            SELECT frequency, location, organization, timezone, contact,
+                   bandwidth, src, rsync, notes, created_by
+              FROM mirrors
+             WHERE uri = ?
+        }, undef, 'http://pgxn.kineticode.com/'), [
+            'daily', 'Portland, OR', 'Kineticode, Inc.', 'America/Los_Angeles',
+            'pgxn@kineticode.com', '24 baud', 'rsync://master.pgxn.org/pgxn',
+            '', '',
+            $admin
+        ], 'Second mirror should exist';
+    });
+};
+
 # Need to mock user_is_admin to get around dead transactions.
 my $rmock = Test::MockModule->new('PGXN::Manager::Request');
 $rmock->mock(user_is_admin => 1);
@@ -349,13 +391,8 @@ test_psgi $app => sub {
 
         # Check the form fields.
         $tx->ok('./form[@id="mirrorform"]/fieldset[1]', '... Check first fieldset', sub {
-            $tx->is('./input[@id="uri"]/@value', '', '...... URI should not be set');
-            $tx->is(
-                './input[@id="uri"]/@class',
-                'required url highlight',
-                '...... And it should be highlighted'
-            );
             for my $spec(
+                [ uri          => '',                                  'required url highlight'],
                 [ frequency    => 'daily',                             'required' ],
                 [ location     => 'Portland, OR',                      'required' ],
                 [ organization => 'Just a Theory',                     'required' ],
@@ -387,3 +424,453 @@ test_psgi $app => sub {
         });
     });
 };
+
+# Now try with missing values.
+TxnTest->restart;
+$admin = TxnTest->admin;
+test_psgi $app => sub {
+    my $cb = shift;
+    my $req = POST(
+        $uri,
+        Authorization => 'Basic ' . encode_base64("$admin:****"),
+        Content       => [],
+    );
+
+    # Send the request.
+    ok my $res = $cb->($req), "POST missing data to $uri";
+    ok !$res->is_redirect, 'It should not be a redirect response';
+    is $res->code, 409, 'Should have 409 status code';
+
+    # So check the content.
+    is_well_formed_xml $res->content, 'The HTML should be well-formed';
+    my $tx = Test::XPath->new( xml => $res->content, is_html => 1 );
+
+    $req = PGXN::Manager::Request->new(req_to_psgi($res->request));
+    $req->env->{REMOTE_USER} = $admin;
+    $req->env->{SCRIPT_NAME} = '/auth';
+    XPathTest->test_basics($tx, $req, $mt, $hparams);
+
+    # Now verify that we have the error message and that the form fields are
+    # higlighted
+    $tx->ok('/html/body/div[@id="content"]', 'Test the content', sub {
+        $tx->is('count(./*)', 4, '... It should have four subelements');
+        $tx->is('./h1', $h1, '... The title h1 should be set');
+        $tx->is('./p[1]', $p, '... Intro paragraph should be set');
+        my $err = $mt->maketext(
+            'I think you left something out. Please fill in the missing data in the highlighted fields below.',
+        );
+        $tx->is('./p[@class="error"]', $err, '... Error paragraph should be set');
+
+        # Check the form fields.
+        $tx->ok('./form[@id="mirrorform"]/fieldset[1]', '... Check first fieldset', sub {
+            for my $spec(
+                [ uri          => 'required url highlight' ],
+                [ frequency    => 'required highlight' ],
+                [ location     => 'required highlight' ],
+                [ organization => 'required highlight' ],
+                [ timezone     => 'required highlight' ],
+                [ email        => 'required email highlight' ],
+                [ bandwidth    => 'required highlight' ],
+                [ src          => 'required highlight' ],
+                [ rsync        => '' ],
+            ) {
+                $tx->is(
+                    qq{./input[\@id="$spec->[0]"]/\@value},
+                    '',
+                    "...... $spec->[0] should be empty",
+                );
+                $tx->is(
+                    qq{./input[\@id="$spec->[0]"]/\@class},
+                    $spec->[1],
+                    "...... And $spec->[0] should have the proper class",
+                );
+            }
+        });
+
+        $tx->ok('./form[@id="mirrorform"]/fieldset[2]', '... Check second fieldset', sub {
+            $tx->is(
+                './textarea[@id="notes"]',
+                '',
+                '...... Notes textarea should be empty'
+            );
+        });
+    });
+};
+
+# Try again with an XmlHttpRequest
+test_psgi $app => sub {
+    my $cb = shift;
+    my $req = POST(
+        $uri,
+        Authorization => 'Basic ' . encode_base64("$admin:****"),
+        'X-Requested-With' => 'XMLHttpRequest',
+        Content       => [],
+    );
+
+    # Send the request.
+    ok my $res = $cb->($req), "POST missing data to $uri";
+    ok !$res->is_redirect, 'It should not be a redirect response';
+    is $res->code, 409, 'Should have 409 status code';
+
+    is $res->decoded_content, $mt->maketext(
+        'Missing values for [qlist,_1].',
+        [qw(uri email frequency organization location timezone bandwidth src)],
+        'It should have the proper content',
+    );
+};
+
+# Try with just a subset of missing values.
+test_psgi $app => sub {
+    my $cb = shift;
+    my $req = POST(
+        $uri,
+        Authorization => 'Basic ' . encode_base64("$admin:****"),
+        Content       => [
+            uri          => 'http://pgxn.justatheory.com/',
+            frequency    => 'daily',
+            location     => 'Portland, OR',
+        ],
+    );
+
+    # Send the request.
+    ok my $res = $cb->($req), "POST missing data to $uri";
+    ok !$res->is_redirect, 'It should not be a redirect response';
+    is $res->code, 409, 'Should have 409 status code';
+
+    # So check the content.
+    is_well_formed_xml $res->content, 'The HTML should be well-formed';
+    my $tx = Test::XPath->new( xml => $res->content, is_html => 1 );
+
+    $req = PGXN::Manager::Request->new(req_to_psgi($res->request));
+    $req->env->{REMOTE_USER} = $admin;
+    $req->env->{SCRIPT_NAME} = '/auth';
+    XPathTest->test_basics($tx, $req, $mt, $hparams);
+
+    # Now verify that we have the error message and that the form fields are
+    # higlighted
+    $tx->ok('/html/body/div[@id="content"]', 'Test the content', sub {
+        $tx->is('count(./*)', 4, '... It should have four subelements');
+        $tx->is('./h1', $h1, '... The title h1 should be set');
+        $tx->is('./p[1]', $p, '... Intro paragraph should be set');
+        my $err = $mt->maketext(
+            'I think you left something out. Please fill in the missing data in the highlighted fields below.',
+        );
+        $tx->is('./p[@class="error"]', $err, '... Error paragraph should be set');
+
+        # Check the form fields.
+        $tx->ok('./form[@id="mirrorform"]/fieldset[1]', '... Check first fieldset', sub {
+            for my $spec(
+                [ uri          => 'required url',  'http://pgxn.justatheory.com/'],
+                [ frequency    => 'required',      'daily'],
+                [ location     => 'required',       'Portland, OR'],
+                [ organization => 'required highlight' ],
+                [ timezone     => 'required highlight' ],
+                [ email        => 'required email highlight' ],
+                [ bandwidth    => 'required highlight' ],
+                [ src          => 'required highlight' ],
+                [ rsync        => '' ],
+            ) {
+                $tx->is(
+                    qq{./input[\@id="$spec->[0]"]/\@value},
+                    $spec->[2] || '',
+                    "...... $spec->[0] should have the expected value",
+                );
+                $tx->is(
+                    qq{./input[\@id="$spec->[0]"]/\@class},
+                    $spec->[1],
+                    "...... And $spec->[0] should have the proper class",
+                );
+            }
+        });
+
+        $tx->ok('./form[@id="mirrorform"]/fieldset[2]', '... Check second fieldset', sub {
+            $tx->is(
+                './textarea[@id="notes"]',
+                '',
+                '...... Notes textarea should be empty'
+            );
+        });
+    });
+};
+
+# Try an invalid time zone.
+test_psgi $app => sub {
+    my $cb = shift;
+    my $req = POST(
+        $uri,
+        Authorization => 'Basic ' . encode_base64("$admin:****"),
+        Content       => [
+            uri          => 'http://pgxn.justatheory.com/',
+            frequency    => 'daily',
+            location     => 'Portland, OR',
+            organization => 'Just a Theory',
+            timezone     => 'America/Funky_Time',
+            email        => 'pgxn@justatheory.com',
+            bandwidth    => '1MBit',
+            src          => 'rsync://master.pgxn.org/pgxn',
+            rsync        => 'rsync://pgxn.justatheory.com/pgxn',
+            notes        => 'IM IN UR DATUH BASEZ.',
+        ]
+    );
+
+    # Send the request.
+    ok my $res = $cb->($req), "POST mirror to $uri with invalid time zone";
+    ok !$res->is_redirect, 'It should not be a redirect response';
+    is $res->code, 409, 'Should have 409 status code';
+
+    # So check the content.
+    is_well_formed_xml $res->content, 'The HTML should be well-formed';
+    my $tx = Test::XPath->new( xml => $res->content, is_html => 1 );
+
+    $req = PGXN::Manager::Request->new(req_to_psgi($res->request));
+    $req->env->{REMOTE_USER} = $admin;
+    $req->env->{SCRIPT_NAME} = '/auth';
+    XPathTest->test_basics($tx, $req, $mt, $hparams);
+
+    # Now verify that we have the error message and that the form fields are
+    # filled-in.
+    $tx->ok('/html/body/div[@id="content"]', 'Test the content', sub {
+        $tx->is('count(./*)', 4, '... It should have four subelements');
+        $tx->is('./h1', $h1, '... The title h1 should be set');
+        $tx->is('./p[1]', $p, '... Intro paragraph should be set');
+        my $err = $mt->maketext(
+            'Sorry, the time zone “[_1]” is invalid.',
+            'America/Funky_Time',
+        );
+        $tx->is('./p[@class="error"]', $err, '... Error paragraph should be set');
+
+        # Check the form fields.
+        $tx->ok('./form[@id="mirrorform"]/fieldset[1]', '... Check first fieldset', sub {
+            for my $spec(
+                [ uri          => 'http://pgxn.justatheory.com/',      'required url'],
+                [ frequency    => 'daily',                             'required' ],
+                [ location     => 'Portland, OR',                      'required' ],
+                [ organization => 'Just a Theory',                     'required' ],
+                [ timezone     => '',                                  'required highlight' ],
+                [ email        => 'pgxn@justatheory.com',              'required email' ],
+                [ bandwidth    => '1MBit',                             'required' ],
+                [ src          => 'rsync://master.pgxn.org/pgxn',      'required' ],
+                [ rsync        => 'rsync://pgxn.justatheory.com/pgxn', '' ],
+            ) {
+                $tx->is(
+                    qq{./input[\@id="$spec->[0]"]/\@value},
+                    $spec->[1],
+                    "...... $spec->[0] should be set",
+                );
+                $tx->is(
+                    qq{./input[\@id="$spec->[0]"]/\@class},
+                    $spec->[2],
+                    "...... And $spec->[0] should have the proper class",
+                );
+            }
+        });
+
+        $tx->ok('./form[@id="mirrorform"]/fieldset[2]', '... Check second fieldset', sub {
+            $tx->is(
+                './textarea[@id="notes"]',
+                'IM IN UR DATUH BASEZ.',
+                '...... Notes textarea should be set'
+            );
+        });
+    });
+};
+
+# Try an invalid time email.
+TxnTest->restart;
+$admin = TxnTest->admin;
+test_psgi $app => sub {
+    my $cb = shift;
+    my $req = POST(
+        $uri,
+        Authorization => 'Basic ' . encode_base64("$admin:****"),
+        Content       => [
+            uri          => 'http://pgxn.justatheory.com/',
+            frequency    => 'daily',
+            location     => 'Portland, OR',
+            organization => 'Just a Theory',
+            timezone     => 'America/Los_Angeles',
+            email        => 'foo at bar dot com',
+            bandwidth    => '1MBit',
+            src          => 'rsync://master.pgxn.org/pgxn',
+            rsync        => 'rsync://pgxn.justatheory.com/pgxn',
+            notes        => 'IM IN UR DATUH BASEZ.',
+        ]
+    );
+
+    # Send the request.
+    ok my $res = $cb->($req), "POST mirror to $uri with invalid email";
+    ok !$res->is_redirect, 'It should not be a redirect response';
+    is $res->code, 409, 'Should have 409 status code';
+
+    # So check the content.
+    is_well_formed_xml $res->content, 'The HTML should be well-formed';
+    my $tx = Test::XPath->new( xml => $res->content, is_html => 1 );
+
+    $req = PGXN::Manager::Request->new(req_to_psgi($res->request));
+    $req->env->{REMOTE_USER} = $admin;
+    $req->env->{SCRIPT_NAME} = '/auth';
+    XPathTest->test_basics($tx, $req, $mt, $hparams);
+
+    # Now verify that we have the error message and that the form fields are
+    # filled-in.
+    $tx->ok('/html/body/div[@id="content"]', 'Test the content', sub {
+        $tx->is('count(./*)', 4, '... It should have four subelements');
+        $tx->is('./h1', $h1, '... The title h1 should be set');
+        $tx->is('./p[1]', $p, '... Intro paragraph should be set');
+        my $err = $mt->maketext(
+            q{Hrm, “[_1]” doesn't look like an email address. Care to try again?},
+            'foo at bar dot com',
+        );
+        $tx->is('./p[@class="error"]', $err, '... Error paragraph should be set');
+
+        # Check the form fields.
+        $tx->ok('./form[@id="mirrorform"]/fieldset[1]', '... Check first fieldset', sub {
+            for my $spec(
+                [ uri          => 'http://pgxn.justatheory.com/',      'required url'],
+                [ frequency    => 'daily',                             'required' ],
+                [ location     => 'Portland, OR',                      'required' ],
+                [ organization => 'Just a Theory',                     'required' ],
+                [ timezone     => 'America/Los_Angeles',               'required' ],
+                [ email        => '',              'required email highlight' ],
+                [ bandwidth    => '1MBit',                             'required' ],
+                [ src          => 'rsync://master.pgxn.org/pgxn',      'required' ],
+                [ rsync        => 'rsync://pgxn.justatheory.com/pgxn', '' ],
+            ) {
+                $tx->is(
+                    qq{./input[\@id="$spec->[0]"]/\@value},
+                    $spec->[1],
+                    "...... $spec->[0] should be set",
+                );
+                $tx->is(
+                    qq{./input[\@id="$spec->[0]"]/\@class},
+                    $spec->[2],
+                    "...... And $spec->[0] should have the proper class",
+                );
+            }
+        });
+
+        $tx->ok('./form[@id="mirrorform"]/fieldset[2]', '... Check second fieldset', sub {
+            $tx->is(
+                './textarea[@id="notes"]',
+                'IM IN UR DATUH BASEZ.',
+                '...... Notes textarea should be set'
+            );
+        });
+    });
+};
+
+# Try invalid URIs.
+for my $field (qw(uri src rsync)) {
+    TxnTest->restart;
+    $admin = TxnTest->admin;
+    my %content = (
+        uri          => 'http://pgxn.justatheory.com/',
+        frequency    => 'daily',
+        location     => 'Portland, OR',
+        organization => 'Just a Theory',
+        timezone     => 'America/Los_Angeles',
+        email        => 'foo@bar.com',
+        bandwidth    => '1MBit',
+        src          => 'rsync://master.pgxn.org/pgxn',
+        rsync        => 'rsync://pgxn.justatheory.com/pgxn',
+        notes        => 'IM IN UR DATUH BASEZ.',
+    );
+    $content{$field} = 'whatever man';
+    my $err = $mt->maketext(
+        q{Hrm, “[_1]” doesn't look like a URI. Care to try again?},
+        'whatever man',
+    );
+
+    # Try an HTML request first.
+    test_psgi $app => sub {
+        my $cb = shift;
+        $content{$field} = 'whatever man';
+        my $req = POST(
+            $uri,
+            Authorization => 'Basic ' . encode_base64("$admin:****"),
+            Content       => [%content],
+        );
+
+        # Send the request.
+        ok my $res = $cb->($req), "POST mirror to $uri with invalid $field";
+        ok !$res->is_redirect, 'It should not be a redirect response';
+        is $res->code, 409, 'Should have 409 status code';
+
+        # So check the content.
+        is_well_formed_xml $res->content, 'The HTML should be well-formed';
+        my $tx = Test::XPath->new( xml => $res->content, is_html => 1 );
+
+        $req = PGXN::Manager::Request->new(req_to_psgi($res->request));
+        $req->env->{REMOTE_USER} = $admin;
+        $req->env->{SCRIPT_NAME} = '/auth';
+        XPathTest->test_basics($tx, $req, $mt, $hparams);
+
+        # Now verify that we have the error message and that the form fields are
+        # filled-in.
+        $tx->ok('/html/body/div[@id="content"]', 'Test the content', sub {
+            $tx->is('count(./*)', 4, '... It should have four subelements');
+            $tx->is('./h1', $h1, '... The title h1 should be set');
+            $tx->is('./p[1]', $p, '... Intro paragraph should be set');
+            $tx->is('./p[@class="error"]', $err, '... Error paragraph should be set');
+
+            # Check the form fields.
+            $tx->ok('./form[@id="mirrorform"]/fieldset[1]', '... Check first fieldset', sub {
+                my %specs = (
+                    uri          => [ 'http://pgxn.justatheory.com/',      'required url'],
+                    frequency    => [ 'daily',                             'required' ],
+                    location     => [ 'Portland, OR',                      'required' ],
+                    organization => [ 'Just a Theory',                     'required' ],
+                    timezone     => [ 'America/Los_Angeles',               'required' ],
+                    email        => [ 'foo@bar.com',                       'required email' ],
+                    bandwidth    => [ '1MBit',                             'required' ],
+                    src          => [ 'rsync://master.pgxn.org/pgxn',      'required' ],
+                    rsync        => [ 'rsync://pgxn.justatheory.com/pgxn', '' ],
+                );
+                $specs{$field}[0] = '';
+                $specs{$field}[1] = $specs{$field}[1]
+                    ? "$specs{$field}[1] highlight"
+                    : 'highlight';
+                while (my ($param, $spec) = each %specs) {
+                    $tx->is(
+                        qq{./input[\@id="$param"]/\@value},
+                        $spec->[0],
+                        "...... $param should be set",
+                    );
+                    $tx->is(
+                        qq{./input[\@id="$param"]/\@class},
+                        $spec->[1],
+                        "...... And $param should have the proper class",
+                    );
+                }
+            });
+
+            $tx->ok('./form[@id="mirrorform"]/fieldset[2]', '... Check second fieldset', sub {
+                $tx->is(
+                    './textarea[@id="notes"]',
+                    'IM IN UR DATUH BASEZ.',
+                    '...... Notes textarea should be set'
+                );
+            });
+        });
+    };
+
+    # Now try an XmlHttpRequest request first.
+    TxnTest->restart;
+    $admin = TxnTest->admin;
+    test_psgi $app => sub {
+        my $cb = shift;
+        my $req = POST(
+            $uri,
+            Authorization => 'Basic ' . encode_base64("$admin:****"),
+            'X-Requested-With' => 'XMLHttpRequest',
+            Content       => [%content],
+        );
+
+        # Send the request.
+        ok my $res = $cb->($req), "XmlHttpRequest POST mirror to $uri with invalid $field";
+        ok !$res->is_redirect, 'It should not be a redirect response';
+        is $res->code, 409, 'Should have 409 status code';
+
+        is $res->decoded_content, $err, 'It should return the expected error message';
+    };
+}
