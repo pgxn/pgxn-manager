@@ -30,6 +30,7 @@ $class->new(
         'Test::Harness'                     => '3.18',
         'Test::MockModule'                  => '0.05',
         'Test::More'                        => '0.70',
+        'Test::NoWarnings'                  => '1.02',
         'Test::XML'                         => '0.08',
         'Test::XPath'                       => '0.13',
     },

@@ -2,7 +2,7 @@
 
 use 5.12.0;
 use utf8;
-use Test::More tests => 278;
+use Test::More tests => 374;
 #use Test::More 'no_plan';
 use Plack::Test;
 use HTTP::Request::Common;
@@ -19,6 +19,7 @@ use MIME::Base64;
 use lib 't/lib';
 use TxnTest;
 use XPathTest;
+use Test::NoWarnings;
 
 my $app      = PGXN::Manager::Router->app;
 my $mt       = PGXN::Manager::Locale->accept('en');
@@ -27,6 +28,11 @@ my $user     = TxnTest->user;
 my $admin    = TxnTest->admin;
 my $h1       = $mt->maketext('New Mirror');
 my $p        = $mt->maketext(q{If someone has created a new mirror and sent in the essentials, update the mirror list by adding it here.});
+my $hparams  = {
+    h1 => 'New Mirror',
+    validate_form => '#mirrorform',
+    page_title => 'Enter the mirror information provided by the contact',
+};
 
 # Connect without authenticating.
 test_psgi $app => sub {
@@ -78,11 +84,7 @@ test_psgi +PGXN::Manager::Router->app => sub {
     $req = PGXN::Manager::Request->new(req_to_psgi($req));
     $req->env->{REMOTE_USER} = $admin;
     $req->env->{SCRIPT_NAME} = '/auth';
-    XPathTest->test_basics($tx, $req, $mt, {
-        h1 => 'New Mirror',
-        validate_form => '#mirrorform',
-        page_title => 'Enter the mirror information provided by the contact',
-    });
+    XPathTest->test_basics($tx, $req, $mt, $hparams);
 
     # Check the content
     $tx->ok('/html/body/div[@id="content"]', 'Test the content', sub {
@@ -244,6 +246,144 @@ test_psgi +PGXN::Manager::Router->app => sub {
                     qq{...... Its $attr->[0] attribute should be "$attr->[1]"},
                 );
             }
+        });
+    });
+};
+
+# Okay, let's submit the form.
+$uri = '/auth/admin/mirrors';
+test_psgi $app => sub {
+    my $cb = shift;
+    my $req = POST(
+        $uri,
+        Authorization => 'Basic ' . encode_base64("$admin:****"),
+        Content       => [
+            uri          => 'http://pgxn.justatheory.com/',
+            frequency    => 'daily',
+            location     => 'Portland, OR',
+            organization => 'Just a Theory',
+            timezone     => 'America/Los_Angeles',
+            email        => 'pgxn@justatheory.com',
+            bandwidth    => '1MBit',
+            src          => 'rsync://master.pgxn.org/pgxn',
+            rsync        => 'rsync://pgxn.justatheory.com/pgxn',
+            notes        => 'IM IN UR DATUH BASEZ.',
+        ]
+    );
+
+    # Send the request.
+    ok my $res = $cb->($req), "POST mirror to $uri";
+    ok $res->is_redirect, 'It should be a redirect response';
+
+    # Validate we got the expected response.
+    $req = PGXN::Manager::Request->new(req_to_psgi($res->request));
+    $req->env->{SCRIPT_NAME} = '/auth';
+    is $res->headers->header('location'), $req->uri_for('/admin/mirrors'),
+        'Should redirect to /admin/mirrors';
+
+    # And now the mirror should exist.
+    PGXN::Manager->conn->run(sub {
+        is_deeply $_->selectrow_arrayref(q{
+            SELECT frequency, location, organization, timezone, contact,
+                   bandwidth, src, rsync, notes, created_by
+              FROM mirrors
+             WHERE uri = ?
+        }, undef, 'http://pgxn.justatheory.com/'), [
+            'daily', 'Portland, OR', 'Just a Theory', 'America/Los_Angeles',
+            'pgxn@justatheory.com', '1MBit', 'rsync://master.pgxn.org/pgxn',
+            'rsync://pgxn.justatheory.com/pgxn', 'IM IN UR DATUH BASEZ.',
+            $admin
+        ], 'New mirror should exist';
+    });
+};
+
+# Need to mock user_is_admin to get around dead transactions.
+my $rmock = Test::MockModule->new('PGXN::Manager::Request');
+$rmock->mock(user_is_admin => 1);
+
+# Awesome. Let's get a URI conflict and see how it handles it.
+test_psgi $app => sub {
+    my $cb = shift;
+    my $req = POST(
+        $uri,
+        Authorization => 'Basic ' . encode_base64("$admin:****"),
+        Content       => [
+            uri          => 'http://pgxn.justatheory.com/',
+            frequency    => 'daily',
+            location     => 'Portland, OR',
+            organization => 'Just a Theory',
+            timezone     => 'America/Los_Angeles',
+            email        => 'pgxn@justatheory.com',
+            bandwidth    => '1MBit',
+            src          => 'rsync://master.pgxn.org/pgxn',
+            rsync        => 'rsync://pgxn.justatheory.com/pgxn',
+            notes        => 'IM IN UR DATUH BASEZ.',
+        ]
+    );
+
+    # Send the request.
+    ok my $res = $cb->($req), "POST mirror to $uri";
+    ok !$res->is_redirect, 'It should not be a redirect response';
+    is $res->code, 409, 'Should have 409 status code';
+
+    # So check the content.
+    is_well_formed_xml $res->content, 'The HTML should be well-formed';
+    my $tx = Test::XPath->new( xml => $res->content, is_html => 1 );
+
+    $req = PGXN::Manager::Request->new(req_to_psgi($res->request));
+    $req->env->{REMOTE_USER} = $admin;
+    $req->env->{SCRIPT_NAME} = '/auth';
+    XPathTest->test_basics($tx, $req, $mt, $hparams);
+
+    # Now verify that we have the error message and that the form fields are
+    # filled-in.
+    $tx->ok('/html/body/div[@id="content"]', 'Test the content', sub {
+        $tx->is('count(./*)', 4, '... It should have four subelements');
+        $tx->is('./h1', $h1, '... The title h1 should be set');
+        $tx->is('./p[1]', $p, '... Intro paragraph should be set');
+        my $err = $mt->maketext(
+            'Looks like [_1] is already registered as a mirror.',
+            'http://pgxn.justatheory.com/'
+        );
+        $tx->is('./p[@class="error"]', $err, '... Error paragraph should be set');
+
+        # Check the form fields.
+        $tx->ok('./form[@id="mirrorform"]/fieldset[1]', '... Check first fieldset', sub {
+            $tx->is('./input[@id="uri"]/@value', '', '...... URI should not be set');
+            $tx->is(
+                './input[@id="uri"]/@class',
+                'required url highlight',
+                '...... And it should be highlighted'
+            );
+            for my $spec(
+                [ frequency    => 'daily',                             'required' ],
+                [ location     => 'Portland, OR',                      'required' ],
+                [ organization => 'Just a Theory',                     'required' ],
+                [ timezone     => 'America/Los_Angeles',               'required' ],
+                [ email        => 'pgxn@justatheory.com',              'required email' ],
+                [ bandwidth    => '1MBit',                             'required' ],
+                [ src          => 'rsync://master.pgxn.org/pgxn',      'required' ],
+                [ rsync        => 'rsync://pgxn.justatheory.com/pgxn', '' ],
+            ) {
+                $tx->is(
+                    qq{./input[\@id="$spec->[0]"]/\@value},
+                    $spec->[1],
+                    "...... $spec->[0] should be set",
+                );
+                $tx->is(
+                    qq{./input[\@id="$spec->[0]"]/\@class},
+                    $spec->[2],
+                    "...... And $spec->[0] should have the proper class",
+                );
+            }
+        });
+
+        $tx->ok('./form[@id="mirrorform"]/fieldset[2]', '... Check second fieldset', sub {
+            $tx->is(
+                './textarea[@id="notes"]',
+                'IM IN UR DATUH BASEZ.',
+                '...... Notes textarea should be set'
+            );
         });
     });
 };
