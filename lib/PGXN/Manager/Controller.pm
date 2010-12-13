@@ -883,6 +883,27 @@ sub insert_mirror {
     });
 }
 
+sub delete_mirror {
+    my $self = shift;
+    my $req  = Request->new(shift);
+    my $uri = shift->{splat}[0];
+
+    return $self->respond_with('forbidden', $req) unless $req->user_is_admin;
+
+    PGXN::Manager->conn->run(sub {
+        shift->selectcol_arrayref(
+            'SELECT delete_mirror(?, ?)',
+            undef, $req->user, $uri
+        )->[0];
+    }) or return $self->respond_with('notfound', $req);
+
+    # Simple response for XHR request.
+    return $self->respond_with('success', $req) if $req->is_xhr;
+
+    # Redirect for normal request.
+    return $self->redirect('/admin/mirrors', $req);
+}
+
 1;
 
 =head1 Name

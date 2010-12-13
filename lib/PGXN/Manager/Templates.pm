@@ -1147,14 +1147,12 @@ template show_mirrors => sub {
                             class is 'actions';
                             form {
                                 class is 'delete';
-                                action  is $req->uri_for("/admin/mirrors/$row->{uri}");
+                                action  is $req->uri_for(
+                                    "/admin/mirrors/$row->{uri}",
+                                    'x-tunneled-method' => 'DELETE',
+                                );
                                 enctype is 'application/x-www-form-urlencoded; charset=UTF-8';
                                 method  is 'post';
-                                input {
-                                    type  is 'hidden';
-                                    name  is 'x-tunneled-method';
-                                    value is 'DELETE';
-                                };
                                 input {
                                     class is 'button';
                                     type is 'image';
@@ -1184,6 +1182,7 @@ template show_mirrors => sub {
         };
     } $req, {
         page_title => 'Administer project rsync mirrors',
+        js => 'PGXN.init_mirrors()',
         $args ? %{ $args } : (),
     };
 };
