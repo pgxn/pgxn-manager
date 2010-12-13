@@ -158,6 +158,7 @@ sub app {
             };
             mount '/ui' => $files;
             mount '/'   => builder {
+                enable 'TunnelMethod';
                 enable 'Session', store => $store;
                 enable @{ $_ } for @{ $mids };
 
