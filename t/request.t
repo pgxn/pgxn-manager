@@ -2,7 +2,7 @@
 
 use 5.12.0;
 use utf8;
-use Test::More tests => 68;
+use Test::More tests => 50;
 #use Test::More 'no_plan';
 use HTTP::Request::Common;
 use HTTP::Message::PSGI;
@@ -175,47 +175,3 @@ is $req->param('q'), "メインページ", 'q param should be decoded';
 is_deeply [$req->parameters->get_all('q')], ['テスト', 'メインページ'],
     'All q values should be decoded';
 
-##############################################################################
-# Test method.
-ok $req = PGXN::Manager::Request->new(req_to_psgi(GET '/app')),
-        'Create a GET request for /app';
-is $req->method, 'GET', 'Its method should get GET';
-
-ok $req = PGXN::Manager::Request->new(req_to_psgi(POST '/app')),
-        'Create a POST request for /app';
-is $req->method, 'POST', 'Its method should get POST';
-
-ok $req = PGXN::Manager::Request->new(req_to_psgi(POST '/app', [
-    q => 'whatever'
-])), 'Create a POST request for /app with param';
-is $req->method, 'POST', 'Its method should get POST';
-
-ok $req = PGXN::Manager::Request->new(req_to_psgi(POST '/app', [
-    'x-tunneled-method' => 'PUT'
-])), 'Create a PUT request for /app with x-tunneled-method param';
-is $req->method, 'PUT', 'Its method should get PUT';
-
-ok $req = PGXN::Manager::Request->new(req_to_psgi(POST '/app', [
-    'x-tunneled-method' => 'DELETE'
-])), 'Create a DELETE request for /app with x-tunneled-method param';
-is $req->method, 'DELETE', 'Its method should get DELETE';
-
-ok $req = PGXN::Manager::Request->new(req_to_psgi(GET '/app', [
-    'x-tunneled-method' => 'PUT'
-])), 'Create a GET request for /app with x-tunneled-method param';
-is $req->method, 'GET', 'Its method should get GET';
-
-ok $req = PGXN::Manager::Request->new(req_to_psgi(POST '/app',
-    'x-http-method-override' => 'PUT'
-)), 'Create a PUT request for /app with x-http-method-override header';
-is $req->method, 'PUT', 'Its method should get PUT';
-
-ok $req = PGXN::Manager::Request->new(req_to_psgi(POST '/app',
-    'x-http-method-override' => 'DELETE'
-)), 'Create a DELETE request for /app with x-http-method-override header';
-is $req->method, 'DELETE', 'Its method should get DELETE';
-
-ok $req = PGXN::Manager::Request->new(req_to_psgi(GET '/app',
-    'x-http-method-override' => 'DELETE'
-)), 'Create a GET request for /app with x-http-method-override header';
-is $req->method, 'GET', 'Its method should get GET';

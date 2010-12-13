@@ -103,22 +103,6 @@ sub _decode {
     map { decode $enc, $_, $CHECK } @_;
 }
 
-sub method {
-    my $self = shift;
-    $self->{method} ||= do {
-        my $meth = $self->SUPER::method;
-        if ( defined $meth && uc $meth eq 'POST' ) {
-            uc(
-                   $self->param('x-tunneled-method')
-                || $self->header('x-http-method-override')
-                || $meth
-            );
-        } else {
-            $meth;
-        }
-    };
-}
-
 1;
 
 =head1 Name
@@ -230,20 +214,6 @@ These two methods override the versions from L<Plack::Request> to decode all
 parameters to Perl's internal representation. Tries to use the encoding
 specified by the request or, if there is none, assumes UTF-8. This should be
 safe as browsers will submit in the same encoding as the form was rendered in.
-
-=head3 C<method>
-
-  my $method = $req->method;
-
-This method works just like C<< Plack::Request->method >> except it allows for
-tunneling of PUT and DELETE requests via a POST.
-
-Specifically, you can provide a form element named "x-tunneled-method" which
-can override the request method for a POST. This only works for a POST, not a
-GET.
-
-You can also use a header named "x-http-method-override" instead (Google uses
-this header for its APIs).
 
 =head1 Author
 
