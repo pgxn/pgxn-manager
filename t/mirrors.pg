@@ -1,7 +1,7 @@
 SET search_path = public,contrib,tap;
 
 BEGIN;
-SELECT plan(107);
+SELECT plan(123);
 --SELECT * FROM no_plan();
 
 SELECT has_table('public', 'mirrors', 'Should have table public.mirrors');
@@ -171,7 +171,7 @@ SELECT ok(
 SELECT is(COUNT(*)::int, 0, 'Should start with no mirrors') FROM mirrors;
 
 SELECT throws_ok(
-    $$ SELECT insert_mirror('nobody') $$,
+    $$ SELECT insert_mirror('nobody', null, null, null, null, null, null, null, null) $$,
     'P0001',
     'Permission denied: User “nobody” is not an administrator',
     'Should get error from insert_mirror() for non-existent user'
@@ -179,7 +179,7 @@ SELECT throws_ok(
 
 UPDATE users SET is_admin = false WHERE nickname = 'theory';
 SELECT throws_ok(
-    $$ SELECT insert_mirror('theory') $$,
+    $$ SELECT insert_mirror('theory', null, null, null, null, null, null, null, null) $$,
     'P0001',
     'Permission denied: User “theory” is not an administrator',
     'Should get error from insert_mirror() for non-admin user'
@@ -187,7 +187,7 @@ SELECT throws_ok(
 
 UPDATE users SET is_admin = true WHERE nickname = 'theory';
 SELECT throws_ok(
-    $$ SELECT insert_mirror('theory') $$,
+    $$ SELECT insert_mirror('theory', null, null, null, null, null, null, null, null) $$,
     '23502',
     NULL, -- null value in column "uri" violates not-null constraint
     'Should get error from insert_mirror() for invalid data'
@@ -237,6 +237,120 @@ SELECT throws_ok(
 );
 
 /****************************************************************************/
+-- Test update_mirror().
+SELECT has_function(    'update_mirror' );
+SELECT has_function(    'update_mirror', ARRAY['label', 'uri', 'uri', 'text', 'text', 'text', 'timezone', 'email', 'text', 'uri', 'uri', 'text'] );
+SELECT is_definer(      'update_mirror', ARRAY['label', 'uri', 'uri', 'text', 'text', 'text', 'timezone', 'email', 'text', 'uri', 'uri', 'text'] );
+SELECT function_returns('update_mirror', 'boolean' );
+SELECT function_lang_is('update_mirror', 'plpgsql' );
+SELECT volatility_is(   'update_mirror', 'volatile' );
+SELECT ok(
+    has_function_privilege(
+        'pgxn',
+        'update_mirror(label, uri, uri, text, text, text, timezone, email, text, uri, uri, text)',
+        'EXECUTE'
+    ),
+    'Mirror "pgxn" should have EXECUTE priv on update_mirror()'
+);
+
+SELECT throws_ok(
+    $$ SELECT update_mirror('nobody', null, null, null, null, null, null, null, null, null) $$,
+    'P0001',
+    'Permission denied: User “nobody” is not an administrator',
+    'Should get error from update_mirror() for non-existent user'
+);
+
+UPDATE users SET is_admin = false WHERE nickname = 'theory';
+SELECT throws_ok(
+    $$ SELECT update_mirror('theory', null, null, null, null, null, null, null, null, null) $$,
+    'P0001',
+    'Permission denied: User “theory” is not an administrator',
+    'Should get error from update_mirror() for non-admin user'
+);
+
+UPDATE users SET is_admin = true WHERE nickname = 'theory';
+SELECT ok(
+    NOT update_mirror('theory', null, null, null, null, null, null, null, null, null),
+    'Should get no error from update_mirror for admin user'
+);
+
+-- Do the update for realz.
+SELECT ok(
+    update_mirror(
+        admin        := 'theory',
+        old_uri      := 'http://kineticode.com/pgxn/',
+        uri          := 'http://pgxn.kineticode.com/',
+        frequency    := 'daily',
+        location     := 'Portland, OR',
+        bandwidth    := '1MBps',
+        organization := 'Kineticode',
+        timezone     := 'America/Los_Angeles',
+        contact      := 'pgxn-help@kineticode.com',
+        src          := 'rsync://justatheory.com/pgxn/',
+        rsync        := '',
+        notes        := ''
+    ), 'Update a mirror'
+);
+
+SELECT row_eq(
+    $$ SELECT * FROM mirrors $$,
+    ROW('http://pgxn.kineticode.com/','daily', 'Portland, OR',
+        'Kineticode', 'America/Los_Angeles', 'pgxn-help@kineticode.com',
+        '1MBps', 'rsync://justatheory.com/pgxn/',
+        '', '', 'theory',
+        NOW(), NOW())::mirrors,
+    'The row should have been updated'
+);
+
+-- Insert another mirror.
+SELECT ok(
+    insert_mirror(
+        admin        := 'theory',
+        uri          := 'http://kineticode.com/pgxn/',
+        frequency    := 'hourly',
+        location     := 'Portland, OR, USA',
+        bandwidth    := '10MBps',
+        organization := 'Kineticode, Inc.',
+        timezone     := 'America/Los_Angeles',
+        contact      := 'pgxn@kineticode.com',
+        src          := 'rsync://master.pgxn.org/pgxn/',
+        rsync        := 'rsync://pgxn.kineticode.com/pgxn/',
+        notes        := 'This is a note'
+    ), 'Insert another mirror'
+);
+
+-- Create a conflict.
+SELECT throws_ok(
+    $$ SELECT update_mirror(
+        admin   := 'theory',
+        old_uri := 'http://pgxn.kineticode.com/',
+        uri     := 'http://kineticode.com/pgxn/'
+    ) $$,
+    '23505', -- duplicate key value violates unique constraint "mirrors_pkey"
+    NULL,
+    'Should get error for duplicate mirror URI'
+);
+
+-- But make sure it works fine when the new and old URI are the same.
+SELECT ok(
+    update_mirror(
+        admin   := 'theory',
+        old_uri := 'http://pgxn.kineticode.com/',
+        uri     := 'http://pgxn.kineticode.com/'
+    ),
+    'Should be able to update a mirror without changing the URI'
+);
+
+SELECT ok(
+    update_mirror(
+        admin     := 'theory',
+        old_uri   := 'http://pgxn.kineticode.com/',
+        frequency := 'hourly'
+    ),
+    'Should be able to update a mirror without a new URI'
+);
+
+/****************************************************************************/
 -- Test delete_mirror().
 SELECT has_function(    'delete_mirror' );
 SELECT has_function(    'delete_mirror', ARRAY['label', 'uri'] );
@@ -281,11 +395,11 @@ SELECT ok(
 );
 
 SELECT ok(
-    delete_mirror('theory', 'http://kineticode.com/pgxn/'),
+    delete_mirror('theory', 'http://pgxn.kineticode.com/'),
     'Should get true from delete_mirror() for actual mirror'
 );
 
-SELECT is(COUNT(*)::int, 0, 'Should again have no mirrors') FROM mirrors;
+SELECT is(COUNT(*)::int, 1, 'Should now have 1 mirror') FROM mirrors;
 
 SELECT * FROM finish();
 ROLLBACK;

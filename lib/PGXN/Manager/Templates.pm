@@ -471,6 +471,18 @@ template notfound => sub {
     } $req, $args;
 };
 
+template notallowed => sub {
+    my ($self, $req, $args) = @_;
+    wrapper {
+        h1 { T 'Not Allowed' };
+        p {
+            class is 'error';
+            T q{Sorry, but the [_1] method is not allowed on this resource.},
+                $req->method;
+        };
+    } $req, $args;
+};
+
 template conflict => sub {
     my ($self, $req, $args) = @_;
     my $msg = $args->{maketext}
@@ -1190,9 +1202,14 @@ template show_mirrors => sub {
 template show_mirror => sub {
     my ($self, $req, $args) = @_;
     my %highlight = map { $_ => 1 } @{ $args->{highlight} || [] };
+    my $update = $args->{update};
     wrapper {
         h1 { T 'New Mirror' };
-        p { T 'If someone has created a new mirror and sent in the essentials, update the mirror list by adding it here.' };
+        p {
+            T $update
+                ? 'If someone has sent in updated information on a mirror, make the update here.'
+                : 'If someone has created a new mirror and sent in the essentials, update the mirror list by adding it here.'
+        };
         if (my $err = $args->{error}) {
             p {
                 class is 'error';
@@ -1201,9 +1218,9 @@ template show_mirror => sub {
         }
         form {
             id      is 'mirrorform';
-            action  is $req->uri_for('/admin/mirrors');
-            # Browser should send us UTF-8 if that's what we ask for.
-            # http://www.unicode.org/mail-arch/unicode-ml/Archives-Old/UML023/0450.html
+            action  is $update
+                ? $req->uri->path . '?x-tunneled-method=put'
+                : $req->uri_for('/admin/mirrors');
             enctype is 'application/x-www-form-urlencoded; charset=UTF-8';
             method  is 'post';
 

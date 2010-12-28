@@ -40,22 +40,22 @@ Returns true if the named user is an admin, and false if not.
 $$;
 
 CREATE OR REPLACE FUNCTION insert_mirror(
-    creator      LABEL,
-    uri          URI       DEFAULT NULL,
-    frequency    TEXT      DEFAULT NULL,
-    location     TEXT      DEFAULT NULL,
-    organization TEXT      DEFAULT NULL,
-    timezone     TIMEZONE  DEFAULT NULL,
-    contact      EMAIL     DEFAULT NULL,
-    bandwidth    TEXT      DEFAULT NULL,
-    src          URI       DEFAULT NULL,
+    admin        LABEL,
+    uri          URI,
+    frequency    TEXT,
+    location     TEXT,
+    organization TEXT,
+    timezone     TIMEZONE,
+    contact      EMAIL,
+    bandwidth    TEXT,
+    src          URI,
     rsync        URI       DEFAULT NULL,
     notes        TEXT      DEFAULT NULL
 ) RETURNS BOOLEAN LANGUAGE plpgsql SECURITY DEFINER AS $$
 /*
 
     % SELECT insert_mirror(
-        creator      := 'theory',
+        admin        := 'theory',
         uri          := 'http://kineticode.com/pgxn/',
         frequency    := 'hourly',
         location     := 'Portland, OR, USA',
@@ -80,8 +80,8 @@ failure).
 
 */
 BEGIN
-    IF NOT is_admin(creator) THEN
-        RAISE EXCEPTION 'Permission denied: User “%” is not an administrator', creator;
+    IF NOT is_admin(admin) THEN
+        RAISE EXCEPTION 'Permission denied: User “%” is not an administrator', admin;
     END IF;
 
     INSERT INTO mirrors (
@@ -107,9 +107,84 @@ BEGIN
         insert_mirror.src,
         insert_mirror.rsync,
         insert_mirror.notes,
-        creator
+        admin
     );
       
+    RETURN FOUND;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION update_mirror(
+    admin      LABEL,
+    old_uri      URI,
+    uri          URI       DEFAULT NULL,
+    frequency    TEXT      DEFAULT NULL,
+    location     TEXT      DEFAULT NULL,
+    organization TEXT      DEFAULT NULL,
+    timezone     TIMEZONE  DEFAULT NULL,
+    contact      EMAIL     DEFAULT NULL,
+    bandwidth    TEXT      DEFAULT NULL,
+    src          URI       DEFAULT NULL,
+    rsync        URI       DEFAULT NULL,
+    notes        TEXT      DEFAULT NULL
+) RETURNS BOOLEAN LANGUAGE plpgsql SECURITY DEFINER AS $$
+/*
+
+    % SELECT udpate_mirror(
+        admin        := 'theory',
+        old_uri      := 'http://kineticode.com/pgxn/',
+        uri          := 'http://pgxn.kineticode.com/',
+        frequency    := 'hourly',
+        location     := 'Portland, OR, USA',
+        bandwidth    := '10MBps',
+        organization := 'Kineticode, Inc.',
+        timezone     := 'America/Los_Angeles',
+        contact      := 'pgxn@kineticode.com',
+        src          := 'rsync://master.pgxn.org/pgxn/',
+        rsync        := 'rsync://pgxn.kineticode.com/pgxn/',
+        notes        := 'This is a note'
+    );
+     update_mirror 
+    ───────────────
+     t
+    (1 row)
+
+Updates a mirror. The user specified as the first parameter must be an
+administrator or else an exception will be thrown. The `old_uri` parameter
+must contain the existing URI of the mirror and is required. All other
+paramters are optional. Returns true on succesful update and false on failure,
+which will happen if the existing URI cannot be found in the database.
+
+*/
+BEGIN
+    IF NOT is_admin(admin) THEN
+        RAISE EXCEPTION 'Permission denied: User “%” is not an administrator', admin;
+    END IF;
+
+    UPDATE mirrors SET (
+        uri,
+        frequency,
+        location,
+        organization,
+        timezone,
+        contact,
+        bandwidth,
+        src,
+        rsync,
+        notes
+    ) = (
+        COALESCE(update_mirror.uri,          mirrors.uri),
+        COALESCE(update_mirror.frequency,    mirrors.frequency),
+        COALESCE(update_mirror.location,     mirrors.location),
+        COALESCE(update_mirror.organization, mirrors.organization),
+        COALESCE(update_mirror.timezone,     mirrors.timezone),
+        COALESCE(update_mirror.contact,      mirrors.contact),
+        COALESCE(update_mirror.bandwidth,    mirrors.bandwidth),
+        COALESCE(update_mirror.src,          mirrors.src),
+        COALESCE(update_mirror.rsync,        mirrors.rsync),
+        COALESCE(update_mirror.notes,        mirrors.notes)
+    ) WHERE mirrors.uri = update_mirror.old_uri;
+
     RETURN FOUND;
 END;
 $$;

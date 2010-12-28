@@ -757,6 +757,26 @@ sub show_mirrors {
     $self->render('/show_mirrors', { req => $req, vars => { sth => $sth }});
 }
 
+sub get_mirror {
+    my $self = shift;
+    my $req  = Request->new(shift);
+    return $self->respond_with('forbidden', $req) unless $req->user_is_admin;
+
+    my $uri = shift->{splat}[0] or return $self->respond_with('notfound', $req);
+
+    my $mirror = PGXN::Manager->conn->run(sub {
+        shift->selectrow_hashref(q{
+            SELECT uri, organization, contact AS email, frequency, location,
+                        timezone, bandwidth, src, rsync, notes
+              FROM mirrors
+             WHERE uri = ?
+        }, undef, $uri );
+    }) or  $self->respond_with('notfound', $req);
+    $mirror->{update} = 1;
+
+    $self->render('/show_mirror', { req => $req, vars => $mirror });
+}
+
 sub new_mirror {
     my $self = shift;
     my $req  = Request->new(shift);
@@ -764,11 +784,11 @@ sub new_mirror {
     return $self->render('/show_mirror', { req => $req });
 }
 
-sub insert_mirror {
+sub _do_mirror {
     my $self   = shift;
+    my $action = shift;
     my $req    = Request->new(shift);
     my $params = $req->body_parameters;
-
     return $self->respond_with('forbidden', $req) unless $req->user_is_admin;
 
     my @missing;
@@ -788,10 +808,11 @@ sub insert_mirror {
         }});
     }
 
+    my $old_uri = shift->{splat}[0];
     PGXN::Manager->conn->run(sub {
-        $_->do(
-            q{SELECT insert_mirror(
-                creator      := ?,
+        my $ret = shift->selectcol_arrayref(
+            qq{SELECT $action\_mirror(
+                admin        := ?,} . ($action eq 'update' ? "\n                old_uri      := ?," : '') . q{
                 uri          := ?,
                 frequency    := ?,
                 location     := ?,
@@ -805,6 +826,7 @@ sub insert_mirror {
             )},
             undef,
             $req->user,
+            ($action eq 'update' ? ($old_uri) : ()),
             @{ $params }{qw(
                 uri
                 frequency
@@ -817,14 +839,27 @@ sub insert_mirror {
                 rsync
                 notes
             )}
-        );
+        )->[0];
 
-        # Success!
-        return $self->respond_with('success', $req) if $req->is_xhr;
 
-        # XXX Consider returning 201 and URI to the mirror profile?
-        $req->session->{uri} = $req->param('uri');
-        return $self->redirect('/admin/mirrors', $req);
+        if ($ret) {
+            # Success!
+            return $self->respond_with('success', $req) if $req->is_xhr;
+
+            # XXX Consider returning 201 and URI to the mirror profile?
+            $req->session->{uri} = $req->param('uri');
+            return $self->redirect('/admin/mirrors', $req);
+        }
+
+        # Respond with error code for XHR request.
+        my $msg = 'Update failed; maybe someone deleted this mirror?';
+        return $self->respond_with('conflict', $req, $msg) if $req->is_xhr;
+
+        return $self->render('/show_mirror', { req => $req, code => $code_for{conflict}, vars => {
+            %{ $params },
+            error  => $msg,
+            update => $action eq 'update',
+        }});
 
     }, sub {
         # Failure!
@@ -868,7 +903,7 @@ sub insert_mirror {
                     }
                 }
             } default {
-                die $err;
+               die $err;
             }
         }
 
@@ -879,8 +914,17 @@ sub insert_mirror {
             %{ $params },
             highlight => $highlight,
             error     => $msg,
+            update    => $action eq 'update',
         }});
     });
+}
+
+sub insert_mirror {
+    shift->_do_mirror(insert => @_);
+}
+
+sub update_mirror {
+    shift->_do_mirror(update => @_);
 }
 
 sub delete_mirror {
@@ -1048,6 +1092,10 @@ Shows interface for administering users.
 
 Shows interface for administering mirrors.
 
+=head3 C<get_mirror>
+
+Show form for an existing mirror.
+
 =head3 C<new_mirror>
 
 Show form for creating a new mirror.
@@ -1055,6 +1103,14 @@ Show form for creating a new mirror.
 =head3 C<insert_mirror>
 
 Create a new mirror.
+
+=head3 C<update_mirror>
+
+Update an existing new mirror.
+
+=head3 C<delete_mirror>
+
+Delete a mirror.
 
 =head3 C<server_error>
 

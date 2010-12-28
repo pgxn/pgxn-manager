@@ -44,7 +44,7 @@ $class->new(
         'Data::Validate::URI'               => '0.05',
         'DBD::Pg'                           => '2.15.1',
         'DBI'                               => '1.608',
-        'DBIx::Connector'                   => '0.20',
+        'DBIx::Connector'                   => '0.42',
         'Digest::SHA1'                      => '2.13',
         'Email::Valid'                      => '0.184',
         'Email::MIME'                       => '1.905',

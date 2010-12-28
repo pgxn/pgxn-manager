@@ -2,7 +2,7 @@
 
 use 5.12.0;
 use utf8;
-use Test::More tests => 312;
+use Test::More tests => 310;
 #use Test::More 'no_plan';
 use Plack::Test;
 use HTTP::Request::Common;
@@ -78,7 +78,9 @@ test_psgi +PGXN::Manager::Router->app => sub {
     $req->env->{SCRIPT_NAME} = '/auth';
     XPathTest->test_basics($tx, $req, $mt, {
         h1 => 'Mirrors',
-        page_title => 'Administer project rsync mirrors',
+        page_title  => 'Administer project rsync mirrors',
+        with_jquery => 1,
+        js          => 'PGXN.init_mirrors()',
     });
 
     $tx->ok('/html/body/div[@id="content"]', 'Look at the content', sub {
@@ -183,7 +185,7 @@ PGXN::Manager->conn->run(sub {
     my $dbh = shift;
     my $sth = $dbh->prepare(q{
         SELECT insert_mirror(
-            creator      := $1,
+            admin        := $1,
             uri          := $2,
             frequency    := $3,
             location     := $4,
@@ -240,8 +242,10 @@ test_psgi +PGXN::Manager::Router->app => sub {
     $req->env->{REMOTE_USER} = $admin;
     $req->env->{SCRIPT_NAME} = '/auth';
     XPathTest->test_basics($tx, $req, $mt, {
-        h1 => 'Mirrors',
-        page_title => 'Administer project rsync mirrors',
+        h1          => 'Mirrors',
+        page_title  => 'Administer project rsync mirrors',
+        with_jquery => 1,
+        js          => 'PGXN.init_mirrors()',
     });
 
     $tx->ok('/html/body/div[@id="content"]', 'Look at the content', sub {
@@ -392,28 +396,16 @@ test_psgi +PGXN::Manager::Router->app => sub {
                             );
                             $tx->is(
                                 './@action',
-                                $req->uri_for('/admin/mirrors/http://kineticode.com/pgxn/'),
+                                $req->uri_for(
+                                    '/admin/mirrors/http://kineticode.com/pgxn/',
+                                    'x-tunneled-method' => 'DELETE'
+                                ),
                                 '.................. It should have the delete uri'
                             );
                             $tx->is(
-                                'count(./*)', 2,
-                                '.................. Should have 2 subelements'
+                                'count(./*)', 1,
+                                '.................. Should have 1 subelement'
                             );
-                            $tx->ok(
-                                './input[@type="hidden"]',
-                                '.................. Test hidden input',
-                                sub {
-                                    $tx->is(
-                                        './@name', 'x-tunneled-method',
-                                        '..................... Name should be "x-tunneled-method"'
-                                    );
-                                    $tx->is(
-                                        './@value', 'DELETE',
-                                        '..................... Value should be "delete"'
-                                    );
-                                }
-                            );
-
                             $tx->ok(
                                 './input[@type="image"]',
                                 '.................. Test image input',
@@ -515,28 +507,16 @@ test_psgi +PGXN::Manager::Router->app => sub {
                             );
                             $tx->is(
                                 './@action',
-                                $req->uri_for('/admin/mirrors/http://pgxn.justatheory.com'),
+                                $req->uri_for(
+                                    '/admin/mirrors/http://pgxn.justatheory.com',
+                                    'x-tunneled-method' => 'DELETE'
+                                ),
                                 '.................. It should have the delete uri'
                             );
                             $tx->is(
-                                'count(./*)', 2,
-                                '.................. Should have 2 subelements'
+                                'count(./*)', 1,
+                                '.................. Should have 1 subelement'
                             );
-                            $tx->ok(
-                                './input[@type="hidden"]',
-                                '.................. Test hidden input',
-                                sub {
-                                    $tx->is(
-                                        './@name', 'x-tunneled-method',
-                                        '..................... Name should be "x-tunneled-method"'
-                                    );
-                                    $tx->is(
-                                        './@value', 'DELETE',
-                                        '..................... Value should be "delete"'
-                                    );
-                                }
-                            );
-
                             $tx->ok(
                                 './input[@type="image"]',
                                 '.................. Test image input',
