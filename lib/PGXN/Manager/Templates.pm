@@ -1204,7 +1204,7 @@ template show_mirror => sub {
     my %highlight = map { $_ => 1 } @{ $args->{highlight} || [] };
     my $update = $args->{update};
     wrapper {
-        h1 { T 'New Mirror' };
+        h1 { T $update ? 'Edit Mirror' : 'New Mirror' };
         p {
             T $update
                 ? 'If someone has sent in updated information on a mirror, make the update here.'
@@ -1218,9 +1218,14 @@ template show_mirror => sub {
         }
         form {
             id      is 'mirrorform';
-            action  is $update
-                ? $req->uri->path . '?x-tunneled-method=put'
-                : $req->uri_for('/admin/mirrors');
+            if ($update) {
+                # We don't want the "/auth" bit, but do want the rest of the
+                # path, as it has the URL being edited.
+                (my $path = join '/', $req->uri->path_segments) =~ s{^/auth}{};
+                action is $req->uri_for($path, 'x-tunneled-method' => 'put');
+            } else {
+                action  is $req->uri_for('/admin/mirrors');
+            }
             enctype is 'application/x-www-form-urlencoded; charset=UTF-8';
             method  is 'post';
 

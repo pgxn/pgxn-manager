@@ -171,7 +171,8 @@ BEGIN
         bandwidth,
         src,
         rsync,
-        notes
+        notes,
+        updated_at
     ) = (
         COALESCE(update_mirror.uri,          mirrors.uri),
         COALESCE(update_mirror.frequency,    mirrors.frequency),
@@ -182,7 +183,8 @@ BEGIN
         COALESCE(update_mirror.bandwidth,    mirrors.bandwidth),
         COALESCE(update_mirror.src,          mirrors.src),
         COALESCE(update_mirror.rsync,        mirrors.rsync),
-        COALESCE(update_mirror.notes,        mirrors.notes)
+        COALESCE(update_mirror.notes,        mirrors.notes),
+        NOW()
     ) WHERE mirrors.uri = update_mirror.old_uri;
 
     RETURN FOUND;

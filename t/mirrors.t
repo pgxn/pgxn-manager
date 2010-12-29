@@ -2,8 +2,8 @@
 
 use 5.12.0;
 use utf8;
-use Test::More tests => 310;
-#use Test::More 'no_plan';
+#use Test::More tests => 310;
+use Test::More 'no_plan';
 use Plack::Test;
 use HTTP::Request::Common;
 use PGXN::Manager;
@@ -13,8 +13,6 @@ use HTTP::Message::PSGI;
 use File::Path qw(remove_tree);
 use Test::XML;
 use Test::XPath;
-use JSON::XS;
-use Archive::Zip qw(:ERROR_CODES);
 use MIME::Base64;
 use lib 't/lib';
 use TxnTest;
@@ -544,6 +542,68 @@ test_psgi +PGXN::Manager::Router->app => sub {
             });
         });
     });
-#    diag $res->content;
 };
 
+##############################################################################
+# Test the fetching of an existing mirror.
+
+# Connect without authenticating.
+test_psgi $app => sub {
+    my $cb = shift;
+    my $uri = '/auth/admin/mirrors/http://kineticode.com/pgxn/';
+    ok my $res = $cb->(GET $uri), "GET $uri";
+    is $res->code, 401, 'Should get 401 response';
+    like $res->content, qr/Authorization required/,
+        'The body should indicate need for authentication';
+};
+
+# Connect as non-admin user.
+test_psgi +PGXN::Manager::Router->app => sub {
+    my $cb  = shift;
+    my $uri = '/auth/admin/mirrors/http://kineticode.com/pgxn/';
+    my $req = GET $uri, Authorization => 'Basic ' . encode_base64("$user:****");
+
+    ok my $res = $cb->($req), "Get $uri with auth token";
+    is $res->code, 403, 'Should get 403 response';
+    is_well_formed_xml $res->content, 'The HTML should be well-formed';
+    my $tx = Test::XPath->new( xml => $res->content, is_html => 1 );
+
+    $req = PGXN::Manager::Request->new(req_to_psgi($req));
+    $req->env->{REMOTE_USER} = $user;
+    $req->env->{SCRIPT_NAME} = '/auth';
+    XPathTest->test_basics($tx, $req, $mt, {
+        h1 => 'Permission Denied',
+        page_title => q{Whoops! I don't think you belong here},
+    });
+
+    $tx->ok('/html/body/div[@id="content"]', 'Look at the content', sub {
+        $tx->is('count(./*)', 2, '... Should have two subelements');
+        $tx->is(
+            './p[@class="error"]',
+            $mt->maketext(q{Sorry, you do not have permission to access this resource.}),
+            '... Should have the error message'
+        );
+    });
+};
+
+# Connect as authenticated user.
+test_psgi +PGXN::Manager::Router->app => sub {
+    my $cb  = shift;
+    my $uri = '/auth/admin/mirrors/http://kineticode.com/pgxn/';
+    my $req = GET $uri, Authorization => 'Basic ' . encode_base64("$admin:****");
+
+    ok my $res = $cb->($req), "Get $uri with auth token";
+    ok $res->is_success, 'Response should be success';
+    is_well_formed_xml $res->content, 'The HTML should be well-formed';
+    my $tx = Test::XPath->new( xml => $res->content, is_html => 1 );
+
+    $req = PGXN::Manager::Request->new(req_to_psgi($req));
+    $req->env->{REMOTE_USER} = $admin;
+    $req->env->{SCRIPT_NAME} = '/auth';
+    XPathTest->test_basics($tx, $req, $mt, {
+        h1 => 'Edit Mirror',
+        page_title  => 'Enter the mirror information provided by the contact',
+        validate_form => 1,
+    });
+
+};

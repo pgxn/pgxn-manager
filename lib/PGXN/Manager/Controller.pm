@@ -771,7 +771,7 @@ sub get_mirror {
               FROM mirrors
              WHERE uri = ?
         }, undef, $uri );
-    }) or  $self->respond_with('notfound', $req);
+    }) or return $self->respond_with('notfound', $req);
     $mirror->{update} = 1;
 
     $self->render('/show_mirror', { req => $req, vars => $mirror });
@@ -852,10 +852,10 @@ sub _do_mirror {
         }
 
         # Respond with error code for XHR request.
-        my $msg = 'Update failed; maybe someone deleted this mirror?';
-        return $self->respond_with('conflict', $req, $msg) if $req->is_xhr;
+        my $msg = ['Update failed; maybe someone deleted this mirror?'];
+        return $self->respond_with('notfound', $req, $msg) if $req->is_xhr;
 
-        return $self->render('/show_mirror', { req => $req, code => $code_for{conflict}, vars => {
+        return $self->render('/show_mirror', { req => $req, code => $code_for{notfound}, vars => {
             %{ $params },
             error  => $msg,
             update => $action eq 'update',

@@ -70,10 +70,10 @@ sub user_is_admin {
 
     # Look up the user.
     return $self->{pgxn_admin} = PGXN::Manager->conn->run(sub {
-        (shift->selectrow_array(
+        shift->selectcol_arrayref(
             'SELECT is_admin FROM users WHERE nickname = ?',
             undef, $u
-        ))[0];
+        )->[0];
     });
 }
 
