@@ -181,6 +181,33 @@ sub app {
     };
 };
 
+STACKTRACE: {
+    package PGXN::Manager::StackTrace;
+    use Devel::StackTrace;
+    use Scalar::Util 'blessed';
+    use namespace::autoclean;
+
+    # Override Plack::Middleware::StackTrace's trace class setting.
+    use Plack::Middleware::StackTrace;
+    my $StackTraceClass = $Plack::Middleware::StackTrace::StackTraceClass;
+    $Plack::Middleware::StackTrace::StackTraceClass = __PACKAGE__;
+
+    sub new {
+        my $class = shift;
+        my %p = @_;
+        my $err = $p{message};
+
+        # Use the original stack trace if we have one.
+        if (blessed $err) {
+            if (my $meth = $err->can('trace') || $err->can('stack_trace')) {
+                return $err->$meth;
+            }
+        }
+        # Otherwise generate a new one.
+        return $StackTraceClass->new(@_);
+    }
+}
+
 1;
 
 =head1 Name
