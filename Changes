@@ -1,6 +1,6 @@
 Revision history for Perl extension PGXN::Manager
 
-0.5.1
+0.5.1 2011-01-04T22:54:12
       - Updated `check_mirrors` for new `mirrors.json` format.
       - Fixed the encoding of `mirrors.json` so that UTF-8 will be properly
         encoded in the file.
