@@ -1,6 +1,6 @@
 Revision history for Perl extension PGXN::Manager
 
-0.5.0
+0.5.0 2011-01-04T21:47:29
       - Added `doc/howto.md`.
       - Moved `check_mirrors` from the PGXN repository.
       - Tweaked the nav menu a bit:
