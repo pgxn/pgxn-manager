@@ -204,7 +204,7 @@ STACKTRACE: {
             }
         }
         # Otherwise generate a new one.
-        return $StackTraceClass->new(@_);
+        return $StackTraceClass->new(@_, ignore_package => __PACKAGE__);
     }
 }
 
