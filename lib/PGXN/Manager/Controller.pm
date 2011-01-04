@@ -963,6 +963,7 @@ sub delete_mirror {
 
 sub _write_mirrors_meta {
     my $tmp = File::Temp->new;
+    binmode $tmp, ':utf8';
     PGXN::Manager->conn->run(sub {
         print $tmp shift->selectrow_array( 'SELECT get_mirrors_json()');
     });

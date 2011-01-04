@@ -2,7 +2,7 @@
 
 use 5.12.0;
 use utf8;
-use Test::More tests => 1036;
+use Test::More tests => 1038;
 #use Test::More 'no_plan';
 use Plack::Test;
 use HTTP::Request::Common;
@@ -19,6 +19,7 @@ use MIME::Base64;
 use Test::File;
 use Test::File::Contents;
 use Test::NoWarnings;
+use Encode;
 use lib 't/lib';
 use TxnTest;
 use XPathTest;
@@ -269,7 +270,7 @@ test_psgi $app => sub {
             uri          => 'http://pgxn.justatheory.com/',
             frequency    => 'daily',
             location     => 'Portland, OR',
-            organization => 'Just a Theory',
+            organization => 'Jüst a Theory',
             timezone     => 'America/Los_Angeles',
             email        => 'pgxn@justatheory.com',
             bandwidth    => '1MBit',
@@ -297,7 +298,7 @@ test_psgi $app => sub {
               FROM mirrors
              WHERE uri = ?
         }, undef, 'http://pgxn.justatheory.com/'), [
-            'daily', 'Portland, OR', 'Just a Theory', 'America/Los_Angeles',
+            'daily', 'Portland, OR', 'Jüst a Theory', 'America/Los_Angeles',
             'pgxn@justatheory.com', '1MBit', 'rsync://master.pgxn.org/pgxn',
             'rsync://pgxn.justatheory.com/pgxn', 'IM IN UR DATUH BASEZ.',
             $admin
@@ -305,9 +306,13 @@ test_psgi $app => sub {
 
         # And so should mirrors.json.
         file_exists_ok $meta, 'mirrors.json should now exist';
-        file_contents_is $meta, $_->selectrow_arrayref(
+        file_contents_is $meta, encode_utf8 $_->selectrow_arrayref(
             'SELECT get_mirrors_json()'
         )->[0], 'And it should contain the updated list of mirrors';
+        open my $fh, '<', $meta or die "Cannot open $meta: $!\n";
+        my $json = join '', <$fh>;
+        close $fh;
+        ok decode_json $json, 'Should be able to parse mirror.json';
     });
 
 };
@@ -355,9 +360,13 @@ test_psgi $app => sub {
 
         # And so should mirrors.json.
         file_exists_ok $meta, 'mirrors.json should now exist';
-        file_contents_is $meta, $_->selectrow_arrayref(
+        file_contents_is $meta, encode_utf8 $_->selectrow_arrayref(
             'SELECT get_mirrors_json()'
         )->[0], 'And it should contain the updated list of mirrors';
+        open my $fh, '<', $meta or die "Cannot open $meta: $!\n";
+        my $json = join '', <$fh>;
+        close $fh;
+        ok decode_json $json, 'Should be able to parse mirror.json';
     });
 };
 
@@ -375,7 +384,7 @@ test_psgi $app => sub {
             uri          => 'http://pgxn.justatheory.com/',
             frequency    => 'daily',
             location     => 'Portland, OR',
-            organization => 'Just a Theory',
+            organization => 'Jüst a Theory',
             timezone     => 'America/Los_Angeles',
             email        => 'pgxn@justatheory.com',
             bandwidth    => '1MBit',
@@ -417,7 +426,7 @@ test_psgi $app => sub {
                 [ uri          => '',                                  'required url highlight'],
                 [ frequency    => 'daily',                             'required' ],
                 [ location     => 'Portland, OR',                      'required' ],
-                [ organization => 'Just a Theory',                     'required' ],
+                [ organization => 'Jüst a Theory',                     'required' ],
                 [ timezone     => 'America/Los_Angeles',               'required' ],
                 [ email        => 'pgxn@justatheory.com',              'required email' ],
                 [ bandwidth    => '1MBit',                             'required' ],
@@ -625,7 +634,7 @@ test_psgi $app => sub {
             uri          => 'http://pgxn.justatheory.com/',
             frequency    => 'daily',
             location     => 'Portland, OR',
-            organization => 'Just a Theory',
+            organization => 'Jüst a Theory',
             timezone     => 'America/Funky_Time',
             email        => 'pgxn@justatheory.com',
             bandwidth    => '1MBit',
@@ -667,7 +676,7 @@ test_psgi $app => sub {
                 [ uri          => 'http://pgxn.justatheory.com/',      'required url'],
                 [ frequency    => 'daily',                             'required' ],
                 [ location     => 'Portland, OR',                      'required' ],
-                [ organization => 'Just a Theory',                     'required' ],
+                [ organization => 'Jüst a Theory',                     'required' ],
                 [ timezone     => '',                                  'required highlight' ],
                 [ email        => 'pgxn@justatheory.com',              'required email' ],
                 [ bandwidth    => '1MBit',                             'required' ],
@@ -709,7 +718,7 @@ test_psgi $app => sub {
             uri          => 'http://pgxn.justatheory.com/',
             frequency    => 'daily',
             location     => 'Portland, OR',
-            organization => 'Just a Theory',
+            organization => 'Jüst a Theory',
             timezone     => 'America/Los_Angeles',
             email        => 'foo at bar dot com',
             bandwidth    => '1MBit',
@@ -751,7 +760,7 @@ test_psgi $app => sub {
                 [ uri          => 'http://pgxn.justatheory.com/',      'required url'],
                 [ frequency    => 'daily',                             'required' ],
                 [ location     => 'Portland, OR',                      'required' ],
-                [ organization => 'Just a Theory',                     'required' ],
+                [ organization => 'Jüst a Theory',                     'required' ],
                 [ timezone     => 'America/Los_Angeles',               'required' ],
                 [ email        => '',              'required email highlight' ],
                 [ bandwidth    => '1MBit',                             'required' ],
@@ -789,7 +798,7 @@ for my $field (qw(uri src rsync)) {
         uri          => 'http://pgxn.justatheory.com/',
         frequency    => 'daily',
         location     => 'Portland, OR',
-        organization => 'Just a Theory',
+        organization => 'Jüst a Theory',
         timezone     => 'America/Los_Angeles',
         email        => 'foo@bar.com',
         bandwidth    => '1MBit',
@@ -841,7 +850,7 @@ for my $field (qw(uri src rsync)) {
                     uri          => [ 'http://pgxn.justatheory.com/',      'required url'],
                     frequency    => [ 'daily',                             'required' ],
                     location     => [ 'Portland, OR',                      'required' ],
-                    organization => [ 'Just a Theory',                     'required' ],
+                    organization => [ 'Jüst a Theory',                     'required' ],
                     timezone     => [ 'America/Los_Angeles',               'required' ],
                     email        => [ 'foo@bar.com',                       'required email' ],
                     bandwidth    => [ '1MBit',                             'required' ],

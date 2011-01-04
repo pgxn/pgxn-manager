@@ -2,7 +2,7 @@
 
 use 5.12.0;
 use utf8;
-use Test::More tests => 765;
+use Test::More tests => 766;
 #use Test::More 'no_plan';
 use Plack::Test;
 use HTTP::Request::Common;
@@ -18,6 +18,8 @@ use Archive::Zip qw(:ERROR_CODES);
 use MIME::Base64;
 use Test::File;
 use Test::File::Contents;
+use Encode;
+use JSON::XS;
 use lib 't/lib';
 use TxnTest;
 use XPathTest;
@@ -445,9 +447,13 @@ test_psgi $app => sub {
 
         # And so should mirrors.json.
         file_exists_ok $meta, 'mirrors.json should now exist';
-        file_contents_is $meta, $_->selectrow_arrayref(
+        file_contents_is $meta, encode_utf8 $_->selectrow_arrayref(
             'SELECT get_mirrors_json()'
         )->[0], 'And it should contain the updated list of mirrors';
+        open my $fh, '<', $meta or die "Cannot open $meta: $!\n";
+        my $json = join '', <$fh>;
+        close $fh;
+        ok decode_json $json, 'Should be able to parse mirror.json';
     });
 };
 
