@@ -82,7 +82,7 @@ SELECT ok(
         bandwidth    := '10MBps',
         organization := 'Kineticode, Inc.',
         timezone     := 'America/Los_Angeles',
-        contact      := 'pgxn@example.com',
+        email        := 'pgxn@example.com',
         src          := 'rsync://master.pgxn.org/pgxn/'
     ), 'Insert a mirror'
 );
@@ -96,7 +96,7 @@ SELECT is(
       "location": "Portland, OR, USA",
       "organization": "Kineticode, Inc.",
       "timezone": "America/Los_Angeles",
-      "contact": "example.com|pgxn",
+      "email": "example.com|pgxn",
       "bandwidth": "10MBps",
       "src": "rsync://master.pgxn.org/pgxn/"
    }
@@ -117,7 +117,7 @@ SELECT ok(
         bandwidth    := 'Cable',
         organization := 'David E. Wheeler',
         timezone     := 'America/Los_Angeles',
-        contact      := 'pgxn@example.net',
+        email        := 'pgxn@example.net',
         src          := 'rsync://master.pgxn.org/pgxn/',
         rsync        := 'rsync://master.pgxn.org/pgxn/',
         notes        := 'These be some notes, yo'
@@ -137,7 +137,7 @@ SELECT is(
       "location": "Portland, OR, USA",
       "organization": "Kineticode, Inc.",
       "timezone": "America/Los_Angeles",
-      "contact": "example.com|pgxn",
+      "email": "example.com|pgxn",
       "bandwidth": "10MBps",
       "src": "rsync://master.pgxn.org/pgxn/"
    },
@@ -147,7 +147,7 @@ SELECT is(
       "location": "Portland, OR, USA",
       "organization": "David E. Wheeler",
       "timezone": "America/Los_Angeles",
-      "contact": "example.net|pgxn",
+      "email": "example.net|pgxn",
       "bandwidth": "Cable",
       "src": "rsync://master.pgxn.org/pgxn/",
       "rsync": "rsync://master.pgxn.org/pgxn/",

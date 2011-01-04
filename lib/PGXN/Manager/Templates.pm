@@ -1136,7 +1136,7 @@ template show_mirrors => sub {
                     };
                     th { scope is 'col'; T 'Frequency' };
                     th { scope is 'col'; T 'Contact'   };
-                    th { scope is 'col'; T 'Delete' };
+                    th { scope is 'col'; T 'Delete'    };
                 };
             };
             tbody {
@@ -1158,7 +1158,7 @@ template show_mirrors => sub {
                         cell { T $row->{frequency} };
                         cell {
                             a {
-                                href  is URI->new("mailto:$row->{contact}")->canonical;
+                                href  is URI->new("mailto:$row->{email}")->canonical;
                                 title is T q{Email [_1]}, $row->{organization};
                                 $row->{organization};
                             };

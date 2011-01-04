@@ -39,7 +39,7 @@ CREATE OR REPLACE FUNCTION get_mirrors_json(
            "location": "Portland, OR, USA",         ↵
            "organization": "Kineticode, Inc.",      ↵
            "timezone": "America/Los_Angeles",       ↵
-           "contact": "example.com|pgxn",           ↵
+           "email": "example.com|pgxn",             ↵
            "bandwidth": "10MBps",                   ↵
            "src": "rsync://master.pgxn.org/pgxn/"   ↵
         },                                          ↵
@@ -49,7 +49,7 @@ CREATE OR REPLACE FUNCTION get_mirrors_json(
            "location": "Portland, OR, USA",         ↵
            "organization": "David E. Wheeler",      ↵
            "timezone": "America/Los_Angeles",       ↵
-           "contact": "example.net|pgxn",           ↵
+           "email": "example.net|pgxn",             ↵
            "bandwidth": "Cable",                    ↵
            "src": "rsync://master.pgxn.org/pgxn/",  ↵
            "rsync": "rsync://master.pgxn.org/pgxn/",↵
@@ -69,7 +69,7 @@ objects. All the required fields will be present, and the optional fields
             json_key('location')     || ': ' || json_value(location),
             json_key('organization') || ': ' || json_value(organization),
             json_key('timezone')     || ': ' || json_value(timezone),
-            json_key('contact')      || ': ' || json_value(munge_email(contact)),
+            json_key('email')        || ': ' || json_value(munge_email(email)),
             json_key('bandwidth')    || ': ' || json_value(bandwidth),
             json_key('src')          || ': ' || json_value(src),
             json_key('rsync')        || ': ' || json_value(rsync, NULL),

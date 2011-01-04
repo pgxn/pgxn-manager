@@ -12,7 +12,7 @@ SELECT columns_are('public', 'mirrors', ARRAY[
     'location',
     'organization',
     'timezone',
-    'contact',
+    'email',
     'bandwidth',
     'src',
     'rsync',
@@ -51,10 +51,10 @@ SELECT col_type_is(       'mirrors', 'timezone', 'timezone' );
 SELECT col_not_null(      'mirrors', 'timezone' );
 SELECT col_hasnt_default( 'mirrors', 'timezone' );
 
-SELECT has_column(        'mirrors', 'contact' );
-SELECT col_type_is(       'mirrors', 'contact', 'email' );
-SELECT col_not_null(      'mirrors', 'contact' );
-SELECT col_hasnt_default( 'mirrors', 'contact' );
+SELECT has_column(        'mirrors', 'email' );
+SELECT col_type_is(       'mirrors', 'email', 'email' );
+SELECT col_not_null(      'mirrors', 'email' );
+SELECT col_hasnt_default( 'mirrors', 'email' );
 
 SELECT has_column(        'mirrors', 'bandwidth' );
 SELECT col_type_is(       'mirrors', 'bandwidth', 'text' );
@@ -202,7 +202,7 @@ SELECT ok(
         bandwidth    := '10MBps',
         organization := 'Kineticode, Inc.',
         timezone     := 'America/Los_Angeles',
-        contact      := 'pgxn@kineticode.com',
+        email        := 'pgxn@kineticode.com',
         src          := 'rsync://master.pgxn.org/pgxn/',
         rsync        := 'rsync://pgxn.kineticode.com/pgxn/',
         notes        := 'This is a note'
@@ -228,7 +228,7 @@ SELECT throws_ok(
         bandwidth    := '10MBps',
         organization := 'Kineticode, Inc.',
         timezone     := 'America/Los_Angeles',
-        contact      := 'pgxn@kineticode.com',
+        email        := 'pgxn@kineticode.com',
         src          := 'rsync://master.pgxn.org/pgxn/'
     ) $$,
     '23505', -- duplicate key value violates unique constraint "mirrors_pkey"
@@ -289,7 +289,7 @@ SELECT ok(
         bandwidth    := '1MBps',
         organization := 'Kineticode',
         timezone     := 'America/Los_Angeles',
-        contact      := 'pgxn-help@kineticode.com',
+        email        := 'pgxn-help@kineticode.com',
         src          := 'rsync://justatheory.com/pgxn/',
         rsync        := '',
         notes        := ''
@@ -316,7 +316,7 @@ SELECT ok(
         bandwidth    := '10MBps',
         organization := 'Kineticode, Inc.',
         timezone     := 'America/Los_Angeles',
-        contact      := 'pgxn@kineticode.com',
+        email        := 'pgxn@kineticode.com',
         src          := 'rsync://master.pgxn.org/pgxn/',
         rsync        := 'rsync://pgxn.kineticode.com/pgxn/',
         notes        := 'This is a note'

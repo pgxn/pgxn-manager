@@ -284,7 +284,7 @@ test_psgi $app => sub {
     # And now the mirror should exist.
     PGXN::Manager->conn->run(sub {
         is_deeply $_->selectrow_arrayref(q{
-            SELECT frequency, location, organization, timezone, contact,
+            SELECT frequency, location, organization, timezone, email,
                    bandwidth, src, rsync, notes, created_by
               FROM mirrors
              WHERE uri = ?
@@ -326,7 +326,7 @@ test_psgi $app => sub {
     # And now the mirror should exist.
     PGXN::Manager->conn->run(sub {
         is_deeply $_->selectrow_arrayref(q{
-            SELECT frequency, location, organization, timezone, contact,
+            SELECT frequency, location, organization, timezone, email,
                    bandwidth, src, rsync, notes, created_by
               FROM mirrors
              WHERE uri = ?

@@ -420,7 +420,7 @@ test_psgi $app => sub {
     # And we should find a mirror with the new URL, but not the old one.
     PGXN::Manager->conn->run(sub {
         is_deeply $_->selectrow_arrayref(q{
-            SELECT frequency, location, organization, timezone, contact,
+            SELECT frequency, location, organization, timezone, email,
                    bandwidth, src, rsync, notes, created_by
               FROM mirrors
              WHERE uri = ?
@@ -736,7 +736,7 @@ sub create_mirrors {
                 bandwidth    := $5,
                 organization := $6,
                 timezone     := $7,
-                contact      := $8,
+                email        := $8,
                 src          := $9,
                 rsync        := $10,
                 notes        := $11

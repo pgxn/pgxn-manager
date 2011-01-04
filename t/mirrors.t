@@ -208,7 +208,7 @@ PGXN::Manager->conn->run(sub {
             bandwidth    := $5,
             organization := $6,
             timezone     := $7,
-            contact      := $8,
+            email        := $8,
             src          := $9,
             rsync        := $10,
             notes        := $11

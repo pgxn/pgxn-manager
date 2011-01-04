@@ -748,7 +748,7 @@ sub show_mirrors {
 
     my $sth = PGXN::Manager->conn->run(sub {
         shift->prepare(q{
-            SELECT uri, organization, frequency, contact
+            SELECT uri, organization, frequency, email
               FROM mirrors
              ORDER BY uri
         });
@@ -766,8 +766,8 @@ sub get_mirror {
 
     my $mirror = PGXN::Manager->conn->run(sub {
         shift->selectrow_hashref(q{
-            SELECT uri, organization, contact AS email, frequency, location,
-                        timezone, bandwidth, src, rsync, notes
+            SELECT uri, organization, email, frequency, location, timezone,
+                   bandwidth, src, rsync, notes
               FROM mirrors
              WHERE uri = ?
         }, undef, $uri );
@@ -821,7 +821,7 @@ sub _do_mirror {
                 bandwidth    := ?,
                 organization := ?,
                 timezone     := ?,
-                contact      := ?,
+                email        := ?,
                 src          := ?,
                 rsync        := ?,
                 notes        := ?
