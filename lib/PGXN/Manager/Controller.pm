@@ -12,6 +12,7 @@ use Email::MIME;
 use Email::Sender::Simple;
 use JSON::XS;
 use Encode;
+use File::Temp ();
 use Data::Dump 'pp';
 use Data::Validate::URI 'is_uri';
 use namespace::autoclean;
@@ -845,7 +846,9 @@ sub _do_mirror {
 
 
         if ($ret) {
-            # Success!
+            # Success! Write out a new mirrors.json.
+            $self->_write_mirrors_meta;
+
             return $self->respond_with('success', $req) if $req->is_xhr;
 
             # XXX Consider returning 201 and URI to the mirror profile?
@@ -867,7 +870,7 @@ sub _do_mirror {
         # Failure!
         my $err = shift;
         my ($msg, $highlight);
-        given ($err->state) {
+        given (eval { $err->state }) {
             when ('23505') {
                 # Unique constraint violation.
                 $highlight = ['uri'];
@@ -946,11 +949,25 @@ sub delete_mirror {
         )->[0];
     }) or return $self->respond_with('notfound', $req);
 
+    # Success. Write out a new mirrors.json.
+    $self->_write_mirrors_meta;
+
     # Simple response for XHR request.
     return $self->respond_with('success', $req) if $req->is_xhr;
 
     # Redirect for normal request.
     return $self->redirect('/admin/mirrors', $req);
+}
+
+sub _write_mirrors_meta {
+    my $tmp = File::Temp->new;
+    PGXN::Manager->conn->run(sub {
+        print $tmp shift->selectrow_array( 'SELECT get_mirrors_json()');
+    });
+    close $tmp;
+    PGXN::Manager->move_file($tmp->filename, File::Spec->catfile(
+        PGXN::Manager->config->{mirror_root}, 'meta', 'mirrors.json'
+    ));
 }
 
 1;

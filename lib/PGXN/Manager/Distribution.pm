@@ -8,7 +8,6 @@ use PGXN::Manager::Locale;
 use Archive::Extract;
 use Archive::Zip qw(:ERROR_CODES);
 use File::Basename qw(dirname);
-use File::Copy qw(move);
 use File::Spec;
 use Try::Tiny;
 use File::Path qw(make_path remove_tree);
@@ -336,11 +335,14 @@ sub indexit {
 
     # Move the archive to the mirror root.
     my $uri  = $templates->{dist}->process(@vars);
-    _mv($self->zipfile, File::Spec->catfile($root, $uri->path_segments));
+    PGXN::Manager->move_file(
+        $self->zipfile,
+        File::Spec->catfile($root, $uri->path_segments)
+    );
 
     # Move all the other files over.
     while (my ($src, $dest) = each %files) {
-        _mv($src, $dest);
+        PGXN::Manager->move_file($src, $dest);
     }
 
     return $self;
@@ -355,18 +357,6 @@ sub DEMOLISH {
     if (my $path = $self->workdir) {
         remove_tree $path if -e $path;
     }
-}
-
-sub _mv {
-    my ($src, $dest) = @_;
-    make_path dirname $dest;
-    move $src, $dest or do {
-        # D'oh! Move failed. Try to clean up.
-        my $err = $!;
-        remove_tree $dest;
-        die qq{Failed to move $src" to "dest": $!\n};
-    };
-    chmod 0644, $dest;
 }
 
 sub _zip_error_handler {

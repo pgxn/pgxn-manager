@@ -56,6 +56,7 @@ $class->new(
         'File::Copy'                        => '2.18',
         'File::Path'                        => '2.08',
         'File::Spec'                        => '3.33',
+        'File::Temp'                        => '0.22',
         'HTML::Entities'                    => '3.68',
         'HTTP::Negotiate'                   => '5.835',
         'I18N::LangTags::Detect'            => '1.04',

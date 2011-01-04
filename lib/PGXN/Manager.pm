@@ -9,6 +9,10 @@ use Exception::Class::DBI;
 use File::Spec;
 use JSON::XS ();
 use URI::Template;
+use File::Copy qw(move);
+use File::Path qw(make_path remove_tree);
+use File::Basename qw(dirname);
+use namespace::autoclean;
 
 =head1 Name
 
@@ -165,6 +169,29 @@ sub init_root {
     }
 
     return $self;
+}
+
+=head3 C<move_file>
+
+  $pgxn->move_file($src, $dest);
+
+Moves a file to a new location. Both arguments must be full file names, not
+directories. In the event of an error, C<move_file()> will do its best to
+clean up any partially-moved file before throwing an exception. On success,
+the file will have its permissions set to 0644.
+
+=cut
+
+sub move_file {
+    my ($self, $src, $dest) = @_;
+    make_path dirname $dest;
+    move $src, $dest or do {
+        # D'oh! Move failed. Try to clean up.
+        my $err = $!;
+        remove_tree $dest;
+        die qq{Failed to move "$src" to "dest": $!\n};
+    };
+    chmod 0644, $dest;
 }
 
 __PACKAGE__->meta->make_immutable;
