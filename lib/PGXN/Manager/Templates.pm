@@ -1109,6 +1109,14 @@ template show_mirrors => sub {
     my ($self, $req, $args) = @_;
     wrapper {
         h1 { T 'Mirrors' };
+        p {
+            T q{Thanks for administering rsync mirrors, [_1]. Here's how:}, $req->user;
+        };
+        ul {
+            li { T q{Hit the green ✚ add a new mirror.}};
+            li { T q{Hit the green ➔ to edit an existing mirror.}};
+            li { T q{Hit the red ▬ to delete an existing mirror.}};
+        };
         table {
             id is 'mirrorlist';
             summary is T 'List of project mirrors';
@@ -1205,11 +1213,7 @@ template show_mirror => sub {
     my $update = $args->{update};
     wrapper {
         h1 { T $update ? 'Edit Mirror' : 'New Mirror' };
-        p {
-            T $update
-                ? 'If someone has sent in updated information on a mirror, make the update here.'
-                : 'If someone has created a new mirror and sent in the essentials, update the mirror list by adding it here.'
-        };
+        p { T 'All fields except "Note" are required. Thanks for keeping the rsync mirror index up-to-date!' };
         if (my $err = $args->{error}) {
             p {
                 class is 'error';

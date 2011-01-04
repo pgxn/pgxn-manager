@@ -27,7 +27,7 @@ my $uri      = '/auth/admin/mirrors/new';
 my $user     = TxnTest->user;
 my $admin    = TxnTest->admin;
 my $h1       = $mt->maketext('Edit Mirror');
-my $p        = $mt->maketext('If someone has sent in updated information on a mirror, make the update here.');
+my $p        = $mt->maketext(q{All fields except "Note" are required. Thanks for keeping the rsync mirror index up-to-date!});
 
 # Connect without authenticating.
 test_psgi $app => sub {

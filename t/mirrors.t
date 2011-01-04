@@ -2,8 +2,8 @@
 
 use 5.12.0;
 use utf8;
-#use Test::More tests => 310;
-use Test::More 'no_plan';
+use Test::More tests => 436;
+#use Test::More 'no_plan';
 use Plack::Test;
 use HTTP::Request::Common;
 use PGXN::Manager;
@@ -82,7 +82,25 @@ test_psgi +PGXN::Manager::Router->app => sub {
     });
 
     $tx->ok('/html/body/div[@id="content"]', 'Look at the content', sub {
-        $tx->is('count(./*)', 2, '... Should have two subelements');
+        $tx->is('count(./*)', 4, '... Should have four subelements');
+        # Let's have a look at the content.
+        $tx->is('./p', $mt->maketext(
+            q{Thanks for administering rsync mirrors, [_1]. Here's how:}, $admin
+        ), '... Should have intro paragraph');
+        $tx->ok('./ul', '... Test directions list', sub {
+            $tx->is('count(./*)', 3, '...... Should have three subelements');
+            $tx->is('count(./li)', 3, '...... And they should be list items');
+            $tx->is('./li[1]', $mt->maketext(
+                q{Hit the green ✚ add a new mirror.}
+            ), '...... First should be the add item');
+            $tx->is('./li[2]', $mt->maketext(
+                q{Hit the green ➔ to edit an existing mirror.}
+            ), '...... Second should be the edit item');
+            $tx->is('./li[3]', $mt->maketext(
+                q{Hit the red ▬ to delete an existing mirror.}
+            ), '...... Third should be the delete item');
+        });
+
         $tx->ok('./table[@id="mirrorlist"]', '... Test mirrorlist table', sub {
             $tx->is(
                 './@summary',
@@ -247,7 +265,7 @@ test_psgi +PGXN::Manager::Router->app => sub {
     });
 
     $tx->ok('/html/body/div[@id="content"]', 'Look at the content', sub {
-        $tx->is('count(./*)', 2, '... Should have two subelements');
+        $tx->is('count(./*)', 4, '... Should have four subelements');
         $tx->ok('./table[@id="mirrorlist"]', '... Test mirrorlist table', sub {
             $tx->is(
                 './@summary',
