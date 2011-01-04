@@ -75,7 +75,7 @@ $class->new(
         'Plack::Middleware::Session'        => '0.12',
         'Plack::Middleware::MethodOverride' => '0.10',
         'namespace::autoclean'              => '0.11',
-        'Router::Resource'                  => '0.10',
+        'Router::Resource'                  => '0.11',
         'SemVer'                            => '0.1.0',
         'Template::Declare'                 => '0.43',
         'Template::Declare::Tags'           => '0.43',

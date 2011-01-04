@@ -2,7 +2,6 @@ package PGXN::Manager::Router;
 
 use 5.12.0;
 use utf8;
-use lib '/Users/david/dev/github/router-resource/lib';
 use Router::Resource;
 use Plack::Builder;
 use Plack::App::File;
