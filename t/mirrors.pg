@@ -274,6 +274,10 @@ SELECT ok(
     'Should get no error from update_mirror for admin user'
 );
 
+-- Make sure that updated_at will be updated.
+UPDATE mirrors SET updated_at = '2010-12-18 19:42:00'
+ WHERE uri = 'http://kineticode.com/pgxn/';
+
 -- Do the update for realz.
 SELECT ok(
     update_mirror(
