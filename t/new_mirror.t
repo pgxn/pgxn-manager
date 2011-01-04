@@ -2,7 +2,7 @@
 
 use 5.12.0;
 use utf8;
-use Test::More tests => 1031;
+use Test::More tests => 1036;
 #use Test::More 'no_plan';
 use Plack::Test;
 use HTTP::Request::Common;
@@ -16,10 +16,12 @@ use Test::XPath;
 use JSON::XS;
 use Archive::Zip qw(:ERROR_CODES);
 use MIME::Base64;
+use Test::File;
+use Test::File::Contents;
+use Test::NoWarnings;
 use lib 't/lib';
 use TxnTest;
 use XPathTest;
-use Test::NoWarnings;
 
 my $app      = PGXN::Manager::Router->app;
 my $mt       = PGXN::Manager::Locale->accept('en');
@@ -250,6 +252,12 @@ test_psgi +PGXN::Manager::Router->app => sub {
     });
 };
 
+# Set up the mirror root.
+my $pgxn = PGXN::Manager->instance;
+my $meta = File::Spec->catfile($pgxn->config->{mirror_root}, 'meta', 'mirrors.json');
+END { remove_tree $pgxn->config->{mirror_root} }
+file_not_exists_ok $meta, "mirrors.json should not exist";
+
 # Okay, let's submit the form.
 $uri = '/auth/admin/mirrors';
 test_psgi $app => sub {
@@ -294,7 +302,14 @@ test_psgi $app => sub {
             'rsync://pgxn.justatheory.com/pgxn', 'IM IN UR DATUH BASEZ.',
             $admin
         ], 'New mirror should exist';
+
+        # And so should mirrors.json.
+        file_exists_ok $meta, 'mirrors.json should now exist';
+        file_contents_is $meta, $_->selectrow_arrayref(
+            'SELECT get_mirrors_json()'
+        )->[0], 'And it should contain the updated list of mirrors';
     });
+
 };
 
 # Now try an XMLHttpRequest
@@ -336,6 +351,13 @@ test_psgi $app => sub {
             '', '',
             $admin
         ], 'Second mirror should exist';
+
+
+        # And so should mirrors.json.
+        file_exists_ok $meta, 'mirrors.json should now exist';
+        file_contents_is $meta, $_->selectrow_arrayref(
+            'SELECT get_mirrors_json()'
+        )->[0], 'And it should contain the updated list of mirrors';
     });
 };
 

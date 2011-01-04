@@ -2,7 +2,7 @@
 
 use 5.12.0;
 use utf8;
-use Test::More tests => 762;
+use Test::More tests => 765;
 #use Test::More 'no_plan';
 use Plack::Test;
 use HTTP::Request::Common;
@@ -16,6 +16,8 @@ use Test::XPath;
 use JSON::XS;
 use Archive::Zip qw(:ERROR_CODES);
 use MIME::Base64;
+use Test::File;
+use Test::File::Contents;
 use lib 't/lib';
 use TxnTest;
 use XPathTest;
@@ -386,6 +388,12 @@ test_psgi $app => sub {
     });
 };
 
+# Set up the mirror root.
+my $pgxn = PGXN::Manager->instance;
+my $meta = File::Spec->catfile($pgxn->config->{mirror_root}, 'meta', 'mirrors.json');
+END { remove_tree $pgxn->config->{mirror_root} }
+file_not_exists_ok $meta, "mirrors.json should not exist";
+
 # Okay, now submit the PUT for the proper resource, hrm?
 test_psgi $app => sub {
     my $uri = '/auth/admin/mirrors/http://kineticode.com/pgxn/?x-tunneled-method=put';
@@ -434,6 +442,12 @@ test_psgi $app => sub {
         is_deeply $_->selectcol_arrayref('SELECT uri FROM mirrors ORDER BY uri'),
             ['http://pgxn.example.com/', 'http://pgxn.kineticode.com/'],
             'And there should be only the two expected mirrors';
+
+        # And so should mirrors.json.
+        file_exists_ok $meta, 'mirrors.json should now exist';
+        file_contents_is $meta, $_->selectrow_arrayref(
+            'SELECT get_mirrors_json()'
+        )->[0], 'And it should contain the updated list of mirrors';
     });
 };
 
