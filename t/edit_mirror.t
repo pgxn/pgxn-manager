@@ -2,7 +2,7 @@
 
 use 5.12.0;
 use utf8;
-use Test::More tests => 482;
+use Test::More tests => 762;
 #use Test::More 'no_plan';
 use Plack::Test;
 use HTTP::Request::Common;
@@ -97,37 +97,7 @@ test_psgi +PGXN::Manager::Router->app => sub {
 };
 
 # Okay, let's create a mirror to edit.
-PGXN::Manager->conn->run(sub {
-    my $dbh = shift;
-    my $sth = $dbh->prepare(q{
-        SELECT insert_mirror(
-            admin        := $1,
-            uri          := $2,
-            frequency    := $3,
-            location     := $4,
-            bandwidth    := $5,
-            organization := $6,
-            timezone     := $7,
-            contact      := $8,
-            src          := $9,
-            rsync        := $10,
-            notes        := $11
-        )
-    });
-    $sth->execute(
-        $admin,
-        'http://kineticode.com/pgxn/',
-        'hourly',
-        'Portland, OR, USA',
-        '10MBps',
-        'Kineticode, Inc.',
-        'America/Los_Angeles',
-        'pgxn@kineticode.com',
-        'rsync://master.pgxn.org/pgxn/',
-        'rsync://pgxn.kineticode.com/pgxn/',
-        'This is a note',
-    );
-});
+create_mirrors();
 
 # Connect as authenticated user and get that mirror.
 test_psgi +PGXN::Manager::Router->app => sub {
@@ -416,3 +386,387 @@ test_psgi $app => sub {
     });
 };
 
+# Okay, now submit the PUT for the proper resource, hrm?
+test_psgi $app => sub {
+    my $uri = '/auth/admin/mirrors/http://kineticode.com/pgxn/?x-tunneled-method=put';
+    my $cb = shift;
+    my $req = POST(
+        $uri,
+        Authorization => 'Basic ' . encode_base64("$admin:****"),
+        Content       => [
+            uri          => 'http://pgxn.kineticode.com/',
+            frequency    => 'daily',
+            location     => 'Portland, OR',
+            organization => 'Just a Theory',
+            timezone     => 'America/Los_Angeles',
+            email        => 'pgxn@justatheory.com',
+            bandwidth    => '1MBit',
+            src          => 'rsync://master.pgxn.org/pgxn',
+            rsync        => 'rsync://pgxn.justatheory.com/pgxn',
+            notes        => 'IM IN UR DATUH BASEZ.',
+        ]
+    );
+
+    # Send the request.
+    ok my $res = $cb->($req), "POST mirror to $uri";
+    ok $res->is_redirect, 'It should be a redirect response';
+
+    # Validate we got the expected response.
+    $req = PGXN::Manager::Request->new(req_to_psgi($res->request));
+    $req->env->{SCRIPT_NAME} = '/auth';
+    is $res->headers->header('location'), $req->uri_for('/admin/mirrors'),
+        'Should redirect to /admin/mirrors';
+
+    # And we should find a mirror with the new URL, but not the old one.
+    PGXN::Manager->conn->run(sub {
+        is_deeply $_->selectrow_arrayref(q{
+            SELECT frequency, location, organization, timezone, contact,
+                   bandwidth, src, rsync, notes, created_by
+              FROM mirrors
+             WHERE uri = ?
+        }, undef, 'http://pgxn.kineticode.com/'), [
+            'daily', 'Portland, OR', 'Just a Theory', 'America/Los_Angeles',
+            'pgxn@justatheory.com', '1MBit', 'rsync://master.pgxn.org/pgxn',
+            'rsync://pgxn.justatheory.com/pgxn', 'IM IN UR DATUH BASEZ.',
+            $admin
+        ], 'Mirror should be updated';
+
+        is_deeply $_->selectcol_arrayref('SELECT uri FROM mirrors ORDER BY uri'),
+            ['http://pgxn.example.com/', 'http://pgxn.kineticode.com/'],
+            'And there should be only the two expected mirrors';
+    });
+};
+
+# Now try an XMLHttpRequest
+test_psgi $app => sub {
+    my $uri = '/auth/admin/mirrors/http://pgxn.kineticode.com/?x-tunneled-method=put';
+    my $cb = shift;
+    my $req = POST(
+        $uri,
+        Authorization => 'Basic ' . encode_base64("$admin:****"),
+        'X-Requested-With' => 'XMLHttpRequest',
+        Content       => [
+            uri          => 'http://pgxn.kineticode.com/',
+            frequency    => 'hourly',
+            location     => 'Portland, OR',
+            organization => 'Just a Theory',
+            timezone     => 'America/Los_Angeles',
+            email        => 'pgxn@justatheory.com',
+            bandwidth    => '1MBit',
+            src          => 'rsync://master.pgxn.org/pgxn',
+            rsync        => 'rsync://pgxn.justatheory.com/pgxn',
+            notes        => 'IM IN UR DATUH BASEZ.',
+        ]
+    );
+
+    # Send the request.
+    ok my $res = $cb->($req), "POST mirror to $uri";
+    ok $res->is_success, 'It should be a success';
+    is $res->content, 'Success', 'And the content should say so';
+
+    # And we should find a mirror with the new data, but not the old one.
+    PGXN::Manager->conn->run(sub {
+        is $_->selectcol_arrayref(
+            'SELECT frequency FROM mirrors WHERE uri = ?',
+            undef, 'http://pgxn.kineticode.com/'
+        )->[0], 'hourly', 'The frequency should have been updatd';
+
+        is_deeply $_->selectcol_arrayref('SELECT uri FROM mirrors ORDER BY uri'),
+            ['http://pgxn.example.com/', 'http://pgxn.kineticode.com/'],
+            'And there should still be only the two expected mirrors';
+    });
+};
+
+# Need to mock user_is_admin to get around dead transactions.
+my $rmock = Test::MockModule->new('PGXN::Manager::Request');
+$rmock->mock(user_is_admin => 1);
+
+# Awesome. Let's get a URI conflict and see how it handles it.
+test_psgi $app => sub {
+    my $uri = '/auth/admin/mirrors/http://pgxn.kineticode.com/?x-tunneled-method=put';
+    my $cb = shift;
+    my $req = POST(
+        $uri,
+        Authorization => 'Basic ' . encode_base64("$admin:****"),
+        Content       => [
+            uri          => 'http://pgxn.example.com/',
+            frequency    => 'hourly',
+            location     => 'Portland, OR',
+            organization => 'Just a Theory',
+            timezone     => 'America/Los_Angeles',
+            email        => 'pgxn@justatheory.com',
+            bandwidth    => '1MBit',
+            src          => 'rsync://master.pgxn.org/pgxn',
+            rsync        => 'rsync://pgxn.justatheory.com/pgxn',
+            notes        => 'IM IN UR DATUH BASEZ.',
+        ]
+    );
+
+    # Send the request.
+    ok my $res = $cb->($req), "POST missing data to $uri";
+    ok !$res->is_redirect, 'It should not be a redirect response';
+    is $res->code, 409, 'Should have 409 status code';
+
+    # So check the content.
+    is_well_formed_xml $res->content, 'The HTML should be well-formed';
+    my $tx = Test::XPath->new( xml => $res->content, is_html => 1 );
+
+    $req = PGXN::Manager::Request->new(req_to_psgi($res->request));
+    $req->env->{REMOTE_USER} = $admin;
+    $req->env->{SCRIPT_NAME} = '/auth';
+    XPathTest->test_basics($tx, $req, $mt, {
+        h1 => 'Edit Mirror',
+        page_title  => 'Enter the mirror information provided by the contact',
+        validate_form => 1,
+    });
+
+    # Now verify that we have the error message and that the form fields are
+    # higlighted
+    $tx->ok('/html/body/div[@id="content"]', 'Test the content', sub {
+        $tx->is('count(./*)', 4, '... It should have four subelements');
+        $tx->is('./h1', $h1, '... The title h1 should be set');
+        $tx->is('./p[1]', $p, '... Intro paragraph should be set');
+        my $err = $mt->maketext(
+            'Looks like http://pgxn.example.com/ is already registered as a mirror.',
+        );
+        $tx->is('./p[@class="error"]', $err, '... Error paragraph should be set');
+
+        # Check the form fields.
+        $tx->ok('./form[@id="mirrorform"]/fieldset[1]', '... Check first fieldset', sub {
+            for my $spec(
+                [ uri          => 'required url highlight', 'http://pgxn.kineticode.com/' ],
+                [ frequency    => 'required',               'hourly' ],
+                [ location     => 'required',               'Portland, OR' ],
+                [ organization => 'required',               'Just a Theory' ],
+                [ timezone     => 'required',               'America/Los_Angeles' ],
+                [ email        => 'required email',         'pgxn@justatheory.com' ],
+                [ bandwidth    => 'required',               '1MBit' ],
+                [ src          => 'required',               'rsync://master.pgxn.org/pgxn' ],
+                [ rsync        => '',                       'rsync://pgxn.justatheory.com/pgxn', ],
+            ) {
+                $tx->is(
+                    qq{./input[\@id="$spec->[0]"]/\@value},
+                    $spec->[2],
+                    "...... $spec->[0] should have its value",
+                );
+                $tx->is(
+                    qq{./input[\@id="$spec->[0]"]/\@class},
+                    $spec->[1],
+                    "...... And $spec->[0] should have the proper class",
+                );
+            }
+        });
+
+        $tx->ok('./form[@id="mirrorform"]/fieldset[2]', '... Check second fieldset', sub {
+            $tx->is(
+                './textarea[@id="notes"]',
+                'IM IN UR DATUH BASEZ.',
+                '...... Notes textarea should have its value'
+            );
+        });
+    });
+};
+
+# Now try with missing values.
+TxnTest->restart;
+$admin = TxnTest->admin;
+create_mirrors();
+test_psgi $app => sub {
+    my $cb  = shift;
+    my $uri = '/auth/admin/mirrors/http://kineticode.com/pgxn/?x-tunneled-method=put';
+    my $req = POST(
+        $uri,
+        Authorization => 'Basic ' . encode_base64("$admin:****"),
+        Content       => [],
+    );
+
+    # Send the request.
+    ok my $res = $cb->($req), "POST missing data to $uri";
+    ok !$res->is_redirect, 'It should not be a redirect response';
+    is $res->code, 409, 'Should have 409 status code';
+
+    # So check the content.
+    is_well_formed_xml $res->content, 'The HTML should be well-formed';
+    my $tx = Test::XPath->new( xml => $res->content, is_html => 1 );
+
+    $req = PGXN::Manager::Request->new(req_to_psgi($res->request));
+    $req->env->{REMOTE_USER} = $admin;
+    $req->env->{SCRIPT_NAME} = '/auth';
+    XPathTest->test_basics($tx, $req, $mt, {
+        h1 => 'Edit Mirror',
+        page_title  => 'Enter the mirror information provided by the contact',
+        validate_form => 1,
+    });
+
+    # Now verify that we have the error message and that the form fields are
+    # higlighted
+    $tx->ok('/html/body/div[@id="content"]', 'Test the content', sub {
+        $tx->is('count(./*)', 4, '... It should have four subelements');
+        $tx->is('./h1', $h1, '... The title h1 should be set');
+        $tx->is('./p[1]', $p, '... Intro paragraph should be set');
+        my $err = $mt->maketext(
+            'I think you left something out. Please fill in the missing data in the highlighted fields below.',
+        );
+        $tx->is('./p[@class="error"]', $err, '... Error paragraph should be set');
+
+        # Check the form fields.
+        $tx->ok('./form[@id="mirrorform"]/fieldset[1]', '... Check first fieldset', sub {
+            for my $spec(
+                [ uri          => 'required url highlight' ],
+                [ frequency    => 'required highlight' ],
+                [ location     => 'required highlight' ],
+                [ organization => 'required highlight' ],
+                [ timezone     => 'required highlight' ],
+                [ email        => 'required email highlight' ],
+                [ bandwidth    => 'required highlight' ],
+                [ src          => 'required highlight' ],
+                [ rsync        => '' ],
+            ) {
+                $tx->is(
+                    qq{./input[\@id="$spec->[0]"]/\@value},
+                    '',
+                    "...... $spec->[0] should be empty",
+                );
+                $tx->is(
+                    qq{./input[\@id="$spec->[0]"]/\@class},
+                    $spec->[1],
+                    "...... And $spec->[0] should have the proper class",
+                );
+            }
+        });
+
+        $tx->ok('./form[@id="mirrorform"]/fieldset[2]', '... Check second fieldset', sub {
+            $tx->is(
+                './textarea[@id="notes"]',
+                '',
+                '...... Notes textarea should be empty'
+            );
+        });
+    });
+};
+
+# Try with just a subset of missing values.
+test_psgi $app => sub {
+    my $cb  = shift;
+    my $uri = '/auth/admin/mirrors/http://kineticode.com/pgxn/?x-tunneled-method=put';
+    my $req = POST(
+        $uri,
+        Authorization => 'Basic ' . encode_base64("$admin:****"),
+        Content       => [
+            uri          => 'http://pgxn.justatheory.com/',
+            frequency    => 'daily',
+            location     => 'Portland, OR',
+        ],
+    );
+
+    # Send the request.
+    ok my $res = $cb->($req), "POST missing data to $uri";
+    ok !$res->is_redirect, 'It should not be a redirect response';
+    is $res->code, 409, 'Should have 409 status code';
+
+    # So check the content.
+    is_well_formed_xml $res->content, 'The HTML should be well-formed';
+    my $tx = Test::XPath->new( xml => $res->content, is_html => 1 );
+
+    $req = PGXN::Manager::Request->new(req_to_psgi($res->request));
+    $req->env->{REMOTE_USER} = $admin;
+    $req->env->{SCRIPT_NAME} = '/auth';
+    XPathTest->test_basics($tx, $req, $mt, {
+        h1 => 'Edit Mirror',
+        page_title  => 'Enter the mirror information provided by the contact',
+        validate_form => 1,
+    });
+
+    # Now verify that we have the error message and that the form fields are
+    # higlighted
+    $tx->ok('/html/body/div[@id="content"]', 'Test the content', sub {
+        $tx->is('count(./*)', 4, '... It should have four subelements');
+        $tx->is('./h1', $h1, '... The title h1 should be set');
+        $tx->is('./p[1]', $p, '... Intro paragraph should be set');
+        my $err = $mt->maketext(
+            'I think you left something out. Please fill in the missing data in the highlighted fields below.',
+        );
+        $tx->is('./p[@class="error"]', $err, '... Error paragraph should be set');
+
+        # Check the form fields.
+        $tx->ok('./form[@id="mirrorform"]/fieldset[1]', '... Check first fieldset', sub {
+            for my $spec(
+                [ uri          => 'required url',  'http://pgxn.justatheory.com/'],
+                [ frequency    => 'required',      'daily'],
+                [ location     => 'required',       'Portland, OR'],
+                [ organization => 'required highlight' ],
+                [ timezone     => 'required highlight' ],
+                [ email        => 'required email highlight' ],
+                [ bandwidth    => 'required highlight' ],
+                [ src          => 'required highlight' ],
+                [ rsync        => '' ],
+            ) {
+                $tx->is(
+                    qq{./input[\@id="$spec->[0]"]/\@value},
+                    $spec->[2] || '',
+                    "...... $spec->[0] should have the expected value",
+                );
+                $tx->is(
+                    qq{./input[\@id="$spec->[0]"]/\@class},
+                    $spec->[1],
+                    "...... And $spec->[0] should have the proper class",
+                );
+            }
+        });
+
+        $tx->ok('./form[@id="mirrorform"]/fieldset[2]', '... Check second fieldset', sub {
+            $tx->is(
+                './textarea[@id="notes"]',
+                '',
+                '...... Notes textarea should be empty'
+            );
+        });
+    });
+};
+
+sub create_mirrors {
+    PGXN::Manager->conn->run(sub {
+        my $dbh = shift;
+        my $sth = $dbh->prepare(q{
+            SELECT insert_mirror(
+                admin        := $1,
+                uri          := $2,
+                frequency    := $3,
+                location     := $4,
+                bandwidth    := $5,
+                organization := $6,
+                timezone     := $7,
+                contact      := $8,
+                src          := $9,
+                rsync        := $10,
+                notes        := $11
+            )
+        });
+        $sth->execute(
+            $admin,
+            'http://kineticode.com/pgxn/',
+            'hourly',
+            'Portland, OR, USA',
+            '10MBps',
+            'Kineticode, Inc.',
+            'America/Los_Angeles',
+            'pgxn@kineticode.com',
+            'rsync://master.pgxn.org/pgxn/',
+            'rsync://pgxn.kineticode.com/pgxn/',
+            'This is a note',
+        );
+        $sth->execute(
+            $admin,
+            'http://pgxn.example.com/',
+            'weekly',
+            'Springfield, USA',
+            '1KBps',
+            'Simpsonvile',
+            'America/Chicago',
+            'pgxn@example.com',
+            'rsync://master.pgxn.org/pgxn/',
+            '',
+            '',
+        );
+    });
+}

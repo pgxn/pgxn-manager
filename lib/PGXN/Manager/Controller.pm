@@ -789,6 +789,7 @@ sub _do_mirror {
     my $action = shift;
     my $req    = Request->new(shift);
     my $params = $req->body_parameters;
+    my $update = $action eq 'update';
     return $self->respond_with('forbidden', $req) unless $req->user_is_admin;
 
     my @missing;
@@ -804,7 +805,8 @@ sub _do_mirror {
         return $self->render('/show_mirror', { req => $req, code => $code_for{conflict}, vars => {
             %{ $params },
             highlight => \@missing,
-            error     => [q{I think you left something out. Please fill in the missing data in the highlighted fields below.}]
+            error     => [q{I think you left something out. Please fill in the missing data in the highlighted fields below.}],
+            update    => $update,
         }});
     }
 
@@ -812,7 +814,7 @@ sub _do_mirror {
     PGXN::Manager->conn->run(sub {
         my $ret = shift->selectcol_arrayref(
             qq{SELECT $action\_mirror(
-                admin        := ?,} . ($action eq 'update' ? "\n                old_uri      := ?," : '') . q{
+                admin        := ?,} . ($update ? "\n                old_uri      := ?," : '') . q{
                 uri          := ?,
                 frequency    := ?,
                 location     := ?,
@@ -826,7 +828,7 @@ sub _do_mirror {
             )},
             undef,
             $req->user,
-            ($action eq 'update' ? ($old_uri) : ()),
+            ($update ? ($old_uri) : ()),
             @{ $params }{qw(
                 uri
                 frequency
@@ -858,7 +860,7 @@ sub _do_mirror {
         return $self->render('/show_mirror', { req => $req, code => $code_for{notfound}, vars => {
             %{ $params },
             error  => $msg,
-            update => $action eq 'update',
+            update => $update,
         }});
 
     }, sub {
@@ -873,6 +875,8 @@ sub _do_mirror {
                     'Looks like [_1] is already registered as a mirror.',
                     delete $params->{uri},
                 ];
+                # Show the original URL for updates.
+                $params->{uri} = $old_uri if $update;
             } when ('23514') {
                 # Domain label violation.
                 given ($err->errstr) {
@@ -898,6 +902,7 @@ sub _do_mirror {
                             q{Hrm, “[_1]” doesn't look like a URI. Care to try again?},
                             delete $params->{$field},
                         ];
+                        $params->{$field} = $old_uri if $update && $field eq 'uri';
                     } default {
                         die $err;
                     }
@@ -914,7 +919,7 @@ sub _do_mirror {
             %{ $params },
             highlight => $highlight,
             error     => $msg,
-            update    => $action eq 'update',
+            update    => $update,
         }});
     });
 }
