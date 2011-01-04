@@ -2,7 +2,7 @@
 
 use 5.12.0;
 use utf8;
-use Test::More tests => 317;
+use Test::More tests => 513;
 #use Test::More 'no_plan';
 use Plack::Test;
 use HTTP::Request::Common;
@@ -14,6 +14,8 @@ use File::Path qw(remove_tree);
 use Test::XML;
 use Test::XPath;
 use MIME::Base64;
+use Test::File;
+use Test::File::Contents;
 use lib 't/lib';
 use TxnTest;
 use XPathTest;
@@ -561,3 +563,168 @@ test_psgi +PGXN::Manager::Router->app => sub {
         });
     });
 };
+
+
+# Okay, now let's delete a mirror. Start without authenticating.
+test_psgi $app => sub {
+    my $cb = shift;
+    my $uri = '/auth/admin/mirrors/http://kineticode.com/pgxn/?x-tunneled-method=delete';
+    ok my $res = $cb->(POST $uri), "POST $uri";
+    is $res->code, 401, 'Should get 401 response';
+    like $res->content, qr/Authorization required/,
+        'The body should indicate need for authentication';
+};
+
+# Try a non-admin user.
+test_psgi $app => sub {
+    my $cb = shift;
+    my $uri = '/auth/admin/mirrors/http://kineticode.com/pgxn/?x-tunneled-method=delete';
+    my $req = POST $uri, Authorization => 'Basic ' . encode_base64("$user:****");
+    ok my $res = $cb->($req), "POST $uri";
+
+    is $res->code, 403, 'Should get 403 response';
+    is_well_formed_xml $res->content, 'The HTML should be well-formed';
+    my $tx = Test::XPath->new( xml => $res->content, is_html => 1 );
+
+    $req = PGXN::Manager::Request->new(req_to_psgi($req));
+    $req->env->{REMOTE_USER} = $user;
+    $req->env->{SCRIPT_NAME} = '/auth';
+    XPathTest->test_basics($tx, $req, $mt, {
+        h1 => 'Permission Denied',
+        page_title => q{Whoops! I don't think you belong here},
+    });
+
+    $tx->ok('/html/body/div[@id="content"]', 'Look at the content', sub {
+        $tx->is('count(./*)', 2, '... Should have two subelements');
+        $tx->is(
+            './p[@class="error"]',
+            $mt->maketext(q{Sorry, you do not have permission to access this resource.}),
+            '... Should have the error message'
+        );
+    });
+};
+
+# Now try without the requisite tunneled DELETE method.
+test_psgi $app => sub {
+    my $cb = shift;
+    my $uri = '/auth/admin/mirrors/http://kineticode.com/pgxn/';
+    my $req = POST $uri, Authorization => 'Basic ' . encode_base64("$admin:****");
+    ok my $res = $cb->($req), "POST $uri";
+
+    ok !$res->is_success, 'It should not be a success';
+    is $res->code, 405, 'It should be "405 - not allowed"';
+
+    is_well_formed_xml $res->content, 'The HTML should be well-formed';
+    my $tx = Test::XPath->new( xml => $res->content, is_html => 1 );
+
+    $req = PGXN::Manager::Request->new(req_to_psgi($req));
+    $req->env->{REMOTE_USER} = $admin;
+    $req->env->{SCRIPT_NAME} = '/auth';
+    XPathTest->test_basics($tx, $req, $mt, {
+        h1 => 'Not Allowed',
+    });
+
+    $tx->ok('/html/body/div[@id="content"]', 'Look at the content', sub {
+        $tx->is('count(./*)', 2, '... Should have two subelements');
+        $tx->is(
+            './p[@class="error"]',
+            $mt->maketext(q{Sorry, but the [_1] method is not allowed on this resource.}, 'POST'),
+            '... Should have the error message'
+        );
+    });
+};
+
+# Set up the mirror root.
+my $pgxn = PGXN::Manager->instance;
+my $meta = File::Spec->catfile($pgxn->config->{mirror_root}, 'meta', 'mirrors.json');
+END { remove_tree $pgxn->config->{mirror_root} }
+file_not_exists_ok $meta, "mirrors.json should not exist";
+
+# Now delete one of these bad boys!
+test_psgi $app => sub {
+    my $cb = shift;
+    my $uri = '/auth/admin/mirrors/http://kineticode.com/pgxn/?x-tunneled-method=delete';
+    my $req = POST $uri, Authorization => 'Basic ' . encode_base64("$admin:****");
+
+    # Send the request.
+    ok my $res = $cb->($req), "POST $uri";
+    ok $res->is_redirect, 'It should be a redirect response';
+
+    # Validate we got the expected response.
+    $req = PGXN::Manager::Request->new(req_to_psgi($res->request));
+    $req->env->{SCRIPT_NAME} = '/auth';
+    is $res->headers->header('location'), $req->uri_for('/admin/mirrors'),
+        'Should redirect to /admin/mirrors';
+
+    # And we should find a mirror with the new URL, but not the old one.
+    PGXN::Manager->conn->run(sub {
+        is_deeply $_->selectrow_arrayref(
+            'SELECT uri FROM mirrors ORDER BY uri',
+         ), ['http://pgxn.justatheory.com'],
+         'Should now have only one mirror in the database';
+
+        # And mirrors.json should have been updated.
+        file_exists_ok $meta, 'mirrors.json should now exist';
+        file_contents_is $meta, $_->selectrow_arrayref(
+            'SELECT get_mirrors_json()'
+        )->[0], 'And it should contain the updated list of mirrors';
+    });
+};
+
+# Try deleting the same mirror; should get a 404.
+test_psgi $app => sub {
+    my $cb = shift;
+    my $uri = '/auth/admin/mirrors/http://kineticode.com/pgxn/?x-tunneled-method=delete';
+    my $req = POST $uri, Authorization => 'Basic ' . encode_base64("$admin:****");
+
+    # Send the request.
+    ok my $res = $cb->($req), "POST $uri";
+    is $res->code, 404, 'Should get 404 response';
+    is_well_formed_xml $res->content, 'The HTML should be well-formed';
+    my $tx = Test::XPath->new( xml => $res->content, is_html => 1 );
+
+    $req = PGXN::Manager::Request->new(req_to_psgi($req));
+    $req->env->{REMOTE_USER} = $admin;
+    $req->env->{SCRIPT_NAME} = '/auth';
+    XPathTest->test_basics($tx, $req, $mt, {
+        h1 => 'Where’d It Go?',
+    });
+
+    $tx->ok('/html/body/div[@id="content"]', 'Look at the content', sub {
+        $tx->is('count(./*)', 2, '... Should have two subelements');
+        $tx->is(
+            './p[@class="warning"]',
+            $mt->maketext(q{Hrm. I can’t find a resource at this address. I looked over here and over there and could find nothing. Sorry about that, I’m fresh out of ideas.}),
+            '... Should have the error message'
+        );
+    });
+};
+
+# Try again with an XMLHttpRequest.
+test_psgi $app => sub {
+    my $cb = shift;
+    my $uri = '/auth/admin/mirrors/http://kineticode.com/pgxn/?x-tunneled-method=delete';
+    my $req = POST $uri, Authorization => 'Basic ' . encode_base64("$admin:****"),
+        'X-Requested-With' => 'XMLHttpRequest';
+
+    # Send the request.
+    ok my $res = $cb->($req), "POST $uri";
+    is $res->code, 404, 'Should get 404 response';
+    is $res->decoded_content,
+        $mt->maketext(q{Hrm. I can’t find a resource at this address. I looked over here and over there and could find nothing. Sorry about that, I’m fresh out of ideas.}),
+            'Should get the 404 error message';
+};
+
+# Now delete the other mirror using XMLHttpRequest.
+test_psgi $app => sub {
+    my $cb = shift;
+    my $uri = '/auth/admin/mirrors/http://pgxn.justatheory.com?x-tunneled-method=delete';
+    my $req = POST $uri, Authorization => 'Basic ' . encode_base64("$admin:****"),
+        'X-Requested-With' => 'XMLHttpRequest';
+
+    # Send the request.
+    ok my $res = $cb->($req), "POST $uri";
+    ok $res->is_success, 'The request should be successful';
+    is $res->content, 'Success', 'The body should say as much';
+};
+
