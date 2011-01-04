@@ -1,7 +1,27 @@
 Revision history for Perl extension PGXN::Manager
 
-0.4.6
-      - Added mirror administration.
+0.5.0
+      - Added `doc/howto.md`.
+      - Moved `check_mirrors` from the PGXN repository.
+      - Tweaked the nav menu a bit:
+        * Eliminated the "Admin Menu" header.
+        * Added `hr`s between menus.
+        * Made the type a little smaller.
+        * Fixed borders so menu items don't move between loads.
+      - Removed the copyright statement from every page.
+      - Audied module usage and made the list in `Build.PL` comprehensive.
+      - Updated the DBIx::Connector requirement to 0.42, which has an
+        exception-handling fix.
+      - Updated Router::Resource requirement to 0.11, which has a header
+        fix for the method missing exception.
+      - Added mirror administration:
+        * Added the `update_mirror()` PL/pgSQL function.
+        * Add, update, and delete mirrors.
+        * Only available to administrators.
+        * Uses PUT and DELETE HTTP methods for updates and deletes.     
+        * Requires Plack::Middleware::MethodOverride to support said
+          methods from browsers.
+        * Keeps `meta/mirrors.json`in the mirror root up-to-date.
 
 0.4.5 2010-11-01T19:13:51
       - Updated for storage of stack trace by Plack::Middelware::StackTrace in
