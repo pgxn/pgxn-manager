@@ -40,6 +40,8 @@ my %code_for = (
     servererror => 200, # Only handled by ErrorDocument, which keeps 500.
 );
 
+sub new { bless {} => shift }
+
 sub render {
     my ($self, $template, $p) = @_;
     my $req = $p->{req} ||= Request->new($p->{env});
@@ -978,16 +980,30 @@ PGXN::Manager::Controller - The PGXN::Manager request controller
 
 =head1 Synopsis
 
-  # in PGXN::Manager::Router:
-  use aliased 'PGXN::Manager::Controller';
-  get '/' => sub { Root->home(shift) };
+  use PGXN::Manager::Controller;
+  use Router::Resource;
+
+  my $controller = PGXN::Manager::Controller->new;
+  my $router = router {
+      resource '/' => sub {
+          GET { $controller->home(@_) };
+      };
+  };
 
 =head1 Description
 
-This class defines controller actions for PGXN::Requests. Right now
-it doesn't do much, but it's a start.
+This class defines controller actions for PGXN::Requests. It's designed to be
+called from within Router::Resource HTTP methods.
 
 =head1 Interface
+
+=head2 Constructor
+
+=head3 C<new>
+
+  my $controller = PGXN::Manager::Controller->new;
+
+Constructs and returns a new controller.
 
 =head2 Actions
 

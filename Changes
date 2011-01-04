@@ -14,7 +14,9 @@ Revision history for Perl extension PGXN::Manager
         exception-handling fix.
       - Updated Router::Resource requirement to 0.11, which has a header
         fix for the method missing exception.
-      - Added mirror administration:
+      - Changed PGXN::Manager::Controller to have a constructor and be used as
+        an instance.
+     - Added mirror administration:
         * Added the `update_mirror()` PL/pgSQL function.
         * Add, update, and delete mirrors.
         * Only available to administrators.

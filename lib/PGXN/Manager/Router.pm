@@ -6,11 +6,12 @@ use Router::Resource;
 use Plack::Builder;
 use Plack::App::File;
 use Plack::Session::Store::File;
-use aliased 'PGXN::Manager::Controller';
+use PGXN::Manager::Controller;
 use PGXN::Manager;
 
 sub app {
     builder {
+        my $controller = PGXN::Manager::Controller->new;
         my $sessdir = File::Spec->catdir(
             File::Spec->tmpdir,
             'pgxn-session-' . ($ENV{PLACK_ENV} || 'test')
@@ -21,44 +22,44 @@ sub app {
         my $files = Plack::App::File->new(root => './www/ui/');
 
         # First app is simple redirect to /pub.
-        mount '/'   => sub { Controller->root(@_) };
+        mount '/'   => sub { $controller->root(@_) };
 
         # Public app.
         mount '/pub' => builder {
             my $router = router {
-                missing { Controller->missing(@_) };
+                missing { $controller->missing(@_) };
                 resource '/' => sub {
-                    GET { Controller->home(@_) };
+                    GET { $controller->home(@_) };
                 };
 
                 resource '/error' => sub {
-                    GET { Controller->server_error(@_) };
+                    GET { $controller->server_error(@_) };
                 };
 
                 resource '/about' => sub {
-                    GET { Controller->about(@_) };
+                    GET { $controller->about(@_) };
                 };
 
                 resource '/contact' => sub {
-                    GET { Controller->contact(@_) };
+                    GET { $controller->contact(@_) };
                 };
 
                 resource '/howto' => sub {
-                    GET { Controller->howto(@_) };
+                    GET { $controller->howto(@_) };
                 };
 
                 resource '/account/register' => sub {
-                    GET  { Controller->request(@_)  };
-                    POST { Controller->register(@_) };
+                    GET  { $controller->request(@_)  };
+                    POST { $controller->register(@_) };
                 };
 
                 resource '/account/forgotten' => sub {
-                    GET  { Controller->forgotten(@_)  };
-                    POST { Controller->send_reset(@_) };
+                    GET  { $controller->forgotten(@_)  };
+                    POST { $controller->send_reset(@_) };
                 };
 
                 resource '/account/thanks' => sub {
-                    GET { Controller->thanks(@_) };
+                    GET { $controller->thanks(@_) };
                 };
             };
             mount '/ui' => $files;
@@ -72,88 +73,88 @@ sub app {
         # Authenticated app.
         mount '/auth' => builder {
             my $router = router {
-                missing { Controller->missing(@_) };
+                missing { $controller->missing(@_) };
                 resource '/' => sub {
-                    GET { Controller->home(@_) };
+                    GET { $controller->home(@_) };
                 };
 
                 resource '/error' => sub {
-                    GET { Controller->server_error(@_) };
+                    GET { $controller->server_error(@_) };
                 };
 
                 resource '/about' => sub {
-                    GET { Controller->about(@_) };
+                    GET { $controller->about(@_) };
                 };
 
                 resource '/contact' => sub {
-                    GET { Controller->contact(@_) };
+                    GET { $controller->contact(@_) };
                 };
 
                 resource '/howto' => sub {
-                    GET { Controller->howto(@_) };
+                    GET { $controller->howto(@_) };
                 };
 
                 resource  '/account' => sub {
-                    GET  { Controller->show_account(@_)   };
-                    POST { Controller->update_account(@_) };
+                    GET  { $controller->show_account(@_)   };
+                    POST { $controller->update_account(@_) };
                 };
 
                 resource  '/account/password' => sub {
-                    GET  { Controller->show_password(@_)   };
-                    POST { Controller->update_password(@_) };
+                    GET  { $controller->show_password(@_)   };
+                    POST { $controller->update_password(@_) };
                 };
 
                 resource '/account/reset/:tok' => sub {
-                    GET  { Controller->reset_form(@_) };
-                    POST { Controller->reset_pass(@_) };
+                    GET  { $controller->reset_form(@_) };
+                    POST { $controller->reset_pass(@_) };
                 };
 
                 resource  '/account/changed' => sub {
-                    GET { Controller->pass_changed(@_) };
+                    GET { $controller->pass_changed(@_) };
                 };
 
                 resource '/upload' => sub {
-                    GET  { Controller->show_upload(@_) };
-                    POST { Controller->upload(@_)      };
+                    GET  { $controller->show_upload(@_) };
+                    POST { $controller->upload(@_)      };
                 };
 
                 resource '/permissions' => sub {
-                    GET { Controller->show_perms(@_) };
+                    GET { $controller->show_perms(@_) };
                 };
 
                 resource '/admin/moderate' => sub {
-                    GET { Controller->moderate(@_) };
+                    GET { $controller->moderate(@_) };
                 };
 
                 resource '/admin/user/:nick/status' => sub {
-                    POST { Controller->set_status(@_) };
+                    POST { $controller->set_status(@_) };
                 };
 
                 resource '/admin/users' => sub {
-                    GET { Controller->show_users(@_) };
+                    GET { $controller->show_users(@_) };
                 };
 
                 resource '/admin/mirrors' => sub {
-                    GET  { Controller->show_mirrors(@_) };
-                    POST { Controller->insert_mirror(@_) };
+                    GET  { $controller->show_mirrors(@_) };
+                    POST { $controller->insert_mirror(@_) };
                 };
 
                 resource '/admin/mirrors/new' => sub {
-                    GET { Controller->new_mirror(@_) };
+                    GET { $controller->new_mirror(@_) };
                 };
 
                 resource '/admin/mirrors/*' => sub {
-                    GET    { Controller->get_mirror(@_)    };
-                    PUT    { Controller->update_mirror(@_) };
-                    DELETE { Controller->delete_mirror(@_) };
+                    GET    { $controller->get_mirror(@_)    };
+                    PUT    { $controller->update_mirror(@_) };
+                    DELETE { $controller->delete_mirror(@_) };
                 };
 
                 resource '/distributions' => sub {
-                    GET { Controller->distributions(@_) };
+                    GET { $controller->distributions(@_) };
                 };
 
                 resource '/distributions/:dist/:version' => sub {
-                    GET { Controller->distribution(@_) };
+                    GET { $controller->distribution(@_) };
                 };
             };
             mount '/ui' => $files;
