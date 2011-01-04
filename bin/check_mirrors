@@ -17,8 +17,8 @@ my $mirrors = decode_json do {
 
 my $ua = LWP::UserAgent->new;
 $ua->timeout(60);
-for my $mirror ( values %{ $mirrors }) {
-    (my $url = $mirror->{url}) =~ s{/$}{};
+for my $mirror ( @{ $mirrors }) {
+    (my $url = $mirror->{uri}) =~ s{/$}{};
     $url .= '/meta/timestamp';
     my $res = $ua->get($url);
 
