@@ -2,9 +2,10 @@
 
 use 5.12.0;
 use utf8;
-use Test::More tests => 179;
+use Test::More tests => 182;
 #use Test::More 'no_plan';
 use Test::File;
+use Test::MockModule;
 use Plack::Test;
 use HTTP::Request::Common;
 use PGXN::Manager::Router;
@@ -133,6 +134,17 @@ END {
     unlink $distzip;
     remove_tree $tmpdir, $root;
 }
+
+# Make sure we don't try to send any tweets.
+my $mock_pgxn = Test::MockModule->new('PGXN::Manager');
+my %tweet_params = (
+    body => 'widget-0.2.5 uploaded by user',
+    whom => 'user',
+);
+$mock_pgxn->mock(send_tweet => sub {
+    shift;
+    is_deeply shift, \%tweet_params, 'A tweet should have been sent';
+});
 
 # Make sure the expected files don't exist yet.
 my %files = map { join('/', @{ $_ }) => File::Spec->catfile($root, @{ $_ } ) } (

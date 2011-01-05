@@ -2,7 +2,7 @@
 
 use 5.12.0;
 use utf8;
-use Test::More tests => 35;
+use Test::More tests => 55;
 #use Test::More 'no_plan';
 use JSON::XS;
 use Test::File;
@@ -14,7 +14,19 @@ BEGIN {
     use_ok 'PGXN::Manager' or die;
 }
 
-can_ok 'PGXN::Manager', qw(config conn instance initialize uri_templates);
+can_ok 'PGXN::Manager', qw(
+    config
+    conn
+    instance
+    initialize
+    uri_templates
+    email_transport
+    init_root
+    move_file
+    send_tweet
+    send_email
+);
+
 isa_ok my $pgxn = PGXN::Manager->instance, 'PGXN::Manager';
 is +PGXN::Manager->instance, $pgxn, 'instance() should return a singleton';
 is +PGXN::Manager->instance, $pgxn, 'new() should return a singleton';
@@ -72,3 +84,87 @@ isa_ok $tmpl->{$_}, 'URI::Template', "Template $_" for keys %{ $tmpl };
 ok my $trans = $pgxn->email_transport, 'Should have email transport';
 ok $trans->DOES('Email::Sender::Transport'),
     'And it should do Email::Sender::Transport';
+
+##############################################################################
+# Test send_email().
+my $email_mock = Test::MockModule->new('Email::Sender::Simple');
+my ($email, $params);
+$email_mock->mock(send => sub {
+    shift;
+    ($email, $params) = @_;
+});
+
+ok $pgxn->send_email({
+    to      => 'fred@example.com',
+    from    => 'joe@example.net',
+    subject => 'Hi',
+    body    => 'How you doin?',
+}), 'Send an email';
+
+is_deeply $params, { transport => $pgxn->email_transport },
+    'The email params should be correct';
+isa_ok $email, 'Email::MIME', 'The email';
+is_deeply { $email->header_pairs }, {
+    'To'           => 'fred@example.com',
+    'From'         => 'joe@example.net',
+    'Subject'      => 'Hi',
+    'MIME-Version' => '1.0',
+    'Date'         => $email->header('Date'),
+    'Content-Type' => 'text/plain; charset="UTF-8"',
+}, 'The headers should be correct';
+
+is $email->body, 'How you doin?', 'The body should be correct';
+
+##############################################################################
+# Test send_tweet().
+my $twitter_mock = Test::MockModule->new('Net::Twitter::Lite');
+my $tweet = 'Hey man';
+my $config = $pgxn->config;
+$twitter_mock->mock(update => sub {
+    my ($nt, $msg) = @_;
+    is $msg, $tweet, 'Should have proper twitter message';
+    for my $key (qw(consumer_key consumer_secret access_token access_token_secret)) {
+        is $nt->{$key}, $config->{twitter}{$key}, "$key should be set properly";
+
+    }
+    return $nt;
+});
+
+ok $pgxn->send_tweet({ body => $tweet, whom => 'fred' }),
+    'Send a tweet!';
+
+# Have Twitter throw an exception.
+$twitter_mock->mock(update => sub { die 'WTF!' });
+
+my %email_params = (
+    from    => $config->{admin_email},
+    to      => $config->{alert_email},
+    subject => "Error Tweeting About fred",
+);
+my $pgxn_mock = Test::MockModule->new('PGXN::Manager');
+$pgxn_mock->mock(send_email => sub {
+    shift;
+    my $p = shift;
+    my $body = delete $p->{body};
+    is_deeply $p, \%email_params, 'The email params should be correct';
+    like $body, qr{An error occurred tweeting about fred:\n\nTweet: $tweet\n\n},
+        'The body should look right';
+    like $body, qr{WTF!}, 'The body should hav the exception body';
+});
+
+ok $pgxn->send_tweet({ body => $tweet, whom => 'fred' }),
+    'Fail to send a tweet';
+
+# Make sure there is no attempt to tweet if the OAuth token is incomplete.
+$twitter_mock->mock( update => sub { fail 'Twitter should not be updated' });
+for my $key (qw(consumer_key consumer_secret access_token access_token_secret)) {
+    my $val = delete $pgxn->config->{twitter}{$key};
+    ok $pgxn->send_tweet({ whom => 'me', body => 'hey' }),
+        "Send tweet without the $key key";
+    $pgxn->config->{twitter}{$key} = $val;
+}
+
+# Should also work with no twitter key.
+delete $pgxn->config->{twitter};
+ok $pgxn->send_tweet({ whom => 'me', body => 'hey' }),
+    'Send tweet with no twitter configuration at all';

@@ -12,6 +12,10 @@ use URI::Template;
 use File::Copy qw(move);
 use File::Path qw(make_path remove_tree);
 use File::Basename qw(dirname);
+use Email::MIME::Creator;
+use Try::Tiny;
+use Net::Twitter::Lite;
+use Email::Sender::Simple;
 use namespace::autoclean;
 
 =head1 Name
@@ -192,6 +196,104 @@ sub move_file {
         die qq{Failed to move "$src" to "dest": $!\n};
     };
     chmod 0644, $dest;
+}
+
+=head3 C<send_tweet>
+
+  $pgxn->send_tweet({
+      body => '@theory just uploaded pgTAP-0.35.0',
+      whom => '@theory',
+  });
+
+Send a tweet. The C<body> parameter should be the body of the tweet, not to
+exceed 140 characters. The C<whom> parameter is an optional name for the
+person about whom the tweet should be sent. It may be any string, though
+should usually be something like C<@nickname>, corresponding to a Twitter
+nick.
+
+If the Twitter token is not configured, no tweet will be sent and this method
+will simply return. Configure the Twitter token in your configuration file
+like so:
+
+    "twitter": {
+        "consumer_key": "DA-KEY",
+        "consumer_secret": "OMG-S3KR!T-LOLZ",
+        "access_token": "DA-TOKEN",
+        "access_token_secret": "TOKEN-SEKR!T-LOLZ"
+    }
+
+Register for the consumer key and secret
+L<here|http://dev.twitter.com/apps/new>. To get the access token and access
+secret, use the C<get_twitter_token> utility included with PGXN::Manager. It
+will guide you through the configuration process and emit the JSON you need to
+paste into the configuration file.
+
+On failure, C<send_tweet()> will send an email to the administrator address.
+
+=cut
+
+# XXX Fork this off?
+sub send_tweet {
+    my ($self, $p) = @_;
+    my $config = $self->config;
+
+    # Just return if there's no Twitter authentication token.
+    my $tok = $config->{twitter} or return $self;
+    return $self if grep { !defined $tok->{$_} } qw(
+        consumer_key
+        consumer_secret
+        access_token
+        access_token_secret
+    );
+
+    try {
+        my $nt = Net::Twitter::Lite->new(%$tok);
+        $nt->update($p->{body});
+    } catch {
+        $self->send_email({
+            from    => $config->{admin_email},
+            to      => $config->{alert_email},
+            subject => "Error Tweeting About $p->{whom}",
+            body    => "An error occurred tweeting about $p->{whom}:\n\n"
+                     . "Tweet: $p->{body}\n\nError: $_\n"
+        });
+    };
+    return $self;
+}
+
+=head3 C<send_email>
+
+    $pgxn->send_email({
+        to      => $to,
+        from    => $from,
+        subject => $subject,
+        body    => $body,
+    });
+
+Send an email. All four parameters are required.
+
+=cut
+
+# XXX Fork this off?
+sub send_email {
+    my ($self, $p) = @_;
+    my $email = Email::MIME->create(
+        header     => [
+            From    => $p->{from},
+            To      => $p->{to},
+            Subject => $p->{subject}
+        ],
+        attributes => {
+            content_type => 'text/plain',
+            charset      => 'UTF-8',
+        },
+        body => $p->{body},
+    );
+
+    Email::Sender::Simple->send($email, {
+        transport => $self->email_transport
+    });
+    return $self;
 }
 
 __PACKAGE__->meta->make_immutable;

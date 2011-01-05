@@ -23,5 +23,11 @@
         "by-extension": "/by/extension/{extension}.json",
         "by-owner":     "/by/owner/{owner}.json",
         "by-tag":       "/by/tag/{tag}.json"
+    },
+    "twitter": {
+        "consumer_key": "",
+        "consumer_secret": "",
+        "access_token": "",
+        "access_token_secret": ""
     }
 }

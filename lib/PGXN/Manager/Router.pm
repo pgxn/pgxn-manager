@@ -200,7 +200,8 @@ STACKTRACE: {
         # Use the original stack trace if we have one.
         if (blessed $err) {
             if (my $meth = $err->can('trace') || $err->can('stack_trace')) {
-                return $err->$meth;
+                my $trace = $err->$meth;
+                $trace->{message} = $err->as_string; # Ack!
             }
         }
         # Otherwise generate a new one.

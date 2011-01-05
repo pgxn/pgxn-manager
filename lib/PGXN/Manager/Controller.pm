@@ -8,8 +8,6 @@ use PGXN::Manager::Locale;
 use PGXN::Manager::Templates;
 use aliased 'PGXN::Manager::Distribution';
 use HTML::Entities;
-use Email::MIME;
-use Email::Sender::Simple;
 use JSON::XS;
 use Encode;
 use File::Temp ();
@@ -145,25 +143,17 @@ sub server_error {
 
     if (%{ $err_env }) {
         # Send an email to the administrators.
-        my $email = Email::MIME->create(
-            header     => [
-                From => PGXN::Manager->config->{admin_email},
-                To   => PGXN::Manager->config->{alert_email},
-                Subject => "PGXN Manager Internal Server Error",
-            ],
-            attributes => {
-                content_type => 'text/plain',
-                charset      => 'UTF-8',
-            },
-            body => "An error occurred during a request to $uri.\n\n"
-                  . "Environment:\n\n" . pp($err_env)
-                  . "\n\nTrace:\n\n"
-                  . ($env->{'plack.stacktrace.text'} || 'None found. :-(')
-                  . "\n"
-      );
-
-        Email::Sender::Simple->send($email, {
-            transport => PGXN::Manager->email_transport
+        my $pgxn = PGXN::Manager->instance;
+        my $config = $pgxn->config;
+        $pgxn->send_email({
+            from    => $config->{admin_email},
+            to      => $config->{alert_email},
+            subject => "PGXN Manager Internal Server Error",
+            body    => "An error occurred during a request to $uri.\n\n"
+                     . "Environment:\n\n" . pp($err_env)
+                     . "\n\nTrace:\n\n"
+                     . ($env->{'plack.stacktrace.text'} || 'None found. :-(')
+                     . "\n",
         });
     }
 
@@ -184,6 +174,7 @@ sub register {
     my $self   = shift;
     my $req    = Request->new(shift);
     my $params = $req->body_parameters;
+    my $pgxn   = PGXN::Manager->instance;
 
     if ($params->{nickname} && $params->{email} && (!$params->{why} || $params->{why} !~ /\w+/ || length $params->{why} < 5)) {
         delete $params->{why};
@@ -196,7 +187,7 @@ sub register {
         }});
     }
 
-    PGXN::Manager->conn->run(sub {
+    $pgxn->conn->run(sub {
         $_->do(
             q{SELECT insert_user(
                 nickname  := ?,
@@ -224,16 +215,11 @@ sub register {
         my $twit = $params->{twitter}   ? "  Twitter: http://twitter.com/$params->{twitter}\n" : '';
         my $uri  = $params->{uri}       ? "      URI: $params->{uri}\n" : '';
         (my $why = $params->{why}) =~ s/^/> /g;
-        my $email = Email::MIME->create(
-            header     => [
-                From => PGXN::Manager->config->{admin_email},
-                To   => PGXN::Manager->config->{alert_email},
-                Subject => "New User Request for $params->{nickname}",
-            ],
-            attributes => {
-                content_type => 'text/plain',
-                charset      => 'UTF-8',
-            },
+
+        $pgxn->send_email({
+            from => $pgxn->config->{admin_email},
+            to   => $pgxn->config->{alert_email},
+            subject => "New User Request for $params->{nickname}",
             body => "A new PGXN account has been requested from $host:\n\n"
                   . $name
                   . " Nickname: $params->{nickname}\n"
@@ -242,9 +228,6 @@ sub register {
                   . $twit
                   . "   Reason:\n\n$why\n\n"
                   . "Moderate at " . $req->auth_uri_for('admin/moderate') . ".\n"
-        );
-        Email::Sender::Simple->send($email, {
-            transport => PGXN::Manager->email_transport
         });
 
         return $self->respond_with('success', $req) if $req->is_xhr;
@@ -328,8 +311,9 @@ sub send_reset {
     my $self = shift;
     my $req  = Request->new(shift);
     my $who  = $req->body_parameters->{who};
+    my $pgxn = PGXN::Manager->instance;
 
-    my $token = PGXN::Manager->conn->run(sub {
+    my $token = $pgxn->conn->run(sub {
         my $sql = $who =~ /@/
             ? 'SELECT forgot_password(nickname) FROM users WHERE email = ?'
             : 'SELECT forgot_password(?)';
@@ -339,24 +323,15 @@ sub send_reset {
     if ($token) {
         my $uri = $req->auth_uri_for("/account/reset/$token->[0]");
         # Create and send the email.
-        my $email = Email::MIME->create(
-            header     => [
-                From => PGXN::Manager->config->{admin_email},
-                To   => $token->[1],
-                Subject => 'Reset Your Password',
-            ],
-            attributes => {
-                content_type => 'text/plain',
-                charset      => 'UTF-8',
-            },
+        $pgxn->send_email({
+            from => $pgxn->config->{admin_email},
+            to   => $token->[1],
+            subject => 'Reset Your Password',
             body => "Click the link below to reset your PGXN password. But do it soon!\n"
                   . "This link will expire in 24 hours:\n\n"
                   . "    $uri\n\n"
                   . "Best,\n\n"
                   . "PGXN Management\n"
-        );
-        Email::Sender::Simple->send($email, {
-            transport => PGXN::Manager->email_transport
         });
     }
 
@@ -437,8 +412,9 @@ sub set_status {
     return $self->respond_with('forbidden', $req) unless $req->user_is_admin;
     my $params = shift;
     my $status = $req->body_parameters->{status};
+    my $pgxn   = PGXN::Manager->instance;
 
-    PGXN::Manager->conn->run(sub {
+    $pgxn->conn->run(sub {
         shift->selectcol_arrayref(
             'SELECT set_user_status(?, ?, ?)',
             undef, $req->user, $params->{nick}, $status
@@ -448,7 +424,7 @@ sub set_status {
     my ($to, $subj, $body);
     if ($status eq 'active') {
         # Generate a password-changing token.
-        my $token = PGXN::Manager->conn->run(sub {
+        my $token = $pgxn->conn->run(sub {
             shift->selectcol_arrayref(
                 'SELECT forgot_password(?)',
                 undef, $params->{nick}
@@ -466,7 +442,7 @@ sub set_status {
               . "PGXN Management\n";
     } else {
         # XXX Maybe require a note to be entered by the admin?
-        $to   = PGXN::Manager->conn->run(sub {
+        $to   = $pgxn->conn->run(sub {
             shift->selectcol_arrayref(
                 'SELECT email FROM users WHERE nickname = ?',
                 undef, $params->{nick}
@@ -480,21 +456,12 @@ sub set_status {
               . "PGXN Management\n";
     }
 
-    # Create and send the email.
-    my $email = Email::MIME->create(
-        header     => [
-            From => PGXN::Manager->config->{admin_email},
-            To   => Email::Address->new( $params->{nick}, $to ),
-            Subject => $subj,
-        ],
-        attributes => {
-            content_type => 'text/plain',
-            charset      => 'UTF-8',
-        },
-        body => $body,
-    );
-    Email::Sender::Simple->send($email, {
-        transport => PGXN::Manager->email_transport
+    # Send the email.
+    $pgxn->send_email({
+        from    => $pgxn->config->{admin_email},
+        to      => Email::Address->new( $params->{nick}, $to ),
+        subject => $subj,
+        body    => $body,
     });
 
     # Simple response for XHR request.
@@ -510,20 +477,38 @@ sub show_upload {
 }
 
 sub upload {
-    my $self = shift;
-    my $req  = Request->new(shift);
+    my $self   = shift;
+    my $req    = Request->new(shift);
     my $upload = $req->uploads->{archive};
-    my $dist = Distribution->new(
+    my $dist   = Distribution->new(
         archive  => $upload->path,
         basename => $upload->basename,
         owner    => $req->user,
     );
 
     if ($dist->process) {
-        # Success!
+        # Success! Tweet it?
+        my $meta = $dist->distmeta;
+        my $pgxn = PGXN::Manager->instance;
+
+        my $nick = $pgxn->conn->run(sub {
+            shift->selectcol_arrayref(
+                'SELECT twitter FROM users WHERE nickname = ?',
+                undef, $req->user
+            )->[0];
+        });
+
+        $nick = $nick ? "\@$nick" : $req->user;
+
+        # XXX Add URL.
+        $pgxn->send_tweet({
+            whom => $nick,
+            body => "$meta->{name}-$meta->{version} uploaded by $nick"
+        });
+
+        # And now back to our regular programming.
         return $self->respond_with('success', $req) if $req->is_xhr;
         $req->session->{success} = 1;
-        my $meta = $dist->distmeta;
         return $self->redirect(
             "/distributions/$meta->{name}/$meta->{version}",
             $req

@@ -1,0 +1,110 @@
+#!/usr/bin/env perl -w
+
+use 5.12.0;
+
+use Net::Twitter::Lite;
+use Getopt::Long;
+
+my %tok;
+GetOptions(
+    'consumer-key|key|k=s' => \$tok{consumer_key},
+    'consumer-secret|secret|s=s' => \$tok{consumer_secret},
+);
+
+die qq{
+Register for a consumer token by visiting
+
+    http://dev.twitter.com/apps/new
+
+Then run
+
+    $0 --consumer-key KEY --cosumer-secret SECRET
+
+} unless $tok{consumer_key} && $tok{consumer_secret};
+
+my $nt = Net::Twitter::Lite->new(%tok);
+
+my $auth_url = $nt->get_authorization_url;
+print qq{
+Authorize this application at:
+
+    $auth_url
+
+Then, enter the PIN to continue: };
+
+my $pin = <STDIN>; # wait for input
+chomp $pin;
+
+# request_access_token stores the tokens in $nt AND returns them
+my @access = $nt->request_access_token(verifier => $pin);
+
+print qq[\nGreat, now paste this into your configuration file:
+
+    "twitter": {
+        "consumer_key": "$tok{consumer_key}",
+        "consumer_secret": "$tok{consumer_secret}",
+        "access_token": "$access[0]",
+        "access_token_secret": "$access[1]"
+    }
+];
+
+__END__
+
+=head1 Name
+
+get_twitter_token - Request a Twitter OAuth token
+
+=head1 Usage
+
+  gen_twitter_token --consumer-key KEY --cosumer-secret SECRET
+
+=head1 Description
+
+PGXN::Manager will send Tweets when a user uploads a distribution -- if you
+configure it to do so. This app helps with that configuration. To set it up,
+you first need to register an app to get a "consumer key" and "consumer
+secret" from Twitter. It's pretty easy to do it; register your PGXN::Manager
+app L<here|http://dev.twitter.com/apps/new>.
+
+Then you'll want to create a Twitter account to do the Tweeting. You can do
+that L<right here|https://twitter.com/signup>. And finally, you'll want to
+give your app permission to post to that account. That's what this utility
+helps with. Just execute it with your app's consumer key an secret, like so:
+
+  gen_twitter_token --consumer-key KEY --cosumer-secret SECRET
+
+It will output a link. Visit that link in your browser, give the app
+permission to post to the account (make sure you're logged into the account
+you want PGXN::Manager to post to!), and then copy the PIN Twitter gives you
+and paste it in to the script's prompt.
+
+That done, the app will be allowed to post to the Twitter account, and this
+utility will output some JSON for you to paste into your configuration file to
+configure the Twitter token, something like this:
+
+    "twitter": {
+        "consumer_key": "8dfjsdf8eijDFIE",
+        "consumer_secret": "kkFER88efmsefk29FJi3rfkRASid48erer",
+        "access_token": "3823482834-Kkl3ekkaNSKDKea882ndirlls0jAQAie",
+        "access_token_secret": "ksdf201F32kfkavdz8jwe9sFK2di"
+    }
+
+Paste that into you configuration file and you'll be ready to go!
+
+=head1 Options
+
+  -k --key --consumer-key KEY     Application consume key
+  -s --secret --consumer-secret   Application consume secret
+
+=head1 Author
+
+David E. Wheeler <david.wheeler@pgexperts.com>
+
+=head1 Copyright and License
+
+Copyright (c) 2011 David E. Wheeler. Some Rights Reserved.
+
+This module is free software; you can redistribute it and/or modify it under
+the same terms as Perl itself.
+
+=cut

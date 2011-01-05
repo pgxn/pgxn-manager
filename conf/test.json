@@ -26,5 +26,11 @@
         "by-extension": "/by/extension/{extension}.json",
         "by-owner":     "/by/owner/{owner}.json",
         "by-tag":       "/by/tag/{tag}.json"
+    },
+    "twitter": {
+        "consumer_key": "DA-KEY",
+        "consumer_secret": "OMG-S3KR!T-LOLZ",
+        "access_token": "DA-TOKEN",
+        "access_token_secret": "TOKEN-SEKR!T-LOLZ"
     }
 }
