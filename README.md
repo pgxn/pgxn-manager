@@ -1,4 +1,4 @@
-PGXN/Manager version 0.6.0
+PGXN/Manager version 0.6.1
 ==========================
 
 This application provides a Web interface and REST API for extension owners to
@@ -162,8 +162,8 @@ way to separate these is to set up two reverse proxy servers: One to serve
 
       cpan Plack::Middleware::ReverseProxy
 
-* Edit the production configuration file. The there are only additional keys
-  to edit:
+* Edit the production configuration file. The there are only a few additional
+  keys to edit:
 
     1. Add the ReverseProxy middleware. The "middleware" key should end up
        looking something like this:
@@ -183,6 +183,10 @@ way to separate these is to set up two reverse proxy servers: One to serve
     3. Tell the public site what link to use to the authenticated site:
 
         "auth_uri": "https://manager.pgxn.org/",
+
+    4. Configure the Twitter OAuth token so that PGXN::Manager can tweet
+       uploads. The simplest way to do so is to run `bin/get_twitter_token -h`
+       for helpful intructions and easy configuration.
 
   You'll also find these settings in `conf/proxied.json` to help get you
   started.

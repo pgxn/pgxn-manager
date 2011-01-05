@@ -7,9 +7,16 @@ use Getopt::Long;
 
 my %tok;
 GetOptions(
-    'consumer-key|key|k=s' => \$tok{consumer_key},
+    'consumer-key|key|k=s'       => \$tok{consumer_key},
     'consumer-secret|secret|s=s' => \$tok{consumer_secret},
+    'help|h'                     => \my $help,
 );
+
+require Pod::Usage && Pod::Usage::pod2usage(
+    '-verbose'  => 99,
+    '-sections' => '.+',
+    '-exitval'  => 0,
+) if $help;
 
 die qq{
 Register for a consumer token by visiting
@@ -19,6 +26,10 @@ Register for a consumer token by visiting
 Then run
 
     $0 --consumer-key KEY --cosumer-secret SECRET
+
+For complete details, run
+
+    $0 --help
 
 } unless $tok{consumer_key} && $tok{consumer_secret};
 
@@ -93,8 +104,9 @@ Paste that into you configuration file and you'll be ready to go!
 
 =head1 Options
 
-  -k --key --consumer-key KEY     Application consume key
-  -s --secret --consumer-secret   Application consume secret
+  -k --key --consumer-key KEY     Application consumer key
+  -s --secret --consumer-secret   Application consumer secret
+  -h --help                       View this documentation
 
 =head1 Author
 
