@@ -138,7 +138,7 @@ label.invalid:before {content:"◀";color:#d8000c;font-size:150%;line-height:.9e
 label.invalid:after
 {content: "";}
 
-.uploader {margin-left:5.5em;}
+.uploader {margin-left:8.5em;}
 
 .accept, .remove {display:inline;}
 
