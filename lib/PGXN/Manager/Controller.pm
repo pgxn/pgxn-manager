@@ -52,7 +52,7 @@ sub render {
 sub redirect {
     my ($self, $uri, $req, $code) = @_;
     my $res = $req->new_response;
-    $res->redirect($req->uri_for($uri), $code || $code_for{see_other});
+    $res->redirect($req->uri_for($uri), $code || $code_for{seeother});
     return $res->finalize;
 }
 
