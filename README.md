@@ -198,7 +198,7 @@ way to separate these is to set up two reverse proxy servers: One to serve
 Copyright and License
 ---------------------
 
-Copyright (c) 2010 David E. Wheeler.
+Copyright (c) 2010-2011 David E. Wheeler.
 
 This module is free software; you can redistribute it and/or modify it under
 the [PostgreSQL License](http://www.opensource.org/licenses/postgresql).
