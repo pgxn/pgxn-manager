@@ -25,7 +25,7 @@ our %Lexicon = (
 
 <p>This document explains how. There&#8217;s some background information, too, but the goal is to provide the information and references you need to get started packaging your extensions and distributing them on PGXN. If anything is unclear, please do <a href="/contact">let us know</a>. It&#8217;s our aim to make this the one stop for all of your PGXN distribution needs.</p>
 
-<h3>OMG Distribution WTF?</h3>
+<h3 id="omg-distribution-wtf">OMG Distribution WTF?</h3>
 
 <p>First of all, what is a &#8220;distribution&#8221; in the PGXN sense? Basically, it&#8217;s a collection of one or more <a href="http://www.postgresql.org/">PostgreSQL</a> extensions. That&#8217;s it.</p>
 
@@ -33,7 +33,7 @@ our %Lexicon = (
 
 <p>There is ongoing work to integrate the idea of extensions more deeply into the PostgreSQL core in 9.1. Dimitri Fontaine has <a href="http://blog.tapoueh.org/blog.dim.html#%20Introducing%20Extensions">the details</a>. However, the build infrastructure is the same. From your point of view as a PostgreSQL extension developer, you&#8217;re still going to use <a href="http://www.postgresql.org/docs/current/static/xfunc-c.html#XFUNC-C-PGXS">PGXS</a> to configure and build your extension, and can distribute it via PGXN.</p>
 
-<h3>That&#8217;s So Meta</h3>
+<h3 id="thats-so-meta">That&#8217;s So Meta</h3>
 
 <p>At its simplest, the only thing PGXN requires of a distribution is a single file, <code>META.json</code>, which describes the package. This is (currently) the only file that PGXN Manager uses to index a distribution, so it&#8217;s important to get it right. The <a href="http://pgxn.org/meta/spec.html">PGXN Meta Spec</a> has a rather complete example of a hypothetical pgTAP <code>META.json</code>. </p>
 
@@ -66,7 +66,7 @@ our %Lexicon = (
 
 <p>Have a look at the <a href="http://github.com/theory/kv-pair/blob/master/META.json"><code>pair</code> <code>META.json</code> file</a> for an extended example.</p>
 
-<h3>New Order</h3>
+<h3 id="new-order">New Order</h3>
 
 <p>PGXN doesn&#8217;t really care how distributions are structured, or if they use <a href="http://www.postgresql.org/docs/current/static/xfunc-c.html#XFUNC-C-PGXS">PGXS</a>. That said, the proposed <a href="http://wiki.postgresql.org/wiki/PGXN#PGXN_Client">download and installation client</a> will assume the use of PGXS (unless and until the PostgreSQL core adds some other kind of extension-building support), so it&#8217;s probably the best choice.</p>
 
@@ -111,7 +111,7 @@ make installcheck PGDATABASE=postgres
 
 <p>For more on PostgreSQL extension building support, please consult <a href="http://www.postgresql.org/docs/9/static/xfunc-c.html#XFUNC-C-PGXS">the documentation</a>.</p>
 
-<h3>Zip Me Up</h3>
+<h3 id="zip-me-up">Zip Me Up</h3>
 
 <p>Once you&#8217;ve got your extension developed and well-tested, and your distribution just right and the <code>META.json</code> file all proof-read and solid, it&#8217;s time to upload the distribution to PGXN. What you want to do is to zip it up to create a distribution archive. Here&#8217;s what how the <code>pair</code> distribution &#8212; which is maintained in Git &#8212; was prepared:</p>
 
@@ -123,7 +123,7 @@ make installcheck PGDATABASE=postgres
 
 <p>Now, one can upload any kind of archive file to PGXN, including a tarball, or bzip2…um…ball? Basically, any kind of archive format recognized by <a href="http://search.cpan.org/perldoc?Archive::Extract">Archive::Extract</a>. You can upload a <code>.pgz</code> if you like, in which case PGXN will assume that it&#8217;s a zip file. A zip file is best because then PGXN::Manager won&#8217;t have to rewrite it. It&#8217;s also preferable that everything be packed into a directory with the name <code>$distribution-$version</code>, as in the example <code>pair-0.1.0</code> example above. If not, PGXN will rewrite it that way. But it saves the server some effort if all it has to do is move a .zip file that&#8217;s properly formatted, so it would be appreciated if you would upload stuff that&#8217;s already nicely formatted for distribution in a zip archive.</p>
 
-<h3>Release It!</h3>
+<h3 id="release-it">Release It!</h3>
 
 <p>And that&#8217;s it! Not too bad, eh? Just please do be very careful cutting and pasting examples. Hopefully we&#8217;ll be able to build things up to the point where a lot of this stuff can be automated (especially the creation of the <code>META.json</code>), but for now it&#8217;s done by hand. So be careful out there, and good luck!</p>},
 );
