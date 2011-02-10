@@ -152,7 +152,7 @@ BEGIN
         SELECT de.extension, de.ext_version,
                array_agg(hstore(ARRAY[
                    'dist',      d.name,
-                   'version',   d.version,
+                   'version',   d.version::text,
                    'relstatus', d.relstatus::text
                ]) ORDER BY d.created_at DESC)
           FROM distribution_extensions de

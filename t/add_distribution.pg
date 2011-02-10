@@ -558,8 +558,8 @@ SELECT is(COUNT(*)::int, 2, 'Should now have two distribution extensions')
 SELECT bag_eq(
     $$ SELECT * FROM distribution_extensions $$,
     $$ VALUES
-       ('pair', '0.2.2', 'pair', '0.0.1'),
-       ('trip', '0.2.1', 'pair', '0.0.1')
+       ('pair', '0.2.2'::semver, 'pair', '0.0.1'::semver),
+       ('trip', '0.2.1'::semver, 'pair', '0.0.1'::semver)
     $$,
     'We should have the expected distribution extensions'
 );
@@ -706,9 +706,9 @@ SELECT is(COUNT(*)::int, 3, 'Should now have three distribution extensions')
 SELECT bag_eq(
     $$ SELECT * FROM distribution_extensions $$,
     $$ VALUES
-       ('pair', '0.2.2', 'pair', '0.0.1'),
-       ('trip', '0.2.1', 'pair', '0.0.1'),
-       ('foo', '0.0.2',  'foo',  '0.0.2')
+       ('pair', '0.2.2'::semver, 'pair', '0.0.1'::semver),
+       ('trip', '0.2.1'::semver, 'pair', '0.0.1'::semver),
+       ('foo', '0.0.2'::semver,  'foo',  '0.0.2'::semver)
     $$,
     'We should have the expected distribution extensions'
 );
@@ -844,10 +844,10 @@ SELECT is(COUNT(*)::int, 4, 'Should now have four distribution extensions')
 SELECT bag_eq(
     $$ SELECT * FROM distribution_extensions $$,
     $$ VALUES
-       ('pair', '0.2.2', 'pair', '0.0.1'),
-       ('trip', '0.2.1', 'pair', '0.0.1'),
-       ('foo', '0.0.2',  'foo',  '0.0.2'),
-       ('pair', '0.0.3', 'pair', '0.0.3')
+       ('pair', '0.2.2'::semver, 'pair', '0.0.1'::semver),
+       ('trip', '0.2.1'::semver, 'pair', '0.0.1'::semver),
+       ('foo', '0.0.2'::semver,  'foo',  '0.0.2'::semver),
+       ('pair', '0.0.3'::semver, 'pair', '0.0.3'::semver)
     $$,
     'We should have the expected distribution extensions'
 );

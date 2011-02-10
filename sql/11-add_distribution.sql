@@ -328,7 +328,7 @@ BEGIN
 
     -- Record the extensions in this distribution.
     INSERT INTO distribution_extensions (extension, ext_version, distribution, dist_version)
-    SELECT distmeta.provided[i][1], distmeta.provided[i][2], distmeta.name, distmeta.version
+    SELECT distmeta.provided[i][1], distmeta.provided[i][2]::semver, distmeta.name, distmeta.version
       FROM generate_subscripts(distmeta.provided, 1) AS i;
 
     -- Record the tags for this distribution.

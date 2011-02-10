@@ -29,6 +29,28 @@ Installation
       plperl.use_strict = on
       plperl.on_init='use 5.12.0; use JSON::XS; use Email::Valid; use Data::Validate::URI; use SemVer;'
 
+* Install the PostgreSQL
+  [`CITEXT`](http://www.postgresql.org/docs/current/static/citext.html) data
+  type. It's one of the core [additional supplied
+  modules](http://www.postgresql.org/docs/current/static/contrib.html). If you
+  used a vendor PostreSQL, it's probably already installed. If you installed
+  from source, you can either install all the core extensions, like so:
+
+      cd contrib/
+      gmake
+      gmake install
+
+  Or if you like, you can install `CITEXT` only:
+
+      cd contrib/citext
+      gmake
+      gmake install
+
+* Install the PostreSQL `semver` extension. It's available from PGXN itself.
+  Grab the latest `.pgz` from the [`master
+  mirror`](http://master.pgxn.org/dist/semver/) and follow its installation
+  instructions.
+
 * Create a "pgxn" system user and the master mirror directory:
 
       useradd pgxn -d /nonexistent

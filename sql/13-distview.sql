@@ -11,12 +11,12 @@ CREATE AGGREGATE multi_array_agg ( text[] ) (
     INITCOND = '{}'
 );
 
-CREATE VIEW distribution_details AS
+CREATE OR REPLACE VIEW distribution_details AS
 SELECT d.name, d.version, d.abstract, d.description, d.relstatus, d.owner,
        d.sha1, d.meta,
        multi_array_agg(
-       DISTINCT ARRAY[[de.extension, de.ext_version]]
-          ORDER BY ARRAY[[de.extension, de.ext_version]]
+       DISTINCT ARRAY[[de.extension, de.ext_version::text]]
+          ORDER BY ARRAY[[de.extension, de.ext_version::text]]
        ) AS extensions,
        -- I sure wish you could make array_agg() exclude NULLs.
        ARRAY(
