@@ -2,6 +2,7 @@ Revision history for Perl extension PGXN::Manager
 
 0.6.1
       - Added `--help` option to `get_twitter_token`.
+      - Updated to use native `semver` data type now distributed on PGXN.
 
 0.6.0 2011-01-05T03:24:51
       - Added Twitter notification upon successful updload.
