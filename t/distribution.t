@@ -490,7 +490,7 @@ sub new_dist {
 
 sub _sha1_for {
     my $fn = shift;
-    open my $fh, '<', $fn or die "Cannot open $fn: $!\n";
+    open my $fh, '<:raw', $fn or die "Cannot open $fn: $!\n";
     my $sha1 = Digest::SHA1->new;
     $sha1->addfile($fh);
     return $sha1->hexdigest;

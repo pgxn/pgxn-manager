@@ -14,7 +14,7 @@ use File::Path qw(make_path remove_tree);
 use Cwd;
 use JSON::XS;
 use SemVer;
-use Digest::SHA1 'sha1_hex';
+use Digest::SHA1;
 use namespace::autoclean;
 
 my $TMPDIR = PGXN::Manager->new->config->{tmpdir}
@@ -263,7 +263,7 @@ sub zipit {
 after zipfile => sub {
     my $self = shift;
     my $zf = shift or return;
-    open my $fh, '<', $zf or die "Cannot open $zf: $!\n";
+    open my $fh, '<:raw', $zf or die "Cannot open $zf: $!\n";
     my $sha1 = Digest::SHA1->new;
     $sha1->addfile($fh);
     $self->sha1($sha1->hexdigest);
