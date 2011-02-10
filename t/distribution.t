@@ -140,7 +140,7 @@ ok !$dist->modified, 'The zip should be unmodified';
 ok $dist->distmeta, 'Should have its distmeta';
 my $distmeta = decode_json do {
     my $mf = File::Spec->catfile($distdir, 'META.json');
-    open my $fh, '<', $mf or die "Cannot open $mf: $!\n";
+    open my $fh, '<:raw', $mf or die "Cannot open $mf: $!\n";
     local $/;
     <$fh>;
 };

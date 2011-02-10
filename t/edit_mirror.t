@@ -450,7 +450,7 @@ test_psgi $app => sub {
         file_contents_is $meta, encode_utf8 $_->selectrow_arrayref(
             'SELECT get_mirrors_json()'
         )->[0], 'And it should contain the updated list of mirrors';
-        open my $fh, '<', $meta or die "Cannot open $meta: $!\n";
+        open my $fh, '<:raw', $meta or die "Cannot open $meta: $!\n";
         my $json = join '', <$fh>;
         close $fh;
         ok decode_json $json, 'Should be able to parse mirror.json';

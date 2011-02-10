@@ -10,7 +10,7 @@ my $timeout = 86400 * $days; # four days.
 my $file = shift or die "Usage $@ /path/to/mirrors.json\n";
 
 my $mirrors = decode_json do {
-    open my $fh, '<', $file or die "Cannot open $file: $!\n";
+    open my $fh, '<:raw', $file or die "Cannot open $file: $!\n";
     local $/;
     <$fh>;
 };

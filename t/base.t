@@ -31,7 +31,7 @@ isa_ok my $pgxn = PGXN::Manager->instance, 'PGXN::Manager';
 is +PGXN::Manager->instance, $pgxn, 'instance() should return a singleton';
 is +PGXN::Manager->instance, $pgxn, 'new() should return a singleton';
 
-open my $fh, '<', 'conf/test.json' or die "Cannot open conf/test.json: $!\n";
+open my $fh, '<:raw', 'conf/test.json' or die "Cannot open conf/test.json: $!\n";
 my $conf = do {
     local $/;
     decode_json <$fh>;
