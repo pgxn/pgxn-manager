@@ -62,7 +62,7 @@ the C<--context> option to C<perl Build.PL> at build time.
 
 has config => (is => 'ro', isa => 'HashRef', default => sub {
     my $fn = 'conf/' . ($ENV{PLACK_ENV} || 'test') . '.json';
-    open my $fh, '<', $fn or die "Cannot open $fn: $!\n";
+    open my $fh, '<:raw', $fn or die "Cannot open $fn: $!\n";
     local $/;
     # XXX Verify presence of required keys.
     JSON::XS->new->decode(<$fh>);
