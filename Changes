@@ -1,6 +1,8 @@
 Revision history for Perl extension PGXN::Manager
 
 0.6.2
+      - Fixed JSON handling inside the database to properly handle UTF-8
+        semantics.
 
 0.6.1 2011-02-11T00:08:46
       - Added `--help` option to `get_twitter_token`.

@@ -14,10 +14,7 @@ CREATE OR REPLACE FUNCTION setup_meta(
     OUT json        TEXT
 ) LANGUAGE plperl IMMUTABLE AS $$
     my $idx_meta  = { owner => shift, sha1 => shift };
-    my $dist_meta = JSON::XS->new->utf8->decode(shift);
-
-    # XXX In 9.1+, replace the above line with:
-    # my $dist_meta = JSON::XS->new->utf8(0)->decode(shift);
+    my $dist_meta = JSON::XS->new->utf8(0)->decode(shift);
 
     # Check required keys.
     for my $key qw(name version license maintainer abstract) {
@@ -61,9 +58,7 @@ CREATE OR REPLACE FUNCTION setup_meta(
     }
 
     # Recreate the JSON.
-    my $encoder = JSON::XS->new->utf8->space_after->allow_nonref->indent->canonical;
-    # XXX In 9.1+, replace the above line with:
-    # my $encoder = JSON::XS->new->utf8(0->space_after->allow_nonref->indent->canonical;
+    my $encoder = JSON::XS->new->utf8(0)->space_after->allow_nonref->indent->canonical;
     my $json = "{\n   " . join(",\n   ", map {
         $encoder->indent( $_ ne 'tags');
         my $v = $encoder->encode($idx_meta->{$_});

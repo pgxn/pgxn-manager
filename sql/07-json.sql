@@ -23,9 +23,7 @@ returns the string. The difference is that `NULL` is treated as illegal
 
 =cut
     elog(ERROR, 'JSON object keys cannot be NULL') unless defined $_[0];
-    JSON::XS->new->utf8->allow_nonref->encode(shift);
-    # XXX In 9.1+, replace the above line with:
-    # JSON::XS->new->utf8(0)->allow_nonref->encode(shift);
+    JSON::XS->new->utf8(0)->allow_nonref->encode(shift);
 $$;
 
 CREATE OR REPLACE FUNCTION json_value(
@@ -47,9 +45,7 @@ fall back to "null".
 =end markdown
 
 =cut
-    defined $_[0] ? JSON::XS->new->utf8->allow_nonref->encode($_[0]) : $_[1];
-    # XXX In 9.1+, replace the above line with:
-    # defined $_[0] ? JSON::XS->new->utf8(0)->allow_nonref->encode($_[0]) : $_[1];
+    defined $_[0] ? JSON::XS->new->utf8(0)->allow_nonref->encode($_[0]) : $_[1];
 $$;
 
 CREATE OR REPLACE FUNCTION json_value(
