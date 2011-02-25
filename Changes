@@ -1,6 +1,6 @@
 Revision history for Perl extension PGXN::Manager
 
-0.7.0
+0.7.0 2011-02-25T01:22:32
       - Fixed JSON handling inside the database to properly handle UTF-8
         semantics.
       - Added `release_date` key to the JSON file generated for a
