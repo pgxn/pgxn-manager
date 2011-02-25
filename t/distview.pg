@@ -87,6 +87,7 @@ SELECT results_eq(
    "license": "postgresql",
    "provides": {
       "pair": {
+         "abstract": "whatever",
          "version": "0.0.1"
       }
    }

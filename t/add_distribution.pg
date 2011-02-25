@@ -101,7 +101,7 @@ SELECT results_eq(
     }') $$,
     $$ VALUES('pair'::citext, '0.0.1'::semver, 'testing'::relstatus, 'Ordered pair',
     'An ordered pair for PostgreSQL',
-    ARRAY[['pair', '0.2.2'], ['trip', '0.2.1']],
+    ARRAY[['pair', '0.2.2', ''], ['trip', '0.2.1', '']],
     ARRAY['foo'::citext, 'bar', 'baz'], '{
    "name": "pair",
    "abstract": "Ordered pair",
@@ -147,7 +147,7 @@ SELECT results_eq(
 SELECT results_eq(
     $$ SELECT provided, relstatus, tags
          FROM setup_meta('nobody', 'pshaw', '{"name": "pair", "version": "0.0.1", "license": "postgresql","maintainer": "theory", "abstract": "whatever"}') $$,
-    $$ VALUES (ARRAY[['pair', '0.0.1']], 'stable'::relstatus, '{}'::citext[]) $$,
+    $$ VALUES (ARRAY[['pair', '0.0.1', 'whatever']], 'stable'::relstatus, '{}'::citext[]) $$,
     'Should get expected default provided, release_status, and tags from setup_meta()'
 );
 
@@ -392,7 +392,7 @@ SELECT bag_eq(
         },
         "provides": {
             "pair": { "file": "pair.sql.in", "version": "0.02.02" },
-            "trip": { "file": "trip.sql.in", "version": "0.02.01" }
+            "trip": { "file": "trip.sql.in", "version": "0.02.01", "abstract": "A triplet" }
         },
         "release_status": "testing",
         "resources": {
@@ -427,6 +427,7 @@ SELECT bag_eq(
          "version": "0.2.2"
       },
       "trip": {
+         "abstract": "A triplet",
          "file": "trip.sql.in",
          "version": "0.2.1"
       }
@@ -533,6 +534,7 @@ SELECT is(meta, '{
          "version": "0.2.2"
       },
       "trip": {
+         "abstract": "A triplet",
          "file": "trip.sql.in",
          "version": "0.2.1"
       }
@@ -559,10 +561,10 @@ SELECT bag_eq(
 SELECT is(COUNT(*)::int, 2, 'Should now have two distribution extensions')
   FROM distribution_extensions;
 SELECT bag_eq(
-    $$ SELECT * FROM distribution_extensions $$,
+    $$ SELECT extension, ext_version, abstract, distribution, dist_version FROM distribution_extensions $$,
     $$ VALUES
-       ('pair', '0.2.2'::semver, 'pair', '0.0.1'::semver),
-       ('trip', '0.2.1'::semver, 'pair', '0.0.1'::semver)
+       ('pair', '0.2.2'::semver, '',          'pair', '0.0.1'::semver),
+       ('trip', '0.2.1'::semver, 'A triplet', 'pair', '0.0.1'::semver)
     $$,
     'We should have the expected distribution extensions'
 );
@@ -615,6 +617,7 @@ SELECT bag_eq(
    "license": "postgresql",
    "provides": {
       "foo": {
+         "abstract": "whatever",
          "version": "0.0.2"
       }
    },
@@ -686,6 +689,7 @@ SELECT is(meta, '{
    "license": "postgresql",
    "provides": {
       "foo": {
+         "abstract": "whatever",
          "version": "0.0.2"
       }
    },
@@ -709,11 +713,11 @@ SELECT bag_eq(
 SELECT is(COUNT(*)::int, 3, 'Should now have three distribution extensions')
   FROM distribution_extensions;
 SELECT bag_eq(
-    $$ SELECT * FROM distribution_extensions $$,
+    $$ SELECT extension, ext_version, abstract, distribution, dist_version FROM distribution_extensions $$,
     $$ VALUES
-       ('pair', '0.2.2'::semver, 'pair', '0.0.1'::semver),
-       ('trip', '0.2.1'::semver, 'pair', '0.0.1'::semver),
-       ('foo', '0.0.2'::semver,  'foo',  '0.0.2'::semver)
+       ('pair', '0.2.2'::semver, '',          'pair', '0.0.1'::semver),
+       ('trip', '0.2.1'::semver, 'A triplet', 'pair', '0.0.1'::semver),
+       ('foo',  '0.0.2'::semver, 'whatever',  'foo',  '0.0.2'::semver)
     $$,
     'We should have the expected distribution extensions'
 );
@@ -768,6 +772,7 @@ SELECT bag_eq(
    "license": "postgresql",
    "provides": {
       "pair": {
+         "abstract": "whatever",
          "version": "0.0.3"
       }
    }
@@ -827,6 +832,7 @@ SELECT is(meta, '{
    "license": "postgresql",
    "provides": {
       "pair": {
+         "abstract": "whatever",
          "version": "0.0.3"
       }
    }
@@ -851,10 +857,10 @@ SELECT is(COUNT(*)::int, 4, 'Should now have four distribution extensions')
 SELECT bag_eq(
     $$ SELECT * FROM distribution_extensions $$,
     $$ VALUES
-       ('pair', '0.2.2'::semver, 'pair', '0.0.1'::semver),
-       ('trip', '0.2.1'::semver, 'pair', '0.0.1'::semver),
-       ('foo', '0.0.2'::semver,  'foo',  '0.0.2'::semver),
-       ('pair', '0.0.3'::semver, 'pair', '0.0.3'::semver)
+       ('pair', '0.2.2'::semver, '',          'pair', '0.0.1'::semver),
+       ('trip', '0.2.1'::semver, 'A triplet', 'pair', '0.0.1'::semver),
+       ('foo', '0.0.2'::semver,  'whatever',  'foo',  '0.0.2'::semver),
+       ('pair', '0.0.3'::semver, 'whatever',  'pair', '0.0.3'::semver)
     $$,
     'We should have the expected distribution extensions'
 );
@@ -892,6 +898,7 @@ SELECT row_eq(
          "version": "0.2.2"
       },
       "trip": {
+         "abstract": "A triplet",
          "file": "trip.sql.in",
          "version": "0.2.1"
       }

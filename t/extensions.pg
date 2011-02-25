@@ -1,7 +1,7 @@
 SET search_path = public,contrib,tap;
 
 BEGIN;
-SELECT plan(95);
+SELECT plan(99);
 --SELECT * FROM no_plan();
 
 SELECT has_table('public', 'extensions', 'Should have table public.extensions');
@@ -115,6 +115,7 @@ SELECT has_table('public', 'distribution_extensions', 'Should have table public.
 SELECT columns_are('public', 'distribution_extensions', ARRAY[
     'extension',
     'ext_version',
+    'abstract',
     'distribution',
     'dist_version'
 ]);
@@ -135,6 +136,11 @@ SELECT col_type_is(       'distribution_extensions', 'ext_version', 'semver' );
 SELECT col_not_null(      'distribution_extensions', 'ext_version' );
 SELECT col_hasnt_default( 'distribution_extensions', 'ext_version' );
 SELECT col_is_pk(         'distribution_extensions', ARRAY['extension', 'ext_version', 'distribution', 'dist_version'] );
+
+SELECT has_column(        'distribution_extensions', 'abstract' );
+SELECT col_type_is(       'distribution_extensions', 'abstract', 'text' );
+SELECT col_not_null(      'distribution_extensions', 'abstract' );
+SELECT col_hasnt_default( 'distribution_extensions', 'abstract' );
 
 SELECT has_column(        'distribution_extensions', 'distribution' );
 SELECT col_type_is(       'distribution_extensions', 'distribution', 'citext' );

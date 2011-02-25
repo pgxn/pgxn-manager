@@ -56,9 +56,12 @@ CREATE OR REPLACE FUNCTION setup_meta(
             $ext->{version} = SemVer->declare($ext->{version})->normal;
         }
     } else {
-        # Default to using the distribution name as the extension.
+        # Default to using the distribution info as the extension.
         $idx_meta->{provides} = {
-            $idx_meta->{name} => { version => $idx_meta->{version} }
+            $idx_meta->{name} => {
+                version  => $idx_meta->{version},
+                abstract => $idx_meta->{abstract},
+            }
         };
     }
 
@@ -89,7 +92,7 @@ CREATE OR REPLACE FUNCTION setup_meta(
         json        => $json,
         tags        => encode_array_literal( $idx_meta->{tags} || []),
         provided    => encode_array_literal([
-            map { [ $_ => $p->{$_}{version} ] } sort keys %{ $p }
+            map { [ $_ => $p->{$_}{version}, $p->{$_}{abstract} // '' ] } sort keys %{ $p }
         ]),
     };
 $$;
@@ -150,8 +153,16 @@ CREATE OR REPLACE FUNCTION add_distribution(
         "abstract": "Ordered pair",
         "tags": ["ordered pair", "key value"],
         "provides": {
-            "pair": { "file": "pair.sql.in", "version": "0.02.02" },
-            "trip": { "file": "trip.sql.in", "version": "0.02.01" }
+            "pair": {
+                "file": "pair.sql.in",
+                "version": "0.02.02",
+                "abstract": "A key/value data type"
+            },
+            "trip": {
+                "file": "trip.sql.in",
+                "version": "0.02.01",
+                "abstract": "A triple data type"
+            }
         },
         "release_status": "testing"
     }');
@@ -170,11 +181,13 @@ CREATE OR REPLACE FUNCTION add_distribution(
                   │              │    "provides": {                                                    ↵
                   │              │       "pair": {                                                     ↵
                   │              │          "file": "pair.sql.in",                                     ↵
-                  │              │          "version": "0.2.2"                                         ↵
+                  │              │          "version": "0.2.2",                                        ↵
+                  │              │          "abstract": "A key/value data type"                        ↵
                   │              │       },                                                            ↵
                   │              │       "trip": {                                                     ↵
                   │              │          "file": "trip.sql.in",                                     ↵
                   │              │          "version": "0.2.1"                                         ↵
+                  │              │          "abstract": "A triple data type"                           ↵
                   │              │       }                                                             ↵
                   │              │    },                                                               ↵
                   │              │    "tags": ["ordered pair", "key value"]                            ↵
@@ -332,8 +345,8 @@ BEGIN
     END;
 
     -- Record the extensions in this distribution.
-    INSERT INTO distribution_extensions (extension, ext_version, distribution, dist_version)
-    SELECT distmeta.provided[i][1], distmeta.provided[i][2]::semver, distmeta.name, distmeta.version
+    INSERT INTO distribution_extensions (extension, ext_version, abstract, distribution, dist_version)
+    SELECT distmeta.provided[i][1], distmeta.provided[i][2]::semver, distmeta.provided[i][3], distmeta.name, distmeta.version
       FROM generate_subscripts(distmeta.provided, 1) AS i;
 
     -- Record the tags for this distribution.

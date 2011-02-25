@@ -24,6 +24,7 @@ CREATE TABLE coowners (
 CREATE TABLE distribution_extensions (
     extension    CITEXT NOT NULL REFERENCES extensions(name),
     ext_version  SEMVER NOT NULL,
+    abstract     TEXT   NOT NULL,
     distribution CITEXT NOT NULL,
     dist_version SEMVER NOT NULL,
     PRIMARY KEY (extension, ext_version, distribution, dist_version),
