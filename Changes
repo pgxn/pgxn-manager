@@ -1,6 +1,7 @@
 Revision history for Perl extension PGXN::Manager
 
 0.8.1
+      - Removed extra space from generated extension JSON.
 
 0.8.0 2011-02-25T23:56:37
       - Added `abstract` column to `distribution_extensions` and the

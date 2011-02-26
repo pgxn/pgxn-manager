@@ -446,7 +446,7 @@ SELECT bag_eq(
 '), ('by-extension', 'pair', '{
    "extension": "pair",
    "latest": "testing",
-   "testing":  { "dist": "pair", "version": "0.0.1" },
+   "testing": { "dist": "pair", "version": "0.0.1" },
    "versions": {
       "0.2.2": [
          { "dist": "pair", "version": "0.0.1", "status": "testing" }
@@ -456,7 +456,7 @@ SELECT bag_eq(
 '), ('by-extension', 'trip', '{
    "extension": "trip",
    "latest": "testing",
-   "testing":  { "dist": "pair", "version": "0.0.1" },
+   "testing": { "dist": "pair", "version": "0.0.1" },
    "versions": {
       "0.2.1": [
          { "dist": "pair", "version": "0.0.1", "status": "testing" }
@@ -632,7 +632,7 @@ SELECT bag_eq(
 '), ('by-extension', 'foo', '{
    "extension": "foo",
    "latest": "stable",
-   "stable":  { "dist": "foo", "version": "0.0.2" },
+   "stable": { "dist": "foo", "version": "0.0.2" },
    "versions": {
       "0.0.2": [
          { "dist": "foo", "version": "0.0.2" }
@@ -787,8 +787,8 @@ SELECT bag_eq(
 '), ('by-extension', 'pair', '{
    "extension": "pair",
    "latest": "testing",
-   "stable":  { "dist": "pair", "version": "0.0.3" },
-   "testing":  { "dist": "pair", "version": "0.0.1" },
+   "stable": { "dist": "pair", "version": "0.0.3" },
+   "testing": { "dist": "pair", "version": "0.0.1" },
    "versions": {
       "0.2.2": [
          { "dist": "pair", "version": "0.0.1", "status": "testing" }

@@ -95,8 +95,8 @@ CREATE OR REPLACE FUNCTION by_extension_json(
      pair      │ {                                                                   ↵
                │    "extension": "pair",                                             ↵
                │    "latest": "testing",                                             ↵
-               │    "stable":  { "dist": "pair", "version": "1.0.0" },               ↵
-               │    "testing":  { "dist": "pair", "version": "1.2.0" },              ↵
+               │    "stable": { "dist": "pair", "version": "1.0.0" },                ↵
+               │    "testing": { "dist": "pair", "version": "1.2.0" },               ↵
                │    "distributions": {                                               ↵
                │       "1.2.0": [                                                    ↵
                │          { "dist": "pair", "version": "1.2.0", "status": "testing" }↵
@@ -113,8 +113,8 @@ CREATE OR REPLACE FUNCTION by_extension_json(
      trip      │ {                                                                   ↵
                │    "extension": "trip",                                             ↵
                │    "latest": "testing",                                             ↵
-               │    "stable":  { "dist": "pair", "version": "1.0.0" },               ↵
-               │    "testing":  { "dist": "pair", "version": "1.2.0" },              ↵
+               │    "stable": { "dist": "pair", "version": "1.0.0" },                ↵
+               │    "testing": { "dist": "pair", "version": "1.2.0" },               ↵
                │    "distributions": {                                               ↵
                │       "0.9.10": [                                                   ↵
                │          { "dist": "pair", "version": "1.2.0", "status": "testing" }↵
@@ -173,9 +173,9 @@ BEGIN
             extension := prev;
             json := E'{\n   "extension": ' || json_value(prev)
                  || E',\n   "latest": ' || json_value(latest)
-                 || COALESCE(E',\n   "stable": '   || stable, '')
-                 || COALESCE(E',\n   "testing": '  || testing, '')
-                 || COALESCE(E',\n   "unstable": ' || unstable, '')
+                 || COALESCE(E',\n   "stable":'   || stable, '')
+                 || COALESCE(E',\n   "testing":'  || testing, '')
+                 || COALESCE(E',\n   "unstable":' || unstable, '')
                  || E',\n   "versions": {\n' || array_to_string(distjson, E',\n')
                  || E'\n   }\n}\n';
             RETURN NEXT;
