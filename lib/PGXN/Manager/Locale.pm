@@ -87,22 +87,16 @@ TESTS = $(wildcard test/sql/*.sql)
 REGRESS = $(patsubst test/sql/%.sql,%,$(TESTS))
 REGRESS_OPTS = --inputdir=test
 
-ifdef NO_PGXS
-top_builddir = ../..
-include $(top_builddir)/src/Makefile.global
-include $(top_srcdir)/contrib/contrib-global.mk
-else
 PG_CONFIG = pg_config
 PGXS := $(shell $(PG_CONFIG) --pgxs)
 include $(PGXS)
-endif
 </code></pre>
 
 <p>The <code>DATA</code> variable identifies the SQL files containing the extension, while <code>TESTS</code> loads a list test files, which are in the <code>test/sql</code> directory. Note that the <code>pair</code> distribution uses <code>pg_regress</code> for tests, and <code>pg_reqress</code> expects that test files will have corresponding &#8220;expected&#8221; files to compare against. With the <code>REGRESS_OPTS = --inputdir=test</code> line, The distribution tells <code>pg_regess</code> to find the test files in <a href="http://github.com/theory/kv-pair/tree/master/test/sql/"><code>test/sql</code></a> and the expected output files in <a href="http://github.com/theory/kv-pair/tree/master/test/expected/"><code>test/expected</code></a>. And finally, the <code>DOCS</code> variable points to a single file with the documentation, <a href="http://github.com/theory/kv-pair/blob/master/doc/pair.txt"><code>doc/pair.txt</code></a>. If this extension had required any C code (like <a href="http://pgtap.org/">pgTAP</a> or <a href="http://postgis.org/">PostGIS</a> do), The <code>Makefile</code> would have pointed the <code>MODULES</code> variable at files in a <code>src</code> directory.</p>
 
-<p>The remainder of the <code>Mafefile</code> consists of build instructions. If executed with <code>make NO_PGXS=1</code>, it assumes that the distribution directory has been put in the &#8220;contrib&#8221; directory of the PostgreSQL source tree used to build PostgreSQL. That&#8217;s probably only important if one is installing on PostgreSQL 8.1 or lower. Otherwise, it assumes a plain <code>make</code> and uses the <a href="http://www.postgresql.org/docs/current/static/app-pgconfig.html"><code>pg_config</code></a> in the system path to find <code>pg_config</code> to do the build. And even with that, a sys admin can always point directly to it by executing <code>PG_CONFIG=/path/to/pg_config make</code>.</p>
+<p>The remainder of the <code>Mafefile</code> consists of build instructions, using <a href="http://www.postgresql.org/docs/current/static/app-pgconfig.html"><code>pg_config</code></a> to find <code>pg_config</code> to do the build. If<code>pg_config</code> isn&#8217;t located in the path, a sys admin can always point directly to it by executing <code>PG_CONFIG=/path/to/pg_config make</code>.</p>
 
-<p>Either way, building and installing the extension should be as simple as:</p>
+<p>With this configuration, building and installing the extension should be as simple as:</p>
 
 <pre><code>make
 make install
@@ -113,7 +107,7 @@ make installcheck PGDATABASE=postgres
 
 <h3 id="zip-me-up">Zip Me Up</h3>
 
-<p>Once you&#8217;ve got your extension developed and well-tested, and your distribution just right and the <code>META.json</code> file all proof-read and solid, it&#8217;s time to upload the distribution to PGXN. What you want to do is to zip it up to create a distribution archive. Here&#8217;s what how the <code>pair</code> distribution &#8212; which is maintained in Git &#8212; was prepared:</p>
+<p>Once you&#8217;ve got your extension developed and well-tested, and your distribution just right and the <code>META.json</code> file all proof-read and solid, it&#8217;s time to upload the distribution to PGXN. What you want to do is to zip it up to create a distribution archive. Here&#8217;s how the <code>pair</code> distribution &#8212; which is maintained in Git &#8212; was prepared:</p>
 
 <pre><code>git archive --format zip --prefix=pair-0.1.0/ \
 --output ~/Desktop/pair-0.1.0.zip master
