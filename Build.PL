@@ -24,6 +24,7 @@ $class->new(
         'HTTP::Request::Common'             => '5.824',
         'MIME::Base64'                      => '3.08',
         'Module::Build::DB'                 => '0.10',
+        'Software::License'                 => '0.102340',
         'TAP::Parser::SourceHandler::pgTAP' => '3.23',
         'Test::File'                        => '1.29',
         'Test::File::Contents'              => '0.05',
