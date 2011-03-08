@@ -22,7 +22,8 @@
         "by-dist":      "/by/dist/{dist}.json",
         "by-extension": "/by/extension/{extension}.json",
         "by-owner":     "/by/owner/{owner}.json",
-        "by-tag":       "/by/tag/{tag}.json"
+        "by-tag":       "/by/tag/{tag}.json",
+        "mirrors":      "/meta/mirrors.json"
     },
     "twitter": {
         "consumer_key": "",

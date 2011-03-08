@@ -2,7 +2,7 @@
 
 use 5.12.0;
 use utf8;
-use Test::More tests => 55;
+use Test::More tests => 56;
 #use Test::More 'no_plan';
 use JSON::XS;
 use Test::File;
