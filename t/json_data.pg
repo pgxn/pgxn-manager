@@ -345,7 +345,7 @@ SELECT json_ok(json, 'JSON for extension ' || extension || ' should be valid')
 
 -- Now have strongrrl do a release with only the "trip" type.
 SELECT ok(
-    insert_user('strongrrl', 'wet blanket', email := 'strongrrl@pgxn.org'),
+    insert_user('strongrrl', 'wet blanket', email := 'strongrrl@pgxn.org', twitter := 'strongrrl'),
     'Insert user "strongrrl"'
 );
 
@@ -748,6 +748,7 @@ SELECT is(
    "nickname": "strongrrl",
    "name": "",
    "email": "strongrrl@pgxn.org",
+   "twitter": "strongrrl",
    "releases": {
       "trip": {
          "stable": ["0.2.5"]

@@ -4,6 +4,7 @@ Revision history for Perl extension PGXN::Manager
       - Removed extra space from generated extension JSON.
       - Removed `NO_PGXS` stuff from the `Makefile` example in the HOWTO.
         Suggested by Alvaro Herrera.
+      - Added the "twitter" key to the owner JSON output.
 
 0.8.0 2011-02-25T23:56:37
       - Added `abstract` column to `distribution_extensions` and the

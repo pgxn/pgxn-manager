@@ -364,6 +364,7 @@ CREATE OR REPLACE FUNCTION by_owner_json(
         "name": "David E. Wheeler",          ↵
         "email": "justatheory@pgxn.org",     ↵
         "uri": "http://www.justatheory.com/",↵
+        "twitter": "theory",                 ↵
         "releases": {                        ↵
            "pair": {                         ↵
               "stable": ["1.0.0"],           ↵
@@ -408,7 +409,8 @@ included in the JSON.
         '"nickname": ' || json_value(u.nickname),
         '"name": '     || json_value(u.full_name),
         '"email": '    || json_value(u.email),
-        '"uri": '      || json_value(uri, NULL)
+        '"uri": '      || json_value(uri, NULL),
+        '"twitter": '  || json_value(CASE u.twitter WHEN '' THEN NULL ELSE u.twitter END, NULL)
     ], E',\n   ') || COALESCE(E',\n   "releases": {\n' ||
            string_agg(
                  '      "' || dv.distribution
@@ -422,7 +424,7 @@ included in the JSON.
       FROM users u
       LEFT JOIN dv ON u.nickname = dv.owner
      WHERE u.nickname = $1
-     GROUP BY u.nickname, u.full_name, u.email, u.uri;
+     GROUP BY u.nickname, u.full_name, u.email, u.uri, u.twitter;
 $$;
 
 COMMIT;
