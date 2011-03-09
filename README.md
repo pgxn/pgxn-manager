@@ -1,4 +1,4 @@
-PGXN/Manager version 0.8.1
+PGXN/Manager version 0.9.0
 ==========================
 
 This application provides a Web interface and REST API for extension owners to
