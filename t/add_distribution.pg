@@ -481,7 +481,9 @@ SELECT bag_eq(
    "tag": "bar",
    "releases": {
       "pair": {
-         "testing": [ "0.0.1" ]
+         "testing": [
+            {"version": "0.0.1", "date": "' || to_char(NOW() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') || '"}
+         ]
       }
    }
 }
@@ -489,7 +491,9 @@ SELECT bag_eq(
    "tag": "foo",
    "releases": {
       "pair": {
-         "testing": [ "0.0.1" ]
+         "testing": [
+            {"version": "0.0.1", "date": "' || to_char(NOW() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') || '"}
+         ]
       }
    }
 }
@@ -497,7 +501,9 @@ SELECT bag_eq(
    "tag": "baz",
    "releases": {
       "pair": {
-         "testing": [ "0.0.1" ]
+         "testing": [
+            {"version": "0.0.1", "date": "' || to_char(NOW() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') || '"}
+         ]
       }
    }
 }
@@ -661,10 +667,14 @@ SELECT bag_eq(
    "tag": "foo",
    "releases": {
       "pair": {
-         "testing": [ "0.0.1" ]
+         "testing": [
+            {"version": "0.0.1", "date": "' || to_char(NOW() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') || '"}
+         ]
       },
       "foo": {
-         "stable": [ "0.0.2" ]
+         "stable": [
+            {"version": "0.0.2", "date": "' || to_char(NOW() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') || '"}
+         ]
       }
    }
 }
@@ -672,7 +682,9 @@ SELECT bag_eq(
    "tag": "PAIR",
    "releases": {
       "foo": {
-         "stable": [ "0.0.2" ]
+         "stable": [
+            {"version": "0.0.2", "date": "' || to_char(NOW() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') || '"}
+         ]
       }
    }
 }

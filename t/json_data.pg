@@ -627,12 +627,21 @@ SELECT results_eq(
    "tag": "foo",
    "releases": {
       "pair": {
-         "stable": [ "0.0.10", "0.0.2" ],
-         "testing": [ "0.0.1" ],
-         "unstable": [ "0.0.2a1" ]
+         "stable": [
+            {"version": "0.0.10", "date": "2011-03-11T20:36:48Z"},
+            {"version": "0.0.2", "date": "2011-02-22T20:31:57Z"}
+         ],
+         "testing": [
+            {"version": "0.0.1", "date": "2011-02-10T18:31:57Z"}
+         ],
+         "unstable": [
+            {"version": "0.0.2a1", "date": "2011-02-15T18:31:57Z"}
+         ]
       },
       "trip": {
-         "stable": [ "0.2.5" ]
+         "stable": [
+            {"version": "0.2.5", "date": "2011-02-11T20:36:48Z"}
+         ]
       }
    }
 }
@@ -646,7 +655,9 @@ SELECT results_eq(
    "tag": "baz",
    "releases": {
       "trip": {
-         "stable": [ "0.2.5" ]
+         "stable": [
+            {"version": "0.2.5", "date": "2011-02-11T20:36:48Z"}
+         ]
       }
    }
 }
@@ -654,12 +665,21 @@ SELECT results_eq(
    "tag": "foo",
    "releases": {
       "pair": {
-         "stable": [ "0.0.10", "0.0.2" ],
-         "testing": [ "0.0.1" ],
-         "unstable": [ "0.0.2a1" ]
+         "stable": [
+            {"version": "0.0.10", "date": "2011-03-11T20:36:48Z"},
+            {"version": "0.0.2", "date": "2011-02-22T20:31:57Z"}
+         ],
+         "testing": [
+            {"version": "0.0.1", "date": "2011-02-10T18:31:57Z"}
+         ],
+         "unstable": [
+            {"version": "0.0.2a1", "date": "2011-02-15T18:31:57Z"}
+         ]
       },
       "trip": {
-         "stable": [ "0.2.5" ]
+         "stable": [
+            {"version": "0.2.5", "date": "2011-02-11T20:36:48Z"}
+         ]
       }
    }
 }
@@ -680,12 +700,21 @@ SELECT results_eq(
    "tag": "foo",
    "releases": {
       "pair": {
-         "stable": [ "0.0.10", "0.0.2" ],
-         "testing": [ "0.0.1" ],
-         "unstable": [ "0.0.2a1" ]
+         "stable": [
+            {"version": "0.0.10", "date": "2011-03-11T20:36:48Z"},
+            {"version": "0.0.2", "date": "2011-02-22T20:31:57Z"}
+         ],
+         "testing": [
+            {"version": "0.0.1", "date": "2011-02-10T18:31:57Z"}
+         ],
+         "unstable": [
+            {"version": "0.0.2a1", "date": "2011-02-15T18:31:57Z"}
+         ]
       },
       "trip": {
-         "stable": [ "0.2.5" ]
+         "stable": [
+            {"version": "0.2.5", "date": "2011-02-11T20:36:48Z"}
+         ]
       }
    }
 }
@@ -697,7 +726,10 @@ SELECT results_eq(
    "tag": "bar",
    "releases": {
       "pair": {
-         "stable": [ "0.0.10", "0.0.2" ]
+         "stable": [
+            {"version": "0.0.10", "date": "2011-03-11T20:36:48Z"},
+            {"version": "0.0.2", "date": "2011-02-22T20:31:57Z"}
+         ]
       }
    }
 }
@@ -705,12 +737,21 @@ SELECT results_eq(
    "tag": "foo",
    "releases": {
       "pair": {
-         "stable": [ "0.0.10", "0.0.2" ],
-         "testing": [ "0.0.1" ],
-         "unstable": [ "0.0.2a1" ]
+         "stable": [
+            {"version": "0.0.10", "date": "2011-03-11T20:36:48Z"},
+            {"version": "0.0.2", "date": "2011-02-22T20:31:57Z"}
+         ],
+         "testing": [
+            {"version": "0.0.1", "date": "2011-02-10T18:31:57Z"}
+         ],
+         "unstable": [
+            {"version": "0.0.2a1", "date": "2011-02-15T18:31:57Z"}
+         ]
       },
       "trip": {
-         "stable": [ "0.2.5" ]
+         "stable": [
+            {"version": "0.2.5", "date": "2011-02-11T20:36:48Z"}
+         ]
       }
    }
 }

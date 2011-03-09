@@ -288,36 +288,46 @@ CREATE OR REPLACE FUNCTION by_tag_json(
 ) LANGUAGE sql STABLE STRICT AS $$
 /*
 
-    % SELECT * FROM by_tag_json('pgtap', '0.0.1');
-       tag   │                  json                  
-    ─────────┼────────────────────────────────────────
-     schema  │ {                                     ↵
-             │    "tag": "schema",                   ↵
-             │    "releases": {                      ↵
-             │       "pair": {                       ↵
-             │          "stable": ["1.0.0"],         ↵
-             │          "testing": ["1.2.0", "0.0.1"]↵
-             │       },                              ↵
-             │       "pgtap": {                      ↵
-             │          "testing": ["0.0.1"]         ↵
-             │       }                               ↵
-             │    }                                  ↵
-             │ }                                     ↵
-             │ 
-     testing │ {                                     ↵
-             │    "tag": "testing",                  ↵
-             │    "releases": {                      ↵
-             │       "pgtap": {                      ↵
-             │          "testing": ["0.0.1"]         ↵
-             │       }                               ↵
-             │    }                                  ↵
-             │ }                                     ↵
-             │ 
+    % SELECT * FROM by_tag_json('pair', '0.1.0');
+            tag        │                               json                                
+    ───────────────────┼───────────────────────────────────────────────────────────────────
+     key value         │ {                                                                ↵
+                       │    "tag": "key value",                                           ↵
+                       │    "releases": {                                                 ↵
+                       │       "pair": {                                                  ↵
+                       │          "stable": [                                             ↵
+                       │             {"version": "0.1.1", "date": "2010-10-29T22:44:42Z"} ↵
+                       │          ]                                                       ↵
+                       │       },                                                         ↵
+                       │       "trip": {                                                  ↵
+                       │          "stable": [                                             ↵
+                       │             {"version": "0.0.1", "date": "2010-09-25T15:48:39Z"} ↵
+                       │          ]                                                       ↵
+                       │       }                                                          ↵
+                       │    }                                                             ↵
+                       │ }                                                                ↵
+                       │ 
+     ordered pair      │ {                                                                ↵
+                       │    "tag": "ordered pair",                                        ↵
+                       │    "releases": {                                                 ↵
+                       │       "pair": {                                                  ↵
+                       │          "stable": [                                             ↵
+                       │             {"version": "0.1.1", "date": "2010-10-29T22:44:42Z"},↵
+                       │             {"version": "0.1.0", "date": "2010-10-19T03:59:54Z"} ↵
+                       │          ],                                                      ↵
+                       │          "testing": [                                            ↵
+                       │             {"version": "0.0.5", "date": "2010-10-10T14:35:18Z"} ↵
+                       │          ]                                                       ↵
+                       │       }                                                          ↵
+                       │    }                                                             ↵
+                       │ }                                                                ↵
+                       │ 
 
 For a given distribution and version, returns a set of tags and the JSON to
-describe them. In this example, pgtap 0.0.1 has two tags. The tag "testing" is
-only associated with pgtap 0.0.1. The tag "schema", on the other hand, is
-associcated with three versions of the "pair" distribution, as well.
+describe them. In this example, pair 0.1.0 has two tags. The tag "key value "
+is associated with pgtap 0.1.1 and trip 0.0.1. The tag "ordered pair", on the
+other hand, is associcated with three versions of the "pair" distribution, as
+well.
 
 */
     WITH td AS (
@@ -336,7 +346,7 @@ associcated with three versions of the "pair" distribution, as well.
                  )
              )
              SELECT dt.tag, dt.distribution, d.relstatus,
-                    array_agg(d.version::text ORDER BY d.version USING >) AS versions
+                    array_agg('{"version": "' || d.version || '", "date": "' || to_char(d.created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') || '"}' ORDER BY d.version DESC) AS versions
                FROM dt
                JOIN distributions d
                  ON dt.distribution = d.name
@@ -344,7 +354,11 @@ associcated with three versions of the "pair" distribution, as well.
              GROUP BY tag, dt.distribution, d.relstatus
         )
         SELECT tag, distribution,
-               array_agg(json_key(relstatus::text) || ': [ "' ||  array_to_string(versions, '", "') || '" ]') AS relv
+               array_agg(
+                   json_key(relstatus::text)
+                   || E': [\n            '
+                   || array_to_string(versions, E',\n            ')
+                   || E'\n         ]') AS relv
           FROM ds
          GROUP BY tag, distribution
     )
