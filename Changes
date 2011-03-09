@@ -8,9 +8,9 @@ Revision history for Perl extension PGXN::Manager
       - Added the "mirrors" URI template to included configuration files.
         Existing installations will need to update their `/index.json` files
         manually.
-      - Changed "releases" status values in the `by_dist_json()` output from a
-        list of versions to a list of objects with a "version" key and a
-        "date" key.
+      - Changed "releases" status values in the `by_dist_json()` and
+        `by_owner_json()` output from a list of versions to a list of objects
+        with a "version" key and a "date" key.
 
 0.8.0 2011-02-25T23:56:37
       - Added `abstract` column to `distribution_extensions` and the

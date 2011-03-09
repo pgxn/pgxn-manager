@@ -790,7 +790,9 @@ SELECT is(
    "twitter": "strongrrl",
    "releases": {
       "trip": {
-         "stable": ["0.2.5"]
+         "stable": [
+            {"version": "0.2.5", "date": "2011-02-11T20:36:48Z"}
+         ]
       }
    }
 }
@@ -799,6 +801,10 @@ SELECT is(
 );
 
 SELECT json_ok(by_owner_json('strongrrl'), '...And that JSON should be valid');
+
+UPDATE distributions
+   SET created_at = '2011-02-13T02:43:03'
+ WHERE name = 'duwop' AND version = '0.50.1';
 
 -- See about user with many distributions.
 SELECT is(
@@ -810,12 +816,22 @@ SELECT is(
    "uri": "http://justatheory.com/",
    "releases": {
       "duwop": {
-         "stable": ["0.50.1"]
+         "stable": [
+            {"version": "0.50.1", "date": "2011-02-13T02:43:03Z"}
+         ]
       },
       "pair": {
-         "stable": ["0.0.10", "0.0.3", "0.0.2"],
-         "testing": ["0.0.1"],
-         "unstable": ["0.0.2a1"]
+         "stable": [
+            {"version": "0.0.10", "date": "2011-03-11T20:36:48Z"},
+            {"version": "0.0.3", "date": "2011-03-10T20:31:57Z"},
+            {"version": "0.0.2", "date": "2011-02-22T20:31:57Z"}
+         ],
+         "testing": [
+            {"version": "0.0.1", "date": "2011-02-10T18:31:57Z"}
+         ],
+         "unstable": [
+            {"version": "0.0.2a1", "date": "2011-02-15T18:31:57Z"}
+         ]
       }
    }
 }

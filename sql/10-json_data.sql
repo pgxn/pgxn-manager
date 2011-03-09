@@ -241,7 +241,7 @@ CREATE OR REPLACE FUNCTION by_dist_json(
      }                                                             ↵
 
 Returns a JSON string describing a distribution, including all of its released
-versions.
+versions and their dates.
 
 */
     SELECT E'{\n   "name": ' || json_value(distribution)
@@ -362,51 +362,58 @@ CREATE OR REPLACE FUNCTION by_owner_json(
 /*
 
     % SELECT by_owner_json('theory');
-                  by_owner_json               
-    ──────────────────────────────────────────
-     {                                       ↵
-        "nickname": "theory",                ↵
-        "name": "David E. Wheeler",          ↵
-        "email": "justatheory@pgxn.org",     ↵
-        "uri": "http://www.justatheory.com/",↵
-        "twitter": "theory",                 ↵
-        "releases": {                        ↵
-           "pair": {                         ↵
-              "stable": ["1.0.0"],           ↵
-              "testing": ["0.0.1"]           ↵
-           },                                ↵
-           "pgtap": {                        ↵
-              "testing": ["0.0.1"]           ↵
-           }                                 ↵
-        }                                    ↵
-     }                                       ↵
+                               by_owner_json                           
+    ───────────────────────────────────────────────────────────────────
+     {                                                                ↵
+        "nickname": "theory",                                         ↵
+        "name": "David E. Wheeler",                                   ↵
+        "email": "david@justatheory.com",                             ↵
+        "uri": "http://justatheory.com/",                             ↵
+        "twitter": "theory",                                          ↵
+        "releases": {                                                 ↵
+           "pair": {                                                  ↵
+              "stable": [                                             ↵
+                 {"version": "0.1.1", "date": "2010-10-29T22:44:42Z"},↵
+                 {"version": "0.1.0", "date": "2010-10-19T03:59:54Z"} ↵
+              ]                                                       ↵
+           },                                                         ↵
+           "pgTAP": {                                                 ↵
+              "stable": [                                             ↵
+                 {"version": "0.25.0", "date": "2011-02-02T03:25:17Z"}↵
+              ]                                                       ↵
+           }                                                          ↵
+        }                                                             ↵
+     }                                                                ↵
 
-Returns a JSON string describing the given user, including all of the
-distributions the user owns. The included distribution versions are only the
-versions owned by the user; if someone else uploaded a different version of
-the distribution, that version will not be owned by this user and thus not
-included in the JSON.
+Returns a JSON string describing the given user, including all versions and
+release dates of the distributions the user owns. The included distribution
+versions are only the versions owned by the user; if someone else uploaded a
+different version of the distribution, that version will not be owned by this
+user and thus not included in the JSON.
 
 */
     WITH dv AS (
         SELECT name AS distribution, owner,
-       '[' || string_agg(
-           CASE relstatus WHEN 'stable'
-           THEN '"' || version || '"'
-           ELSE NULL
-       END, ', ' ORDER BY version USING >) || ']' AS stable,
-       '[' || string_agg(
-           CASE relstatus
-           WHEN 'testing'
-           THEN '"' || version || '"'
-           ELSE NULL
-       END, ', ' ORDER BY version USING >) || ']' AS testing,
-       '[' || string_agg(
-           CASE relstatus
-           WHEN 'unstable'
-           THEN '"' || version || '"'
-           ELSE NULL
-       END, ', ' ORDER BY version USING >) || ']' AS unstable
+           E'[\n            ' || string_agg(
+               CASE relstatus WHEN 'stable'
+               THEN '{"version": "' || version
+                 || '", "date": "' || to_char(created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') || '"}'
+               ELSE NULL
+           END, E',\n            ' ORDER BY version DESC) || E'\n         ]' AS stable,
+           E'[\n            ' || string_agg(
+               CASE relstatus
+               WHEN 'testing'
+               THEN '{"version": "' || version
+                 || '", "date": "' || to_char(created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') || '"}'
+               ELSE NULL
+           END, E',\n            ' ORDER BY version DESC) || E'\n         ]' AS testing,
+           E'[\n            ' || string_agg(
+               CASE relstatus
+               WHEN 'unstable'
+               THEN '{"version": "' || version
+                 || '", "date": "' || to_char(created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') || '"}'
+               ELSE NULL
+           END, E',\n            ' ORDER BY version DESC) || E'\n         ]' AS unstable
          FROM distributions
         GROUP BY name, owner
     )

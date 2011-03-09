@@ -471,7 +471,9 @@ SELECT bag_eq(
    "email": "theory@pgxn.org",
    "releases": {
       "pair": {
-         "testing": ["0.0.1"]
+         "testing": [
+            {"version": "0.0.1", "date": "' || to_char(NOW() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') || '"}
+         ]
       }
    }
 }
@@ -649,7 +651,9 @@ SELECT bag_eq(
    "email": "strongrrl@pgxn.org",
    "releases": {
       "foo": {
-         "stable": ["0.0.2"]
+         "stable": [
+            {"version": "0.0.2", "date": "' || to_char(NOW() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') || '"}
+         ]
       }
    }
 }
@@ -812,10 +816,14 @@ SELECT bag_eq(
    "email": "strongrrl@pgxn.org",
    "releases": {
       "foo": {
-         "stable": ["0.0.2"]
+         "stable": [
+            {"version": "0.0.2", "date": "' || to_char(NOW() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') || '"}
+         ]
       },
       "pair": {
-         "stable": ["0.0.3"]
+         "stable": [
+            {"version": "0.0.3", "date": "' || to_char(NOW() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') || '"}
+         ]
       }
    }
 }
