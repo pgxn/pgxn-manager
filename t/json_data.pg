@@ -488,13 +488,34 @@ SELECT is(
     'Should get NULL value from by_dist_json() for non-existent distribution'
 );
 
+-- Set up created_ats we can expect.
+UPDATE distributions
+   SET created_at = '2011-03-10T20:31:57'
+ WHERE name = 'pair' AND version = '0.0.3';
+UPDATE distributions
+   SET created_at = '2011-02-22T20:31:57'
+ WHERE name = 'pair' AND version = '0.0.2';
+UPDATE distributions
+   SET created_at = '2011-02-10T18:31:57'
+ WHERE name = 'pair' AND version = '0.0.1';
+UPDATE distributions
+   SET created_at = '2011-02-15T18:31:57'
+ WHERE name = 'pair' AND version = '0.0.2a1';
+
 SELECT is(
     by_dist_json('pair'), '{
    "name": "pair",
    "releases": {
-      "stable": ["0.0.3", "0.0.2"],
-      "testing": ["0.0.1"],
-      "unstable": ["0.0.2a1"]
+      "stable": [
+         {"version": "0.0.3", "date": "2011-03-10T20:31:57Z"},
+         {"version": "0.0.2", "date": "2011-02-22T20:31:57Z"}
+      ],
+      "testing": [
+         {"version": "0.0.1", "date": "2011-02-10T18:31:57Z"}
+      ],
+      "unstable": [
+         {"version": "0.0.2a1", "date": "2011-02-15T18:31:57Z"}
+      ]
    }
 }
 ', 'Should get expected JSON for distribution "pair"');
@@ -517,25 +538,43 @@ SELECT lives_ok(
     'Add a stable distribution pair 0.0.10'
 );
 
+UPDATE distributions
+   SET created_at = '2011-03-11T20:36:48Z'
+ WHERE name = 'pair' AND version = '0.0.10';
+
 SELECT is(
     by_dist_json('pair'), '{
    "name": "pair",
    "releases": {
-      "stable": ["0.0.10", "0.0.3", "0.0.2"],
-      "testing": ["0.0.1"],
-      "unstable": ["0.0.2a1"]
+      "stable": [
+         {"version": "0.0.10", "date": "2011-03-11T20:36:48Z"},
+         {"version": "0.0.3", "date": "2011-03-10T20:31:57Z"},
+         {"version": "0.0.2", "date": "2011-02-22T20:31:57Z"}
+      ],
+      "testing": [
+         {"version": "0.0.1", "date": "2011-02-10T18:31:57Z"}
+      ],
+      "unstable": [
+         {"version": "0.0.2a1", "date": "2011-02-15T18:31:57Z"}
+      ]
    }
 }
 ', '0.0.10 should be greater than 0.0.3 in the "pair" JSON');
 
 SELECT json_ok(by_dist_json('pair'), '...And that JSON should be valid');
 
+UPDATE distributions
+   SET created_at = '2011-02-11T20:36:48Z'
+ WHERE name = 'trip' AND version = '0.2.5';
+
 -- Select another distribution.
 SELECT is(
     by_dist_json('trip'), '{
    "name": "trip",
    "releases": {
-      "stable": ["0.2.5"]
+      "stable": [
+         {"version": "0.2.5", "date": "2011-02-11T20:36:48Z"}
+      ]
    }
 }
 ', 'Should get expected JSON for distribution "trip"');

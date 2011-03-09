@@ -440,7 +440,9 @@ SELECT bag_eq(
 '), ('by-dist', 'pair', '{
    "name": "pair",
    "releases": {
-      "testing": ["0.0.1"]
+      "testing": [
+         {"version": "0.0.1", "date": "' || to_char(NOW() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') || '"}
+      ]
    }
 }
 '), ('by-extension', 'pair', '{
@@ -626,7 +628,9 @@ SELECT bag_eq(
 '), ('by-dist', 'foo', '{
    "name": "foo",
    "releases": {
-      "stable": ["0.0.2"]
+      "stable": [
+         {"version": "0.0.2", "date": "' || to_char(NOW() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') || '"}
+      ]
    }
 }
 '), ('by-extension', 'foo', '{
@@ -780,8 +784,12 @@ SELECT bag_eq(
 '), ('by-dist', 'pair', '{
    "name": "pair",
    "releases": {
-      "stable": ["0.0.3"],
-      "testing": ["0.0.1"]
+      "stable": [
+         {"version": "0.0.3", "date": "' || to_char(NOW() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') || '"}
+      ],
+      "testing": [
+         {"version": "0.0.1", "date": "' || to_char(NOW() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') || '"}
+      ]
    }
 }
 '), ('by-extension', 'pair', '{

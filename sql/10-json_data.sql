@@ -228,15 +228,17 @@ CREATE OR REPLACE FUNCTION by_dist_json(
 /*
 
     % SELECT * FROM by_dist_json('pair');
-                  by_dist_json               
-    ─────────────────────────────────────────
-     {                                      ↵
-        "name": "pair",                     ↵
-        "releases": {                       ↵
-           "stable": ["1.0.0"],             ↵
-           "testing": ["1.2.0", "0.0.1"]    ↵
-        }                                   ↵
-     }                                      ↵
+                              by_dist_json                          
+    ────────────────────────────────────────────────────────────────
+     {                                                             ↵
+        "name": "pair",                                            ↵
+        "releases": {                                              ↵
+           "stable": [                                             ↵
+              {"version": "0.1.1", "date": "2010-10-29T22:44:42Z"},↵
+              {"version": "0.1.0", "date": "2010-10-19T03:59:54Z"} ↵
+           ]                                                       ↵
+        }                                                          ↵
+     }                                                             ↵
 
 Returns a JSON string describing a distribution, including all of its released
 versions.
@@ -251,23 +253,26 @@ versions.
            ], E',\n      ') || E'\n   }\n}\n'
       FROM (
         SELECT name AS distribution,
-           '[' || string_agg(
+           E'[\n         ' || string_agg(
                CASE relstatus WHEN 'stable'
-               THEN '"' || version || '"'
+               THEN '{"version": "' || version
+                 || '", "date": "' || to_char(created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') || '"}'
                ELSE NULL
-           END, ', ' ORDER BY version USING >) || ']' AS stable,
-           '[' || string_agg(
+           END, E',\n         ' ORDER BY version DESC) || E'\n      ]' AS stable,
+           E'[\n         ' || string_agg(
                CASE relstatus
                WHEN 'testing'
-               THEN '"' || version || '"'
+               THEN '{"version": "' || version
+                 || '", "date": "' || to_char(created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') || '"}'
                ELSE NULL
-           END, ', ' ORDER BY version USING >) || ']' AS testing,
-           '[' || string_agg(
+           END, E',\n         ' ORDER BY version DESC) || E'\n      ]' AS testing,
+           E'[\n         ' || string_agg(
                CASE relstatus
                WHEN 'unstable'
-               THEN '"' || version || '"'
+               THEN '{"version": "' || version
+                 || '", "date": "' || to_char(created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') || '"}'
                ELSE NULL
-           END, ', ' ORDER BY version USING >) || ']' AS unstable
+           END, E',\n         ' ORDER BY version DESC) || E'\n      ]' AS unstable
           FROM distributions
          GROUP BY name
       ) AS dv
