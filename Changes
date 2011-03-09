@@ -1,5 +1,7 @@
 Revision history for Perl extension PGXN::Manager
 
+0.9.1
+
 0.9.0 2011-03-09T21:35:11
       - Removed extra space from generated extension JSON.
       - Removed `NO_PGXS` stuff from the `Makefile` example in the HOWTO.
