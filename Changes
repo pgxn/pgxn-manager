@@ -1,6 +1,6 @@
 Revision history for Perl extension PGXN::Manager
 
-0.9.1
+0.9.1 2011-03-09T23:59:58
       - Changed "releases" status values in the `by_tag_json()` output from a
         list of versions to a list of objects with a "version" key and a
         "date" key, to match the output from `by_dist_json()` and
