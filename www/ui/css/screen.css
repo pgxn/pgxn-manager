@@ -11,7 +11,7 @@ ul
 {list-style:square; margin:15px 0 20px 0; padding:0;}
 
 li
-{margin:0 0 8px 25px;}
+{margin:0 0 8px 20px;}
 
 a
 {color:#236691; font-weight:bold; text-decoration:none;}
@@ -213,11 +213,11 @@ table th .control img
 
 /**************** Definition Lists ****************/
 #content dt
-{font-weight:bold;color:#236691;float:left;clear:left;width:6em;text-align:right;line-height:1.5em;}
+{font-weight:bold;color:#236691;float:left;clear:left;width:7em;text-align:right;line-height:1.5em;}
 #content dt:after
 {content:":";}
 #content dd
-{margin: 0 0 0 6.5em;}
+{margin: 0 0 0 7.5em;}
 #content dd li {padding-top:.1em;}
 
 #distlinks
