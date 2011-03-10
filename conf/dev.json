@@ -21,7 +21,7 @@
         "meta":         "/dist/{dist}/{dist}-{version}.json",
         "by-dist":      "/by/dist/{dist}.json",
         "by-extension": "/by/extension/{extension}.json",
-        "by-owner":     "/by/owner/{owner}.json",
+        "by-user":      "/by/user/{user}.json",
         "by-tag":       "/by/tag/{tag}.json",
         "mirrors":      "/meta/mirrors.json"
     },

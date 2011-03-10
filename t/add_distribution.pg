@@ -110,7 +110,7 @@ SELECT results_eq(
    "maintainer": "theory",
    "release_date": "' || to_char(NOW() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') || '",
    "release_status": "testing",
-   "owner": "nobody",
+   "user": "nobody",
    "sha1": "pshaw",
    "license": "postgresql",
    "prereqs": {
@@ -407,7 +407,7 @@ SELECT bag_eq(
    "maintainer": "theory",
    "release_date": "' || to_char(NOW() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') || '",
    "release_status": "testing",
-   "owner": "theory",
+   "user": "theory",
    "sha1": "pshaw",
    "license": "postgresql",
    "prereqs": {
@@ -465,7 +465,7 @@ SELECT bag_eq(
       ]
    }
 }
-'), ('by-owner', 'theory', '{
+'), ('by-user', 'theory', '{
    "nickname": "theory",
    "name": "",
    "email": "theory@pgxn.org",
@@ -511,7 +511,7 @@ SELECT bag_eq(
 
 SELECT is(COUNT(*)::int, 1, 'Should have one distribution') FROM distributions;
 SELECT row_eq(
-    $$ SELECT name, version, abstract, description, relstatus, owner, sha1, NULL::text, created_at FROM distributions $$,
+    $$ SELECT name, version, abstract, description, relstatus, creator, sha1, NULL::text, created_at FROM distributions $$,
     ROW('pair', '0.0.1', 'Ordered pair', 'An ordered pair for PostgreSQL', 'testing', 'theory', 'pshaw', NULL, NOW())::distributions,
     'It should look as expected'
 );
@@ -524,7 +524,7 @@ SELECT is(meta, '{
    "maintainer": "theory",
    "release_date": "' || to_char(NOW() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') || '",
    "release_status": "testing",
-   "owner": "theory",
+   "user": "theory",
    "sha1": "pshaw",
    "license": "postgresql",
    "prereqs": {
@@ -622,7 +622,7 @@ SELECT bag_eq(
    "maintainer": "strongrrl",
    "release_date": "' || to_char(NOW() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') || '",
    "release_status": "stable",
-   "owner": "strongrrl",
+   "user": "strongrrl",
    "sha1": "ick",
    "license": "postgresql",
    "provides": {
@@ -651,7 +651,7 @@ SELECT bag_eq(
       ]
    }
 }
-'), ('by-owner', 'strongrrl', '{
+'), ('by-user', 'strongrrl', '{
    "nickname": "strongrrl",
    "name": "",
    "email": "strongrrl@pgxn.org",
@@ -692,7 +692,7 @@ SELECT bag_eq(
 
 SELECT is(COUNT(*)::int, 2, 'Should now have two distributions') FROM distributions;
 SELECT row_eq(
-    $$ SELECT name, version, abstract, description, relstatus, owner, sha1, NULL::text, created_at FROM distributions WHERE owner = 'strongrrl' $$,
+    $$ SELECT name, version, abstract, description, relstatus, creator, sha1, NULL::text, created_at FROM distributions WHERE creator = 'strongrrl' $$,
     ROW('foo', '0.0.2', 'whatever', '', 'stable', 'strongrrl', 'ick', NULL, NOW())::distributions,
     'The new one should look as expected'
 );
@@ -704,7 +704,7 @@ SELECT is(meta, '{
    "maintainer": "strongrrl",
    "release_date": "' || to_char(NOW() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') || '",
    "release_status": "stable",
-   "owner": "strongrrl",
+   "user": "strongrrl",
    "sha1": "ick",
    "license": "postgresql",
    "provides": {
@@ -787,7 +787,7 @@ SELECT bag_eq(
    "maintainer": "theory",
    "release_date": "' || to_char(NOW() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') || '",
    "release_status": "stable",
-   "owner": "strongrrl",
+   "user": "strongrrl",
    "sha1": "howdy",
    "license": "postgresql",
    "provides": {
@@ -822,7 +822,7 @@ SELECT bag_eq(
       ]
    }
 }
-'), ('by-owner', 'strongrrl', '{
+'), ('by-user', 'strongrrl', '{
    "nickname": "strongrrl",
    "name": "",
    "email": "strongrrl@pgxn.org",
@@ -843,7 +843,7 @@ SELECT bag_eq(
 
 SELECT is(COUNT(*)::int, 3, 'Should now have three distributions') FROM distributions;
 SELECT row_eq(
-    $$ SELECT name, version, abstract, description, relstatus, owner, sha1, NULL::text, created_at FROM distributions WHERE owner = 'strongrrl' AND name = 'pair' $$,
+    $$ SELECT name, version, abstract, description, relstatus, creator, sha1, NULL::text, created_at FROM distributions WHERE creator = 'strongrrl' AND name = 'pair' $$,
     ROW('pair', '0.0.3', 'whatever', '', 'stable', 'strongrrl', 'howdy', NULL, NOW())::distributions,
     'The new one for strongrrl pair should look as expected'
 );
@@ -855,7 +855,7 @@ SELECT is(meta, '{
    "maintainer": "theory",
    "release_date": "' || to_char(NOW() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') || '",
    "release_status": "stable",
-   "owner": "strongrrl",
+   "user": "strongrrl",
    "sha1": "howdy",
    "license": "postgresql",
    "provides": {
@@ -906,7 +906,7 @@ SELECT row_eq(
    "maintainer": "theory",
    "release_date": "' || to_char(NOW() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') || '",
    "release_status": "testing",
-   "owner": "theory",
+   "user": "theory",
    "sha1": "pshaw",
    "license": "postgresql",
    "prereqs": {

@@ -1,5 +1,26 @@
 Revision history for Perl extension PGXN::Manager
 
+0.10.0
+      - Removed conflicting meaning of the term "owner". It now is used only
+        in the context of permissions: who owns or co-owns.a particular
+        extension. The user who uploads a distribution is now recorded as the
+        "creator" of that extension, and listed in the JSON metadata simply as
+        the "user". The term "creator" is not used here because the user who
+        created the distribution (that is, uploaded it) should not be confused
+        the the person who created the code in the distribution.
+
+        To enact this change in terminology, the these changes have been made
+        to the code and its outputs:
+
+        * Renamed the `distributions.owner` column to `distributions.creator`.
+        * Renamed the "owner" key in the distribution metadata file to "user".
+        * Renamed the "owner" attribute in PGXN::Manager::Distribution to
+          "creator".
+        * Moved the `/by/owner/` metadata files to `/by/user/`.
+        * Renamed the `by_owner_json()` SQL function to `by_user_json()`.
+        * Changed the name of the URI template for the user JSON output by
+          `add_distribution()` to `by-user`.
+
 0.9.1 2011-03-09T23:59:58
       - Changed "releases" status values in the `by_tag_json()` output from a
         list of versions to a list of objects with a "version" key and a

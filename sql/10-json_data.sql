@@ -370,13 +370,13 @@ well.
      GROUP BY tag;
 $$;
 
-CREATE OR REPLACE FUNCTION by_owner_json(
-   owner LABEL
+CREATE OR REPLACE FUNCTION by_user_json(
+   nickname LABEL
 ) RETURNS TEXT LANGUAGE sql STABLE STRICT AS $$
 /*
 
-    % SELECT by_owner_json('theory');
-                               by_owner_json                           
+    % SELECT by_user_json('theory');
+                               by_user_json
     ───────────────────────────────────────────────────────────────────
      {                                                                ↵
         "nickname": "theory",                                         ↵
@@ -407,7 +407,7 @@ user and thus not included in the JSON.
 
 */
     WITH dv AS (
-        SELECT name AS distribution, owner,
+        SELECT name AS distribution, creator,
            E'[\n            ' || string_agg(
                CASE relstatus WHEN 'stable'
                THEN '{"version": "' || version
@@ -429,7 +429,7 @@ user and thus not included in the JSON.
                ELSE NULL
            END, E',\n            ' ORDER BY version DESC) || E'\n         ]' AS unstable
          FROM distributions
-        GROUP BY name, owner
+        GROUP BY name, creator
     )
     SELECT E'{\n   ' || array_to_string(ARRAY[
         '"nickname": ' || json_value(u.nickname),
@@ -448,7 +448,7 @@ user and thus not included in the JSON.
               E',\n')
            || E'\n   }\n}\n', E'\n}\n')
       FROM users u
-      LEFT JOIN dv ON u.nickname = dv.owner
+      LEFT JOIN dv ON u.nickname = dv.creator
      WHERE u.nickname = $1
      GROUP BY u.nickname, u.full_name, u.email, u.uri, u.twitter;
 $$;

@@ -818,8 +818,8 @@ template distribution => sub {
                 dt { T 'Description' };
                 dd { p { $desc } };
             }
-            dt { T 'Owner' };
-            dd { p { $dist->{owner} } };
+            dt { T 'Released By' };
+            dd { p { $dist->{creator} } };
             dt { T 'Status' };
             dd { p { $dist->{relstatus} } };
             dt { T 'SHA1' };

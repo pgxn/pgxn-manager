@@ -30,7 +30,7 @@ Archive::Zip::setErrorHandler(\&_zip_error_handler);
 
 has archive  => (is => 'ro', required => 1, isa => 'Str');
 has basename => (is => 'ro', required => 1, isa => 'Str');
-has owner    => (is => 'ro', required => 1, isa => 'Str');
+has creator  => (is => 'ro', required => 1, isa => 'Str');
 has error    => (is => 'rw', required => 0, isa => 'ArrayRef', auto_deref => 1);
 has zip      => (is => 'rw', required => 0, isa => 'Archive::Zip');
 has metamemb => (is => 'rw', required => 0, isa => 'Archive::Zip::FileMember');
@@ -226,7 +226,7 @@ sub _update_meta {
     } grep {
         defined $meta->{$_}
     } qw(
-        name abstract description version maintainer release_status owner sha1
+        name abstract description version maintainer release_status user sha1
         license prereqs provides tags resources generated_by no_index
         meta-spec
     )) . "\n}\n");
@@ -283,7 +283,7 @@ sub indexit {
     PGXN::Manager->conn->run(sub {
         my $sth = $_->prepare('SELECT * FROM add_distribution(?, ?, ?)');
         $sth->execute(
-            $self->owner,
+            $self->creator,
             $self->sha1,
             scalar $self->metamemb->contents,
         );
@@ -386,7 +386,7 @@ PGXN::Manager::Distribution - Manages distributions uploaded to PGXN.
   my $dist = PGXN::Manager::Distribution->new(
       archive  => $path_to_archive_file,
       basename => File::Spec->basename($path_to_archive_file),
-      owner    => $nickname,
+      creator  => $nickname,
   );
   die "Distribution failure: ", $dist->error unless $dist->process;
 
@@ -414,7 +414,7 @@ the user.q
   my $dist = PGXN::Manager::Distribution->new(
       archive  => $path_to_archive_file,
       basename => File::Spec->basename($path_to_archive_file),
-      owner    => $nickname,
+      creator  => $nickname,
   );
 
 Creates a new distribution object. The supported parameters are:
@@ -431,7 +431,7 @@ then we might not have to repack them).
 
 The base file name of the archive.
 
-=item C<owner>
+=item C<creator>
 
 The nickname of the user uploading the distribution.
 
@@ -451,9 +451,9 @@ The path to the uploaded distribution archive file.
 
 The base name of the archive file.
 
-=head3 C<owner>
+=head3 C<creator>
 
-  my $owner = $dist->owner;
+  my $creator = $dist->creator;
 
 The nickname of the user uploading the distribution archive.
 

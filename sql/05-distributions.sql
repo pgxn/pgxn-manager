@@ -17,7 +17,7 @@ CREATE TABLE distributions (
     abstract    TEXT        NOT NULL DEFAULT '',
     description TEXT        NOT NULL DEFAULT '',
     relstatus   RELSTATUS   NOT NULL DEFAULT 'stable',
-    owner       LABEL       NOT NULL REFERENCES users(nickname),
+    creator     LABEL       NOT NULL REFERENCES users(nickname),
     sha1        CITEXT      NOT NULL,
     meta        TEXT        NOT NULL,
     created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),

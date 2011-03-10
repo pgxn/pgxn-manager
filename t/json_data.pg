@@ -779,27 +779,27 @@ SELECT is_empty(
 );
 
 /****************************************************************************/
--- Test by_owner_json().
+-- Test by_user_json().
 
-SELECT has_function(    'by_owner_json' );
-SELECT has_function(    'by_owner_json', ARRAY['label'] );
-SELECT function_returns('by_owner_json', ARRAY['label'], 'text' );
-SELECT function_lang_is('by_owner_json', ARRAY['label'], 'sql' );
-SELECT volatility_is(   'by_owner_json', ARRAY['label'], 'stable' );
-SELECT is_strict(       'by_owner_json', ARRAY['label'] );
+SELECT has_function(    'by_user_json' );
+SELECT has_function(    'by_user_json', ARRAY['label'] );
+SELECT function_returns('by_user_json', ARRAY['label'], 'text' );
+SELECT function_lang_is('by_user_json', ARRAY['label'], 'sql' );
+SELECT volatility_is(   'by_user_json', ARRAY['label'], 'stable' );
+SELECT is_strict(       'by_user_json', ARRAY['label'] );
 SELECT ok(
-    has_function_privilege('pgxn', 'by_owner_json(label)', 'EXECUTE'),
-    'User "pgxn" should have EXECUTE priv on by_owner_json()'
+    has_function_privilege('pgxn', 'by_user_json(label)', 'EXECUTE'),
+    'User "pgxn" should have EXECUTE priv on by_user_json()'
 );
 
 SELECT is(
-    by_owner_json(NULL), NULL,
-    'Should get NULL value from by_owner_json() for NULL owner'
+    by_user_json(NULL), NULL,
+    'Should get NULL value from by_user_json() for NULL nickname'
 );
 
 SELECT is(
-    by_owner_json('nobody'), NULL,
-    'Should get NULL value from by_owner_json() for non-existent owner'
+    by_user_json('nobody'), NULL,
+    'Should get NULL value from by_user_json() for non-existent user'
 );
 
 -- Insert a new user who will have no distributions.
@@ -809,7 +809,7 @@ SELECT ok(
 );
 
 SELECT is(
-    by_owner_json('anna'),
+    by_user_json('anna'),
     '{
    "nickname": "anna",
    "name": "",
@@ -819,11 +819,11 @@ SELECT is(
     'Should get proper JSON for user without distribution or URI'
 );
 
-SELECT json_ok(by_owner_json('anna'), '...And that JSON should be valid');
+SELECT json_ok(by_user_json('anna'), '...And that JSON should be valid');
 
 -- See about user with one distribution.
 SELECT is(
-    by_owner_json('strongrrl'),
+    by_user_json('strongrrl'),
     '{
    "nickname": "strongrrl",
    "name": "",
@@ -841,7 +841,7 @@ SELECT is(
     'Should get proper JSON for user with one distribution'
 );
 
-SELECT json_ok(by_owner_json('strongrrl'), '...And that JSON should be valid');
+SELECT json_ok(by_user_json('strongrrl'), '...And that JSON should be valid');
 
 UPDATE distributions
    SET created_at = '2011-02-13T02:43:03'
@@ -849,7 +849,7 @@ UPDATE distributions
 
 -- See about user with many distributions.
 SELECT is(
-    by_owner_json('theory'),
+    by_user_json('theory'),
     '{
    "nickname": "theory",
    "name": "",
@@ -880,7 +880,7 @@ SELECT is(
     'Should get proper JSON for user with many distributions'
 );
 
-SELECT json_ok(by_owner_json('theory'), '...And that JSON should be valid');
+SELECT json_ok(by_user_json('theory'), '...And that JSON should be valid');
 
 SELECT * FROM finish();
 ROLLBACK;

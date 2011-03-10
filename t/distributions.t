@@ -138,7 +138,7 @@ END {
 }
 
 ok my $dist = PGXN::Manager::Distribution->new(
-    owner    => TxnTest->user,
+    creator  => TxnTest->user,
     archive  => $distzip,
     basename => 'widget-0.2.5.pgz',
 ), 'Create a widget-0.2.5 distribution';
@@ -152,7 +152,7 @@ $dzip->memberNamed('widget-0.2.5/META.json')->contents(encode_json $meta);
 $dzip->writeToFileNamed($distzip) == AZ_OK or die 'write error';
 
 ok $dist = PGXN::Manager::Distribution->new(
-    owner    => TxnTest->user,
+    creator  => TxnTest->user,
     archive  => $distzip,
     basename => 'widget-0.2.6.pgz',
 ), 'Create a widget-0.2.6 distribution';
@@ -166,7 +166,7 @@ $dzip->memberNamed('widget-0.2.5/META.json')->contents(encode_json $meta);
 $dzip->writeToFileNamed($distzip) == AZ_OK or die 'write error';
 
 ok $dist = PGXN::Manager::Distribution->new(
-    owner    => TxnTest->user,
+    creator  => TxnTest->user,
     archive  => $distzip,
     basename => 'pair-1.3.0.pgz',
 ), 'Create a pair-1.3.0 distribution';
@@ -180,7 +180,7 @@ $dzip->memberNamed('widget-0.2.5/META.json')->contents(encode_json $meta);
 $dzip->writeToFileNamed($distzip) == AZ_OK or die 'write error';
 
 ok $dist = PGXN::Manager::Distribution->new(
-    owner    => TxnTest->admin,
+    creator  => TxnTest->admin,
     archive  => $distzip,
     basename => 'pgTAP-0.35.0.pgz',
 ), 'Create a pgTAP-0.35.0 distribution for admin';

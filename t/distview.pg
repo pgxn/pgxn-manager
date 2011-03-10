@@ -24,7 +24,7 @@ SELECT columns_are('public', 'distribution_details', ARRAY[
     'abstract',
     'description',
     'relstatus',
-    'owner',
+    'creator',
     'sha1',
     'meta',
     'extensions',
@@ -41,8 +41,8 @@ SELECT has_column(  'distribution_details', 'description' );
 SELECT col_type_is( 'distribution_details', 'description', 'text' );
 SELECT has_column(  'distribution_details', 'relstatus' );
 SELECT col_type_is( 'distribution_details', 'relstatus', 'relstatus' );
-SELECT has_column(  'distribution_details', 'owner' );
-SELECT col_type_is( 'distribution_details', 'owner', 'label' );
+SELECT has_column(  'distribution_details', 'creator' );
+SELECT col_type_is( 'distribution_details', 'creator', 'label' );
 SELECT has_column(  'distribution_details', 'sha1' );
 SELECT col_type_is( 'distribution_details', 'sha1', 'citext' );
 SELECT has_column(  'distribution_details', 'meta' );
@@ -82,7 +82,7 @@ SELECT results_eq(
    "maintainer": "theory",
    "release_date": "' || to_char(NOW() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') || '",
    "release_status": "stable",
-   "owner": "theory",
+   "user": "theory",
    "sha1": "foo",
    "license": "postgresql",
    "provides": {
@@ -125,7 +125,7 @@ SELECT results_eq(
    "maintainer": "theory",
    "release_date": "' || to_char(NOW() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') || '",
    "release_status": "testing",
-   "owner": "theory",
+   "user": "theory",
    "sha1": "ick",
    "license": "postgresql",
    "provides": {

@@ -483,7 +483,7 @@ sub upload {
     my $dist   = Distribution->new(
         archive  => $upload->path,
         basename => $upload->basename,
-        owner    => $req->user,
+        creator  => $req->user,
     );
 
     if ($dist->process) {
@@ -537,7 +537,7 @@ sub distributions {
             SELECT name, version, relstatus,
                    to_char(created_at, 'IYYY-MM-DD') AS date
               FROM distributions
-             WHERE owner = ?
+             WHERE creator = ?
              ORDER BY name, version USING <
         });
     });
@@ -552,8 +552,8 @@ sub distribution {
 
     my $dist = PGXN::Manager->conn->run(sub {
         shift->selectrow_hashref(q{
-            SELECT name::text, version, abstract, description, relstatus, owner,
-                   sha1, meta, extensions, tags::text[], owner = ? AS is_owner
+            SELECT name::text, version, abstract, description, relstatus, creator,
+                   sha1, meta, extensions, tags::text[], creator = ? AS is_owner
               FROM distribution_details
              WHERE name    = ?
                AND version = ?

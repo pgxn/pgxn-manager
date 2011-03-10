@@ -12,7 +12,7 @@ CREATE AGGREGATE multi_array_agg ( text[] ) (
 );
 
 CREATE OR REPLACE VIEW distribution_details AS
-SELECT d.name, d.version, d.abstract, d.description, d.relstatus, d.owner,
+SELECT d.name, d.version, d.abstract, d.description, d.relstatus, d.creator,
        d.sha1, d.meta,
        multi_array_agg(
        DISTINCT ARRAY[[de.extension, de.ext_version::text]]
@@ -31,7 +31,7 @@ SELECT d.name, d.version, d.abstract, d.description, d.relstatus, d.owner,
   LEFT JOIN distribution_tags dt
     ON d.name    = dt.distribution
    AND d.version = dt.version
- GROUP BY d.name, d.version, d.abstract, d.description, d.relstatus, d.owner,
+ GROUP BY d.name, d.version, d.abstract, d.description, d.relstatus, d.creator,
        d.sha1, d.meta;
 
 GRANT SELECT ON distribution_details TO pgxn;

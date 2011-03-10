@@ -355,7 +355,7 @@ is_deeply [sort $nzip->memberNames ], [
 # Test indexit().
 my $user = TxnTest->user; # Create user.
 my %files = map { join('/', @{ $_ }) => File::Spec->catfile($root, @{ $_ } ) } (
-   ['by',   'owner',     'user.json'],
+   ['by',   'user',      'user.json'],
    ['by',   'dist',      'widget.json'],
    ['by',   'tag',       'gadget.json'],
    ['by',   'tag',       'widget.json'],
@@ -397,12 +397,12 @@ PGXN::Manager->conn->run(sub {
     file_contents_is $files{'by/extension/widget.json'}, $json,
         "By extension JSON file should be correct";
 
-    # Check owner JSON.
+    # Check user JSON.
     ($json) = $dbh->selectrow_array(
-        'SELECT by_owner_json(?)', undef, $user,
+        'SELECT by_user_json(?)', undef, $user,
     );
-    file_contents_is $files{'by/owner/user.json'}, $json,
-        "By owner JSON file should be correct";
+    file_contents_is $files{'by/user/user.json'}, $json,
+        "By user JSON file should be correct";
 
     # Check dist JSON.
     ($json) = $dbh->selectrow_array(
@@ -432,7 +432,7 @@ file_contents_is $files{'dist/widget/widget-0.2.5.readme'},
 
 # Let's try a distribution without a README.
 %files = map { join('/', @{ $_ }) => File::Spec->catfile($root, @{ $_ } ) } (
-   ['by',   'owner',     'user.json'],
+   ['by',   'user',      'user.json'],
    ['by',   'dist',      'widget.json'],
    ['by',   'tag',       'gadget.json'],
    ['by',   'tag',       'widget.json'],
@@ -482,7 +482,7 @@ sub new_dist {
     my $fn = shift;
     my $bn = basename $fn;
     $CLASS->new(
-        owner    => shift || 'user',
+        creator  => shift || 'user',
         archive  => $fn,
         basename => $bn,
     );

@@ -13,7 +13,7 @@ CREATE OR REPLACE FUNCTION setup_meta(
     OUT tags        CITEXT[],
     OUT json        TEXT
 ) LANGUAGE plperl IMMUTABLE AS $$
-    my $idx_meta  = { owner => shift, sha1 => shift };
+    my $idx_meta  = { user => shift, sha1 => shift };
     my $dist_meta = JSON::XS->new->utf8(0)->decode(shift);
 
     # Check required keys.
@@ -77,7 +77,7 @@ CREATE OR REPLACE FUNCTION setup_meta(
         defined $idx_meta->{$_}
     } qw(
         name abstract description version date maintainer release_date
-        release_status owner sha1 license prereqs provides tags resources
+        release_status user sha1 license prereqs provides tags resources
         generated_by no_index meta-spec
     )) . "\n}\n";
 
@@ -175,7 +175,7 @@ CREATE OR REPLACE FUNCTION add_distribution(
                   │              │    "version": "0.0.1",                                              ↵
                   │              │    "maintainer": "theory",                                          ↵
                   │              │    "release_status": "testing",                                     ↵
-                  │              │    "owner": "theory",                                               ↵
+                  │              │    "user": "theory",                                                ↵
                   │              │    "sha1": "ebf381e2e1e5767fb068d1c4423a9d9f122c2dc6",              ↵
                   │              │    "license": "postgresql",                                         ↵
                   │              │    "provides": {                                                    ↵
@@ -222,7 +222,7 @@ CREATE OR REPLACE FUNCTION add_distribution(
                   │              │    }                                                                ↵
                   │              │ }                                                                   ↵
                   │              │ 
-     by-owner     │ theory       │ {                                                                   ↵
+     by-user      │ theory       │ {                                                                   ↵
                   │              │    "nickname": "theory",                                            ↵
                   │              │    "name": "",                                                      ↵
                   │              │    "email": "theory@pgxn.org",                                      ↵
@@ -254,7 +254,7 @@ CREATE OR REPLACE FUNCTION add_distribution(
 
 Creates a new distribution, returning all of the JSON that needs to be written
 to the mirror in order for the distribution to be indexed. The nickname of the
-uploading user (owner) must be passed as the first argument. The SHA1 of the
+uploading user must be passed as the first argument. The SHA1 of the
 distribution file must be passed as the second argument. All other metadata is
 parsed from the JSON string, which should contain the complete contents of the
 distribution's `META.json` file. The required keys in the JSON metadata are:
@@ -283,8 +283,8 @@ With this data, `add_distribution()` does the following things:
   Throws an exception if they're not.
 
 * Creates a new metadata structure and stores all the required and many of the
-  optional meta spec keys, as well as the SHA1 of the distribution file and
-  the owner's nickname.
+  optional meta spec keys, as well as the SHA1 of the distribution file, the
+  release date, and the user's nickname.
 
 * Normalizes all of the version numbers found in the metadata into compliant
   semantic version strings. See
@@ -316,7 +316,7 @@ template
 
 subject
 : The subject of the metadata to be written, such as the name of a
-  distribution, extension, owner, or tag.
+  distribution, extension, user, or tag.
 
 json
 : The JSON-formatted metadata for the subject, which the application should
@@ -337,7 +337,7 @@ BEGIN
 
     -- Create the distribution.
     BEGIN
-        INSERT INTO distributions (name, version, relstatus, abstract, description, sha1, owner, meta)
+        INSERT INTO distributions (name, version, relstatus, abstract, description, sha1, creator, meta)
         VALUES (distmeta.name, distmeta.version, COALESCE(distmeta.relstatus, 'stable'),
                 distmeta.abstract, COALESCE(distmeta.description, ''), sha1, nick, distmeta.json);
     EXCEPTION WHEN unique_violation THEN
@@ -361,7 +361,7 @@ BEGIN
     UNION
         SELECT 'by-extension', * FROM by_extension_json(distmeta.name, distmeta.version)
     UNION
-        SELECT 'by-owner', LOWER(nick), by_owner_json(nick)
+        SELECT 'by-user', LOWER(nick), by_user_json(nick)
     UNION
         SELECT 'by-tag', * FROM by_tag_json(distmeta.name, distmeta.version)
     ;

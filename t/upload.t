@@ -148,7 +148,7 @@ $mock_pgxn->mock(send_tweet => sub {
 
 # Make sure the expected files don't exist yet.
 my %files = map { join('/', @{ $_ }) => File::Spec->catfile($root, @{ $_ } ) } (
-   ['by',   'owner',     'user.json'],
+   ['by',   'user',      'user.json'],
    ['by',   'dist',      'widget.json'],
    ['by',   'tag',       'gadget.json'],
    ['by',   'tag',       'widget.json'],
@@ -250,7 +250,7 @@ test_psgi $app => sub {
         Authorization => 'Basic ' . encode_base64(TxnTest->admin . ":****"),
         Content_Type => 'form-data',
         Content => [ archive => [$distzip] ],
-    )), 'POST dupe zip with different owner archive to /auth/upload';
+    )), 'POST dupe zip with non-owner to /auth/upload';
     is $res->code, 409, 'Should get 409 response';
     is_well_formed_xml $res->content, 'The HTML should be well-formed';
     my $tx = Test::XPath->new( xml => $res->content, is_html => 1 );

@@ -64,7 +64,7 @@ END {
 }
 
 ok my $dist = PGXN::Manager::Distribution->new(
-    owner    => TxnTest->user,
+    creator  => TxnTest->user,
     archive  => $distzip,
     basename => 'widget-0.2.5.pgz',
 ), 'Create a widget-0.2.5 distribution';
@@ -80,7 +80,7 @@ $dzip->removeMember('widget-0.2.5/README');
 $dzip->writeToFileNamed($distzip) == AZ_OK or die 'write error';
 
 ok $dist = PGXN::Manager::Distribution->new(
-    owner    => TxnTest->user,
+    creator  => TxnTest->user,
     archive  => $distzip,
     basename => 'widget-0.2.6.pgz',
 ), 'Create a widget-0.2.6 distribution';
@@ -94,7 +94,7 @@ $dzip->memberNamed('widget-0.2.5/META.json')->contents(encode_json $meta);
 $dzip->writeToFileNamed($distzip) == AZ_OK or die 'write error';
 
 ok $dist = PGXN::Manager::Distribution->new(
-    owner    => TxnTest->admin,
+    creator  => TxnTest->admin,
     archive  => $distzip,
     basename => 'pgTAP-0.35.0.pgz',
 ), 'Create a pgTAP-0.35.0 distribution for admin';
@@ -214,12 +214,12 @@ test_psgi $app => sub {
             # Check simple key/value pairs.
             my $i;
             for my $spec (
-                [ Description => 'A widget is just thing thing, you know' ],
-                [ Owner       => $user ],
-                [ Status      => 'stable' ],
-                [ SHA1        => $sha1 ],
-                [ Extensions  => undef ], # see below
-                [ Tags        => undef ], # see below
+                [ Description   => 'A widget is just thing thing, you know' ],
+                [ 'Released By' => $user ],
+                [ Status        => 'stable' ],
+                [ SHA1          => $sha1 ],
+                [ Extensions    => undef ], # see below
+                [ Tags          => undef ], # see below
             ) {
                 $i++;
                 $tx->is(
