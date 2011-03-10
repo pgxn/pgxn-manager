@@ -1,6 +1,6 @@
 Revision history for Perl extension PGXN::Manager
 
-0.10.0
+0.10.0  2011-03-10T21:53:17
       - Removed conflicting meaning of the term "owner". It now is used only
         in the context of permissions: who owns or co-owns.a particular
         extension. The user who uploads a distribution is now recorded as the
