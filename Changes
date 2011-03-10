@@ -20,6 +20,9 @@ Revision history for Perl extension PGXN::Manager
         * Renamed the `by_owner_json()` SQL function to `by_user_json()`.
         * Changed the name of the URI template for the user JSON output by
           `add_distribution()` to `by-user`.
+      - Renamed the "release_date" in the distribution metadata output file to
+        "date", so that it's the named consistently with the key that appears
+        in the `by_user_json()`, `by_dist_json()`, and `by_tag_json()` JSON.
 
 0.9.1 2011-03-09T23:59:58
       - Changed "releases" status values in the `by_tag_json()` output from a

@@ -35,7 +35,7 @@ CREATE OR REPLACE FUNCTION setup_meta(
     $idx_meta->{version} = SemVer->declare($idx_meta->{version})->normal;
 
     # Set the date.
-    $idx_meta->{release_date} = spi_exec_query(
+    $idx_meta->{date} = spi_exec_query(
         q{SELECT to_char(NOW() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"')},
     )->{rows}[0]{to_char};
 
@@ -76,9 +76,9 @@ CREATE OR REPLACE FUNCTION setup_meta(
     } grep {
         defined $idx_meta->{$_}
     } qw(
-        name abstract description version date maintainer release_date
-        release_status user sha1 license prereqs provides tags resources
-        generated_by no_index meta-spec
+        name abstract description version date maintainer release_status user
+        sha1 license prereqs provides tags resources generated_by no_index
+        meta-spec
     )) . "\n}\n";
 
     # Return the distribution metadata.
