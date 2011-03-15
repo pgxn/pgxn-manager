@@ -1,6 +1,6 @@
 Revision history for Perl extension PGXN::Manager
 
-0.10.1
+0.10.1  2011-03-15T18:31:23
       - Fixed a bug in the upload code where a failure to recognize an archive
         was not returned to the client. Reported by Alexey Klyukin (Issue #4).
       - Now requiring HTTP::Body 1.08 or higher so that upload file name
