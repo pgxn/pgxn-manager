@@ -59,6 +59,7 @@ $class->new(
         'File::Spec'                        => '3.33',
         'File::Temp'                        => '0.22',
         'Getopt::Long'                      => '2.34',
+        'HTTP::Body'                        => '1.08',
         'HTML::Entities'                    => '3.68',
         'HTTP::Negotiate'                   => '5.835',
         'I18N::LangTags::Detect'            => '1.04',

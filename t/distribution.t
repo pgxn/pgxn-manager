@@ -94,7 +94,7 @@ is_deeply [sort $zip->memberNames ], [
 
 # Let's handle some exceptional situations. Start with an unkonwn archive.
 isa_ok $dist = new_dist(__FILE__), $CLASS, 'Non-archive distribution';
-ok $dist->extract, 'Try to extract it';
+ok !$dist->extract, 'Try to extract it';
 is_deeply scalar $dist->error, [
     "\x{201c}[_1]\x{201d} doesn\x{2019}t look like a distribution archive",
     "distribution.t"
@@ -109,7 +109,7 @@ copy __FILE__, $badzip;
 END { unlink $badzip }
 
 isa_ok $dist = new_dist($badzip), $CLASS, 'Bad zip distribution';
-ok $dist->extract, 'Try to extract it';
+ok !$dist->extract, 'Try to extract it';
 is_deeply scalar $dist->error, [
     "\x{201c}[_1]\x{201d} doesn\x{2019}t look like a distribution archive",
     "distribution.t.zip"
@@ -121,7 +121,7 @@ copy __FILE__, $badtgz;
 END { unlink $badtgz }
 
 isa_ok $dist = new_dist($badtgz), $CLASS, 'Bad tgz distribution';
-ok $dist->extract, 'Try to extract it';
+ok !$dist->extract, 'Try to extract it';
 is_deeply scalar $dist->error, [
     "\x{201c}[_1]\x{201d} doesn\x{2019}t look like a distribution archive",
     "distribution.t.tgz",

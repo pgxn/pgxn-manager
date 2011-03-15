@@ -1,6 +1,11 @@
 Revision history for Perl extension PGXN::Manager
 
 0.10.1
+      - Fixed a bug in the upload code where a failure to recognize an archive
+        was not returned to the client. Reported by Alexey Klyukin (Issue #4).
+      - Now requiring HTTP::Body 1.08 or higher so that upload file name
+        extensions are preserved. This allows Archive::Extract to properly
+        detect the type of an extension.
 
 0.10.0  2011-03-10T21:53:17
       - Removed conflicting meaning of the term "owner". It now is used only

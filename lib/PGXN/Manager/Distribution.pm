@@ -71,7 +71,7 @@ sub extract {
 
     # If upload extension matches dist template suffix, it's a Zip file.
     my ($ext) = lc($self->basename) =~ /([.][^.]+)$/;
-    try {
+    return try {
         if ($ext =~ $EXT_RE) {
             # It's a zip acrhive.
             my $zip = Archive::Zip->new;
@@ -97,12 +97,12 @@ sub extract {
             $self->zip($zip);
             $self->modified(1);
         }
+        return $self;
     } catch {
         die $_ unless ref $_ eq 'ARRAY';
         $self->error([@{ $_ }, $self->basename]);
         return;
     };
-    return $self;
 }
 
 sub read_meta {

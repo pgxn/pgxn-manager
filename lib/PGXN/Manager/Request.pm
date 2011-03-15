@@ -6,6 +6,7 @@ use parent 'Plack::Request';
 use Plack::Response;
 use HTTP::Negotiate;
 use PGXN::Manager;
+use HTTP::Body '1.08'; # required for proper upload mime type detection.
 use namespace::autoclean;
 use Encode;
 
