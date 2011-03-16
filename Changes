@@ -1,5 +1,7 @@
 Revision history for Perl extension PGXN::Manager
 
+0.10.3
+
 0.10.2  2011-03-16T23:11:33
       - Changed the default URI templates to use `{dist}/{version}` instead of
         `{dist}-{version}`. This allows versions to be more easily
