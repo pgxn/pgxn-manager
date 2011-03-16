@@ -1,6 +1,17 @@
 Revision history for Perl extension PGXN::Manager
 
 0.10.2
+      - Changed the default URI templates to use `{dist}/{version}` instead of
+        `{dist}-{version}`. This allows versions to be more easily
+        distinguished from extension names in URIs. The three changed templates
+        are:
+
+            "dist":    "/dist/{dist}/{version}/{dist}-{version}.pgz",
+            "readme":  "/dist/{dist}/{version}/README.txt",
+            "meta":    "/dist/{dist}/{version}/META.json",
+
+        Note that existing installations should work fine with whatever
+        templates they have.
 
 0.10.1  2011-03-15T18:31:23
       - Fixed a bug in the upload code where a failure to recognize an archive

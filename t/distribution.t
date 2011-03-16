@@ -360,9 +360,9 @@ my %files = map { join('/', @{ $_ }) => File::Spec->catfile($root, @{ $_ } ) } (
    ['by',   'tag',       'gadget.json'],
    ['by',   'tag',       'widget.json'],
    ['by',   'extension', 'widget.json'],
-   ['dist', 'widget',    'widget-0.2.5.json'],
-   ['dist', 'widget',    'widget-0.2.5.readme'],
-   ['dist', 'widget',    'widget-0.2.5.pgz'],
+   ['dist', 'widget',    '0.2.5', 'META.json'],
+   ['dist', 'widget',    '0.2.5', 'README.txt'],
+   ['dist', 'widget',    '0.2.5', 'widget-0.2.5.pgz'],
    ['by',   'tag',       'full text search.json'],
 );
 
@@ -386,7 +386,7 @@ PGXN::Manager->conn->run(sub {
         'SELECT meta FROM distributions WHERE name = ? AND version = ?',
         undef, 'widget', '0.2.5',
     );
-    file_contents_is $files{'dist/widget/widget-0.2.5.json'}, $json,
+    file_contents_is $files{'dist/widget/0.2.5/META.json'}, $json,
         "Distribution JSON file should be correct";
 
     # Check by-extension JSON.
@@ -423,10 +423,10 @@ PGXN::Manager->conn->run(sub {
 });
 
 # Check the distribution itself.
-is _sha1_for($files{'dist/widget/widget-0.2.5.pgz'}), $distzip_sha1,
+is _sha1_for($files{'dist/widget/0.2.5/widget-0.2.5.pgz'}), $distzip_sha1,
     'The distribution archive should be as expected';
 
-file_contents_is $files{'dist/widget/widget-0.2.5.readme'},
+file_contents_is $files{'dist/widget/0.2.5/README.txt'},
     "This is the widget 0.2.5 README.\n",
     'The README contents should be correct';
 
@@ -437,8 +437,8 @@ file_contents_is $files{'dist/widget/widget-0.2.5.readme'},
    ['by',   'tag',       'gadget.json'],
    ['by',   'tag',       'widget.json'],
    ['by',   'extension', 'widget.json'],
-   ['dist', 'widget',    'widget-2.5.0.json'],
-   ['dist', 'widget',    'widget-2.5.0.pgz'],
+   ['dist', 'widget',    '2.5.0', 'META.json'],
+   ['dist', 'widget',    '2.5.0', 'widget-2.5.0.pgz'],
    ['by',   'tag',       'full text search.json'],
 );
 $dzip->removeMember('widget-0.2.5/README');
@@ -447,7 +447,7 @@ $dzip->writeToFileNamed($noreadzip) == AZ_OK or die 'write error';
 ok $dist = new_dist($noreadzip), 'Create a distribution with README-less zip';
 ok $dist->process, 'Process the distribution';
 file_exists_ok $files{$_}, "File $_ should now exist" for keys %files;
-file_not_exists_ok +File::Spec->catfile('dist', 'widget', 'widget-2.5.0.readme'),
+file_not_exists_ok +File::Spec->catfile('dist', 'widget', 'widget/2.5.0/README.txt'),
     'There should be no README on the mirror';
 
 ##############################################################################
@@ -466,11 +466,11 @@ is $dist->localized_error,
 # Test distribution constraint exception.
 TxnTest->restart;
 $user = TxnTest->user;
-move +File::Spec->catfile($root, qw(dist widget widget-0.2.5.pgz)), $distzip;
+move +File::Spec->catfile($root, qw(dist widget 0.2.5 widget-0.2.5.pgz)), $distzip;
 ok $dist = new_dist($distzip), 'Create dist with a zip archive yet again';
 ok $dist->process, 'First creation of distribution should succeed';
 
-move +File::Spec->catfile($root, qw(dist widget widget-0.2.5.pgz)), $distzip;
+move +File::Spec->catfile($root, qw(dist widget 0.2.5 widget-0.2.5.pgz)), $distzip;
 ok $dist = new_dist($distzip), 'Create dist with a zip archive yet again';
 ok !$dist->process, 'Second creation of distribution should fail';
 is_deeply [$dist->error], ['Distribution “[_1]” already exists', 'widget 0.2.5'],

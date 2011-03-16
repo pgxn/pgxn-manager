@@ -153,8 +153,8 @@ my %files = map { join('/', @{ $_ }) => File::Spec->catfile($root, @{ $_ } ) } (
    ['by',   'tag',       'gadget.json'],
    ['by',   'tag',       'widget.json'],
    ['by',   'extension', 'widget.json'],
-   ['dist', 'widget',    'widget-0.2.5.json'],
-   ['dist', 'widget',    'widget-0.2.5.pgz'],
+   ['dist', 'widget',    '0.2.5', 'META.json'],
+   ['dist', 'widget',    '0.2.5', 'widget-0.2.5.pgz'],
    ['by',   'tag',       'full text search.json'],
 );
 file_not_exists_ok $files{$_}, "File $_ should not yet exist" for keys %files;

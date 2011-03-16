@@ -135,7 +135,7 @@ test_psgi $app => sub {
                 $tx->ok('./a', '......... Test link', sub {
                     $tx->is(
                         './@href',
-                        'http://localhost/mirror/dist/widget/widget-0.2.5.pgz',
+                        'http://localhost/mirror/dist/widget/0.2.5/widget-0.2.5.pgz',
                         '............ Should link to archive'
                     );
                     $tx->is(
@@ -161,7 +161,7 @@ test_psgi $app => sub {
                 $tx->ok('./a', '......... Test link', sub {
                     $tx->is(
                         './@href',
-                        'http://localhost/mirror/dist/widget/widget-0.2.5.readme',
+                        'http://localhost/mirror/dist/widget/0.2.5/README.txt',
                         '............ Should link to readme'
                     );
                     $tx->is(
@@ -187,7 +187,7 @@ test_psgi $app => sub {
                 $tx->ok('./a', '......... Test link', sub {
                     $tx->is(
                         './@href',
-                        'http://localhost/mirror/dist/widget/widget-0.2.5.json',
+                        'http://localhost/mirror/dist/widget/0.2.5/META.json',
                         '............ Should link to JSON metadata file'
                     );
                     $tx->is(
@@ -280,12 +280,12 @@ test_psgi $app => sub {
             $tx->is('count(./li)', 2, '...... All list items');
             $tx->is(
                 './li[1]/a/@href',
-                'http://localhost/mirror/dist/widget/widget-0.2.6.pgz',
+                'http://localhost/mirror/dist/widget/0.2.6/widget-0.2.6.pgz',
                 '......... First should be the archive link'
             );
             $tx->is(
                 './li[2]/a/@href',
-                'http://localhost/mirror/dist/widget/widget-0.2.6.json',
+                'http://localhost/mirror/dist/widget/0.2.6/META.json',
                 '......... Second should be the meta link'
             );
         });
