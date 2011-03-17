@@ -1,5 +1,7 @@
 Revision history for Perl extension PGXN::Manager
 
+0.10.4
+
 0.10.3  2011-03-17T23:29:34
       - Added the "sha1" key to the JSON objects describing the most recent
         distributions for each release status in the `/by/extension/*.json`
