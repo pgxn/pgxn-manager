@@ -202,7 +202,7 @@ SELECT results_eq(
         ('pair'::citext, '{
    "extension": "pair",
    "latest": "testing",
-   "testing": { "dist": "pair", "version": "0.0.1" },
+   "testing": { "dist": "pair", "version": "0.0.1", "sha1": "pshaw" },
    "versions": {
       "0.2.2": [
          { "dist": "pair", "version": "0.0.1", "status": "testing" }
@@ -213,7 +213,7 @@ SELECT results_eq(
         ('trip', '{
    "extension": "trip",
    "latest": "testing",
-   "testing": { "dist": "pair", "version": "0.0.1" },
+   "testing": { "dist": "pair", "version": "0.0.1", "sha1": "pshaw" },
    "versions": {
       "0.2.1": [
          { "dist": "pair", "version": "0.0.1", "status": "testing" }
@@ -248,8 +248,8 @@ SELECT results_eq(
         ('pair'::citext, '{
    "extension": "pair",
    "latest": "unstable",
-   "testing": { "dist": "pair", "version": "0.0.1" },
-   "unstable": { "dist": "pair", "version": "0.0.2a1" },
+   "testing": { "dist": "pair", "version": "0.0.1", "sha1": "pshaw" },
+   "unstable": { "dist": "pair", "version": "0.0.2a1", "sha1": "pshaw" },
    "versions": {
       "0.2.3": [
          { "dist": "pair", "version": "0.0.2a1", "status": "unstable" }
@@ -263,8 +263,8 @@ SELECT results_eq(
         ('trip', '{
    "extension": "trip",
    "latest": "unstable",
-   "testing": { "dist": "pair", "version": "0.0.1" },
-   "unstable": { "dist": "pair", "version": "0.0.2a1" },
+   "testing": { "dist": "pair", "version": "0.0.1", "sha1": "pshaw" },
+   "unstable": { "dist": "pair", "version": "0.0.2a1", "sha1": "pshaw" },
    "versions": {
       "0.2.2": [
          { "dist": "pair", "version": "0.0.2a1", "status": "unstable" }
@@ -301,9 +301,9 @@ SELECT results_eq(
         ('pair'::citext, '{
    "extension": "pair",
    "latest": "stable",
-   "stable": { "dist": "pair", "version": "0.0.2" },
-   "testing": { "dist": "pair", "version": "0.0.1" },
-   "unstable": { "dist": "pair", "version": "0.0.2a1" },
+   "stable": { "dist": "pair", "version": "0.0.2", "sha1": "pshaw" },
+   "testing": { "dist": "pair", "version": "0.0.1", "sha1": "pshaw" },
+   "unstable": { "dist": "pair", "version": "0.0.2a1", "sha1": "pshaw" },
    "versions": {
       "0.2.4": [
          { "dist": "pair", "version": "0.0.2" }
@@ -320,9 +320,9 @@ SELECT results_eq(
         ('trip', '{
    "extension": "trip",
    "latest": "stable",
-   "stable": { "dist": "pair", "version": "0.0.2" },
-   "testing": { "dist": "pair", "version": "0.0.1" },
-   "unstable": { "dist": "pair", "version": "0.0.2a1" },
+   "stable": { "dist": "pair", "version": "0.0.2", "sha1": "pshaw" },
+   "testing": { "dist": "pair", "version": "0.0.1", "sha1": "pshaw" },
+   "unstable": { "dist": "pair", "version": "0.0.2a1", "sha1": "pshaw" },
    "versions": {
       "0.2.3": [
          { "dist": "pair", "version": "0.0.2" }
@@ -369,9 +369,9 @@ SELECT results_eq(
         ('trip'::citext, '{
    "extension": "trip",
    "latest": "stable",
-   "stable": { "dist": "trip", "version": "0.2.5" },
-   "testing": { "dist": "pair", "version": "0.0.1" },
-   "unstable": { "dist": "pair", "version": "0.0.2a1" },
+   "stable": { "dist": "trip", "version": "0.2.5", "sha1": "pshaw" },
+   "testing": { "dist": "pair", "version": "0.0.1", "sha1": "pshaw" },
+   "unstable": { "dist": "pair", "version": "0.0.2a1", "sha1": "pshaw" },
    "versions": {
       "0.2.5": [
          { "dist": "trip", "version": "0.2.5" }
@@ -397,7 +397,7 @@ SELECT json_ok(json, 'JSON for extension ' || extension || ' should be valid')
 
 -- Great, now do a release with dup versions of both extensions.
 SELECT lives_ok(
-     $$ SELECT * FROM add_distribution('theory', 'pshaw', '{
+     $$ SELECT * FROM add_distribution('theory', 'rickshaw', '{
         "name": "pair",
         "version": "0.0.3",
         "license": "postgresql",
@@ -419,9 +419,9 @@ SELECT results_eq(
         ('pair'::citext, '{
    "extension": "pair",
    "latest": "stable",
-   "stable": { "dist": "pair", "version": "0.0.3" },
-   "testing": { "dist": "pair", "version": "0.0.1" },
-   "unstable": { "dist": "pair", "version": "0.0.2a1" },
+   "stable": { "dist": "pair", "version": "0.0.3", "sha1": "rickshaw" },
+   "testing": { "dist": "pair", "version": "0.0.1", "sha1": "pshaw" },
+   "unstable": { "dist": "pair", "version": "0.0.2a1", "sha1": "pshaw" },
    "versions": {
       "0.2.4": [
          { "dist": "pair", "version": "0.0.3" },
@@ -439,9 +439,9 @@ SELECT results_eq(
         ('trip', '{
    "extension": "trip",
    "latest": "stable",
-   "stable": { "dist": "pair", "version": "0.0.3" },
-   "testing": { "dist": "pair", "version": "0.0.1" },
-   "unstable": { "dist": "pair", "version": "0.0.2a1" },
+   "stable": { "dist": "pair", "version": "0.0.3", "sha1": "rickshaw" },
+   "testing": { "dist": "pair", "version": "0.0.1", "sha1": "pshaw" },
+   "unstable": { "dist": "pair", "version": "0.0.2a1", "sha1": "pshaw" },
    "versions": {
       "0.2.5": [
          { "dist": "pair", "version": "0.0.3" },

@@ -153,7 +153,8 @@ BEGIN
                array_agg(hstore(ARRAY[
                    'dist',      d.name,
                    'version',   d.version::text,
-                   'relstatus', d.relstatus::text
+                   'relstatus', d.relstatus::text,
+                   'sha1',      d.sha1::text
                ]) ORDER BY d.created_at DESC)
           FROM distribution_extensions de
           JOIN distributions d
@@ -203,15 +204,18 @@ BEGIN
                 CASE dist->'relstatus'
                     WHEN 'stable' THEN IF stable IS NULL THEN
                         stable := ' { "dist": ' || json_value(dist->'dist')
-                        || ', "version": ' || json_value(dist->'version') || ' }';
+                        || ', "version": ' || json_value(dist->'version')
+                        || ', "sha1": ' || json_value(dist->'sha1') || ' }';
                     END IF;
                     WHEN 'testing' THEN IF testing IS NULL THEN
                         testing := ' { "dist": ' || json_value(dist->'dist')
-                        || ', "version": ' || json_value(dist->'version') || ' }';
+                        || ', "version": ' || json_value(dist->'version')
+                        || ', "sha1": ' || json_value(dist->'sha1') || ' }';
                     END IF;
                     WHEN 'unstable' THEN IF unstable IS NULL THEN
                         unstable := ' { "dist": ' || json_value(dist->'dist')
-                        || ', "version": ' || json_value(dist->'version') || ' }';
+                        || ', "version": ' || json_value(dist->'version')
+                        || ', "sha1": ' || json_value(dist->'sha1') || ' }';
                     END IF;
                 END CASE;
             END LOOP;
