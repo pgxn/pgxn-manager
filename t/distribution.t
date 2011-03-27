@@ -355,15 +355,15 @@ is_deeply [sort $nzip->memberNames ], [
 # Test indexit().
 my $user = TxnTest->user; # Create user.
 my %files = map { join('/', @{ $_ }) => File::Spec->catfile($root, @{ $_ } ) } (
-   ['by',   'user',      'user.json'],
-   ['by',   'dist',      'widget.json'],
-   ['by',   'tag',       'gadget.json'],
-   ['by',   'tag',       'widget.json'],
-   ['by',   'extension', 'widget.json'],
-   ['dist', 'widget',    '0.2.5', 'META.json'],
-   ['dist', 'widget',    '0.2.5', 'README.txt'],
-   ['dist', 'widget',    '0.2.5', 'widget-0.2.5.pgz'],
-   ['by',   'tag',       'full text search.json'],
+   ['user',      'user.json'],
+   ['dist',      'widget.json'],
+   ['tag',       'gadget.json'],
+   ['tag',       'widget.json'],
+   ['extension', 'widget.json'],
+   ['dist',      'widget', '0.2.5', 'META.json'],
+   ['dist',      'widget', '0.2.5', 'README.txt'],
+   ['dist',      'widget', '0.2.5', 'widget-0.2.5.pgz'],
+   ['tag',       'full text search.json'],
 );
 
 file_exists_ok $distzip, 'We should have the distzip file';
@@ -389,26 +389,26 @@ PGXN::Manager->conn->run(sub {
     file_contents_is $files{'dist/widget/0.2.5/META.json'}, $json,
         "Distribution JSON file should be correct";
 
-    # Check by-extension JSON.
+    # Check extension JSON.
     ($json) = $dbh->selectrow_array(
         'SELECT json FROM by_extension_json(?, ?)',
         undef, 'widget', '0.2.5',
     );
-    file_contents_is $files{'by/extension/widget.json'}, $json,
+    file_contents_is $files{'extension/widget.json'}, $json,
         "By extension JSON file should be correct";
 
     # Check user JSON.
     ($json) = $dbh->selectrow_array(
         'SELECT by_user_json(?)', undef, $user,
     );
-    file_contents_is $files{'by/user/user.json'}, $json,
+    file_contents_is $files{'user/user.json'}, $json,
         "By user JSON file should be correct";
 
     # Check dist JSON.
     ($json) = $dbh->selectrow_array(
         'SELECT by_dist_json(?)', undef, 'widget',
     );
-    file_contents_is $files{'by/dist/widget.json'}, $json,
+    file_contents_is $files{'dist/widget.json'}, $json,
         "By dist JSON file should be correct";
 
     # Check tag JSON.
@@ -417,7 +417,7 @@ PGXN::Manager->conn->run(sub {
         undef, 'widget', '0.2.5'
     );
     for my $row (@$tags) {
-        file_contents_is $files{"by/tag/$row->[0].json"}, $row->[1],
+        file_contents_is $files{"tag/$row->[0].json"}, $row->[1],
             qq{By tag "$row->[0]" JSON should be correct}
     }
 });
@@ -432,14 +432,14 @@ file_contents_is $files{'dist/widget/0.2.5/README.txt'},
 
 # Let's try a distribution without a README.
 %files = map { join('/', @{ $_ }) => File::Spec->catfile($root, @{ $_ } ) } (
-   ['by',   'user',      'user.json'],
-   ['by',   'dist',      'widget.json'],
-   ['by',   'tag',       'gadget.json'],
-   ['by',   'tag',       'widget.json'],
-   ['by',   'extension', 'widget.json'],
-   ['dist', 'widget',    '2.5.0', 'META.json'],
-   ['dist', 'widget',    '2.5.0', 'widget-2.5.0.pgz'],
-   ['by',   'tag',       'full text search.json'],
+   ['user',      'user.json'],
+   ['dist',      'widget.json'],
+   ['tag',       'gadget.json'],
+   ['tag',       'widget.json'],
+   ['extension', 'widget.json'],
+   ['dist',      'widget', '2.5.0', 'META.json'],
+   ['dist',      'widget', '2.5.0', 'widget-2.5.0.pgz'],
+   ['tag',       'full text search.json'],
 );
 $dzip->removeMember('widget-0.2.5/README');
 $dzip->writeToFileNamed($noreadzip) == AZ_OK or die 'write error';

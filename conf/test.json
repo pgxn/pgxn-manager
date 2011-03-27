@@ -19,14 +19,14 @@
     },
     "uri_script_name_key": "SCRIPT_NAME",
     "uri_templates": {
-        "dist":         "/dist/{dist}/{version}/{dist}-{version}.pgz",
-        "readme":       "/dist/{dist}/{version}/README.txt",
-        "meta":         "/dist/{dist}/{version}/META.json",
-        "by-dist":      "/by/dist/{dist}.json",
-        "by-extension": "/by/extension/{extension}.json",
-        "by-user":      "/by/user/{user}.json",
-        "by-tag":       "/by/tag/{tag}.json",
-        "mirrors":      "/meta/mirrors.json"
+        "download":  "/dist/{dist}/{version}/{dist}-{version}.pgz",
+        "readme":    "/dist/{dist}/{version}/README.txt",
+        "meta":      "/dist/{dist}/{version}/META.json",
+        "dist":      "/dist/{dist}.json",
+        "extension": "/extension/{extension}.json",
+        "user":      "/user/{user}.json",
+        "tag":       "/tag/{tag}.json",
+        "mirrors":   "/meta/mirrors.json"
     },
     "twitter": {
         "consumer_key": "DA-KEY",

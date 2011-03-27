@@ -167,90 +167,90 @@ CREATE OR REPLACE FUNCTION add_distribution(
         "release_status": "testing"
     }');
     
-       template   │   subject    │                                 json                                 
-    ──────────────┼──────────────┼──────────────────────────────────────────────────────────────────────
-     meta         │ pair         │ {                                                                   ↵
-                  │              │    "name": "pair",                                                  ↵
-                  │              │    "abstract": "Ordered pair",                                      ↵
-                  │              │    "version": "0.0.1",                                              ↵
-                  │              │    "maintainer": "theory",                                          ↵
-                  │              │    "release_status": "testing",                                     ↵
-                  │              │    "user": "theory",                                                ↵
-                  │              │    "sha1": "ebf381e2e1e5767fb068d1c4423a9d9f122c2dc6",              ↵
-                  │              │    "license": "postgresql",                                         ↵
-                  │              │    "provides": {                                                    ↵
-                  │              │       "pair": {                                                     ↵
-                  │              │          "file": "pair.sql.in",                                     ↵
-                  │              │          "version": "0.2.2",                                        ↵
-                  │              │          "abstract": "A key/value data type"                        ↵
-                  │              │       },                                                            ↵
-                  │              │       "trip": {                                                     ↵
-                  │              │          "file": "trip.sql.in",                                     ↵
-                  │              │          "version": "0.2.1"                                         ↵
-                  │              │          "abstract": "A triple data type"                           ↵
-                  │              │       }                                                             ↵
-                  │              │    },                                                               ↵
-                  │              │    "tags": ["ordered pair", "key value"]                            ↵
-                  │              │ }                                                                   ↵
-                  │              │ 
-     by-dist      │ pair         │ {                                                                   ↵
-                  │              │    "name": "pair",                                                  ↵
-                  │              │    "releases": {                                                    ↵
-                  │              │       "testing": ["0.0.1"]                                          ↵
-                  │              │    }                                                                ↵
-                  │              │ }                                                                   ↵
-                  │              │ 
-     by-extension │ pair         │ {                                                                   ↵
-                  │              │    "extension": "pair",                                             ↵
-                  │              │    "latest": "testing",                                             ↵
-                  │              │    "testing":  { "dist": "pair", "version": "0.0.1" },              ↵
-                  │              │    "versions": {                                                    ↵
-                  │              │       "0.2.2": [                                                    ↵
-                  │              │          { "dist": "pair", "version": "0.0.1", "status": "testing" }↵
-                  │              │       ]                                                             ↵
-                  │              │    }                                                                ↵
-                  │              │ }                                                                   ↵
-                  │              │ 
-     by-extension │ trip         │ {                                                                   ↵
-                  │              │    "extension": "trip",                                             ↵
-                  │              │    "latest": "testing",                                             ↵
-                  │              │    "testing":  { "dist": "pair", "version": "0.0.1" },              ↵
-                  │              │    "versions": {                                                    ↵
-                  │              │       "0.2.1": [                                                    ↵
-                  │              │          { "dist": "pair", "version": "0.0.1", "status": "testing" }↵
-                  │              │       ]                                                             ↵
-                  │              │    }                                                                ↵
-                  │              │ }                                                                   ↵
-                  │              │ 
-     by-user      │ theory       │ {                                                                   ↵
-                  │              │    "nickname": "theory",                                            ↵
-                  │              │    "name": "",                                                      ↵
-                  │              │    "email": "theory@pgxn.org",                                      ↵
-                  │              │    "releases": {                                                    ↵
-                  │              │       "pair": {                                                     ↵
-                  │              │          "testing": ["0.0.1"]                                       ↵
-                  │              │       }                                                             ↵
-                  │              │    }                                                                ↵
-                  │              │ }                                                                   ↵
-                  │              │ 
-     by-tag       │ ordered pair │ {                                                                   ↵
-                  │              │    "tag": "ordered pair",                                           ↵
-                  │              │    "releases": {                                                    ↵
-                  │              │       "pair": {                                                     ↵
-                  │              │          "testing": [ "0.0.1" ]                                     ↵
-                  │              │       }                                                             ↵
-                  │              │    }                                                                ↵
-                  │              │ }                                                                   ↵
-                  │              │ 
-     by-tag       │ key value    │ {                                                                   ↵
-                  │              │    "tag": "key value",                                              ↵
-                  │              │    "releases": {                                                    ↵
-                  │              │       "pair": {                                                     ↵
-                  │              │          "testing": [ "0.0.1" ]                                     ↵
-                  │              │       }                                                             ↵
-                  │              │    }                                                                ↵
-                  │              │ }                                                                   ↵
-                  │              │ 
+     template  │   subject    │                                 json                                 
+    ───────────┼──────────────┼──────────────────────────────────────────────────────────────────────
+     meta      │ pair         │ {                                                                   ↵
+               │              │    "name": "pair",                                                  ↵
+               │              │    "abstract": "Ordered pair",                                      ↵
+               │              │    "version": "0.0.1",                                              ↵
+               │              │    "maintainer": "theory",                                          ↵
+               │              │    "release_status": "testing",                                     ↵
+               │              │    "user": "theory",                                                ↵
+               │              │    "sha1": "ebf381e2e1e5767fb068d1c4423a9d9f122c2dc6",              ↵
+               │              │    "license": "postgresql",                                         ↵
+               │              │    "provides": {                                                    ↵
+               │              │       "pair": {                                                     ↵
+               │              │          "file": "pair.sql.in",                                     ↵
+               │              │          "version": "0.2.2",                                        ↵
+               │              │          "abstract": "A key/value data type"                        ↵
+               │              │       },                                                            ↵
+               │              │       "trip": {                                                     ↵
+               │              │          "file": "trip.sql.in",                                     ↵
+               │              │          "version": "0.2.1"                                         ↵
+               │              │          "abstract": "A triple data type"                           ↵
+               │              │       }                                                             ↵
+               │              │    },                                                               ↵
+               │              │    "tags": ["ordered pair", "key value"]                            ↵
+               │              │ }                                                                   ↵
+               │              │ 
+     dist      │ pair         │ {                                                                   ↵
+               │              │    "name": "pair",                                                  ↵
+               │              │    "releases": {                                                    ↵
+               │              │       "testing": ["0.0.1"]                                          ↵
+               │              │    }                                                                ↵
+               │              │ }                                                                   ↵
+               │              │ 
+     extension │ pair         │ {                                                                   ↵
+               │              │    "extension": "pair",                                             ↵
+               │              │    "latest": "testing",                                             ↵
+               │              │    "testing":  { "dist": "pair", "version": "0.0.1" },              ↵
+               │              │    "versions": {                                                    ↵
+               │              │       "0.2.2": [                                                    ↵
+               │              │          { "dist": "pair", "version": "0.0.1", "status": "testing" }↵
+               │              │       ]                                                             ↵
+               │              │    }                                                                ↵
+               │              │ }                                                                   ↵
+               │              │ 
+     extension │ trip         │ {                                                                   ↵
+               │              │    "extension": "trip",                                             ↵
+               │              │    "latest": "testing",                                             ↵
+               │              │    "testing":  { "dist": "pair", "version": "0.0.1" },              ↵
+               │              │    "versions": {                                                    ↵
+               │              │       "0.2.1": [                                                    ↵
+               │              │          { "dist": "pair", "version": "0.0.1", "status": "testing" }↵
+               │              │       ]                                                             ↵
+               │              │    }                                                                ↵
+               │              │ }                                                                   ↵
+               │              │ 
+     user      │ theory       │ {                                                                   ↵
+               │              │    "nickname": "theory",                                            ↵
+               │              │    "name": "",                                                      ↵
+               │              │    "email": "theory@pgxn.org",                                      ↵
+               │              │    "releases": {                                                    ↵
+               │              │       "pair": {                                                     ↵
+               │              │          "testing": ["0.0.1"]                                       ↵
+               │              │       }                                                             ↵
+               │              │    }                                                                ↵
+               │              │ }                                                                   ↵
+               │              │ 
+     tag       │ ordered pair │ {                                                                   ↵
+               │              │    "tag": "ordered pair",                                           ↵
+               │              │    "releases": {                                                    ↵
+               │              │       "pair": {                                                     ↵
+               │              │          "testing": [ "0.0.1" ]                                     ↵
+               │              │       }                                                             ↵
+               │              │    }                                                                ↵
+               │              │ }                                                                   ↵
+               │              │ 
+     tag       │ key value    │ {                                                                   ↵
+               │              │    "tag": "key value",                                              ↵
+               │              │    "releases": {                                                    ↵
+               │              │       "pair": {                                                     ↵
+               │              │          "testing": [ "0.0.1" ]                                     ↵
+               │              │       }                                                             ↵
+               │              │    }                                                                ↵
+               │              │ }                                                                   ↵
+               │              │ 
 
 Creates a new distribution, returning all of the JSON that needs to be written
 to the mirror in order for the distribution to be indexed. The nickname of the
@@ -357,13 +357,13 @@ BEGIN
     RETURN QUERY
         SELECT 'meta'::TEXT, distmeta.name::TEXT, distmeta.json
     UNION
-        SELECT 'by-dist', distmeta.name::TEXT, by_dist_json(distmeta.name)
+        SELECT 'dist', distmeta.name::TEXT, by_dist_json(distmeta.name)
     UNION
-        SELECT 'by-extension', * FROM by_extension_json(distmeta.name, distmeta.version)
+        SELECT 'extension', * FROM by_extension_json(distmeta.name, distmeta.version)
     UNION
-        SELECT 'by-user', LOWER(nick), by_user_json(nick)
+        SELECT 'user', LOWER(nick), by_user_json(nick)
     UNION
-        SELECT 'by-tag', * FROM by_tag_json(distmeta.name, distmeta.version)
+        SELECT 'tag', * FROM by_tag_json(distmeta.name, distmeta.version)
     ;
 END;
 $$;

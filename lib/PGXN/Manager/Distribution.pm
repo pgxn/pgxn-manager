@@ -20,7 +20,8 @@ use namespace::autoclean;
 my $TMPDIR = PGXN::Manager->new->config->{tmpdir}
           || File::Spec->catdir(File::Spec->tmpdir, 'pgxn');
 my $EXT_RE = do {
-    my ($ext) = lc(PGXN::Manager->new->config->{uri_templates}{dist}) =~ /[.]([^.]+)$/;
+    my ($ext) = lc(PGXN::Manager->new->config->{uri_templates}{download})
+        =~ /[.]([^.]+)$/;
     qr/[.](?:$ext|zip)$/
 };
 my $META_RE = qr/\bMETA[.]json$/;
@@ -291,11 +292,13 @@ sub indexit {
 
         while ($sth->fetch) {
             my $tmpl  = $templates->{$template_name}
-                or die "No $template_name templae found in config\n";
+                or die "No $template_name template found in config\n";
 
-            my ($key) = $template_name =~ /by-(.+)/;
-            my $uri   = $tmpl->process(@vars, $key || 'dist' => $subject);
-            my $fn    = File::Spec->catfile($destdir, $uri->path_segments);
+            my $uri = $tmpl->process(
+                @vars,
+                $template_name || 'dist' => $subject
+            );
+            my $fn  = File::Spec->catfile($destdir, $uri->path_segments);
 
             make_path dirname $fn;
             open my $fh, '>', $fn or die "Cannot open $fn: $!\n";
@@ -334,7 +337,7 @@ sub indexit {
     }
 
     # Move the archive to the mirror root.
-    my $uri  = $templates->{dist}->process(@vars);
+    my $uri  = $templates->{download}->process(@vars);
     PGXN::Manager->move_file(
         $self->zipfile,
         File::Spec->catfile($root, $uri->path_segments)

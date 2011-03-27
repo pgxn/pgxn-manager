@@ -770,9 +770,11 @@ template distribution => sub {
             id is 'distlinks';
             li {
                 a {
-                    my $uri = URI->new($mirror_uri . $uri_templates->{dist}->process_to_string(
-                        @uri_vars
-                    ));
+                    my $uri = URI->new(
+                        $mirror_uri . $uri_templates->{download}->process_to_string(
+                            @uri_vars
+                        )
+                    );
                     href is $uri;
                     title is T 'Download [_1].', $name;
                     img { src is $req->uri_for('/ui/img/download.png') };

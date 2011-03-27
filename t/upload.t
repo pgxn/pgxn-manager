@@ -148,14 +148,14 @@ $mock_pgxn->mock(send_tweet => sub {
 
 # Make sure the expected files don't exist yet.
 my %files = map { join('/', @{ $_ }) => File::Spec->catfile($root, @{ $_ } ) } (
-   ['by',   'user',      'user.json'],
-   ['by',   'dist',      'widget.json'],
-   ['by',   'tag',       'gadget.json'],
-   ['by',   'tag',       'widget.json'],
-   ['by',   'extension', 'widget.json'],
-   ['dist', 'widget',    '0.2.5', 'META.json'],
-   ['dist', 'widget',    '0.2.5', 'widget-0.2.5.pgz'],
-   ['by',   'tag',       'full text search.json'],
+   ['user',      'user.json'],
+   ['dist',      'widget.json'],
+   ['tag',       'gadget.json'],
+   ['tag',       'widget.json'],
+   ['extension', 'widget.json'],
+   ['dist',      'widget', '0.2.5', 'META.json'],
+   ['dist',      'widget', '0.2.5', 'widget-0.2.5.pgz'],
+   ['tag',       'full text search.json'],
 );
 file_not_exists_ok $files{$_}, "File $_ should not yet exist" for keys %files;
 
