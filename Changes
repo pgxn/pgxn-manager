@@ -1,6 +1,9 @@
 Revision history for Perl extension PGXN::Manager
 
 0.10.4
+      - Renamed the "dist" URI template to "download".
+      - Removed the leading `/by` from the URI templates.
+      - Removed the leading `by_` from database functions.
 
 0.10.3  2011-03-17T23:29:34
       - Added the "sha1" key to the JSON objects describing the most recent

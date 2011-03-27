@@ -161,22 +161,22 @@ SELECT is(
 SELECT json_ok(get_mirrors_json(), 'Two-item mirror JSON should be valid');
 
 /****************************************************************************/
--- Test by_extension_json().
+-- Test extension_json().
 
-SELECT has_function(    'by_extension_json' );
-SELECT has_function(    'by_extension_json', ARRAY['text', 'semver'] );
-SELECT function_returns('by_extension_json', ARRAY['text', 'semver'], 'setof record' );
-SELECT function_lang_is('by_extension_json', ARRAY['text', 'semver'], 'plpgsql' );
-SELECT volatility_is(   'by_extension_json', ARRAY['text', 'semver'], 'stable' );
-SELECT is_strict(       'by_extension_json', ARRAY['text', 'semver'] );
+SELECT has_function(    'extension_json' );
+SELECT has_function(    'extension_json', ARRAY['text', 'semver'] );
+SELECT function_returns('extension_json', ARRAY['text', 'semver'], 'setof record' );
+SELECT function_lang_is('extension_json', ARRAY['text', 'semver'], 'plpgsql' );
+SELECT volatility_is(   'extension_json', ARRAY['text', 'semver'], 'stable' );
+SELECT is_strict(       'extension_json', ARRAY['text', 'semver'] );
 SELECT ok(
-    has_function_privilege('pgxn', 'by_extension_json(text, semver)', 'EXECUTE'),
-    'User "pgxn" should have EXECUTE priv on by_extension_json()'
+    has_function_privilege('pgxn', 'extension_json(text, semver)', 'EXECUTE'),
+    'User "pgxn" should have EXECUTE priv on extension_json()'
 );
 
 SELECT is_empty(
-    $$ SELECT * FROM by_extension_json(NULL, NULL) $$,
-    'Should get no results from by_extension_json() when no extensions'
+    $$ SELECT * FROM extension_json(NULL, NULL) $$,
+    'Should get no results from extension_json() when no extensions'
 );
 
 -- Let's create a distribution.
@@ -197,7 +197,7 @@ SELECT lives_ok(
 );
 
 SELECT results_eq(
-    $$ SELECT * FROM by_extension_json('pair', '0.0.1') $$,
+    $$ SELECT * FROM extension_json('pair', '0.0.1') $$,
     $$ VALUES
         ('pair'::citext, '{
    "extension": "pair",
@@ -243,7 +243,7 @@ SELECT lives_ok(
 );
 
 SELECT results_eq(
-    $$ SELECT * FROM by_extension_json('pair', '0.0.2a1') $$,
+    $$ SELECT * FROM extension_json('pair', '0.0.2a1') $$,
     $$ VALUES
         ('pair'::citext, '{
    "extension": "pair",
@@ -296,7 +296,7 @@ SELECT lives_ok(
 );
 
 SELECT results_eq(
-    $$ SELECT * FROM by_extension_json('pair', '0.0.2') $$,
+    $$ SELECT * FROM extension_json('pair', '0.0.2') $$,
     $$ VALUES
         ('pair'::citext, '{
    "extension": "pair",
@@ -341,7 +341,7 @@ SELECT results_eq(
 );
 
 SELECT json_ok(json, 'JSON for extension ' || extension || ' should be valid')
-  FROM by_extension_json('pair', '0.0.2');
+  FROM extension_json('pair', '0.0.2');
 
 -- Now have strongrrl do a release with only the "trip" type.
 SELECT ok(
@@ -364,7 +364,7 @@ SELECT lives_ok(
 );
 
 SELECT results_eq(
-    $$ SELECT * FROM by_extension_json('trip', '0.2.5') $$,
+    $$ SELECT * FROM extension_json('trip', '0.2.5') $$,
     $$ VALUES
         ('trip'::citext, '{
    "extension": "trip",
@@ -393,7 +393,7 @@ SELECT results_eq(
 );
 
 SELECT json_ok(json, 'JSON for extension ' || extension || ' should be valid')
-  FROM by_extension_json('trip', '0.2.5');
+  FROM extension_json('trip', '0.2.5');
 
 -- Great, now do a release with dup versions of both extensions.
 SELECT lives_ok(
@@ -414,7 +414,7 @@ SELECT lives_ok(
 UPDATE distributions SET created_at = created_at + '1 day'::interval WHERE name = 'pair' AND VERSION = '0.0.3';
 
 SELECT results_eq(
-    $$ SELECT * FROM by_extension_json('pair', '0.0.3') $$,
+    $$ SELECT * FROM extension_json('pair', '0.0.3') $$,
     $$ VALUES
         ('pair'::citext, '{
    "extension": "pair",
@@ -465,27 +465,27 @@ SELECT results_eq(
 
 
 /****************************************************************************/
--- Test by_dist_json().
+-- Test dist_json().
 
-SELECT has_function(    'by_dist_json' );
-SELECT has_function(    'by_dist_json', ARRAY['text'] );
-SELECT function_returns('by_dist_json', ARRAY['text'], 'text' );
-SELECT function_lang_is('by_dist_json', ARRAY['text'], 'sql' );
-SELECT volatility_is(   'by_dist_json', ARRAY['text'], 'stable' );
-SELECT is_strict(       'by_dist_json', ARRAY['text'] );
+SELECT has_function(    'dist_json' );
+SELECT has_function(    'dist_json', ARRAY['text'] );
+SELECT function_returns('dist_json', ARRAY['text'], 'text' );
+SELECT function_lang_is('dist_json', ARRAY['text'], 'sql' );
+SELECT volatility_is(   'dist_json', ARRAY['text'], 'stable' );
+SELECT is_strict(       'dist_json', ARRAY['text'] );
 SELECT ok(
-    has_function_privilege('pgxn', 'by_dist_json(text)', 'EXECUTE'),
-    'User "pgxn" should have EXECUTE priv on by_dist_json()'
+    has_function_privilege('pgxn', 'dist_json(text)', 'EXECUTE'),
+    'User "pgxn" should have EXECUTE priv on dist_json()'
 );
 
 SELECT is(
-    by_dist_json(NULL), NULL,
-    'Should get NULL value from by_dist_json() for NULL distribution'
+    dist_json(NULL), NULL,
+    'Should get NULL value from dist_json() for NULL distribution'
 );
 
 SELECT is(
-    by_dist_json('nothing'), NULL,
-    'Should get NULL value from by_dist_json() for non-existent distribution'
+    dist_json('nothing'), NULL,
+    'Should get NULL value from dist_json() for non-existent distribution'
 );
 
 -- Set up created_ats we can expect.
@@ -503,7 +503,7 @@ UPDATE distributions
  WHERE name = 'pair' AND version = '0.0.2a1';
 
 SELECT is(
-    by_dist_json('pair'), '{
+    dist_json('pair'), '{
    "name": "pair",
    "releases": {
       "stable": [
@@ -520,7 +520,7 @@ SELECT is(
 }
 ', 'Should get expected JSON for distribution "pair"');
 
-SELECT json_ok(by_dist_json('pair'), '...And the JSON should be valid');
+SELECT json_ok(dist_json('pair'), '...And the JSON should be valid');
 
 -- Add version 0.0.10.
 SELECT lives_ok(
@@ -543,7 +543,7 @@ UPDATE distributions
  WHERE name = 'pair' AND version = '0.0.10';
 
 SELECT is(
-    by_dist_json('pair'), '{
+    dist_json('pair'), '{
    "name": "pair",
    "releases": {
       "stable": [
@@ -561,7 +561,7 @@ SELECT is(
 }
 ', '0.0.10 should be greater than 0.0.3 in the "pair" JSON');
 
-SELECT json_ok(by_dist_json('pair'), '...And that JSON should be valid');
+SELECT json_ok(dist_json('pair'), '...And that JSON should be valid');
 
 UPDATE distributions
    SET created_at = '2011-02-11T20:36:48Z'
@@ -569,7 +569,7 @@ UPDATE distributions
 
 -- Select another distribution.
 SELECT is(
-    by_dist_json('trip'), '{
+    dist_json('trip'), '{
    "name": "trip",
    "releases": {
       "stable": [
@@ -579,25 +579,25 @@ SELECT is(
 }
 ', 'Should get expected JSON for distribution "trip"');
 
-SELECT json_ok(by_dist_json('trip'), '...And its JSON should be valid');
+SELECT json_ok(dist_json('trip'), '...And its JSON should be valid');
 
 /****************************************************************************/
--- Test by_tag_json().
+-- Test tag_json().
 
-SELECT has_function(    'by_tag_json' );
-SELECT has_function(    'by_tag_json', ARRAY['text', 'semver'] );
-SELECT function_returns('by_tag_json', ARRAY['text', 'semver'], 'setof record' );
-SELECT function_lang_is('by_tag_json', ARRAY['text', 'semver'], 'sql' );
-SELECT volatility_is(   'by_tag_json', ARRAY['text', 'semver'], 'stable' );
-SELECT is_strict(       'by_tag_json', ARRAY['text', 'semver'] );
+SELECT has_function(    'tag_json' );
+SELECT has_function(    'tag_json', ARRAY['text', 'semver'] );
+SELECT function_returns('tag_json', ARRAY['text', 'semver'], 'setof record' );
+SELECT function_lang_is('tag_json', ARRAY['text', 'semver'], 'sql' );
+SELECT volatility_is(   'tag_json', ARRAY['text', 'semver'], 'stable' );
+SELECT is_strict(       'tag_json', ARRAY['text', 'semver'] );
 SELECT ok(
-    has_function_privilege('pgxn', 'by_tag_json(text, semver)', 'EXECUTE'),
-    'User "pgxn" should have EXECUTE priv on by_tag_json()'
+    has_function_privilege('pgxn', 'tag_json(text, semver)', 'EXECUTE'),
+    'User "pgxn" should have EXECUTE priv on tag_json()'
 );
 
 SELECT is_empty(
-    $$ SELECT * FROM by_tag_json(NULL, NULL) $$,
-    'Should get no results from by_tag_json() when no tags'
+    $$ SELECT * FROM tag_json(NULL, NULL) $$,
+    'Should get no results from tag_json() when no tags'
 );
 
 -- We'll need some tags.
@@ -616,13 +616,13 @@ VALUES
 ;
 
 SELECT is_empty(
-    $$ SELECT * FROM by_tag_json('foo', '1.1.1') $$,
-    'Should get no results from by_tag_json() for non-existent distribution'
+    $$ SELECT * FROM tag_json('foo', '1.1.1') $$,
+    'Should get no results from tag_json() for non-existent distribution'
 );
 
 -- Check distribution with one tag.
 SELECT results_eq(
-    $$ SELECT * FROM by_tag_json('trip', '0.2.5') $$,
+    $$ SELECT * FROM tag_json('trip', '0.2.5') $$,
     $$ VALUES ('foo'::citext, '{
    "tag": "foo",
    "releases": {
@@ -650,7 +650,7 @@ SELECT results_eq(
 -- Add another tag to the "trip" distribution.
 INSERT INTO distribution_tags VALUES('trip', '0.2.5', 'baz');
 SELECT results_eq(
-    $$ SELECT * FROM by_tag_json('trip', '0.2.5') ORDER BY tag $$,
+    $$ SELECT * FROM tag_json('trip', '0.2.5') ORDER BY tag $$,
     $$ VALUES ('baz'::citext, '{
    "tag": "baz",
    "releases": {
@@ -686,16 +686,16 @@ SELECT results_eq(
 ') $$, 'Should have proper JSON for double-tag distribution');
 
 SELECT json_ok(json, 'JSON for tag ' || tag || ' should be valid')
-  FROM by_tag_json('trip', '0.2.5');
+  FROM tag_json('trip', '0.2.5');
 
 SELECT is_empty(
-    $$ SELECT * FROM by_tag_json('dowop', '9.50.1') $$,
-    'Should get no results from by_tag_json() for invalid version'
+    $$ SELECT * FROM tag_json('dowop', '9.50.1') $$,
+    'Should get no results from tag_json() for invalid version'
 );
 
 -- Now see how things look for pair's tags.
 SELECT results_eq(
-    $$ SELECT * FROM by_tag_json('pair', '0.0.1') ORDER BY tag $$,
+    $$ SELECT * FROM tag_json('pair', '0.0.1') ORDER BY tag $$,
     $$ VALUES ('foo'::citext, '{
    "tag": "foo",
    "releases": {
@@ -721,7 +721,7 @@ SELECT results_eq(
 ') $$, 'Should have proper JSON for early version of pair');
 
 SELECT results_eq(
-    $$ SELECT * FROM by_tag_json('pair', '0.0.10') ORDER BY tag $$,
+    $$ SELECT * FROM tag_json('pair', '0.0.10') ORDER BY tag $$,
     $$ VALUES ('bar'::citext, '{
    "tag": "bar",
    "releases": {
@@ -758,7 +758,7 @@ SELECT results_eq(
 ') $$, 'Should have proper JSON for later version of pair');
 
 SELECT json_ok(json, 'JSON for tag ' || tag || ' should be valid')
-  FROM by_tag_json('pair', '0.0.10');
+  FROM tag_json('pair', '0.0.10');
 
 -- Insert a new distribution with no tags.
 SELECT lives_ok(
@@ -774,32 +774,32 @@ SELECT lives_ok(
 
 -- Check tags for distribution with no tags.
 SELECT is_empty(
-    $$ SELECT * FROM by_tag_json('dowop', '0.50.1') $$,
-    'Should get no results from by_tag_json() for tagless distribution'
+    $$ SELECT * FROM tag_json('dowop', '0.50.1') $$,
+    'Should get no results from tag_json() for tagless distribution'
 );
 
 /****************************************************************************/
--- Test by_user_json().
+-- Test user_json().
 
-SELECT has_function(    'by_user_json' );
-SELECT has_function(    'by_user_json', ARRAY['label'] );
-SELECT function_returns('by_user_json', ARRAY['label'], 'text' );
-SELECT function_lang_is('by_user_json', ARRAY['label'], 'sql' );
-SELECT volatility_is(   'by_user_json', ARRAY['label'], 'stable' );
-SELECT is_strict(       'by_user_json', ARRAY['label'] );
+SELECT has_function(    'user_json' );
+SELECT has_function(    'user_json', ARRAY['label'] );
+SELECT function_returns('user_json', ARRAY['label'], 'text' );
+SELECT function_lang_is('user_json', ARRAY['label'], 'sql' );
+SELECT volatility_is(   'user_json', ARRAY['label'], 'stable' );
+SELECT is_strict(       'user_json', ARRAY['label'] );
 SELECT ok(
-    has_function_privilege('pgxn', 'by_user_json(label)', 'EXECUTE'),
-    'User "pgxn" should have EXECUTE priv on by_user_json()'
+    has_function_privilege('pgxn', 'user_json(label)', 'EXECUTE'),
+    'User "pgxn" should have EXECUTE priv on user_json()'
 );
 
 SELECT is(
-    by_user_json(NULL), NULL,
-    'Should get NULL value from by_user_json() for NULL nickname'
+    user_json(NULL), NULL,
+    'Should get NULL value from user_json() for NULL nickname'
 );
 
 SELECT is(
-    by_user_json('nobody'), NULL,
-    'Should get NULL value from by_user_json() for non-existent user'
+    user_json('nobody'), NULL,
+    'Should get NULL value from user_json() for non-existent user'
 );
 
 -- Insert a new user who will have no distributions.
@@ -809,7 +809,7 @@ SELECT ok(
 );
 
 SELECT is(
-    by_user_json('anna'),
+    user_json('anna'),
     '{
    "nickname": "anna",
    "name": "",
@@ -819,11 +819,11 @@ SELECT is(
     'Should get proper JSON for user without distribution or URI'
 );
 
-SELECT json_ok(by_user_json('anna'), '...And that JSON should be valid');
+SELECT json_ok(user_json('anna'), '...And that JSON should be valid');
 
 -- See about user with one distribution.
 SELECT is(
-    by_user_json('strongrrl'),
+    user_json('strongrrl'),
     '{
    "nickname": "strongrrl",
    "name": "",
@@ -841,7 +841,7 @@ SELECT is(
     'Should get proper JSON for user with one distribution'
 );
 
-SELECT json_ok(by_user_json('strongrrl'), '...And that JSON should be valid');
+SELECT json_ok(user_json('strongrrl'), '...And that JSON should be valid');
 
 UPDATE distributions
    SET created_at = '2011-02-13T02:43:03'
@@ -849,7 +849,7 @@ UPDATE distributions
 
 -- See about user with many distributions.
 SELECT is(
-    by_user_json('theory'),
+    user_json('theory'),
     '{
    "nickname": "theory",
    "name": "",
@@ -880,7 +880,7 @@ SELECT is(
     'Should get proper JSON for user with many distributions'
 );
 
-SELECT json_ok(by_user_json('theory'), '...And that JSON should be valid');
+SELECT json_ok(user_json('theory'), '...And that JSON should be valid');
 
 SELECT * FROM finish();
 ROLLBACK;

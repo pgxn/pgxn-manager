@@ -391,7 +391,7 @@ PGXN::Manager->conn->run(sub {
 
     # Check extension JSON.
     ($json) = $dbh->selectrow_array(
-        'SELECT json FROM by_extension_json(?, ?)',
+        'SELECT json FROM extension_json(?, ?)',
         undef, 'widget', '0.2.5',
     );
     file_contents_is $files{'extension/widget.json'}, $json,
@@ -399,21 +399,21 @@ PGXN::Manager->conn->run(sub {
 
     # Check user JSON.
     ($json) = $dbh->selectrow_array(
-        'SELECT by_user_json(?)', undef, $user,
+        'SELECT user_json(?)', undef, $user,
     );
     file_contents_is $files{'user/user.json'}, $json,
         "By user JSON file should be correct";
 
     # Check dist JSON.
     ($json) = $dbh->selectrow_array(
-        'SELECT by_dist_json(?)', undef, 'widget',
+        'SELECT dist_json(?)', undef, 'widget',
     );
     file_contents_is $files{'dist/widget.json'}, $json,
         "By dist JSON file should be correct";
 
     # Check tag JSON.
     my $tags = $dbh->selectall_arrayref(
-        'SELECT tag, json FROM by_tag_json(?, ?)',
+        'SELECT tag, json FROM tag_json(?, ?)',
         undef, 'widget', '0.2.5'
     );
     for my $row (@$tags) {

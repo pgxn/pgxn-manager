@@ -80,7 +80,7 @@ objects. All the required fields will be present, and the optional fields
     ), E',\n   ') || E'\n]\n';
 $$;
 
-CREATE OR REPLACE FUNCTION by_extension_json(
+CREATE OR REPLACE FUNCTION extension_json(
    dist      TEXT,
    version   SEMVER
 ) RETURNS TABLE (
@@ -89,7 +89,7 @@ CREATE OR REPLACE FUNCTION by_extension_json(
 ) LANGUAGE plpgsql STABLE STRICT AS $$
 /*
 
-    % SELECT * FROM by_extension_json('pair', '1.2.0');
+    % SELECT * FROM extension_json('pair', '1.2.0');
      extension │                                 json                                 
     ───────────┼──────────────────────────────────────────────────────────────────────
      pair      │ {                                                                   ↵
@@ -226,13 +226,13 @@ BEGIN
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION by_dist_json(
+CREATE OR REPLACE FUNCTION dist_json(
    dist      TEXT
 ) RETURNS TEXT LANGUAGE sql STABLE STRICT AS $$
 /*
 
-    % SELECT * FROM by_dist_json('pair');
-                              by_dist_json                          
+    % SELECT * FROM dist_json('pair');
+                               dist_json
     ────────────────────────────────────────────────────────────────
      {                                                             ↵
         "name": "pair",                                            ↵
@@ -283,7 +283,7 @@ versions and their dates.
      WHERE distribution = $1;
 $$;
 
-CREATE OR REPLACE FUNCTION by_tag_json(
+CREATE OR REPLACE FUNCTION tag_json(
    dist      TEXT,
    version   SEMVER
 ) RETURNS TABLE (
@@ -292,7 +292,7 @@ CREATE OR REPLACE FUNCTION by_tag_json(
 ) LANGUAGE sql STABLE STRICT AS $$
 /*
 
-    % SELECT * FROM by_tag_json('pair', '0.1.0');
+    % SELECT * FROM tag_json('pair', '0.1.0');
             tag        │                               json                                
     ───────────────────┼───────────────────────────────────────────────────────────────────
      key value         │ {                                                                ↵
@@ -374,13 +374,13 @@ well.
      GROUP BY tag;
 $$;
 
-CREATE OR REPLACE FUNCTION by_user_json(
+CREATE OR REPLACE FUNCTION user_json(
    nickname LABEL
 ) RETURNS TEXT LANGUAGE sql STABLE STRICT AS $$
 /*
 
-    % SELECT by_user_json('theory');
-                               by_user_json
+    % SELECT user_json('theory');
+                                user_json
     ───────────────────────────────────────────────────────────────────
      {                                                                ↵
         "nickname": "theory",                                         ↵

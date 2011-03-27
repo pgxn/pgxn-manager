@@ -357,13 +357,13 @@ BEGIN
     RETURN QUERY
         SELECT 'meta'::TEXT, distmeta.name::TEXT, distmeta.json
     UNION
-        SELECT 'dist', distmeta.name::TEXT, by_dist_json(distmeta.name)
+        SELECT 'dist', distmeta.name::TEXT, dist_json(distmeta.name)
     UNION
-        SELECT 'extension', * FROM by_extension_json(distmeta.name, distmeta.version)
+        SELECT 'extension', * FROM extension_json(distmeta.name, distmeta.version)
     UNION
-        SELECT 'user', LOWER(nick), by_user_json(nick)
+        SELECT 'user', LOWER(nick), user_json(nick)
     UNION
-        SELECT 'tag', * FROM by_tag_json(distmeta.name, distmeta.version)
+        SELECT 'tag', * FROM tag_json(distmeta.name, distmeta.version)
     ;
 END;
 $$;
