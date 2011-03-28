@@ -1,6 +1,6 @@
 Revision history for Perl extension PGXN::Manager
 
-0.10.4
+0.10.4  2011-03-28T02:01:11
       - Renamed the "dist" URI template to "download".
       - Removed the leading `/by` from the URI templates.
       - Removed the leading `by_` from database functions.
