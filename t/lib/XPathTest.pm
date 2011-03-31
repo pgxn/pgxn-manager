@@ -97,7 +97,7 @@ sub test_basics {
     });
 
     # Test the body.
-    $tx->is('count(/html/body/*)', 3, 'Should have two elements below body');
+    $tx->is('count(/html/body/*)', 3, 'Should have three elements below body');
 
     # Check the content section.
     $tx->ok('/html/body/div[@id="content"]', 'Test content', sub {
