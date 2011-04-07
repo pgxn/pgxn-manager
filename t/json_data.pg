@@ -952,7 +952,7 @@ SELECT is(
    "recent": [
       {
          "extension": "pair",
-         "abstract": "XXX abstract here",
+         "abstract": "",
          "ext_version": "0.2.10",
          "dist": "pair",
          "version": "0.0.10",
@@ -962,7 +962,7 @@ SELECT is(
       },
       {
          "extension": "trip",
-         "abstract": "XXX abstract here",
+         "abstract": "",
          "ext_version": "0.2.10",
          "dist": "pair",
          "version": "0.0.10",
@@ -972,7 +972,7 @@ SELECT is(
       },
       {
          "extension": "pair",
-         "abstract": "XXX abstract here",
+         "abstract": "",
          "ext_version": "0.2.4",
          "dist": "pair",
          "version": "0.0.3",
@@ -982,7 +982,7 @@ SELECT is(
       },
       {
          "extension": "trip",
-         "abstract": "XXX abstract here",
+         "abstract": "",
          "ext_version": "0.2.5",
          "dist": "pair",
          "version": "0.0.3",
@@ -992,7 +992,7 @@ SELECT is(
       },
       {
          "extension": "pair",
-         "abstract": "XXX abstract here",
+         "abstract": "",
          "ext_version": "0.2.4",
          "dist": "pair",
          "version": "0.0.2",
@@ -1002,7 +1002,7 @@ SELECT is(
       },
       {
          "extension": "trip",
-         "abstract": "XXX abstract here",
+         "abstract": "",
          "ext_version": "0.2.3",
          "dist": "pair",
          "version": "0.0.2",
@@ -1012,7 +1012,7 @@ SELECT is(
       },
       {
          "extension": "pair",
-         "abstract": "XXX abstract here",
+         "abstract": "",
          "ext_version": "0.2.3",
          "dist": "pair",
          "version": "0.0.2a1",
@@ -1022,7 +1022,7 @@ SELECT is(
       },
       {
          "extension": "trip",
-         "abstract": "XXX abstract here",
+         "abstract": "",
          "ext_version": "0.2.2",
          "dist": "pair",
          "version": "0.0.2a1",
@@ -1032,7 +1032,7 @@ SELECT is(
       },
       {
          "extension": "duwop",
-         "abstract": "XXX abstract here",
+         "abstract": "Do wa, p-diddy",
          "ext_version": "0.50.1",
          "dist": "duwop",
          "version": "0.50.1",
@@ -1042,7 +1042,7 @@ SELECT is(
       },
       {
          "extension": "trip",
-         "abstract": "XXX abstract here",
+         "abstract": "Ordered triplet",
          "ext_version": "0.2.5",
          "dist": "trip",
          "version": "0.2.5",
@@ -1052,7 +1052,7 @@ SELECT is(
       },
       {
          "extension": "pair",
-         "abstract": "XXX abstract here",
+         "abstract": "",
          "ext_version": "0.2.2",
          "dist": "pair",
          "version": "0.0.1",
@@ -1062,7 +1062,7 @@ SELECT is(
       },
       {
          "extension": "trip",
-         "abstract": "XXX abstract here",
+         "abstract": "",
          "ext_version": "0.2.1",
          "dist": "pair",
          "version": "0.0.1",
@@ -1082,7 +1082,7 @@ SELECT is(
    "recent": [
       {
          "extension": "pair",
-         "abstract": "XXX abstract here",
+         "abstract": "",
          "ext_version": "0.2.10",
          "dist": "pair",
          "version": "0.0.10",
@@ -1092,7 +1092,7 @@ SELECT is(
       },
       {
          "extension": "trip",
-         "abstract": "XXX abstract here",
+         "abstract": "",
          "ext_version": "0.2.10",
          "dist": "pair",
          "version": "0.0.10",
@@ -1102,7 +1102,7 @@ SELECT is(
       },
       {
          "extension": "pair",
-         "abstract": "XXX abstract here",
+         "abstract": "",
          "ext_version": "0.2.4",
          "dist": "pair",
          "version": "0.0.3",

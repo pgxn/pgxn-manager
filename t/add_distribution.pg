@@ -534,7 +534,7 @@ SELECT bag_eq(
    "recent": [
       {
          "extension": "pair",
-         "abstract": "XXX abstract here",
+         "abstract": "",
          "ext_version": "0.2.2",
          "dist": "pair",
          "version": "0.0.1",
@@ -544,7 +544,7 @@ SELECT bag_eq(
       },
       {
          "extension": "trip",
-         "abstract": "XXX abstract here",
+         "abstract": "A triplet",
          "ext_version": "0.2.1",
          "dist": "pair",
          "version": "0.0.1",
@@ -784,7 +784,7 @@ SELECT bag_eq(
    "recent": [
       {
          "extension": "foo",
-         "abstract": "XXX abstract here",
+         "abstract": "whatever",
          "ext_version": "0.0.2",
          "dist": "foo",
          "version": "0.0.2",
@@ -794,7 +794,7 @@ SELECT bag_eq(
       },
       {
          "extension": "pair",
-         "abstract": "XXX abstract here",
+         "abstract": "",
          "ext_version": "0.2.2",
          "dist": "pair",
          "version": "0.0.1",
@@ -804,7 +804,7 @@ SELECT bag_eq(
       },
       {
          "extension": "trip",
-         "abstract": "XXX abstract here",
+         "abstract": "A triplet",
          "ext_version": "0.2.1",
          "dist": "pair",
          "version": "0.0.1",
@@ -1016,7 +1016,7 @@ SELECT bag_eq(
    "recent": [
       {
          "extension": "foo",
-         "abstract": "XXX abstract here",
+         "abstract": "whatever",
          "ext_version": "0.0.2",
          "dist": "foo",
          "version": "0.0.2",
@@ -1026,7 +1026,7 @@ SELECT bag_eq(
       },
       {
          "extension": "pair",
-         "abstract": "XXX abstract here",
+         "abstract": "",
          "ext_version": "0.2.2",
          "dist": "pair",
          "version": "0.0.1",
@@ -1036,7 +1036,7 @@ SELECT bag_eq(
       },
       {
          "extension": "pair",
-         "abstract": "XXX abstract here",
+         "abstract": "whatever",
          "ext_version": "0.0.3",
          "dist": "pair",
          "version": "0.0.3",
@@ -1046,7 +1046,7 @@ SELECT bag_eq(
       },
       {
          "extension": "trip",
-         "abstract": "XXX abstract here",
+         "abstract": "A triplet",
          "ext_version": "0.2.1",
          "dist": "pair",
          "version": "0.0.1",

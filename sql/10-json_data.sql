@@ -481,7 +481,7 @@ CREATE OR REPLACE FUNCTION tag_stats_json(
 /*
 
     % select tag_stats_json(4);
-                    tag_stats_json                
+                    tag_stats_json
     ──────────────────────────────────────────────
      {                                           ↵
         "count": 212,                            ↵
@@ -521,7 +521,7 @@ CREATE OR REPLACE FUNCTION user_stats_json(
 /*
 
     % select user_stats_json();
-                                       user_stats_json                                    
+                                       user_stats_json
     ──────────────────────────────────────────────────────────────────────────────────────
      {                                                                                   ↵
         "count": 256,                                                                    ↵
@@ -563,45 +563,43 @@ CREATE OR REPLACE FUNCTION extension_stats_json(
 ) RETURNS TEXT LANGUAGE sql STABLE STRICT AS $$
 /*
 
-    % select extension_stats_json(3);
-                 extension_stats_json             
-    ──────────────────────────────────────────────
-     {                                           ↵
-        "count": 125,                            ↵
-        "recent": [                              ↵
-           {                                     ↵
-              "extension": "countnulls",         ↵
-              "abstract": "XXX abstract here",   ↵
-              "ext_version": "1.0.0",            ↵
-              "dist": "countnulls",              ↵
-              "version": "1.0.0",                ↵
-              "date": "2011-03-15T16:44:26Z",    ↵
-              "user": "alexk",                   ↵
-              "user_name": "Alexey Klyukin"      ↵
-           },                                    ↵
-           {                                     ↵
-              "extension": "pgtap",              ↵
-              "abstract": "XXX abstract here",   ↵
-              "ext_version": "0.25.0",           ↵
-              "dist": "pgTAP",                   ↵
-              "version": "0.25.0",               ↵
-              "date": "2011-02-02T03:25:17Z",    ↵
-              "user": "theory",                  ↵
-              "user_name": "David E. Wheeler"    ↵
-           },                                    ↵
-           {                                     ↵
-              "extension": "pg_french_datatypes",↵
-              "abstract": "XXX abstract here",   ↵
-              "ext_version": "0.1.1",            ↵
-              "dist": "pg_french_datatypes",     ↵
-              "version": "0.1.1",                ↵
-              "date": "2011-01-30T16:51:16Z",    ↵
-              "user": "daamien",                 ↵
-              "user_name": "damien clochard"     ↵
-           }                                     ↵
-        ]                                        ↵
-     }                                           ↵
-    
+    % select extension_stats_json();
+                                 extension_stats_json
+    ───────────────────────────────────────────────────────────────────────────────
+     {                                                                            ↵
+        "count": 125,                                                             ↵
+        "recent": [                                                               ↵
+           {                                                                      ↵
+              "extension": "countnulls",                                          ↵
+              "abstract": "Simple function to count the number of NULL arguments",↵
+              "ext_version": "1.0.0",                                             ↵
+              "dist": "countnulls",                                               ↵
+              "version": "1.0.0",                                                 ↵
+              "date": "2011-03-15T16:44:26Z",                                     ↵
+              "user": "alexk",                                                    ↵
+              "user_name": "Alexey Klyukin"                                       ↵
+           },                                                                     ↵
+           {                                                                      ↵
+              "extension": "pgtap",                                               ↵
+              "abstract": "Unit testing for PostgreSQL",                          ↵
+              "ext_version": "0.25.0",                                            ↵
+              "dist": "pgTAP",                                                    ↵
+              "version": "0.25.0",                                                ↵
+              "date": "2011-02-02T03:25:17Z",                                     ↵
+              "user": "theory",                                                   ↵
+              "user_name": "David E. Wheeler"                                     ↵
+           },                                                                     ↵
+           {                                                                      ↵
+              "extension": "pg_french_datatypes",                                 ↵
+              "abstract": "french-centric data type",                             ↵
+              "ext_version": "0.1.1",                                             ↵
+              "dist": "pg_french_datatypes",                                      ↵
+              "version": "0.1.1",                                                 ↵
+              "date": "2011-01-30T16:51:16Z",                                     ↵
+              "user": "daamien",                                                  ↵
+              "user_name": "damien clochard"                                      ↵
+           },                                                                     ↵
+
 Returns a JSON string containing extension statitics. These include:
 
 * `count`: A count of the number of extensions in the database.
@@ -616,7 +614,7 @@ that appear in the recent list. The default limit is 56.
         || array_to_string(ARRAY(
         SELECT E'      {\n'
             || '         "extension": '   || json_value(de.extension) || E',\n'
-            || '         "abstract": '    || json_value('XXX abstract here') || E',\n'
+            || '         "abstract": '    || json_value(de.abstract) || E',\n'
             || '         "ext_version": ' || json_value(de.ext_version::text) || E',\n'
             || '         "dist": '        || json_value(d.name) || E',\n'
             || '         "version": '     || json_value(d.version::text) || E',\n'
@@ -642,7 +640,7 @@ CREATE OR REPLACE FUNCTION dist_stats_json(
 /*
 
     % select dist_stats_json(3);
-                                    dist_stats_json                                
+                                    dist_stats_json
     ───────────────────────────────────────────────────────────────────────────────
      {                                                                            ↵
         "count": 92,                                                              ↵
