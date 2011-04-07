@@ -1,7 +1,7 @@
 SET search_path = public,contrib,tap;
 
 BEGIN;
-SELECT plan(99);
+SELECT plan(111);
 --SELECT * FROM no_plan();
 
 /****************************************************************************/
@@ -881,6 +881,346 @@ SELECT is(
 );
 
 SELECT json_ok(user_json('theory'), '...And that JSON should be valid');
+
+/****************************************************************************/
+-- Test tag_stats_json().
+
+SELECT json_ok(tag_stats_json(), 'tag_stats_json() JSON should be valid');
+
+SELECT is(
+    tag_stats_json(),
+    '{
+   "count": 3,
+   "popular": [
+      {"tag": "foo", "dists": 2},
+      {"tag": "bar", "dists": 1},
+      {"tag": "baz", "dists": 1}
+   ]
+}
+', 'tag_stats_json() should work'
+);
+
+SELECT is(
+    tag_stats_json(2),
+    '{
+   "count": 3,
+   "popular": [
+      {"tag": "foo", "dists": 2},
+      {"tag": "bar", "dists": 1}
+   ]
+}
+', 'tag_stats_json(2) should work'
+);
+
+/****************************************************************************/
+-- Test user_stats_json().
+
+SELECT json_ok(user_stats_json(), 'user_stats_json() JSON should be valid');
+
+SELECT is(
+    user_stats_json(),
+    '{
+   "count": 3,
+   "prolific": [
+      {"nickname": "theory", "name": "", "dists": 2, "releases": 6},
+      {"nickname": "strongrrl", "name": "", "dists": 1, "releases": 1}
+   ]
+}
+', 'user_stats_json() should work'
+);
+
+SELECT is(
+    user_stats_json(1),
+    '{
+   "count": 3,
+   "prolific": [
+      {"nickname": "theory", "name": "", "dists": 2, "releases": 6}
+   ]
+}
+', 'user_stats_json(1) should work'
+);
+
+/****************************************************************************/
+-- Test extension_stats_json().
+
+SELECT json_ok(extension_stats_json(), 'extension_stats_json() JSON should be valid');
+
+SELECT is(
+    extension_stats_json(),
+    '{
+   "count": 3,
+   "recent": [
+      {
+         "extension": "pair",
+         "abstract": "XXX abstract here",
+         "ext_version": "0.2.10",
+         "dist": "pair",
+         "version": "0.0.10",
+         "date": "2011-03-11T20:36:48Z",
+         "user": "theory",
+         "user_name": ""
+      },
+      {
+         "extension": "trip",
+         "abstract": "XXX abstract here",
+         "ext_version": "0.2.10",
+         "dist": "pair",
+         "version": "0.0.10",
+         "date": "2011-03-11T20:36:48Z",
+         "user": "theory",
+         "user_name": ""
+      },
+      {
+         "extension": "pair",
+         "abstract": "XXX abstract here",
+         "ext_version": "0.2.4",
+         "dist": "pair",
+         "version": "0.0.3",
+         "date": "2011-03-10T20:31:57Z",
+         "user": "theory",
+         "user_name": ""
+      },
+      {
+         "extension": "trip",
+         "abstract": "XXX abstract here",
+         "ext_version": "0.2.5",
+         "dist": "pair",
+         "version": "0.0.3",
+         "date": "2011-03-10T20:31:57Z",
+         "user": "theory",
+         "user_name": ""
+      },
+      {
+         "extension": "pair",
+         "abstract": "XXX abstract here",
+         "ext_version": "0.2.4",
+         "dist": "pair",
+         "version": "0.0.2",
+         "date": "2011-02-22T20:31:57Z",
+         "user": "theory",
+         "user_name": ""
+      },
+      {
+         "extension": "trip",
+         "abstract": "XXX abstract here",
+         "ext_version": "0.2.3",
+         "dist": "pair",
+         "version": "0.0.2",
+         "date": "2011-02-22T20:31:57Z",
+         "user": "theory",
+         "user_name": ""
+      },
+      {
+         "extension": "pair",
+         "abstract": "XXX abstract here",
+         "ext_version": "0.2.3",
+         "dist": "pair",
+         "version": "0.0.2a1",
+         "date": "2011-02-15T18:31:57Z",
+         "user": "theory",
+         "user_name": ""
+      },
+      {
+         "extension": "trip",
+         "abstract": "XXX abstract here",
+         "ext_version": "0.2.2",
+         "dist": "pair",
+         "version": "0.0.2a1",
+         "date": "2011-02-15T18:31:57Z",
+         "user": "theory",
+         "user_name": ""
+      },
+      {
+         "extension": "duwop",
+         "abstract": "XXX abstract here",
+         "ext_version": "0.50.1",
+         "dist": "duwop",
+         "version": "0.50.1",
+         "date": "2011-02-13T02:43:03Z",
+         "user": "theory",
+         "user_name": ""
+      },
+      {
+         "extension": "trip",
+         "abstract": "XXX abstract here",
+         "ext_version": "0.2.5",
+         "dist": "trip",
+         "version": "0.2.5",
+         "date": "2011-02-11T20:36:48Z",
+         "user": "strongrrl",
+         "user_name": ""
+      },
+      {
+         "extension": "pair",
+         "abstract": "XXX abstract here",
+         "ext_version": "0.2.2",
+         "dist": "pair",
+         "version": "0.0.1",
+         "date": "2011-02-10T18:31:57Z",
+         "user": "theory",
+         "user_name": ""
+      },
+      {
+         "extension": "trip",
+         "abstract": "XXX abstract here",
+         "ext_version": "0.2.1",
+         "dist": "pair",
+         "version": "0.0.1",
+         "date": "2011-02-10T18:31:57Z",
+         "user": "theory",
+         "user_name": ""
+      }
+   ]
+}
+', 'extension_stats_json() should work'
+);
+
+SELECT is(
+    extension_stats_json(3),
+    '{
+   "count": 3,
+   "recent": [
+      {
+         "extension": "pair",
+         "abstract": "XXX abstract here",
+         "ext_version": "0.2.10",
+         "dist": "pair",
+         "version": "0.0.10",
+         "date": "2011-03-11T20:36:48Z",
+         "user": "theory",
+         "user_name": ""
+      },
+      {
+         "extension": "trip",
+         "abstract": "XXX abstract here",
+         "ext_version": "0.2.10",
+         "dist": "pair",
+         "version": "0.0.10",
+         "date": "2011-03-11T20:36:48Z",
+         "user": "theory",
+         "user_name": ""
+      },
+      {
+         "extension": "pair",
+         "abstract": "XXX abstract here",
+         "ext_version": "0.2.4",
+         "dist": "pair",
+         "version": "0.0.3",
+         "date": "2011-03-10T20:31:57Z",
+         "user": "theory",
+         "user_name": ""
+      }
+   ]
+}
+', 'extension_stats_json(3) should work'
+);
+
+/****************************************************************************/
+-- Test dist_stats_json().
+
+SELECT json_ok(dist_stats_json(), 'dist_stats_json() JSON should be valid');
+
+SELECT is(
+    dist_stats_json(),
+    '{
+   "count": 3,
+   "releases": 7,
+   "recent": [
+      {
+         "dist": "pair",
+         "version": "0.0.10",
+         "abstract": "Ordered pair",
+         "date": "2011-03-11T20:36:48Z",
+         "user": "theory",
+         "user_name": ""
+      },
+      {
+         "dist": "pair",
+         "version": "0.0.3",
+         "abstract": "Ordered pair",
+         "date": "2011-03-10T20:31:57Z",
+         "user": "theory",
+         "user_name": ""
+      },
+      {
+         "dist": "pair",
+         "version": "0.0.2",
+         "abstract": "Ordered pair",
+         "date": "2011-02-22T20:31:57Z",
+         "user": "theory",
+         "user_name": ""
+      },
+      {
+         "dist": "pair",
+         "version": "0.0.2a1",
+         "abstract": "Ordered pair",
+         "date": "2011-02-15T18:31:57Z",
+         "user": "theory",
+         "user_name": ""
+      },
+      {
+         "dist": "duwop",
+         "version": "0.50.1",
+         "abstract": "Do wa, p-diddy",
+         "date": "2011-02-13T02:43:03Z",
+         "user": "theory",
+         "user_name": ""
+      },
+      {
+         "dist": "trip",
+         "version": "0.2.5",
+         "abstract": "Ordered triplet",
+         "date": "2011-02-11T20:36:48Z",
+         "user": "strongrrl",
+         "user_name": ""
+      },
+      {
+         "dist": "pair",
+         "version": "0.0.1",
+         "abstract": "Ordered pair",
+         "date": "2011-02-10T18:31:57Z",
+         "user": "theory",
+         "user_name": ""
+      }
+   ]
+}
+', 'dist_stats_json() should work'
+);
+
+SELECT is(
+    dist_stats_json(3),
+    '{
+   "count": 3,
+   "releases": 7,
+   "recent": [
+      {
+         "dist": "pair",
+         "version": "0.0.10",
+         "abstract": "Ordered pair",
+         "date": "2011-03-11T20:36:48Z",
+         "user": "theory",
+         "user_name": ""
+      },
+      {
+         "dist": "pair",
+         "version": "0.0.3",
+         "abstract": "Ordered pair",
+         "date": "2011-03-10T20:31:57Z",
+         "user": "theory",
+         "user_name": ""
+      },
+      {
+         "dist": "pair",
+         "version": "0.0.2",
+         "abstract": "Ordered pair",
+         "date": "2011-02-22T20:31:57Z",
+         "user": "theory",
+         "user_name": ""
+      }
+   ]
+}
+', 'dist_stats_json(3) should work'
+);
 
 SELECT * FROM finish();
 ROLLBACK;

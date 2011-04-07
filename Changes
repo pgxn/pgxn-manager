@@ -1,6 +1,11 @@
 Revision history for Perl extension PGXN::Manager
 
 0.10.5
+      - Added JSON-emitting statistics functions:
+          * `tag_stats_json()`
+          * `user_stats_json()`
+          * `extension_stats_json()`
+          * `dist_stats_json()`
 
 0.10.4  2011-03-28T02:01:11
       - Renamed the "dist" URI template to "download".

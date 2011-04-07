@@ -226,6 +226,24 @@ BEGIN
 END;
 $$;
 
+CREATE OR REPLACE FUNCTION utc_date(
+    TIMESTAMPTZ
+) RETURNS TEXT LANGUAGE sql STABLE STRICT AS $$
+/*
+
+    % select utc_date(now());
+           utc_date       
+    ──────────────────────
+     2011-04-07T22:42:08Z
+
+Returns a string representation of a `timestamp with timezone` value in UTC
+and formatted in strict ISO-8601 format, always with the ending "Z" for "Zulu
+time" (UTC).
+
+*/
+    SELECT to_char($1 AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"');
+$$;
+
 CREATE OR REPLACE FUNCTION dist_json(
    dist      TEXT
 ) RETURNS TEXT LANGUAGE sql STABLE STRICT AS $$
@@ -260,21 +278,21 @@ versions and their dates.
            E'[\n         ' || string_agg(
                CASE relstatus WHEN 'stable'
                THEN '{"version": "' || version
-                 || '", "date": "' || to_char(created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') || '"}'
+                 || '", "date": "' || utc_date(created_at) || '"}'
                ELSE NULL
            END, E',\n         ' ORDER BY version DESC) || E'\n      ]' AS stable,
            E'[\n         ' || string_agg(
                CASE relstatus
                WHEN 'testing'
                THEN '{"version": "' || version
-                 || '", "date": "' || to_char(created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') || '"}'
+                 || '", "date": "' || utc_date(created_at) || '"}'
                ELSE NULL
            END, E',\n         ' ORDER BY version DESC) || E'\n      ]' AS testing,
            E'[\n         ' || string_agg(
                CASE relstatus
                WHEN 'unstable'
                THEN '{"version": "' || version
-                 || '", "date": "' || to_char(created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') || '"}'
+                 || '", "date": "' || utc_date(created_at) || '"}'
                ELSE NULL
            END, E',\n         ' ORDER BY version DESC) || E'\n      ]' AS unstable
           FROM distributions
@@ -350,7 +368,7 @@ well.
                  )
              )
              SELECT dt.tag, dt.distribution, d.relstatus,
-                    array_agg('{"version": "' || d.version || '", "date": "' || to_char(d.created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') || '"}' ORDER BY d.version DESC) AS versions
+                    array_agg('{"version": "' || d.version || '", "date": "' || utc_date(d.created_at) || '"}' ORDER BY d.version DESC) AS versions
                FROM dt
                JOIN distributions d
                  ON dt.distribution = d.name
@@ -415,21 +433,21 @@ user and thus not included in the JSON.
            E'[\n            ' || string_agg(
                CASE relstatus WHEN 'stable'
                THEN '{"version": "' || version
-                 || '", "date": "' || to_char(created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') || '"}'
+                 || '", "date": "' || utc_date(created_at) || '"}'
                ELSE NULL
            END, E',\n            ' ORDER BY version DESC) || E'\n         ]' AS stable,
            E'[\n            ' || string_agg(
                CASE relstatus
                WHEN 'testing'
                THEN '{"version": "' || version
-                 || '", "date": "' || to_char(created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') || '"}'
+                 || '", "date": "' || utc_date(created_at) || '"}'
                ELSE NULL
            END, E',\n            ' ORDER BY version DESC) || E'\n         ]' AS testing,
            E'[\n            ' || string_agg(
                CASE relstatus
                WHEN 'unstable'
                THEN '{"version": "' || version
-                 || '", "date": "' || to_char(created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') || '"}'
+                 || '", "date": "' || utc_date(created_at) || '"}'
                ELSE NULL
            END, E',\n            ' ORDER BY version DESC) || E'\n         ]' AS unstable
          FROM distributions
@@ -455,6 +473,237 @@ user and thus not included in the JSON.
       LEFT JOIN dv ON u.nickname = dv.creator
      WHERE u.nickname = $1
      GROUP BY u.nickname, u.full_name, u.email, u.uri, u.twitter;
+$$;
+
+CREATE OR REPLACE FUNCTION tag_stats_json(
+    num_popular INT DEFAULT 56
+) RETURNS TEXT LANGUAGE sql STABLE STRICT AS $$
+/*
+
+    % select tag_stats_json(4);
+                    tag_stats_json                
+    ──────────────────────────────────────────────
+     {                                           ↵
+        "count": 212,                            ↵
+        "popular": [                             ↵
+           {"tag": "data types", "dists": 4},    ↵
+           {"tag": "key value", "dists": 2},     ↵
+           {"tag": "france", "dists": 1},        ↵
+           {"tag": "key value pair", "dists": 1} ↵
+        ]                                        ↵
+     }                                           ↵
+
+Returns a JSON representation of tag statistics. These include:
+
+* `count`: A count of all tags in the database.
+* `popular`: A list of the most used tags in the system, listed in descending
+  order by the number of uses.
+
+Pass in the optional `num_popular` parameter to limit the number of tags that
+appear in the popular list. The default limit is 56.
+
+*/
+    SELECT E'{\n   "count": ' || COUNT(DISTINCT tag) || E',\n   "popular": [\n'
+        || array_to_string(ARRAY(
+        SELECT '      {"tag": ' || json_value(tag)
+            || ', "dists": ' || COUNT(DISTINCT distribution) || E'}'
+          FROM distribution_tags
+         GROUP BY tag
+         ORDER BY COUNT(DISTINCT distribution) DESC, tag
+         LIMIT $1
+        ), E',\n') || E'\n   ]\n}\n' 
+      FROM distribution_tags
+$$;
+
+CREATE OR REPLACE FUNCTION user_stats_json(
+    num_prolific INT DEFAULT 56
+) RETURNS TEXT LANGUAGE sql STABLE STRICT AS $$
+/*
+
+    % select user_stats_json();
+                                       user_stats_json                                    
+    ──────────────────────────────────────────────────────────────────────────────────────
+     {                                                                                   ↵
+        "count": 256,                                                                    ↵
+        "prolific": [                                                                    ↵
+           {"nickname": "theory", "name": "David E. Wheeler", "dists": 3, "releases": 4},↵
+           {"nickname": "daamien", "name": "damien clochard", "dists": 1, "releases": 2},↵
+           {"nickname": "umitanuki", "name": "Hitoshi Harada", "dists": 1, "releases": 1}↵
+        ]                                                                                ↵
+     }                                                                                   ↵
+
+Returns a JSON string with user statistics. These include:
+
+* `count`: A count of the number of users in the database.
+* `prolific`: A list of the most prolific users, measured by the number of
+  distributions they've released. A count of the number of *releases* is
+  also included, though it does not determine prolificness.
+
+Pass in the optional `num_prolific` parameter to limit the number of user that
+appear in the prolific list. The default limit is 56.
+
+*/
+    SELECT E'{\n   "count": ' || COUNT(*) || E',\n   "prolific": [\n'
+        || array_to_string(ARRAY(
+        SELECT '      {"nickname": ' || json_value(u.nickname)
+            || ', "name": '     || json_value(u.full_name)
+            || ', "dists": '    || COUNT(DISTINCT d.name)
+            || ', "releases": ' || COUNT(d.name) || E'}'
+          FROM users u
+          JOIN distributions d ON u.nickname = d.creator
+         GROUP BY u.nickname, u.full_name
+         ORDER BY COUNT(DISTINCT d.name) DESC, u.nickname
+         LIMIT $1
+        ), E',\n') || E'\n   ]\n}\n' 
+      FROM users
+$$;
+
+CREATE OR REPLACE FUNCTION extension_stats_json(
+    num_recent INT DEFAULT 56
+) RETURNS TEXT LANGUAGE sql STABLE STRICT AS $$
+/*
+
+    % select extension_stats_json(3);
+                 extension_stats_json             
+    ──────────────────────────────────────────────
+     {                                           ↵
+        "count": 125,                            ↵
+        "recent": [                              ↵
+           {                                     ↵
+              "extension": "countnulls",         ↵
+              "abstract": "XXX abstract here",   ↵
+              "ext_version": "1.0.0",            ↵
+              "dist": "countnulls",              ↵
+              "version": "1.0.0",                ↵
+              "date": "2011-03-15T16:44:26Z",    ↵
+              "user": "alexk",                   ↵
+              "user_name": "Alexey Klyukin"      ↵
+           },                                    ↵
+           {                                     ↵
+              "extension": "pgtap",              ↵
+              "abstract": "XXX abstract here",   ↵
+              "ext_version": "0.25.0",           ↵
+              "dist": "pgTAP",                   ↵
+              "version": "0.25.0",               ↵
+              "date": "2011-02-02T03:25:17Z",    ↵
+              "user": "theory",                  ↵
+              "user_name": "David E. Wheeler"    ↵
+           },                                    ↵
+           {                                     ↵
+              "extension": "pg_french_datatypes",↵
+              "abstract": "XXX abstract here",   ↵
+              "ext_version": "0.1.1",            ↵
+              "dist": "pg_french_datatypes",     ↵
+              "version": "0.1.1",                ↵
+              "date": "2011-01-30T16:51:16Z",    ↵
+              "user": "daamien",                 ↵
+              "user_name": "damien clochard"     ↵
+           }                                     ↵
+        ]                                        ↵
+     }                                           ↵
+    
+Returns a JSON string containing extension statitics. These include:
+
+* `count`: A count of the number of extensions in the database.
+* `recent`: A list of recently-released extensions sorted in reverse
+  chronlogical order.
+
+Pass in the optional `num_recent` parameter to limit the number of extensions
+that appear in the recent list. The default limit is 56.
+
+*/
+    SELECT E'{\n   "count": ' || COUNT(*) || E',\n   "recent": [\n'
+        || array_to_string(ARRAY(
+        SELECT E'      {\n'
+            || '         "extension": '   || json_value(de.extension) || E',\n'
+            || '         "abstract": '    || json_value('XXX abstract here') || E',\n'
+            || '         "ext_version": ' || json_value(de.ext_version::text) || E',\n'
+            || '         "dist": '        || json_value(d.name) || E',\n'
+            || '         "version": '     || json_value(d.version::text) || E',\n'
+            || '         "date": '        || json_value(utc_date(d.created_at)) || E',\n'
+            || '         "user": '        || json_value(d.creator) || E',\n'
+            || '         "user_name": '   || json_value(u.full_name)
+            || E'\n      }'
+          FROM distributions d
+          JOIN distribution_extensions de
+            ON d.name = de.distribution
+           AND d.version = de.dist_version
+          JOIN users u
+            ON d.creator = u.nickname
+         ORDER BY d.created_at DESC, de.extension
+         LIMIT $1
+        ), E',\n') || E'\n   ]\n}\n' 
+      FROM extensions
+$$;
+
+CREATE OR REPLACE FUNCTION dist_stats_json(
+    num_recent INT DEFAULT 56
+) RETURNS TEXT LANGUAGE sql STABLE STRICT AS $$
+/*
+
+    % select dist_stats_json(3);
+                                    dist_stats_json                                
+    ───────────────────────────────────────────────────────────────────────────────
+     {                                                                            ↵
+        "count": 92,                                                              ↵
+        "releases": 345,                                                          ↵
+        "recent": [                                                               ↵
+           {                                                                      ↵
+              "dist": "countnulls",                                               ↵
+              "version": "1.0.0",                                                 ↵
+              "abstract": "Simple function to count the number of NULL arguments",↵
+              "date": "2011-03-15T16:44:26Z",                                     ↵
+              "user": "alexk",                                                    ↵
+              "user_name": "Alexey Klyukin"                                       ↵
+           },                                                                     ↵
+           {                                                                      ↵
+              "dist": "pgTAP",                                                    ↵
+              "version": "0.25.0",                                                ↵
+              "abstract": "Unit testing for PostgreSQL",                          ↵
+              "date": "2011-02-02T03:25:17Z",                                     ↵
+              "user": "theory",                                                   ↵
+              "user_name": "David E. Wheeler"                                     ↵
+           },                                                                     ↵
+           {                                                                      ↵
+              "dist": "pg_french_datatypes",                                      ↵
+              "version": "0.1.1",                                                 ↵
+              "abstract": "french-centric data type",                             ↵
+              "date": "2011-01-30T16:51:16Z",                                     ↵
+              "user": "daamien",                                                  ↵
+              "user_name": "damien clochard"                                      ↵
+           }                                                                      ↵
+        ]                                                                         ↵
+     }                                                                            ↵
+    
+
+Returns a JSON string containing distribution statitics. These include:
+
+* `count`: A count of the number of distributions in the database.
+* `releases`: A count of all releases of all distributions in the database.
+* `recent`: A list of recently-released distributions sorted in reverse
+  chronlogical order.
+
+Pass in the optional `num_recent` parameter to limit the number of
+distributions that appear in the recent list. The default limit is 56.
+
+*/
+    SELECT E'{\n   "count": ' || COUNT(DISTINCT name)
+        || E',\n   "releases": ' || COUNT(*) || E',\n   "recent": [\n'
+        || array_to_string(ARRAY(
+        SELECT E'      {\n'
+            || '         "dist": '      || json_value(d.name) || E',\n'
+            || '         "version": '   || json_value(d.version::text) || E',\n'
+            || '         "abstract": '  || json_value(d.abstract) || E',\n'
+            || '         "date": '      || json_value(utc_date(d.created_at)) || E',\n'
+            || '         "user": '      || json_value(d.creator) || E',\n'
+            || '         "user_name": ' || json_value(u.full_name)
+            || E'\n      }'
+          FROM distributions d
+          JOIN users u ON d.creator = u.nickname
+         ORDER BY d.created_at DESC, d.name
+         LIMIT $1
+        ), E',\n') || E'\n   ]\n}\n' 
+      FROM distributions;
 $$;
 
 COMMIT;
