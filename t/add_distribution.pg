@@ -107,7 +107,7 @@ SELECT results_eq(
    "abstract": "Ordered pair",
    "description": "An ordered pair for PostgreSQL",
    "version": "0.0.1",
-   "date": "' || to_char(NOW() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') || '",
+   "date": "' || utc_date(NOW()) || '",
    "maintainer": "theory",
    "release_status": "testing",
    "user": "nobody",
@@ -196,7 +196,7 @@ SELECT is(COUNT(*)::int, 0, 'Should still have no co-owners') FROM coowners;
 
 -- Create another user to mess with.
 SELECT ok(
-    insert_user('strongrrl', 'wet blanket', email := 'strongrrl@pgxn.org'),
+    insert_user('strongrrl', 'wet blanket', email := 'strongrrl@pgxn.org', full_name := 'Julie Wheeler'),
     'Insert user "strongrrl"'
 );
 
@@ -404,7 +404,7 @@ SELECT bag_eq(
    "abstract": "Ordered pair",
    "description": "An ordered pair for PostgreSQL",
    "version": "0.0.1",
-   "date": "' || to_char(NOW() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') || '",
+   "date": "' || utc_date(NOW()) || '",
    "maintainer": "theory",
    "release_status": "testing",
    "user": "theory",
@@ -441,7 +441,7 @@ SELECT bag_eq(
    "name": "pair",
    "releases": {
       "testing": [
-         {"version": "0.0.1", "date": "' || to_char(NOW() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') || '"}
+         {"version": "0.0.1", "date": "' || utc_date(NOW()) || '"}
       ]
    }
 }
@@ -472,7 +472,7 @@ SELECT bag_eq(
    "releases": {
       "pair": {
          "testing": [
-            {"version": "0.0.1", "date": "' || to_char(NOW() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') || '"}
+            {"version": "0.0.1", "date": "' || utc_date(NOW()) || '"}
          ]
       }
    }
@@ -482,7 +482,7 @@ SELECT bag_eq(
    "releases": {
       "pair": {
          "testing": [
-            {"version": "0.0.1", "date": "' || to_char(NOW() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') || '"}
+            {"version": "0.0.1", "date": "' || utc_date(NOW()) || '"}
          ]
       }
    }
@@ -492,7 +492,7 @@ SELECT bag_eq(
    "releases": {
       "pair": {
          "testing": [
-            {"version": "0.0.1", "date": "' || to_char(NOW() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') || '"}
+            {"version": "0.0.1", "date": "' || utc_date(NOW()) || '"}
          ]
       }
    }
@@ -502,10 +502,63 @@ SELECT bag_eq(
    "releases": {
       "pair": {
          "testing": [
-            {"version": "0.0.1", "date": "' || to_char(NOW() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') || '"}
+            {"version": "0.0.1", "date": "' || utc_date(NOW()) || '"}
          ]
       }
    }
+}
+'), ('stats','tag','{
+   "count": 3,
+   "popular": [
+      {"tag": "bar", "dists": 1},
+      {"tag": "baz", "dists": 1},
+      {"tag": "foo", "dists": 1}
+   ]
+}
+'), ('stats','dist','{
+   "count": 1,
+   "releases": 1,
+   "recent": [
+      {
+         "dist": "pair",
+         "version": "0.0.1",
+         "abstract": "Ordered pair",
+         "date": "' || utc_date(NOW()) || '",
+         "user": "theory",
+         "user_name": ""
+      }
+   ]
+}
+'), ('stats','extension','{
+   "count": 2,
+   "recent": [
+      {
+         "extension": "pair",
+         "abstract": "XXX abstract here",
+         "ext_version": "0.2.2",
+         "dist": "pair",
+         "version": "0.0.1",
+         "date": "' || utc_date(NOW()) || '",
+         "user": "theory",
+         "user_name": ""
+      },
+      {
+         "extension": "trip",
+         "abstract": "XXX abstract here",
+         "ext_version": "0.2.1",
+         "dist": "pair",
+         "version": "0.0.1",
+         "date": "' || utc_date(NOW()) || '",
+         "user": "theory",
+         "user_name": ""
+      }
+   ]
+}
+'), ('stats','user','{
+   "count": 2,
+   "prolific": [
+      {"nickname": "theory", "name": "", "dists": 1, "releases": 1}
+   ]
 }
 ')$$, 'Add a distribution for user "theory"');
 
@@ -521,7 +574,7 @@ SELECT is(meta, '{
    "abstract": "Ordered pair",
    "description": "An ordered pair for PostgreSQL",
    "version": "0.0.1",
-   "date": "' || to_char(NOW() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') || '",
+   "date": "' || utc_date(NOW()) || '",
    "maintainer": "theory",
    "release_status": "testing",
    "user": "theory",
@@ -619,7 +672,7 @@ SELECT bag_eq(
    "name": "foo",
    "abstract": "whatever",
    "version": "0.0.2",
-   "date": "' || to_char(NOW() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') || '",
+   "date": "' || utc_date(NOW()) || '",
    "maintainer": "strongrrl",
    "release_status": "stable",
    "user": "strongrrl",
@@ -637,7 +690,7 @@ SELECT bag_eq(
    "name": "foo",
    "releases": {
       "stable": [
-         {"version": "0.0.2", "date": "' || to_char(NOW() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') || '"}
+         {"version": "0.0.2", "date": "' || utc_date(NOW()) || '"}
       ]
    }
 }
@@ -653,12 +706,12 @@ SELECT bag_eq(
 }
 '), ('user', 'strongrrl', '{
    "nickname": "strongrrl",
-   "name": "",
+   "name": "Julie Wheeler",
    "email": "strongrrl@pgxn.org",
    "releases": {
       "foo": {
          "stable": [
-            {"version": "0.0.2", "date": "' || to_char(NOW() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') || '"}
+            {"version": "0.0.2", "date": "' || utc_date(NOW()) || '"}
          ]
       }
    }
@@ -668,12 +721,12 @@ SELECT bag_eq(
    "releases": {
       "pair": {
          "testing": [
-            {"version": "0.0.1", "date": "' || to_char(NOW() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') || '"}
+            {"version": "0.0.1", "date": "' || utc_date(NOW()) || '"}
          ]
       },
       "foo": {
          "stable": [
-            {"version": "0.0.2", "date": "' || to_char(NOW() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') || '"}
+            {"version": "0.0.2", "date": "' || utc_date(NOW()) || '"}
          ]
       }
    }
@@ -683,10 +736,83 @@ SELECT bag_eq(
    "releases": {
       "foo": {
          "stable": [
-            {"version": "0.0.2", "date": "' || to_char(NOW() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') || '"}
+            {"version": "0.0.2", "date": "' || utc_date(NOW()) || '"}
          ]
       }
    }
+}
+'), ('stats','tag','{
+   "count": 4,
+   "popular": [
+      {"tag": "foo", "dists": 2},
+      {"tag": "bar", "dists": 1},
+      {"tag": "baz", "dists": 1},
+      {"tag": "PAIR", "dists": 1}
+   ]
+}
+'), ('stats','user','{
+   "count": 2,
+   "prolific": [
+      {"nickname": "strongrrl", "name": "Julie Wheeler", "dists": 1, "releases": 1},
+      {"nickname": "theory", "name": "", "dists": 1, "releases": 1}
+   ]
+}
+'), ('stats','dist','{
+   "count": 2,
+   "releases": 2,
+   "recent": [
+      {
+         "dist": "foo",
+         "version": "0.0.2",
+         "abstract": "whatever",
+         "date": "' || utc_date(NOW()) || '",
+         "user": "strongrrl",
+         "user_name": "Julie Wheeler"
+      },
+      {
+         "dist": "pair",
+         "version": "0.0.1",
+         "abstract": "Ordered pair",
+         "date": "' || utc_date(NOW()) || '",
+         "user": "theory",
+         "user_name": ""
+      }
+   ]
+}
+'), ('stats','extension','{
+   "count": 3,
+   "recent": [
+      {
+         "extension": "foo",
+         "abstract": "XXX abstract here",
+         "ext_version": "0.0.2",
+         "dist": "foo",
+         "version": "0.0.2",
+         "date": "' || utc_date(NOW()) || '",
+         "user": "strongrrl",
+         "user_name": "Julie Wheeler"
+      },
+      {
+         "extension": "pair",
+         "abstract": "XXX abstract here",
+         "ext_version": "0.2.2",
+         "dist": "pair",
+         "version": "0.0.1",
+         "date": "' || utc_date(NOW()) || '",
+         "user": "theory",
+         "user_name": ""
+      },
+      {
+         "extension": "trip",
+         "abstract": "XXX abstract here",
+         "ext_version": "0.2.1",
+         "dist": "pair",
+         "version": "0.0.1",
+         "date": "' || utc_date(NOW()) || '",
+         "user": "theory",
+         "user_name": ""
+      }
+   ]
 }
 ')$$, 'Should get proper JSON for strongrrl upload');
 
@@ -701,7 +827,7 @@ SELECT is(meta, '{
    "name": "foo",
    "abstract": "whatever",
    "version": "0.0.2",
-   "date": "' || to_char(NOW() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') || '",
+   "date": "' || utc_date(NOW()) || '",
    "maintainer": "strongrrl",
    "release_status": "stable",
    "user": "strongrrl",
@@ -784,7 +910,7 @@ SELECT bag_eq(
    "name": "pair",
    "abstract": "whatever",
    "version": "0.0.3",
-   "date": "' || to_char(NOW() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') || '",
+   "date": "' || utc_date(NOW()) || '",
    "maintainer": "theory",
    "release_status": "stable",
    "user": "strongrrl",
@@ -801,10 +927,10 @@ SELECT bag_eq(
    "name": "pair",
    "releases": {
       "stable": [
-         {"version": "0.0.3", "date": "' || to_char(NOW() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') || '"}
+         {"version": "0.0.3", "date": "' || utc_date(NOW()) || '"}
       ],
       "testing": [
-         {"version": "0.0.1", "date": "' || to_char(NOW() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') || '"}
+         {"version": "0.0.1", "date": "' || utc_date(NOW()) || '"}
       ]
    }
 }
@@ -824,20 +950,111 @@ SELECT bag_eq(
 }
 '), ('user', 'strongrrl', '{
    "nickname": "strongrrl",
-   "name": "",
+   "name": "Julie Wheeler",
    "email": "strongrrl@pgxn.org",
    "releases": {
       "foo": {
          "stable": [
-            {"version": "0.0.2", "date": "' || to_char(NOW() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') || '"}
+            {"version": "0.0.2", "date": "' || utc_date(NOW()) || '"}
          ]
       },
       "pair": {
          "stable": [
-            {"version": "0.0.3", "date": "' || to_char(NOW() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') || '"}
+            {"version": "0.0.3", "date": "' || utc_date(NOW()) || '"}
          ]
       }
    }
+}
+'), ('stats','tag','{
+   "count": 4,
+   "popular": [
+      {"tag": "foo", "dists": 2},
+      {"tag": "bar", "dists": 1},
+      {"tag": "baz", "dists": 1},
+      {"tag": "PAIR", "dists": 1}
+   ]
+}
+'), ('stats','dist','{
+   "count": 2,
+   "releases": 3,
+   "recent": [
+      {
+         "dist": "foo",
+         "version": "0.0.2",
+         "abstract": "whatever",
+         "date": "' || utc_date(NOW()) || '",
+         "user": "strongrrl",
+         "user_name": "Julie Wheeler"
+      },
+      {
+         "dist": "pair",
+         "version": "0.0.1",
+         "abstract": "Ordered pair",
+         "date": "' || utc_date(NOW()) || '",
+         "user": "theory",
+         "user_name": ""
+      },
+      {
+         "dist": "pair",
+         "version": "0.0.3",
+         "abstract": "whatever",
+         "date": "' || utc_date(NOW()) || '",
+         "user": "strongrrl",
+         "user_name": "Julie Wheeler"
+      }
+   ]
+}
+'), ('stats','user','{
+   "count": 2,
+   "prolific": [
+      {"nickname": "strongrrl", "name": "Julie Wheeler", "dists": 2, "releases": 2},
+      {"nickname": "theory", "name": "", "dists": 1, "releases": 1}
+   ]
+}
+'), ('stats','extension','{
+   "count": 3,
+   "recent": [
+      {
+         "extension": "foo",
+         "abstract": "XXX abstract here",
+         "ext_version": "0.0.2",
+         "dist": "foo",
+         "version": "0.0.2",
+         "date": "' || utc_date(NOW()) || '",
+         "user": "strongrrl",
+         "user_name": "Julie Wheeler"
+      },
+      {
+         "extension": "pair",
+         "abstract": "XXX abstract here",
+         "ext_version": "0.2.2",
+         "dist": "pair",
+         "version": "0.0.1",
+         "date": "' || utc_date(NOW()) || '",
+         "user": "theory",
+         "user_name": ""
+      },
+      {
+         "extension": "pair",
+         "abstract": "XXX abstract here",
+         "ext_version": "0.0.3",
+         "dist": "pair",
+         "version": "0.0.3",
+         "date": "' || utc_date(NOW()) || '",
+         "user": "strongrrl",
+         "user_name": "Julie Wheeler"
+      },
+      {
+         "extension": "trip",
+         "abstract": "XXX abstract here",
+         "ext_version": "0.2.1",
+         "dist": "pair",
+         "version": "0.0.1",
+         "date": "' || utc_date(NOW()) || '",
+         "user": "theory",
+         "user_name": ""
+      }
+   ]
 }
 ')$$, 'Should get proper JSON for strongrrl pair upload');
 
@@ -852,7 +1069,7 @@ SELECT is(meta, '{
    "name": "pair",
    "abstract": "whatever",
    "version": "0.0.3",
-   "date": "' || to_char(NOW() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') || '",
+   "date": "' || utc_date(NOW()) || '",
    "maintainer": "theory",
    "release_status": "stable",
    "user": "strongrrl",
@@ -903,7 +1120,7 @@ SELECT row_eq(
    "abstract": "Ordered pair",
    "description": "An ordered pair for PostgreSQL",
    "version": "0.0.1",
-   "date": "' || to_char(NOW() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') || '",
+   "date": "' || utc_date(NOW()) || '",
    "maintainer": "theory",
    "release_status": "testing",
    "user": "theory",

@@ -364,6 +364,14 @@ BEGIN
         SELECT 'user', LOWER(nick), user_json(nick)
     UNION
         SELECT 'tag', * FROM tag_json(distmeta.name, distmeta.version)
+    UNION
+        SELECT 'stats', 'dist', * FROM dist_stats_json()
+    UNION
+        SELECT 'stats', 'extension', * FROM extension_stats_json()
+    UNION
+        SELECT 'stats', 'user', * FROM user_stats_json()
+    UNION
+        SELECT 'stats', 'tag', * FROM tag_stats_json()
     ;
 END;
 $$;

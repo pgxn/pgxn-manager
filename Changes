@@ -6,6 +6,9 @@ Revision history for Perl extension PGXN::Manager
           * `user_stats_json()`
           * `extension_stats_json()`
           * `dist_stats_json()`
+      - Added more rows to the output of `add_distribution()`. The new rows
+        contain stats JSON, to be saved to the location specified by the new
+        "stats" URI template.
 
 0.10.4  2011-03-28T02:01:11
       - Renamed the "dist" URI template to "download".
