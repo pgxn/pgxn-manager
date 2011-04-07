@@ -361,7 +361,7 @@ template contact => sub {
             dt { T 'Source' };
             dd {
                 p {
-                    outs T 'The PGXN Manager source is availabe in a Git reposotory';
+                    outs T 'The PGXN Manager source is availabe in a Git repository';
                     a {
                         href is 'http://github.com/theory/pgxn-manager';
                         T 'on GitHub';
