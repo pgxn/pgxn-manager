@@ -2,7 +2,7 @@
 
 use 5.12.0;
 use utf8;
-use Test::More tests => 197;
+use Test::More tests => 205;
 #use Test::More 'no_plan';
 use Archive::Zip qw(:ERROR_CODES);
 use HTTP::Headers;
@@ -364,6 +364,10 @@ my %files = map { join('/', @{ $_ }) => File::Spec->catfile($root, @{ $_ } ) } (
    ['dist',      'widget', '0.2.5', 'README.txt'],
    ['dist',      'widget', '0.2.5', 'widget-0.2.5.pgz'],
    ['tag',       'full text search.json'],
+   ['stats',     'tag.json'],
+   ['stats',     'user.json'],
+   ['stats',     'extension.json'],
+   ['stats',     'dist.json'],
 );
 
 file_exists_ok $distzip, 'We should have the distzip file';
