@@ -2,8 +2,8 @@
 
 use 5.12.0;
 use utf8;
-use Test::More tests => 212;
-#use Test::More 'no_plan';
+#use Test::More tests => 212;
+use Test::More 'no_plan';
 use Archive::Zip qw(:ERROR_CODES);
 use HTTP::Headers;
 use Test::File;
@@ -459,6 +459,33 @@ ok $dist->process, 'Process the distribution';
 file_exists_ok $files{$_}, "File $_ should now exist" for keys %files;
 file_not_exists_ok +File::Spec->catfile('dist', 'widget', 'widget/2.5.0/README.txt'),
     'There should be no README on the mirror';
+
+##############################################################################
+# Let's try re-indexing a distribution.
+%files = map { join('/', @{ $_ }) => File::Spec->catfile($root, @{ $_ } ) } (
+   ['user',      'user.json'],
+   ['dist',      'widget.json'],
+   ['tag',       'gadget.json'],
+   ['tag',       'widget.json'],
+   ['extension', 'widget.json'],
+   ['dist',      'widget', '0.2.5', 'META.json'],
+   ['dist',      'widget', '0.2.5', 'README.txt'],
+   ['tag',       'full text search.json'],
+   ['stats',     'tag.json'],
+   ['stats',     'user.json'],
+   ['stats',     'extension.json'],
+   ['stats',     'dist.json'],
+   ['stats',     'summary.json'],
+);
+
+unlink for values %files;
+my $pgzip = File::Spec->catfile($root, qw(dist widget 0.2.5 widget-0.2.5.pgz));
+
+isa_ok $dist = new_dist($pgzip), $CLASS, 'Another new object';
+file_not_exists_ok $files{$_}, "File $_ again should not exist" for keys %files;
+ok $dist->reindex, 'Reindex the distribution';
+file_exists_ok $pgzip, 'Zip file should still be there';
+file_exists_ok $files{$_}, "File $_ shoudl exist again" for keys %files;
 
 ##############################################################################
 # Now test with an exception thrown by the database.

@@ -62,6 +62,20 @@ sub process {
     $self->indexit or return;
 }
 
+sub reindex {
+    my $self = shift;
+    # 1. Unpack distro.
+    $self->extract or return;
+
+    # 2. Process its META.json.
+    $self->read_meta or return;
+
+    # 3. Update the indexes.
+    $self->reindexit or return;
+
+    return $self;
+}
+
 sub extract {
     my $self   = shift;
 
@@ -273,7 +287,31 @@ after zipfile => sub {
 };
 
 sub indexit {
-    my $self      = shift;
+    my $self = shift;
+    $self->_indexit(
+        1,
+        'SELECT * FROM add_distribution(?, ?, ?)',
+        $self->creator,
+        $self->sha1,
+        scalar $self->metamemb->contents,
+    );
+}
+
+sub reindexit {
+    my $self = shift;
+    my $meta = $self->distmeta;
+    local $ENV{FOO} = 1;
+    $self->_indexit(
+        0,
+        'SELECT * FROM get_distribution(?, ?)',
+        $meta->{name},
+        $meta->{version},
+    );
+    return $self;
+}
+
+sub _indexit {
+    my ($self, $move_zip, $query, @params) = @_;
     my $root      = PGXN::Manager->config->{mirror_root};
     my $templates = PGXN::Manager->uri_templates;
     my $meta      = $self->distmeta;
@@ -282,12 +320,8 @@ sub indexit {
     my %files;
 
     PGXN::Manager->conn->run(sub {
-        my $sth = $_->prepare('SELECT * FROM add_distribution(?, ?, ?)');
-        $sth->execute(
-            $self->creator,
-            $self->sha1,
-            scalar $self->metamemb->contents,
-        );
+        my $sth = $_->prepare($query);
+        $sth->execute(@params);
         $sth->bind_columns(\my ($template_name, $subject, $json));
 
         while ($sth->fetch) {
@@ -341,7 +375,7 @@ sub indexit {
     PGXN::Manager->move_file(
         $self->zipfile,
         File::Spec->catfile($root, $uri->path_segments)
-    );
+    ) if $move_zip;
 
     # Move all the other files over.
     while (my ($src, $dest) = each %files) {
@@ -497,6 +531,13 @@ never call them directly.
 
 =back
 
+=head3 C<reindex>
+
+  $dist->reindex or die $dist->localized_error;
+
+Re-indexes an existing distribution. The distribution must be in the database
+or else nothing will happen.
+
 =head3 C<extract>
 
   $dist->extract or die $dist->localized_error;
@@ -552,6 +593,14 @@ distribution, such as ensuring that the user is a valid owner of the
 extensions in the distribution. In the event that such validation fails, an
 error message will be stored in C<error> as usual and C<indexit()> will return
 false.
+
+=head3 C<reindexit>
+
+  $dist->reindexit or die $dist->localized_error;
+
+Re-indexes an existing distribution. All the F<.json> files will be rewritten
+with fresh data from the database, and the F<README> will be re-extracted and
+rewritten.
 
 =head3 C<localized_error>
 
