@@ -704,4 +704,38 @@ distributions that appear in the recent list. The default limit is 56.
       FROM distributions;
 $$;
 
+CREATE OR REPLACE FUNCTION summary_stats_json(
+) RETURNS TEXT LANGUAGE sql STABLE STRICT AS $$
+/*
+
+    % select summary_stats_json();
+      summary_stats_json  
+    ────────────────────────
+     {                     ↵
+         "dists": 92,      ↵
+         "releases": 345,  ↵
+         "extensions": 125,↵
+         "users": 256,     ↵
+         "tags": 112,      ↵
+         "mirrors": 8      ↵
+     }                     ↵
+
+Returns a JSON string containing basic statistics about the system. These include:
+
+* `dists`: Number of distributions.
+* `releases`: Number of releases of distributions.
+* `extensions`: Number of extensions.
+* `users`: Number of users.
+* `mirrors`: Number of mirrors.
+
+*/
+    SELECT E'{\n    "dists": '      || (SELECT COUNT(DISTINCT name) FROM distributions)
+        || E',\n    "releases": '   || (SELECT COUNT(*) FROM distributions)
+        || E',\n    "extensions": ' || (SELECT COUNT(*) FROM extensions)
+        || E',\n    "users": '      || (SELECT COUNT(*) FROM users)
+        || E',\n    "tags": '       || (SELECT COUNT(DISTINCT tag) FROM distribution_tags)
+        || E',\n    "mirrors": '    || (SELECT COUNT(*) FROM mirrors)
+        || E'\n}\n';
+$$;
+
 COMMIT;

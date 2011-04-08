@@ -1,7 +1,7 @@
 SET search_path = public,contrib,tap;
 
 BEGIN;
-SELECT plan(111);
+SELECT plan(113);
 --SELECT * FROM no_plan();
 
 /****************************************************************************/
@@ -1220,6 +1220,24 @@ SELECT is(
    ]
 }
 ', 'dist_stats_json(3) should work'
+);
+
+/****************************************************************************/
+-- Test summary_stats_json().
+
+SELECT json_ok(summary_stats_json(), 'summary_stats_json() JSON should be valid');
+
+SELECT is(
+    summary_stats_json(),
+    '{
+    "dists": 3,
+    "releases": 7,
+    "extensions": 3,
+    "users": 3,
+    "tags": 3,
+    "mirrors": 2
+}
+', 'summary_stats_json() should work'
 );
 
 SELECT * FROM finish();
