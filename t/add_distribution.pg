@@ -560,6 +560,14 @@ SELECT bag_eq(
       {"nickname": "theory", "name": "", "dists": 1, "releases": 1}
    ]
 }
+'), ('stats','summary','{
+    "dists": 1,
+    "releases": 1,
+    "extensions": 2,
+    "users": 2,
+    "tags": 3,
+    "mirrors": 0
+}
 ')$$, 'Add a distribution for user "theory"');
 
 SELECT is(COUNT(*)::int, 1, 'Should have one distribution') FROM distributions;
@@ -814,6 +822,14 @@ SELECT bag_eq(
       }
    ]
 }
+'), ('stats','summary','{
+    "dists": 2,
+    "releases": 2,
+    "extensions": 3,
+    "users": 2,
+    "tags": 4,
+    "mirrors": 0
+}
 ')$$, 'Should get proper JSON for strongrrl upload');
 
 SELECT is(COUNT(*)::int, 2, 'Should now have two distributions') FROM distributions;
@@ -1055,6 +1071,14 @@ SELECT bag_eq(
          "user_name": ""
       }
    ]
+}
+'), ('stats','summary','{
+    "dists": 2,
+    "releases": 3,
+    "extensions": 3,
+    "users": 2,
+    "tags": 4,
+    "mirrors": 0
 }
 ')$$, 'Should get proper JSON for strongrrl pair upload');
 

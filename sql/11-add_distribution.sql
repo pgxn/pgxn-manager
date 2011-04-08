@@ -372,6 +372,8 @@ BEGIN
         SELECT 'stats', 'user', * FROM user_stats_json()
     UNION
         SELECT 'stats', 'tag', * FROM tag_stats_json()
+    UNION
+        SELECT 'stats', 'summary', * FROM summary_stats_json()
     ;
 END;
 $$;

@@ -2,7 +2,7 @@
 
 use 5.12.0;
 use utf8;
-use Test::More tests => 205;
+use Test::More tests => 212;
 #use Test::More 'no_plan';
 use Archive::Zip qw(:ERROR_CODES);
 use HTTP::Headers;
@@ -368,6 +368,7 @@ my %files = map { join('/', @{ $_ }) => File::Spec->catfile($root, @{ $_ } ) } (
    ['stats',     'user.json'],
    ['stats',     'extension.json'],
    ['stats',     'dist.json'],
+   ['stats',     'summary.json'],
 );
 
 file_exists_ok $distzip, 'We should have the distzip file';
@@ -444,6 +445,11 @@ file_contents_is $files{'dist/widget/0.2.5/README.txt'},
    ['dist',      'widget', '2.5.0', 'META.json'],
    ['dist',      'widget', '2.5.0', 'widget-2.5.0.pgz'],
    ['tag',       'full text search.json'],
+   ['stats',     'tag.json'],
+   ['stats',     'user.json'],
+   ['stats',     'extension.json'],
+   ['stats',     'dist.json'],
+   ['stats',     'summary.json'],
 );
 $dzip->removeMember('widget-0.2.5/README');
 $dzip->writeToFileNamed($noreadzip) == AZ_OK or die 'write error';
