@@ -26,6 +26,7 @@
         "stats":     "/stats/{stats}.json",
         "mirrors":   "/meta/mirrors.json"
     },
+    "release_uri_template": "http://pgxn.org/dist/{dist}/",
     "twitter": {
         "consumer_key": "",
         "consumer_secret": "",

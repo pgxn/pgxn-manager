@@ -10,6 +10,8 @@ Revision history for Perl extension PGXN::Manager
       - Added more rows to the output of `add_distribution()`. The new rows
         contain stats JSON, to be saved to the location specified by the new
         "stats" URI template.
+      - Added "release_permalink" configuration, used to create the link to a
+        newly released distribution in the announcing Tweet.
 
 0.10.4  2011-03-28T02:01:11
       - Renamed the "dist" URI template to "download".

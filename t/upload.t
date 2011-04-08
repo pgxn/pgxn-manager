@@ -138,7 +138,7 @@ END {
 # Make sure we don't try to send any tweets.
 my $mock_pgxn = Test::MockModule->new('PGXN::Manager');
 my %tweet_params = (
-    body => 'widget-0.2.5 uploaded by user',
+    body => 'widget 0.2.5 released by user: http://pgxn.org/dist/widget/',
     whom => 'user',
 );
 $mock_pgxn->mock(send_tweet => sub {

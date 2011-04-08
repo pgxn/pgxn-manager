@@ -500,10 +500,13 @@ sub upload {
 
         $nick = $nick ? "\@$nick" : $req->user;
 
-        # XXX Add URL.
+        my $url = URI::Template->new($pgxn->config->{release_permalink})->process({
+            dist    => $meta->{name},
+            version => $meta->{version},
+        });
         $pgxn->send_tweet({
             whom => $nick,
-            body => "$meta->{name}-$meta->{version} uploaded by $nick"
+            body => "$meta->{name} $meta->{version} released by $nick: $url"
         });
 
         # And now back to our regular programming.
