@@ -1,7 +1,7 @@
 SET search_path = public,contrib,tap;
 
 BEGIN;
-SELECT plan(113);
+SELECT plan(114);
 --SELECT * FROM no_plan();
 
 /****************************************************************************/
@@ -1239,6 +1239,226 @@ SELECT is(
 }
 ', 'summary_stats_json() should work'
 );
+
+/****************************************************************************/
+-- Now let's see what it all looks like together.
+SELECT bag_eq(
+    'SELECT * FROM all_stats_json()',
+    $$VALUES
+    ('dist','{
+   "count": 3,
+   "releases": 7,
+   "recent": [
+      {
+         "dist": "pair",
+         "version": "0.0.10",
+         "abstract": "Ordered pair",
+         "date": "2011-03-11T20:36:48Z",
+         "user": "theory",
+         "user_name": ""
+      },
+      {
+         "dist": "pair",
+         "version": "0.0.3",
+         "abstract": "Ordered pair",
+         "date": "2011-03-10T20:31:57Z",
+         "user": "theory",
+         "user_name": ""
+      },
+      {
+         "dist": "pair",
+         "version": "0.0.2",
+         "abstract": "Ordered pair",
+         "date": "2011-02-22T20:31:57Z",
+         "user": "theory",
+         "user_name": ""
+      },
+      {
+         "dist": "pair",
+         "version": "0.0.2a1",
+         "abstract": "Ordered pair",
+         "date": "2011-02-15T18:31:57Z",
+         "user": "theory",
+         "user_name": ""
+      },
+      {
+         "dist": "duwop",
+         "version": "0.50.1",
+         "abstract": "Do wa, p-diddy",
+         "date": "2011-02-13T02:43:03Z",
+         "user": "theory",
+         "user_name": ""
+      },
+      {
+         "dist": "trip",
+         "version": "0.2.5",
+         "abstract": "Ordered triplet",
+         "date": "2011-02-11T20:36:48Z",
+         "user": "strongrrl",
+         "user_name": ""
+      },
+      {
+         "dist": "pair",
+         "version": "0.0.1",
+         "abstract": "Ordered pair",
+         "date": "2011-02-10T18:31:57Z",
+         "user": "theory",
+         "user_name": ""
+      }
+   ]
+}
+'), ('extension','{
+   "count": 3,
+   "recent": [
+      {
+         "extension": "pair",
+         "abstract": "",
+         "ext_version": "0.2.10",
+         "dist": "pair",
+         "version": "0.0.10",
+         "date": "2011-03-11T20:36:48Z",
+         "user": "theory",
+         "user_name": ""
+      },
+      {
+         "extension": "trip",
+         "abstract": "",
+         "ext_version": "0.2.10",
+         "dist": "pair",
+         "version": "0.0.10",
+         "date": "2011-03-11T20:36:48Z",
+         "user": "theory",
+         "user_name": ""
+      },
+      {
+         "extension": "pair",
+         "abstract": "",
+         "ext_version": "0.2.4",
+         "dist": "pair",
+         "version": "0.0.3",
+         "date": "2011-03-10T20:31:57Z",
+         "user": "theory",
+         "user_name": ""
+      },
+      {
+         "extension": "trip",
+         "abstract": "",
+         "ext_version": "0.2.5",
+         "dist": "pair",
+         "version": "0.0.3",
+         "date": "2011-03-10T20:31:57Z",
+         "user": "theory",
+         "user_name": ""
+      },
+      {
+         "extension": "pair",
+         "abstract": "",
+         "ext_version": "0.2.4",
+         "dist": "pair",
+         "version": "0.0.2",
+         "date": "2011-02-22T20:31:57Z",
+         "user": "theory",
+         "user_name": ""
+      },
+      {
+         "extension": "trip",
+         "abstract": "",
+         "ext_version": "0.2.3",
+         "dist": "pair",
+         "version": "0.0.2",
+         "date": "2011-02-22T20:31:57Z",
+         "user": "theory",
+         "user_name": ""
+      },
+      {
+         "extension": "pair",
+         "abstract": "",
+         "ext_version": "0.2.3",
+         "dist": "pair",
+         "version": "0.0.2a1",
+         "date": "2011-02-15T18:31:57Z",
+         "user": "theory",
+         "user_name": ""
+      },
+      {
+         "extension": "trip",
+         "abstract": "",
+         "ext_version": "0.2.2",
+         "dist": "pair",
+         "version": "0.0.2a1",
+         "date": "2011-02-15T18:31:57Z",
+         "user": "theory",
+         "user_name": ""
+      },
+      {
+         "extension": "duwop",
+         "abstract": "Do wa, p-diddy",
+         "ext_version": "0.50.1",
+         "dist": "duwop",
+         "version": "0.50.1",
+         "date": "2011-02-13T02:43:03Z",
+         "user": "theory",
+         "user_name": ""
+      },
+      {
+         "extension": "trip",
+         "abstract": "Ordered triplet",
+         "ext_version": "0.2.5",
+         "dist": "trip",
+         "version": "0.2.5",
+         "date": "2011-02-11T20:36:48Z",
+         "user": "strongrrl",
+         "user_name": ""
+      },
+      {
+         "extension": "pair",
+         "abstract": "",
+         "ext_version": "0.2.2",
+         "dist": "pair",
+         "version": "0.0.1",
+         "date": "2011-02-10T18:31:57Z",
+         "user": "theory",
+         "user_name": ""
+      },
+      {
+         "extension": "trip",
+         "abstract": "",
+         "ext_version": "0.2.1",
+         "dist": "pair",
+         "version": "0.0.1",
+         "date": "2011-02-10T18:31:57Z",
+         "user": "theory",
+         "user_name": ""
+      }
+   ]
+}
+'), ('user','{
+   "count": 3,
+   "prolific": [
+      {"nickname": "theory", "name": "", "dists": 2, "releases": 6},
+      {"nickname": "strongrrl", "name": "", "dists": 1, "releases": 1}
+   ]
+}
+'), ('tag','{
+   "count": 3,
+   "popular": [
+      {"tag": "foo", "dists": 2},
+      {"tag": "bar", "dists": 1},
+      {"tag": "baz", "dists": 1}
+   ]
+}
+'), ('summary','{
+    "dists": 3,
+    "releases": 7,
+    "extensions": 3,
+    "users": 3,
+    "tags": 3,
+    "mirrors": 2
+}
+') $$,
+    'Should get all stats from all_stats_json()'
+);
+    
 
 SELECT * FROM finish();
 ROLLBACK;

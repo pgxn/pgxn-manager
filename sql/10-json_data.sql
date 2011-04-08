@@ -672,7 +672,6 @@ CREATE OR REPLACE FUNCTION dist_stats_json(
            }                                                                      ↵
         ]                                                                         ↵
      }                                                                            ↵
-    
 
 Returns a JSON string containing distribution statitics. These include:
 
@@ -736,6 +735,105 @@ Returns a JSON string containing basic statistics about the system. These includ
         || E',\n    "tags": '       || (SELECT COUNT(DISTINCT tag) FROM distribution_tags)
         || E',\n    "mirrors": '    || (SELECT COUNT(*) FROM mirrors)
         || E'\n}\n';
+$$;
+
+CREATE OR REPLACE FUNCTION all_stats_json() RETURNS TABLE (
+    stats_name TEXT,
+    json       TEXT
+) LANGUAGE sql STRICT SECURITY DEFINER AS $$
+/*
+
+    % select all_stats_json();
+     stats_name   │                                 json
+    ──────────────┼─────────────────────────────────────────────────────────────
+     dist         | {                                                          ↵
+                  │    "count": 92,                                            ↵
+                  │    "releases": 345,                                        ↵
+                  │    "recent": [                                             ↵
+                  │       {                                                    ↵
+                  │          "dist": "pair",                                   ↵
+                  │          "version": "0.0.1",                               ↵
+                  │          "abstract": "Ordered pair",                       ↵
+                  │          "date": "2011-03-15T16:44:26Z",                   ↵
+                  │          "user": "theory",                                 ↵
+                  │          "user_name": "David Wheeler"                      ↵
+                  │       },                                                   ↵
+                  │       {                                                    ↵
+                  │           "dist": "pg_french_datatypes",                   ↵
+                  │           "version": "0.1.1",                              ↵
+                  │           "abstract": "french-centric data type",          ↵
+                  │           "date": "2011-01-30T16:51:16Z",                  ↵
+                  │           "user": "daamien",                               ↵
+                  │           "user_name": "damien clochard"                   ↵
+                  │       }                                                    ↵
+                  │    ]                                                       ↵
+                  │ }                                                          ↵
+     extension    │                                                            ↵
+                  │ {                                                          ↵
+                  │    "count": 125,                                           ↵
+                  │    "recent": [                                             ↵
+                  │       {                                                    ↵
+                  │          "extension": "pair",                              ↵
+                  │          "abstract": "Ordered pair",                       ↵
+                  │          "ext_version": "0.0.1",                           ↵
+                  │          "dist": "pair",                                   ↵
+                  │          "version": "0.0.1",                               ↵
+                  │          "date": "2011-03-15T16:44:26Z",                   ↵
+                  │          "user": "theory",                                 ↵
+                  │          "user_name": "David Wheeler"                      ↵
+                  │       },                                                   ↵
+                  │       {                                                    ↵
+                  │          "extension": "pg_french_datatypes",               ↵
+                  │          "abstract": "french-centric data type",           ↵
+                  │          "ext_version": "0.1.1",                           ↵
+                  │          "dist": "pg_french_datatypes",                    ↵
+                  │          "version": "0.1.1",                               ↵
+                  │          "date": "2011-01-30T16:51:16Z",                   ↵
+                  │          "user": "daamien",                                ↵
+                  │          "user_name": "damien clochard"                    ↵
+                  │       }                                                    ↵
+                  │    ]                                                       ↵
+                  │ }                                                          ↵
+                  │                                                            ↵
+     user         │ {                                                          ↵
+                  │    "count": 256,                                           ↵
+                  │    "prolific": [                                           ↵
+                  │       {"nickname": "theory", "dists": 3, "releases": 4},   ↵
+                  │       {"nickname": "daamien", "dists": 1, "releases": 2},  ↵
+                  │       {"nickname": "umitanuki", "dists": 1, "releases": 1} ↵
+                  │    ]                                                       ↵
+                  │ }                                                          ↵
+                  │                                                            ↵
+     tag          │ {                                                          ↵
+                  │    "count": 212,                                           ↵
+                  │    "popular": [                                            ↵
+                  │       {"tag": "data types", "dists": 4},                   ↵
+                  │       {"tag": "key value", "dists": 2},                    ↵
+                  │       {"tag": "france", "dists": 1},                       ↵
+                  │       {"tag": "key value pair", "dists": 1}                ↵
+                  │     ]                                                      ↵
+                  │ }                                                          ↵
+                  │                                                            ↵
+     summary      │ {                                                          ↵
+                  │    "dists": 92,                                            ↵
+                  │    "releases": 345,                                        ↵
+                  │    "extensions": 125,                                      ↵
+                  │    "users": 256,                                           ↵
+                  │    "tags": 112,                                            ↵
+                  │    "mirrors": 8                                            ↵
+                  │ }                                                          ↵
+                  │                                                            ↵
+
+Returns a table of all the system stats. The first column, `stats_name`,
+contains the name of the statistics file. The second column contains the
+statistics in JSON format.
+
+*/
+          SELECT 'dist',      * FROM dist_stats_json()
+    UNION SELECT 'extension', * FROM extension_stats_json()
+    UNION SELECT 'user',      * FROM user_stats_json()
+    UNION SELECT 'tag',       * FROM tag_stats_json()
+    UNION SELECT 'summary',   * FROM summary_stats_json();
 $$;
 
 COMMIT;

@@ -1,7 +1,7 @@
 SET search_path = public,contrib,tap;
 
 BEGIN;
-SELECT plan(92);
+SELECT plan(95);
 --SELECT * FROM no_plan();
 
 -- Check that we have the functions we think we have.
@@ -1180,6 +1180,180 @@ SELECT row_eq(
 ', ARRAY[['pair','0.2.2'], ['trip', '0.2.1']],
    ARRAY['bar', 'baz', 'foo'])::distribution_details,
    'Should get proper dist details for pair 0.0.1'
+);
+
+/****************************************************************************/
+-- Make sure we get the same data from get_distribution().
+SELECT bag_eq(
+    $$ SELECT * FROM get_distribution('pair', '0.0.3')$$,
+    $$ VALUES('meta', 'pair', '{
+   "name": "pair",
+   "abstract": "whatever",
+   "version": "0.0.3",
+   "date": "' || utc_date(NOW()) || '",
+   "maintainer": "theory",
+   "release_status": "stable",
+   "user": "strongrrl",
+   "sha1": "howdy",
+   "license": "postgresql",
+   "provides": {
+      "pair": {
+         "abstract": "whatever",
+         "version": "0.0.3"
+      }
+   }
+}
+'), ('dist', 'pair', '{
+   "name": "pair",
+   "releases": {
+      "stable": [
+         {"version": "0.0.3", "date": "' || utc_date(NOW()) || '"}
+      ],
+      "testing": [
+         {"version": "0.0.1", "date": "' || utc_date(NOW()) || '"}
+      ]
+   }
+}
+'), ('extension', 'pair', '{
+   "extension": "pair",
+   "latest": "testing",
+   "stable": { "dist": "pair", "version": "0.0.3", "sha1": "howdy" },
+   "testing": { "dist": "pair", "version": "0.0.1", "sha1": "pshaw" },
+   "versions": {
+      "0.2.2": [
+         { "dist": "pair", "version": "0.0.1", "status": "testing" }
+      ],
+      "0.0.3": [
+         { "dist": "pair", "version": "0.0.3" }
+      ]
+   }
+}
+'), ('user', 'strongrrl', '{
+   "nickname": "strongrrl",
+   "name": "Julie Wheeler",
+   "email": "strongrrl@pgxn.org",
+   "releases": {
+      "foo": {
+         "stable": [
+            {"version": "0.0.2", "date": "' || utc_date(NOW()) || '"}
+         ]
+      },
+      "pair": {
+         "stable": [
+            {"version": "0.0.3", "date": "' || utc_date(NOW()) || '"}
+         ]
+      }
+   }
+}
+'), ('stats','tag','{
+   "count": 4,
+   "popular": [
+      {"tag": "foo", "dists": 2},
+      {"tag": "bar", "dists": 1},
+      {"tag": "baz", "dists": 1},
+      {"tag": "PAIR", "dists": 1}
+   ]
+}
+'), ('stats','dist','{
+   "count": 2,
+   "releases": 3,
+   "recent": [
+      {
+         "dist": "foo",
+         "version": "0.0.2",
+         "abstract": "whatever",
+         "date": "' || utc_date(NOW()) || '",
+         "user": "strongrrl",
+         "user_name": "Julie Wheeler"
+      },
+      {
+         "dist": "pair",
+         "version": "0.0.1",
+         "abstract": "Ordered pair",
+         "date": "' || utc_date(NOW()) || '",
+         "user": "theory",
+         "user_name": ""
+      },
+      {
+         "dist": "pair",
+         "version": "0.0.3",
+         "abstract": "whatever",
+         "date": "' || utc_date(NOW()) || '",
+         "user": "strongrrl",
+         "user_name": "Julie Wheeler"
+      }
+   ]
+}
+'), ('stats','user','{
+   "count": 2,
+   "prolific": [
+      {"nickname": "strongrrl", "name": "Julie Wheeler", "dists": 2, "releases": 2},
+      {"nickname": "theory", "name": "", "dists": 1, "releases": 1}
+   ]
+}
+'), ('stats','extension','{
+   "count": 3,
+   "recent": [
+      {
+         "extension": "foo",
+         "abstract": "whatever",
+         "ext_version": "0.0.2",
+         "dist": "foo",
+         "version": "0.0.2",
+         "date": "' || utc_date(NOW()) || '",
+         "user": "strongrrl",
+         "user_name": "Julie Wheeler"
+      },
+      {
+         "extension": "pair",
+         "abstract": "",
+         "ext_version": "0.2.2",
+         "dist": "pair",
+         "version": "0.0.1",
+         "date": "' || utc_date(NOW()) || '",
+         "user": "theory",
+         "user_name": ""
+      },
+      {
+         "extension": "pair",
+         "abstract": "whatever",
+         "ext_version": "0.0.3",
+         "dist": "pair",
+         "version": "0.0.3",
+         "date": "' || utc_date(NOW()) || '",
+         "user": "strongrrl",
+         "user_name": "Julie Wheeler"
+      },
+      {
+         "extension": "trip",
+         "abstract": "A triplet",
+         "ext_version": "0.2.1",
+         "dist": "pair",
+         "version": "0.0.1",
+         "date": "' || utc_date(NOW()) || '",
+         "user": "theory",
+         "user_name": ""
+      }
+   ]
+}
+'), ('stats','summary','{
+    "dists": 2,
+    "releases": 3,
+    "extensions": 3,
+    "users": 2,
+    "tags": 4,
+    "mirrors": 0
+}
+')$$, 'get_distribution() should return same results as add_distribution did');
+
+SELECT is_empty(
+    $$ SELECT * FROM get_distribution('nonexistent', '0.0.3')$$,
+    'Should get no result from get_distribution() for non-existent distribution'
+);
+
+SELECT is_empty(
+    $$ SELECT * FROM get_distribution('pair', '0.99.3')$$,
+    'Should get no result from get_distribution() for non-existent version'
 );
 
 SELECT * FROM finish();
