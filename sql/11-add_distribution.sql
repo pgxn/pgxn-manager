@@ -174,6 +174,7 @@ CREATE OR REPLACE FUNCTION add_distribution(
                │              │    "abstract": "Ordered pair",                                      ↵
                │              │    "version": "0.0.1",                                              ↵
                │              │    "maintainer": "theory",                                          ↵
+               │              │    "date": "2011-03-15T16:44:26Z",                                  ↵
                │              │    "release_status": "testing",                                     ↵
                │              │    "user": "theory",                                                ↵
                │              │    "sha1": "ebf381e2e1e5767fb068d1c4423a9d9f122c2dc6",              ↵
@@ -250,7 +251,84 @@ CREATE OR REPLACE FUNCTION add_distribution(
                │              │       }                                                             ↵
                │              │    }                                                                ↵
                │              │ }                                                                   ↵
-               │              │ 
+               │              │                                                                     ↵
+     stats     | dist         | {                                                                   ↵
+               │              │    "count": 92,                                                     ↵
+               │              │    "releases": 345,                                                 ↵
+               │              │    "recent": [                                                      ↵
+               │              │       {                                                             ↵
+               │              │          "dist": "pair",                                            ↵
+               │              │          "version": "0.0.1",                                        ↵
+               │              │          "abstract": "Ordered pair",                                ↵
+               │              │          "date": "2011-03-15T16:44:26Z",                            ↵
+               │              │          "user": "theory",                                          ↵
+               │              │          "user_name": "David Wheeler"                               ↵
+               │              │       },                                                            ↵
+               │              │       {                                                             ↵
+               │              │           "dist": "pg_french_datatypes",                            ↵
+               │              │           "version": "0.1.1",                                       ↵
+               │              │           "abstract": "french-centric data type",                   ↵
+               │              │           "date": "2011-01-30T16:51:16Z",                           ↵
+               │              │           "user": "daamien",                                        ↵
+               │              │           "user_name": "damien clochard"                            ↵
+               │              │       }                                                             ↵
+               │              │    ]                                                                ↵
+               │              │ }                                                                   ↵
+     stats     │ extension    │                                                                     ↵
+               │              │ {                                                                   ↵
+               │              │    "count": 125,                                                    ↵
+               │              │    "recent": [                                                      ↵
+               │              │       {                                                             ↵
+               │              │          "extension": "pair",                                       ↵
+               │              │          "abstract": "Ordered pair",                                ↵
+               │              │          "ext_version": "0.0.1",                                    ↵
+               │              │          "dist": "pair",                                            ↵
+               │              │          "version": "0.0.1",                                        ↵
+               │              │          "date": "2011-03-15T16:44:26Z",                            ↵
+               │              │          "user": "theory",                                          ↵
+               │              │          "user_name": "David Wheeler"                               ↵
+               │              │       },                                                            ↵
+               │              │       {                                                             ↵
+               │              │          "extension": "pg_french_datatypes",                        ↵
+               │              │          "abstract": "french-centric data type",                    ↵
+               │              │          "ext_version": "0.1.1",                                    ↵
+               │              │          "dist": "pg_french_datatypes",                             ↵
+               │              │          "version": "0.1.1",                                        ↵
+               │              │          "date": "2011-01-30T16:51:16Z",                            ↵
+               │              │          "user": "daamien",                                         ↵
+               │              │          "user_name": "damien clochard"                             ↵
+               │              │       }                                                             ↵
+               │              │    ]                                                                ↵
+               │              │ }                                                                   ↵
+               │              │                                                                     ↵
+     stats     │ user         │ {                                                                   ↵
+               │              │    "count": 256,                                                    ↵
+               │              │    "prolific": [                                                    ↵
+               │              │       {"nickname": "theory", "dists": 3, "releases": 4},            ↵
+               │              │       {"nickname": "daamien", "dists": 1, "releases": 2},           ↵
+               │              │       {"nickname": "umitanuki", "dists": 1, "releases": 1}          ↵
+               │              │    ]                                                                ↵
+               │              │ }                                                                   ↵
+               │              │                                                                     ↵
+     stats     │ tag          │ {                                                                   ↵
+               │              │    "count": 212,                                                    ↵
+               │              │    "popular": [                                                     ↵
+               │              │       {"tag": "data types", "dists": 4},                            ↵
+               │              │       {"tag": "key value", "dists": 2},                             ↵
+               │              │       {"tag": "france", "dists": 1},                                ↵
+               │              │       {"tag": "key value pair", "dists": 1}                         ↵
+               │              │     ]                                                               ↵
+               │              │ }                                                                   ↵
+               │              │                                                                     ↵
+     stats     │ summary      │ {                                                                   ↵
+               │              │    "dists": 92,                                                     ↵
+               │              │    "releases": 345,                                                 ↵
+               │              │    "extensions": 125,                                               ↵
+               │              │    "users": 256,                                                    ↵
+               │              │    "tags": 112,                                                     ↵
+               │              │    "mirrors": 8                                                     ↵
+               │              │ }                                                                   ↵
+               │              │                                                                     ↵
 
 Creates a new distribution, returning all of the JSON that needs to be written
 to the mirror in order for the distribution to be indexed. The nickname of the
@@ -316,7 +394,7 @@ template
 
 subject
 : The subject of the metadata to be written, such as the name of a
-  distribution, extension, user, or tag.
+  distribution, extension, user, tag, or statistics.
 
 json
 : The JSON-formatted metadata for the subject, which the application should

@@ -598,7 +598,7 @@ CREATE OR REPLACE FUNCTION extension_stats_json(
               "date": "2011-01-30T16:51:16Z",                                     ↵
               "user": "daamien",                                                  ↵
               "user_name": "damien clochard"                                      ↵
-           },                                                                     ↵
+           }                                                                      ↵
 
 Returns a JSON string containing extension statitics. These include:
 
