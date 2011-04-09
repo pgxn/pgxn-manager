@@ -1,7 +1,7 @@
 SET search_path = public,contrib,tap;
 
 BEGIN;
-SELECT plan(95);
+SELECT plan(100);
 --SELECT * FROM no_plan();
 
 -- Check that we have the functions we think we have.
@@ -920,7 +920,18 @@ SELECT bag_eq(
         "version":     "0.0.3",
         "license":     "postgresql",
         "maintainer":  "theory",
-        "abstract":    "whatever"
+        "abstract":    "whatever",
+        "tags": ["heavy", "words"],
+        "provides": {
+           "pair": {
+              "abstract": "whatever",
+              "version": "0.0.3"
+           },
+           "wake": {
+              "abstract": "da wake",
+              "version": "0.0.5"
+           }
+        }
     }')$$,
     $$ VALUES('meta', 'pair', '{
    "name": "pair",
@@ -936,8 +947,13 @@ SELECT bag_eq(
       "pair": {
          "abstract": "whatever",
          "version": "0.0.3"
+      },
+      "wake": {
+         "abstract": "da wake",
+         "version": "0.0.5"
       }
-   }
+   },
+   "tags": ["heavy", "words"]
 }
 '), ('dist', 'pair', '{
    "name": "pair",
@@ -964,6 +980,16 @@ SELECT bag_eq(
       ]
    }
 }
+'), ('extension','wake','{
+   "extension": "wake",
+   "latest": "stable",
+   "stable": { "dist": "pair", "version": "0.0.3", "sha1": "howdy" },
+   "versions": {
+      "0.0.5": [
+         { "dist": "pair", "version": "0.0.3" }
+      ]
+   }
+}
 '), ('user', 'strongrrl', '{
    "nickname": "strongrrl",
    "name": "Julie Wheeler",
@@ -981,13 +1007,35 @@ SELECT bag_eq(
       }
    }
 }
+'), ('tag','heavy','{
+   "tag": "heavy",
+   "releases": {
+      "pair": {
+         "stable": [
+            {"version": "0.0.3", "date": "' || utc_date(NOW()) || '"}
+         ]
+      }
+   }
+}
+'), ('tag','words','{
+   "tag": "words",
+   "releases": {
+      "pair": {
+         "stable": [
+            {"version": "0.0.3", "date": "' || utc_date(NOW()) || '"}
+         ]
+      }
+   }
+}
 '), ('stats','tag','{
-   "count": 4,
+   "count": 6,
    "popular": [
       {"tag": "foo", "dists": 2},
       {"tag": "bar", "dists": 1},
       {"tag": "baz", "dists": 1},
-      {"tag": "PAIR", "dists": 1}
+      {"tag": "heavy", "dists": 1},
+      {"tag": "PAIR", "dists": 1},
+      {"tag": "words", "dists": 1}
    ]
 }
 '), ('stats','dist','{
@@ -1004,19 +1052,19 @@ SELECT bag_eq(
       },
       {
          "dist": "pair",
-         "version": "0.0.1",
-         "abstract": "Ordered pair",
-         "date": "' || utc_date(NOW()) || '",
-         "user": "theory",
-         "user_name": ""
-      },
-      {
-         "dist": "pair",
          "version": "0.0.3",
          "abstract": "whatever",
          "date": "' || utc_date(NOW()) || '",
          "user": "strongrrl",
          "user_name": "Julie Wheeler"
+      },
+      {
+         "dist": "pair",
+         "version": "0.0.1",
+         "abstract": "Ordered pair",
+         "date": "' || utc_date(NOW()) || '",
+         "user": "theory",
+         "user_name": ""
       }
    ]
 }
@@ -1028,7 +1076,7 @@ SELECT bag_eq(
    ]
 }
 '), ('stats','extension','{
-   "count": 3,
+   "count": 4,
    "recent": [
       {
          "extension": "foo",
@@ -1069,15 +1117,25 @@ SELECT bag_eq(
          "date": "' || utc_date(NOW()) || '",
          "user": "theory",
          "user_name": ""
+      },
+      {
+         "extension": "wake",
+         "abstract": "da wake",
+         "ext_version": "0.0.5",
+         "dist": "pair",
+         "version": "0.0.3",
+         "date": "' || utc_date(NOW()) || '",
+         "user": "strongrrl",
+         "user_name": "Julie Wheeler"
       }
    ]
 }
 '), ('stats','summary','{
     "dists": 2,
     "releases": 3,
-    "extensions": 3,
+    "extensions": 4,
     "users": 2,
-    "tags": 4,
+    "tags": 6,
     "mirrors": 0
 }
 ')$$, 'Should get proper JSON for strongrrl pair upload');
@@ -1103,25 +1161,31 @@ SELECT is(meta, '{
       "pair": {
          "abstract": "whatever",
          "version": "0.0.3"
+      },
+      "wake": {
+         "abstract": "da wake",
+         "version": "0.0.5"
       }
-   }
+   },
+   "tags": ["heavy", "words"]
 }
 ', '...including the metadata')
   FROM distributions
  WHERE name = 'pair' AND version = '0.0.3';
 
-SELECT is(COUNT(*)::int, 3, 'Should now have three extensions') FROM extensions;
+SELECT is(COUNT(*)::int, 4, 'Should now have four extensions') FROM extensions;
 SELECT bag_eq(
     $$ SELECT * FROM extensions ORDER BY name $$,
     $$ VALUES
-       ('pair', 'theory', NOW(), NOW()),
-       ('trip', 'theory', NOW(), NOW()),
-       ('foo', 'strongrrl', NOW(), NOW())
+       ('pair', 'theory',    NOW(), NOW()),
+       ('trip', 'theory',    NOW(), NOW()),
+       ('foo',  'strongrrl', NOW(), NOW()),
+       ('wake', 'strongrrl', NOW(), NOW())
     $$,
     'We should have the expected extensions'
 );
 
-SELECT is(COUNT(*)::int, 4, 'Should now have four distribution extensions')
+SELECT is(COUNT(*)::int, 5, 'Should now have five distribution extensions')
   FROM distribution_extensions;
 SELECT bag_eq(
     $$ SELECT * FROM distribution_extensions $$,
@@ -1129,9 +1193,293 @@ SELECT bag_eq(
        ('pair', '0.2.2'::semver, '',          'pair', '0.0.1'::semver),
        ('trip', '0.2.1'::semver, 'A triplet', 'pair', '0.0.1'::semver),
        ('foo', '0.0.2'::semver,  'whatever',  'foo',  '0.0.2'::semver),
-       ('pair', '0.0.3'::semver, 'whatever',  'pair', '0.0.3'::semver)
+       ('pair', '0.0.3'::semver, 'whatever',  'pair', '0.0.3'::semver),
+       ('wake', '0.0.5'::semver, 'da wake',   'pair', '0.0.3'::semver)
     $$,
     'We should have the expected distribution extensions'
+);
+
+/****************************************************************************/
+-- Test update_distribution().
+SELECT throws_ok(
+    $_$ SELECT update_distribution('nobody', 'pshaw', $${
+        "name":        "pair",
+        "version":     "0.0.1",
+        "license":     "postgresql",
+        "maintainer":  "theory",
+        "abstract":    "whatever"
+    }$$) $_$,
+    'P0001',
+    'User “nobody” does not own all provided extensions',
+    'Should get an exception from update_distribution() for non-existent user'
+);
+
+SELECT throws_ok(
+    $_$ SELECT update_distribution('theory', 'pshaw', $${
+        "name":        "foo",
+        "version":     "0.0.1",
+        "license":     "postgresql",
+        "maintainer":  "theory",
+        "abstract":    "whatever"
+    }$$) $_$,
+    'P0001',
+    'User “theory” does not own all provided extensions',
+    'Should get an exception from update_distribution() for user without permission'
+);
+
+/****************************************************************************/
+-- Okay, now re-index Strongrrl's release with different metadata.
+SELECT bag_eq(
+    $$ SELECT * FROM update_distribution('strongrrl', 'oops', '{
+        "name":        "pair",
+        "version":     "0.0.3",
+        "license":     "mit",
+        "maintainer":  "theory",
+        "abstract":    "howdy",
+        "release_status": "testing",
+        "tags": ["wang", "words", "yo"],
+        "provides": {
+           "pair": {
+              "abstract": "new abstract",
+              "version": "0.0.3"
+           },
+           "wang": {
+              "abstract": "the wang",
+              "version": "0.0.8"
+           }
+        }
+    }')$$,
+    $$ VALUES
+        ('dist','pair','{
+   "name": "pair",
+   "releases": {
+      "testing": [
+         {"version": "0.0.3", "date": "' || utc_date(NOW()) || '"},
+         {"version": "0.0.1", "date": "' || utc_date(NOW()) || '"}
+      ]
+   }
+}
+'), ('tag','yo','{
+   "tag": "yo",
+   "releases": {
+      "pair": {
+         "testing": [
+            {"version": "0.0.3", "date": "' || utc_date(NOW()) || '"}
+         ]
+      }
+   }
+}
+'), ('tag','wang','{
+   "tag": "wang",
+   "releases": {
+      "pair": {
+         "testing": [
+            {"version": "0.0.3", "date": "' || utc_date(NOW()) || '"}
+         ]
+      }
+   }
+}
+'), ('tag','words','{
+   "tag": "words",
+   "releases": {
+      "pair": {
+         "testing": [
+            {"version": "0.0.3", "date": "' || utc_date(NOW()) || '"}
+         ]
+      }
+   }
+}
+'), ('meta','pair','{
+   "name": "pair",
+   "abstract": "howdy",
+   "version": "0.0.3",
+   "date": "' || utc_date(NOW()) || '",
+   "maintainer": "theory",
+   "release_status": "testing",
+   "user": "strongrrl",
+   "sha1": "oops",
+   "license": "mit",
+   "provides": {
+      "pair": {
+         "abstract": "new abstract",
+         "version": "0.0.3"
+      },
+      "wang": {
+         "abstract": "the wang",
+         "version": "0.0.8"
+      }
+   },
+   "tags": ["wang", "words", "yo"]
+}
+'), ('stats','extension','{
+   "count": 5,
+   "recent": [
+      {
+         "extension": "foo",
+         "abstract": "whatever",
+         "ext_version": "0.0.2",
+         "dist": "foo",
+         "version": "0.0.2",
+         "date": "' || utc_date(NOW()) || '",
+         "user": "strongrrl",
+         "user_name": "Julie Wheeler"
+      },
+      {
+         "extension": "pair",
+         "abstract": "",
+         "ext_version": "0.2.2",
+         "dist": "pair",
+         "version": "0.0.1",
+         "date": "' || utc_date(NOW()) || '",
+         "user": "theory",
+         "user_name": ""
+      },
+      {
+         "extension": "pair",
+         "abstract": "new abstract",
+         "ext_version": "0.0.3",
+         "dist": "pair",
+         "version": "0.0.3",
+         "date": "' || utc_date(NOW()) || '",
+         "user": "strongrrl",
+         "user_name": "Julie Wheeler"
+      },
+      {
+         "extension": "trip",
+         "abstract": "A triplet",
+         "ext_version": "0.2.1",
+         "dist": "pair",
+         "version": "0.0.1",
+         "date": "' || utc_date(NOW()) || '",
+         "user": "theory",
+         "user_name": ""
+      },
+      {
+         "extension": "wang",
+         "abstract": "the wang",
+         "ext_version": "0.0.8",
+         "dist": "pair",
+         "version": "0.0.3",
+         "date": "' || utc_date(NOW()) || '",
+         "user": "strongrrl",
+         "user_name": "Julie Wheeler"
+      }
+   ]
+}
+'), ('extension','pair','{
+   "extension": "pair",
+   "latest": "testing",
+   "testing": { "dist": "pair", "version": "0.0.1", "sha1": "pshaw" },
+   "versions": {
+      "0.2.2": [
+         { "dist": "pair", "version": "0.0.1", "status": "testing" }
+      ],
+      "0.0.3": [
+         { "dist": "pair", "version": "0.0.3", "status": "testing" }
+      ]
+   }
+}
+'), ('extension','wang','{
+   "extension": "wang",
+   "latest": "testing",
+   "testing": { "dist": "pair", "version": "0.0.3", "sha1": "oops" },
+   "versions": {
+      "0.0.8": [
+         { "dist": "pair", "version": "0.0.3", "status": "testing" }
+      ]
+   }
+}
+'), ('stats','tag','{
+   "count": 7,
+   "popular": [
+      {"tag": "foo", "dists": 2},
+      {"tag": "bar", "dists": 1},
+      {"tag": "baz", "dists": 1},
+      {"tag": "PAIR", "dists": 1},
+      {"tag": "wang", "dists": 1},
+      {"tag": "words", "dists": 1},
+      {"tag": "yo", "dists": 1}
+   ]
+}
+'), ('stats','dist','{
+   "count": 2,
+   "releases": 3,
+   "recent": [
+      {
+         "dist": "foo",
+         "version": "0.0.2",
+         "abstract": "whatever",
+         "date": "' || utc_date(NOW()) || '",
+         "user": "strongrrl",
+         "user_name": "Julie Wheeler"
+      },
+      {
+         "dist": "pair",
+         "version": "0.0.3",
+         "abstract": "howdy",
+         "date": "' || utc_date(NOW()) || '",
+         "user": "strongrrl",
+         "user_name": "Julie Wheeler"
+      },
+      {
+         "dist": "pair",
+         "version": "0.0.1",
+         "abstract": "Ordered pair",
+         "date": "' || utc_date(NOW()) || '",
+         "user": "theory",
+         "user_name": ""
+      }
+   ]
+}
+'), ('stats','user','{
+   "count": 2,
+   "prolific": [
+      {"nickname": "strongrrl", "name": "Julie Wheeler", "dists": 2, "releases": 2},
+      {"nickname": "theory", "name": "", "dists": 1, "releases": 1}
+   ]
+}
+'), ('user','strongrrl','{
+   "nickname": "strongrrl",
+   "name": "Julie Wheeler",
+   "email": "strongrrl@pgxn.org",
+   "releases": {
+      "foo": {
+         "stable": [
+            {"version": "0.0.2", "date": "' || utc_date(NOW()) || '"}
+         ]
+      },
+      "pair": {
+         "testing": [
+            {"version": "0.0.3", "date": "' || utc_date(NOW()) || '"}
+         ]
+      }
+   }
+}
+'), ('stats','summary','{
+    "dists": 2,
+    "releases": 3,
+    "extensions": 5,
+    "users": 2,
+    "tags": 7,
+    "mirrors": 0
+}
+')$$, 'Should get proper JSON for strongrrl pair reindex');
+
+-- So now we should have the updated tags.
+SELECT is(
+    ARRAY(SELECT (tag) FROM distribution_tags WHERE distribution = 'pair' AND version = '0.0.3' ORDER BY tag),
+    ARRAY['wang'::citext, 'words', 'yo'],
+    'Should have udpated tags'
+);
+
+-- And the extensions should be updated, too.
+SELECT is(ARRAY(
+    SELECT (extension || '-' || ext_version::text || ' (' || abstract || ')')
+      FROM distribution_extensions
+     WHERE distribution = 'pair' AND dist_version = '0.0.3'
+     ORDER BY extension),
+    ARRAY['pair-0.0.3 (new abstract)', 'wang-0.0.8 (the wang)'],
+    'Should have udpated extensions'
 );
 
 /****************************************************************************/
@@ -1186,113 +1534,70 @@ SELECT row_eq(
 -- Make sure we get the same data from get_distribution().
 SELECT bag_eq(
     $$ SELECT * FROM get_distribution('pair', '0.0.3')$$,
-    $$ VALUES('meta', 'pair', '{
-   "name": "pair",
-   "abstract": "whatever",
-   "version": "0.0.3",
-   "date": "' || utc_date(NOW()) || '",
-   "maintainer": "theory",
-   "release_status": "stable",
-   "user": "strongrrl",
-   "sha1": "howdy",
-   "license": "postgresql",
-   "provides": {
-      "pair": {
-         "abstract": "whatever",
-         "version": "0.0.3"
-      }
-   }
-}
-'), ('dist', 'pair', '{
+    $$ VALUES
+        ('dist','pair','{
    "name": "pair",
    "releases": {
-      "stable": [
-         {"version": "0.0.3", "date": "' || utc_date(NOW()) || '"}
-      ],
       "testing": [
+         {"version": "0.0.3", "date": "' || utc_date(NOW()) || '"},
          {"version": "0.0.1", "date": "' || utc_date(NOW()) || '"}
       ]
    }
 }
-'), ('extension', 'pair', '{
-   "extension": "pair",
-   "latest": "testing",
-   "stable": { "dist": "pair", "version": "0.0.3", "sha1": "howdy" },
-   "testing": { "dist": "pair", "version": "0.0.1", "sha1": "pshaw" },
-   "versions": {
-      "0.2.2": [
-         { "dist": "pair", "version": "0.0.1", "status": "testing" }
-      ],
-      "0.0.3": [
-         { "dist": "pair", "version": "0.0.3" }
-      ]
-   }
-}
-'), ('user', 'strongrrl', '{
-   "nickname": "strongrrl",
-   "name": "Julie Wheeler",
-   "email": "strongrrl@pgxn.org",
+'), ('tag','yo','{
+   "tag": "yo",
    "releases": {
-      "foo": {
-         "stable": [
-            {"version": "0.0.2", "date": "' || utc_date(NOW()) || '"}
-         ]
-      },
       "pair": {
-         "stable": [
+         "testing": [
             {"version": "0.0.3", "date": "' || utc_date(NOW()) || '"}
          ]
       }
    }
 }
-'), ('stats','tag','{
-   "count": 4,
-   "popular": [
-      {"tag": "foo", "dists": 2},
-      {"tag": "bar", "dists": 1},
-      {"tag": "baz", "dists": 1},
-      {"tag": "PAIR", "dists": 1}
-   ]
-}
-'), ('stats','dist','{
-   "count": 2,
-   "releases": 3,
-   "recent": [
-      {
-         "dist": "foo",
-         "version": "0.0.2",
-         "abstract": "whatever",
-         "date": "' || utc_date(NOW()) || '",
-         "user": "strongrrl",
-         "user_name": "Julie Wheeler"
-      },
-      {
-         "dist": "pair",
-         "version": "0.0.1",
-         "abstract": "Ordered pair",
-         "date": "' || utc_date(NOW()) || '",
-         "user": "theory",
-         "user_name": ""
-      },
-      {
-         "dist": "pair",
-         "version": "0.0.3",
-         "abstract": "whatever",
-         "date": "' || utc_date(NOW()) || '",
-         "user": "strongrrl",
-         "user_name": "Julie Wheeler"
+'), ('tag','wang','{
+   "tag": "wang",
+   "releases": {
+      "pair": {
+         "testing": [
+            {"version": "0.0.3", "date": "' || utc_date(NOW()) || '"}
+         ]
       }
-   ]
+   }
 }
-'), ('stats','user','{
-   "count": 2,
-   "prolific": [
-      {"nickname": "strongrrl", "name": "Julie Wheeler", "dists": 2, "releases": 2},
-      {"nickname": "theory", "name": "", "dists": 1, "releases": 1}
-   ]
+'), ('tag','words','{
+   "tag": "words",
+   "releases": {
+      "pair": {
+         "testing": [
+            {"version": "0.0.3", "date": "' || utc_date(NOW()) || '"}
+         ]
+      }
+   }
+}
+'), ('meta','pair','{
+   "name": "pair",
+   "abstract": "howdy",
+   "version": "0.0.3",
+   "date": "' || utc_date(NOW()) || '",
+   "maintainer": "theory",
+   "release_status": "testing",
+   "user": "strongrrl",
+   "sha1": "oops",
+   "license": "mit",
+   "provides": {
+      "pair": {
+         "abstract": "new abstract",
+         "version": "0.0.3"
+      },
+      "wang": {
+         "abstract": "the wang",
+         "version": "0.0.8"
+      }
+   },
+   "tags": ["wang", "words", "yo"]
 }
 '), ('stats','extension','{
-   "count": 3,
+   "count": 5,
    "recent": [
       {
          "extension": "foo",
@@ -1316,7 +1621,7 @@ SELECT bag_eq(
       },
       {
          "extension": "pair",
-         "abstract": "whatever",
+         "abstract": "new abstract",
          "ext_version": "0.0.3",
          "dist": "pair",
          "version": "0.0.3",
@@ -1333,15 +1638,114 @@ SELECT bag_eq(
          "date": "' || utc_date(NOW()) || '",
          "user": "theory",
          "user_name": ""
+      },
+      {
+         "extension": "wang",
+         "abstract": "the wang",
+         "ext_version": "0.0.8",
+         "dist": "pair",
+         "version": "0.0.3",
+         "date": "' || utc_date(NOW()) || '",
+         "user": "strongrrl",
+         "user_name": "Julie Wheeler"
       }
    ]
+}
+'), ('extension','pair','{
+   "extension": "pair",
+   "latest": "testing",
+   "testing": { "dist": "pair", "version": "0.0.1", "sha1": "pshaw" },
+   "versions": {
+      "0.2.2": [
+         { "dist": "pair", "version": "0.0.1", "status": "testing" }
+      ],
+      "0.0.3": [
+         { "dist": "pair", "version": "0.0.3", "status": "testing" }
+      ]
+   }
+}
+'), ('extension','wang','{
+   "extension": "wang",
+   "latest": "testing",
+   "testing": { "dist": "pair", "version": "0.0.3", "sha1": "oops" },
+   "versions": {
+      "0.0.8": [
+         { "dist": "pair", "version": "0.0.3", "status": "testing" }
+      ]
+   }
+}
+'), ('stats','tag','{
+   "count": 7,
+   "popular": [
+      {"tag": "foo", "dists": 2},
+      {"tag": "bar", "dists": 1},
+      {"tag": "baz", "dists": 1},
+      {"tag": "PAIR", "dists": 1},
+      {"tag": "wang", "dists": 1},
+      {"tag": "words", "dists": 1},
+      {"tag": "yo", "dists": 1}
+   ]
+}
+'), ('stats','dist','{
+   "count": 2,
+   "releases": 3,
+   "recent": [
+      {
+         "dist": "foo",
+         "version": "0.0.2",
+         "abstract": "whatever",
+         "date": "' || utc_date(NOW()) || '",
+         "user": "strongrrl",
+         "user_name": "Julie Wheeler"
+      },
+      {
+         "dist": "pair",
+         "version": "0.0.3",
+         "abstract": "howdy",
+         "date": "' || utc_date(NOW()) || '",
+         "user": "strongrrl",
+         "user_name": "Julie Wheeler"
+      },
+      {
+         "dist": "pair",
+         "version": "0.0.1",
+         "abstract": "Ordered pair",
+         "date": "' || utc_date(NOW()) || '",
+         "user": "theory",
+         "user_name": ""
+      }
+   ]
+}
+'), ('stats','user','{
+   "count": 2,
+   "prolific": [
+      {"nickname": "strongrrl", "name": "Julie Wheeler", "dists": 2, "releases": 2},
+      {"nickname": "theory", "name": "", "dists": 1, "releases": 1}
+   ]
+}
+'), ('user','strongrrl','{
+   "nickname": "strongrrl",
+   "name": "Julie Wheeler",
+   "email": "strongrrl@pgxn.org",
+   "releases": {
+      "foo": {
+         "stable": [
+            {"version": "0.0.2", "date": "' || utc_date(NOW()) || '"}
+         ]
+      },
+      "pair": {
+         "testing": [
+            {"version": "0.0.3", "date": "' || utc_date(NOW()) || '"}
+         ]
+      }
+   }
 }
 '), ('stats','summary','{
     "dists": 2,
     "releases": 3,
-    "extensions": 3,
+    "extensions": 5,
     "users": 2,
-    "tags": 4,
+    "tags": 7,
     "mirrors": 0
 }
 ')$$, 'get_distribution() should return same results as add_distribution did');

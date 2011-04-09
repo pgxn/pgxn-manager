@@ -457,169 +457,6 @@ CREATE OR REPLACE FUNCTION get_distribution(
     json     TEXT
 ) LANGUAGE plpgsql STRICT SECURITY DEFINER AS $$
 /*
-    % SELECT * FROM get_distribution('pair', '0.0.1);
-     template  │   subject    │                                 json
-    ───────────┼──────────────┼──────────────────────────────────────────────────────────────────────
-     meta      │ pair         │ {                                                                   ↵
-               │              │    "name": "pair",                                                  ↵
-               │              │    "abstract": "Ordered pair",                                      ↵
-               │              │    "version": "0.0.1",                                              ↵
-               │              │    "maintainer": "theory",                                          ↵
-               │              │    "date": "2011-03-15T16:44:26Z",                                  ↵
-               │              │    "release_status": "testing",                                     ↵
-               │              │    "user": "theory",                                                ↵
-               │              │    "sha1": "ebf381e2e1e5767fb068d1c4423a9d9f122c2dc6",              ↵
-               │              │    "license": "postgresql",                                         ↵
-               │              │    "provides": {                                                    ↵
-               │              │       "pair": {                                                     ↵
-               │              │          "file": "pair.sql.in",                                     ↵
-               │              │          "version": "0.2.2",                                        ↵
-               │              │          "abstract": "A key/value data type"                        ↵
-               │              │       },                                                            ↵
-               │              │       "trip": {                                                     ↵
-               │              │          "file": "trip.sql.in",                                     ↵
-               │              │          "version": "0.2.1"                                         ↵
-               │              │          "abstract": "A triple data type"                           ↵
-               │              │       }                                                             ↵
-               │              │    },                                                               ↵
-               │              │    "tags": ["ordered pair", "key value"]                            ↵
-               │              │ }                                                                   ↵
-               │              │ 
-     dist      │ pair         │ {                                                                   ↵
-               │              │    "name": "pair",                                                  ↵
-               │              │    "releases": {                                                    ↵
-               │              │       "testing": ["0.0.1"]                                          ↵
-               │              │    }                                                                ↵
-               │              │ }                                                                   ↵
-               │              │ 
-     extension │ pair         │ {                                                                   ↵
-               │              │    "extension": "pair",                                             ↵
-               │              │    "latest": "testing",                                             ↵
-               │              │    "testing":  { "dist": "pair", "version": "0.0.1" },              ↵
-               │              │    "versions": {                                                    ↵
-               │              │       "0.2.2": [                                                    ↵
-               │              │          { "dist": "pair", "version": "0.0.1", "status": "testing" }↵
-               │              │       ]                                                             ↵
-               │              │    }                                                                ↵
-               │              │ }                                                                   ↵
-               │              │ 
-     extension │ trip         │ {                                                                   ↵
-               │              │    "extension": "trip",                                             ↵
-               │              │    "latest": "testing",                                             ↵
-               │              │    "testing":  { "dist": "pair", "version": "0.0.1" },              ↵
-               │              │    "versions": {                                                    ↵
-               │              │       "0.2.1": [                                                    ↵
-               │              │          { "dist": "pair", "version": "0.0.1", "status": "testing" }↵
-               │              │       ]                                                             ↵
-               │              │    }                                                                ↵
-               │              │ }                                                                   ↵
-               │              │ 
-     user      │ theory       │ {                                                                   ↵
-               │              │    "nickname": "theory",                                            ↵
-               │              │    "name": "",                                                      ↵
-               │              │    "email": "theory@pgxn.org",                                      ↵
-               │              │    "releases": {                                                    ↵
-               │              │       "pair": {                                                     ↵
-               │              │          "testing": ["0.0.1"]                                       ↵
-               │              │       }                                                             ↵
-               │              │    }                                                                ↵
-               │              │ }                                                                   ↵
-               │              │ 
-     tag       │ ordered pair │ {                                                                   ↵
-               │              │    "tag": "ordered pair",                                           ↵
-               │              │    "releases": {                                                    ↵
-               │              │       "pair": {                                                     ↵
-               │              │          "testing": [ "0.0.1" ]                                     ↵
-               │              │       }                                                             ↵
-               │              │    }                                                                ↵
-               │              │ }                                                                   ↵
-               │              │ 
-     tag       │ key value    │ {                                                                   ↵
-               │              │    "tag": "key value",                                              ↵
-               │              │    "releases": {                                                    ↵
-               │              │       "pair": {                                                     ↵
-               │              │          "testing": [ "0.0.1" ]                                     ↵
-               │              │       }                                                             ↵
-               │              │    }                                                                ↵
-               │              │ }                                                                   ↵
-               │              │                                                                     ↵
-     stats     | dist         | {                                                                   ↵
-               │              │    "count": 92,                                                     ↵
-               │              │    "releases": 345,                                                 ↵
-               │              │    "recent": [                                                      ↵
-               │              │       {                                                             ↵
-               │              │          "dist": "pair",                                            ↵
-               │              │          "version": "0.0.1",                                        ↵
-               │              │          "abstract": "Ordered pair",                                ↵
-               │              │          "date": "2011-03-15T16:44:26Z",                            ↵
-               │              │          "user": "theory",                                          ↵
-               │              │          "user_name": "David Wheeler"                               ↵
-               │              │       },                                                            ↵
-               │              │       {                                                             ↵
-               │              │           "dist": "pg_french_datatypes",                            ↵
-               │              │           "version": "0.1.1",                                       ↵
-               │              │           "abstract": "french-centric data type",                   ↵
-               │              │           "date": "2011-01-30T16:51:16Z",                           ↵
-               │              │           "user": "daamien",                                        ↵
-               │              │           "user_name": "damien clochard"                            ↵
-               │              │       }                                                             ↵
-               │              │    ]                                                                ↵
-               │              │ }                                                                   ↵
-     stats     │ extension    │                                                                     ↵
-               │              │ {                                                                   ↵
-               │              │    "count": 125,                                                    ↵
-               │              │    "recent": [                                                      ↵
-               │              │       {                                                             ↵
-               │              │          "extension": "pair",                                       ↵
-               │              │          "abstract": "Ordered pair",                                ↵
-               │              │          "ext_version": "0.0.1",                                    ↵
-               │              │          "dist": "pair",                                            ↵
-               │              │          "version": "0.0.1",                                        ↵
-               │              │          "date": "2011-03-15T16:44:26Z",                            ↵
-               │              │          "user": "theory",                                          ↵
-               │              │          "user_name": "David Wheeler"                               ↵
-               │              │       },                                                            ↵
-               │              │       {                                                             ↵
-               │              │          "extension": "pg_french_datatypes",                        ↵
-               │              │          "abstract": "french-centric data type",                    ↵
-               │              │          "ext_version": "0.1.1",                                    ↵
-               │              │          "dist": "pg_french_datatypes",                             ↵
-               │              │          "version": "0.1.1",                                        ↵
-               │              │          "date": "2011-01-30T16:51:16Z",                            ↵
-               │              │          "user": "daamien",                                         ↵
-               │              │          "user_name": "damien clochard"                             ↵
-               │              │       }                                                             ↵
-               │              │    ]                                                                ↵
-               │              │ }                                                                   ↵
-               │              │                                                                     ↵
-     stats     │ user         │ {                                                                   ↵
-               │              │    "count": 256,                                                    ↵
-               │              │    "prolific": [                                                    ↵
-               │              │       {"nickname": "theory", "dists": 3, "releases": 4},            ↵
-               │              │       {"nickname": "daamien", "dists": 1, "releases": 2},           ↵
-               │              │       {"nickname": "umitanuki", "dists": 1, "releases": 1}          ↵
-               │              │    ]                                                                ↵
-               │              │ }                                                                   ↵
-               │              │                                                                     ↵
-     stats     │ tag          │ {                                                                   ↵
-               │              │    "count": 212,                                                    ↵
-               │              │    "popular": [                                                     ↵
-               │              │       {"tag": "data types", "dists": 4},                            ↵
-               │              │       {"tag": "key value", "dists": 2},                             ↵
-               │              │       {"tag": "france", "dists": 1},                                ↵
-               │              │       {"tag": "key value pair", "dists": 1}                         ↵
-               │              │     ]                                                               ↵
-               │              │ }                                                                   ↵
-               │              │                                                                     ↵
-     stats     │ summary      │ {                                                                   ↵
-               │              │    "dists": 92,                                                     ↵
-               │              │    "releases": 345,                                                 ↵
-               │              │    "extensions": 125,                                               ↵
-               │              │    "users": 256,                                                    ↵
-               │              │    "tags": 112,                                                     ↵
-               │              │    "mirrors": 8                                                     ↵
-               │              │ }                                                                   ↵
-               │              │                                                                     ↵
 
 Returns all of the metadata updates to be stored for a given distribution. The
 output is the same as for `add_distribution()`, but the distribution must
@@ -646,3 +483,133 @@ BEGIN
     END IF;
 END;
 $$;
+
+CREATE OR REPLACE FUNCTION update_distribution(
+    nick LABEL,
+    sha1 TEXT,
+    meta TEXT
+) RETURNS TABLE (
+    template TEXT,
+    subject  TEXT,
+    json     TEXT
+) LANGUAGE plpgsql STRICT SECURITY DEFINER AS $$
+/*
+
+Exactly like `add_distribution()`, with the same arguments and rules, but
+updates an existing distribution, rather than creating a new one. This may be
+useful of the format of the generated `META.json` file changes: just call this
+method for all existing distributions to have then reindexed with the new
+format.
+
+*/
+DECLARE
+    distmeta record;
+BEGIN
+    -- Parse and normalize the metadata.
+    distmeta := setup_meta(nick, sha1, meta);
+
+    -- Check permissions for provided extensions.
+    IF NOT record_ownership(nick, ARRAY(
+        SELECT distmeta.provided[i][1] FROM generate_subscripts(distmeta.provided, 1) AS i
+    )) THEN
+        RAISE EXCEPTION 'User “%” does not own all provided extensions', nick;
+    END IF;
+
+    -- Update the distribution.
+    UPDATE distributions
+       SET relstatus   = COALESCE(distmeta.relstatus, 'stable'),
+           abstract    = distmeta.abstract,
+           description = COALESCE(distmeta.description, ''),
+           sha1        = update_distribution.sha1,
+           creator     = nick,
+           meta        = distmeta.json
+     WHERE name        = distmeta.name
+       AND version     = distmeta.version;
+
+    IF NOT FOUND THEN
+       RAISE EXCEPTION 'Distribution “% %” does not exist', distmeta.name, distmeta.version;
+    END IF;
+
+    -- Update the extensions in this distribution.
+    UPDATE distribution_extensions de
+       SET abstract     = distmeta.provided[i][3]
+      FROM generate_subscripts(distmeta.provided, 1) AS i
+     WHERE de.extension    = distmeta.provided[i][1]
+       AND de.ext_version  = distmeta.provided[i][2]::semver
+       AND de.distribution = distmeta.name
+       AND de.dist_version = distmeta.version;
+
+    -- Insert missing extensions.
+    INSERT INTO distribution_extensions (
+           extension,
+           ext_version,
+           abstract,
+           distribution,
+           dist_version
+    )
+    SELECT distmeta.provided[i][1],
+           distmeta.provided[i][2]::semver,
+           distmeta.provided[i][3],
+           distmeta.name,
+           distmeta.version
+      FROM generate_subscripts(distmeta.provided, 1) AS i
+      LEFT JOIN distribution_extensions de
+        ON de.extension    = distmeta.provided[i][1]
+       AND de.ext_version  = distmeta.provided[i][2]::semver
+       AND de.distribution = distmeta.name
+       AND de.dist_version = distmeta.version
+     WHERE de.extension    IS NULL;
+
+    -- Delete unwanted extensions.
+    DELETE FROM distribution_extensions 
+     USING distribution_extensions de
+      LEFT JOIN generate_subscripts(distmeta.provided, 1) AS i
+        ON de.extension                         = distmeta.provided[i][1]
+       AND de.extension                         = distmeta.provided[i][1]
+       AND de.ext_version                       = distmeta.provided[i][2]::semver
+     WHERE de.distribution                      = distmeta.name
+       AND de.dist_version                      = distmeta.version
+       AND distribution_extensions.extension    = de.extension
+       AND distribution_extensions.ext_version  = de.ext_version
+       AND distribution_extensions.distribution = de.distribution
+       AND distribution_extensions.dist_version = de.dist_version
+       AND distmeta.provided[i][1] IS NULL;
+
+    -- Insert missing tags.
+    INSERT INTO distribution_tags (distribution, version, tag)
+    SELECT DISTINCT distmeta.name, distmeta.version, tags.tag
+      FROM unnest(distmeta.tags) AS tags(tag)
+      LEFT JOIN distribution_tags dt
+        ON dt.distribution = distmeta.name
+       AND dt.version      = distmeta.version
+       AND dt.tag          = tags.tag
+     WHERE dt.tag          IS NULL;
+
+    -- Remove unwanted tags.
+    DELETE FROM distribution_tags 
+     USING distribution_tags dt
+      LEFT JOIN unnest(distmeta.tags) AS tags(tag)
+        ON dt.tag                         = tags.tag
+     WHERE dt.distribution                = distmeta.name
+       AND dt.version                     = distmeta.version
+       AND tags.tag                       IS NULL
+       AND distribution_tags.distribution = dt.distribution
+       AND distribution_tags.version      = dt.version
+       AND distribution_tags.tag          = dt.tag;
+
+    RETURN QUERY
+        SELECT 'meta'::TEXT, distmeta.name::TEXT, distmeta.json
+    UNION
+        SELECT 'dist', distmeta.name::TEXT, dist_json(distmeta.name)
+    UNION
+        SELECT 'extension', * FROM extension_json(distmeta.name, distmeta.version)
+    UNION
+        SELECT 'user', LOWER(nick), user_json(nick)
+    UNION
+        SELECT 'tag', * FROM tag_json(distmeta.name, distmeta.version)
+    UNION
+        SELECT 'stats', * FROM all_stats_json()
+    ;
+END;
+$$;
+

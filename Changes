@@ -12,9 +12,11 @@ Revision history for Perl extension PGXN::Manager
         "stats" URI template.
       - Added "release_permalink" configuration, used to create the link to a
         newly released distribution in the announcing Tweet.
+      - Added `update_distribution()` database function, which is just like
+        `add_distribution()` except that it updates an existing distribution.
       - Added `get_distribution()` database function, which returns all the
         JSON metadata as `add_distribution()`, but for an already-existing
-        distribtion.
+        distribution.
       - Added the `reindex()` method to PGXN::Manager::Distribution. It can be
         used to reindex an existing distribution.
 

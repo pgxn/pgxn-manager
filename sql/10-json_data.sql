@@ -628,7 +628,7 @@ that appear in the recent list. The default limit is 56.
            AND d.version = de.dist_version
           JOIN users u
             ON d.creator = u.nickname
-         ORDER BY d.created_at DESC, de.extension
+         ORDER BY d.created_at DESC, de.extension, de.ext_version DESC
          LIMIT $1
         ), E',\n') || E'\n   ]\n}\n' 
       FROM extensions
@@ -697,7 +697,7 @@ distributions that appear in the recent list. The default limit is 56.
             || E'\n      }'
           FROM distributions d
           JOIN users u ON d.creator = u.nickname
-         ORDER BY d.created_at DESC, d.name
+         ORDER BY d.created_at DESC, d.name, d.version DESC
          LIMIT $1
         ), E',\n') || E'\n   ]\n}\n' 
       FROM distributions;
