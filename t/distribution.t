@@ -37,7 +37,7 @@ my $badmetazip = File::Spec->catdir(qw(t dist badmeta-0.2.5.pgz));
 my $nonsemzip  = File::Spec->catdir(qw(t dist nonsem-0.2.5.pgz));
 my $noreadzip  = File::Spec->catdir(qw(t dist badmeta-0.2.5.pgz));
 my $tmpdir     = File::Spec->catdir(File::Spec->tmpdir, 'pgxn');
-my $root = PGXN::Manager->new->config->{mirror_root};
+my $root       = PGXN::Manager->new->config->{mirror_root};
 
 # First, create a distribution.
 my $dzip = Archive::Zip->new;
