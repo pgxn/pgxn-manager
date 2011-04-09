@@ -43,7 +43,7 @@ has workdir  => (is => 'rw', required => 0, isa => 'Str', default => sub {
     File::Spec->catdir($TMPDIR, "working.$$")
 });
 
-sub process {
+sub _process {
     my $self = shift;
 
     # 1. Unpack distro.
@@ -56,24 +56,20 @@ sub process {
     $self->normalize or return;
 
     # 4. Zip it up.
-    $self->zipit or return;
-
-    # 5. Send JSON + SHA1 to server and index it.
-    $self->indexit or return;
+    return $self->zipit;
+}
+sub process {
+    my $self = shift;
+    $self->_process or return;
+     # 5. Send JSON + SHA1 to server and index it.
+    return $self->indexit  or return;
 }
 
 sub reindex {
     my $self = shift;
-    # 1. Unpack distro.
-    $self->extract or return;
-
-    # 2. Process its META.json.
-    $self->read_meta or return;
-
-    # 3. Update the indexes.
-    $self->reindexit or return;
-
-    return $self;
+    $self->_process or return;
+    # 5. Send JSON + SHA1 to server and reindex it.
+    return $self->reindexit or return;
 }
 
 sub extract {
@@ -288,30 +284,15 @@ after zipfile => sub {
 
 sub indexit {
     my $self = shift;
-    $self->_indexit(
-        1,
-        'SELECT * FROM add_distribution(?, ?, ?)',
-        $self->creator,
-        $self->sha1,
-        scalar $self->metamemb->contents,
-    );
+    $self->_indexit( add => 1 );
 }
 
 sub reindexit {
-    my $self = shift;
-    my $meta = $self->distmeta;
-    local $ENV{FOO} = 1;
-    $self->_indexit(
-        0,
-        'SELECT * FROM get_distribution(?, ?)',
-        $meta->{name},
-        $meta->{version},
-    );
-    return $self;
+    shift->_indexit( update => 0 );
 }
 
 sub _indexit {
-    my ($self, $move_zip, $query, @params) = @_;
+    my ($self, $action, $move_zip) = @_;
     my $root      = PGXN::Manager->config->{mirror_root};
     my $templates = PGXN::Manager->uri_templates;
     my $meta      = $self->distmeta;
@@ -320,8 +301,12 @@ sub _indexit {
     my %files;
 
     PGXN::Manager->conn->run(sub {
-        my $sth = $_->prepare($query);
-        $sth->execute(@params);
+        my $sth = $_->prepare("SELECT * FROM $action\_distribution(?, ?, ?)");
+        $sth->execute(
+            $self->creator,
+            $self->sha1,
+            scalar $self->metamemb->contents,
+        );
         $sth->bind_columns(\my ($template_name, $subject, $json));
 
         while ($sth->fetch) {
@@ -364,6 +349,7 @@ sub _indexit {
     if ($readme) {
         my $uri = $templates->{readme}->process(@vars);
         my $fn = File::Spec->catfile($destdir, $uri->path_segments);
+        make_path dirname $fn;
         open my $fh, '>', $fn or die "Cannot open $fn: $!\n";
         print $fh scalar $readme->contents;
         close $fh or die "Cannot close $fn: $!\n";

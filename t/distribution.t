@@ -2,8 +2,8 @@
 
 use 5.12.0;
 use utf8;
-#use Test::More tests => 212;
-use Test::More 'no_plan';
+use Test::More tests => 242;
+#use Test::More 'no_plan';
 use Archive::Zip qw(:ERROR_CODES);
 use HTTP::Headers;
 use Test::File;
@@ -468,8 +468,6 @@ file_not_exists_ok +File::Spec->catfile('dist', 'widget', 'widget/2.5.0/README.t
    ['tag',       'gadget.json'],
    ['tag',       'widget.json'],
    ['extension', 'widget.json'],
-   ['dist',      'widget', '0.2.5', 'META.json'],
-   ['dist',      'widget', '0.2.5', 'README.txt'],
    ['tag',       'full text search.json'],
    ['stats',     'tag.json'],
    ['stats',     'user.json'],
@@ -479,13 +477,18 @@ file_not_exists_ok +File::Spec->catfile('dist', 'widget', 'widget/2.5.0/README.t
 );
 
 unlink for values %files;
-my $pgzip = File::Spec->catfile($root, qw(dist widget 0.2.5 widget-0.2.5.pgz));
-
-isa_ok $dist = new_dist($pgzip), $CLASS, 'Another new object';
 file_not_exists_ok $files{$_}, "File $_ again should not exist" for keys %files;
-ok $dist->reindex, 'Reindex the distribution';
-file_exists_ok $pgzip, 'Zip file should still be there';
-file_exists_ok $files{$_}, "File $_ shoudl exist again" for keys %files;
+
+$files{"dist/widget/0.2.5/$_"} = File::Spec->catfile($root, qw(dist widget 0.2.5), $_ )
+    for qw(META.json README.txt widget-0.2.5.pgz);
+file_exists_ok $files{"dist/widget/0.2.5/$_"}, "File dist/widget/0.2.5/$_ should exist"
+    for qw(META.json README.txt widget-0.2.5.pgz);
+
+isa_ok $dist = new_dist($files{'dist/widget/0.2.5/widget-0.2.5.pgz'}),
+    $CLASS, 'Another new object';
+ok $dist->reindex, 'Reindex the distribution'
+    or diag $dist->localized_error;
+file_exists_ok $files{$_}, "File $_ should exist again" for keys %files;
 
 ##############################################################################
 # Now test with an exception thrown by the database.
