@@ -30,9 +30,9 @@ just specify the name of the task to execute and any required arguments.
 
 =head1 Maintenance Tasks
 
-=head3 C<update_stats>
+=head3 C<update-stats>
 
-  pgxn_maint update_stats
+  pgxn_maint update-stats
 
 Updates all the system-wide stats files from the database. The stats files are
 JSON and their location is defined by the C<stats> URI template in the PGXN
@@ -51,6 +51,30 @@ Manager configuration file. Currently, they include:
 =item F<summary.json>
 
 =back
+
+=head3 C<reindex>
+
+  pgxn_maint reindex pair 0.1.1
+
+Reindexes one or more releases of distributions. Specify distribution name and
+version pairs. Most useful if you need to reindex a specific version of a
+distribution or three, like so:
+
+  pgxn_maint reindex pair 0.1.1 pair 0.1.2 pgTAP 0.25.0
+
+If you need to reindex all versions of a given distribution, or all
+distributions (yikes!), use C<reindex-all>, instead.
+
+=head3 C<reindex-all>
+
+  pgxn_maint reindex-all pair pgTAP
+  pgxn_maint reindex-all
+
+Reindexes all releases of the named distributions. If no arguments are
+specified, it reindexes every distribution in the system. That's not to be
+undertaken lightly if you have a lot of distributions. If you need to update
+only a few, pass their names. If you need to reindex only specific versions of
+a distribution, use C<reindex> instead.
 
 =head1 Author
 

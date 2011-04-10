@@ -20,7 +20,11 @@ Revision history for Perl extension PGXN::Manager
       - Added the `reindex()` method to PGXN::Manager::Distribution. It can be
         used to reindex an existing distribution.
       - Added `pgxn_maint` utility, and its implementation,
-        PGXN::Manager::Maint.
+        PGXN::Manager::Maint. Allows maintence tasks to be easily executed.
+        Supported tasks include:
+        * `update-stats`
+        * `reindex`
+        * `reindex-all`
 
 0.10.4  2011-03-28T02:01:11
       - Renamed the "dist" URI template to "download".

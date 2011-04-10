@@ -6,7 +6,7 @@ use Moose;
 use PGXN::Manager;
 use File::Spec;
 use File::Path qw(make_path remove_tree);
-use File::Basename qw(dirname);
+use File::Basename qw(dirname basename);
 use Carp;
 use namespace::autoclean;
 
@@ -26,6 +26,7 @@ sub go {
 
 sub run {
     my ($self, $command) = (shift, shift);
+    $command =~ s/-/_/g;
     my $meth = $self->can($command)
         or croak qq{PGXN Maint: "$command" is not a command};
     $self->$meth(@_);
@@ -58,6 +59,70 @@ sub update_stats {
         PGXN::Manager->move_file($src, $dest);
     }
 
+    return $self;
+}
+
+sub reindex {
+    my ($self, @args) = @_;
+    my $pgxn = PGXN::Manager->instance;
+    my $tmpl = $pgxn->uri_templates->{download};
+    my $root = PGXN::Manager->instance->config->{mirror_root};
+
+    require PGXN::Manager::Distribution;
+
+    $pgxn->conn->run(sub {
+        my $dbh = shift;
+        my $sth = $dbh->prepare(
+            'SELECT creator FROM distributions WHERE name = ? AND version = ?'
+        );
+        while (@args) {
+            my ($name, $version) = (shift @args, shift @args);
+            my ($user) = $dbh->selectrow_array($sth, undef, $name, $version);
+            unless ($user) {
+                warn "$name $version is not a known release\n";
+                next;
+            }
+
+            my $uri = $tmpl->process( dist => $name, version => $version );
+            my $fn  = File::Spec->catfile($root, $uri->path_segments);
+            my $dist = PGXN::Manager::Distribution->new(
+                archive  => $fn,
+                basename => basename($fn),
+                creator  => $user,
+            );
+            $dist->reindex;
+        }
+    });
+    return $self;
+}
+
+sub reindex_all {
+    my ($self, @args) = @_;
+    my $pgxn = PGXN::Manager->instance;
+    my $tmpl = $pgxn->uri_templates->{download};
+    my $root = PGXN::Manager->instance->config->{mirror_root};
+
+    require PGXN::Manager::Distribution;
+
+    $pgxn->conn->run(sub {
+        my $sth = shift->prepare(
+            'SELECT name, version, creator FROM distributions'
+            . (@args ? ' WHERE name = ANY(?)' : '')
+            . ' ORDER BY name, version DESC'
+        );
+        $sth->execute(@args ? \@args : ());
+        $sth->bind_columns(\my ($name, $version, $user));
+        while ($sth->fetch) {
+            my $uri = $tmpl->process( dist => $name, version => $version );
+            my $fn  = File::Spec->catfile($root, $uri->path_segments);
+            my $dist = PGXN::Manager::Distribution->new(
+                archive  => $fn,
+                basename => basename($fn),
+                creator  => $user,
+            );
+            $dist->reindex;
+        }
+    });
     return $self;
 }
 
@@ -210,6 +275,30 @@ Manager configuration file. Currently, they include:
 =item F<summary.json>
 
 =back
+
+=head3 C<reindex>
+
+  $maint->reindex(@dists_and_versions)
+
+Reindexes one or more releases of distributions. Pass in distribution name and
+version pairs. Most useful if you need to reindex a specific version of a
+distribution or three, like so:
+
+  $maint->reindex(pair => '0.1.1', pair => '0.1.2', pgTAP => '0.25.0');
+
+If you need to reindex all versions of a given distribution, or all
+distributions (yikes!), use C<reindex_all>, instead.
+
+=head3 C<reindex_all>
+
+  $maint->reindex_all(@dist_names);
+  $maint->reindex_all;
+
+Reindexes all releases of the named distributions. If called with no
+arguments, it reindexes every distribution in the system. That's not to be
+undertaken lightly if you have a lot of distributions. If you need to update
+only a few, pass their names. If you need to reindex only specific versions of
+a distribution, use C<reindex> instead.
 
 =head2 Instance Accessors
 
