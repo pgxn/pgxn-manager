@@ -76,6 +76,20 @@ undertaken lightly if you have a lot of distributions. If you need to update
 only a few, pass their names. If you need to reindex only specific versions of
 a distribution, use C<reindex> instead.
 
+=head1 To-Do
+
+=over
+
+=item *
+
+Add `update-mirrors` task.
+
+=item *
+
+Add `init-mirror` task.
+
+=back
+
 =head1 Author
 
 David E. Wheeler <david.wheeler@pgexperts.com>
