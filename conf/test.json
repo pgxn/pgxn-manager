@@ -27,7 +27,8 @@
         "user":      "/user/{user}.json",
         "tag":       "/tag/{tag}.json",
         "stats":     "/stats/{stats}.json",
-        "mirrors":   "/meta/mirrors.json"
+        "mirrors":   "/meta/mirrors.json",
+        "spec":      "/meta/spec.txt"
     },
     "release_permalink": "http://pgxn.org/dist/{dist}/",
     "twitter": {

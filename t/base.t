@@ -2,7 +2,7 @@
 
 use 5.12.0;
 use utf8;
-use Test::More tests => 57;
+use Test::More tests => 61;
 #use Test::More 'no_plan';
 use JSON::XS;
 use Test::File;
@@ -59,17 +59,25 @@ is $dbh->selectrow_arrayref('SELECT 1')->[0], 1,
 
 # Make sure we can initialize the mirror root.
 my $index = File::Spec->catfile($pgxn->config->{mirror_root}, 'index.json');
+my $spec = File::Spec->catfile($pgxn->config->{mirror_root}, qw(meta spec.txt));
 END { remove_tree $pgxn->config->{mirror_root} }
 file_not_exists_ok $index, "$index should not exist";
+file_not_exists_ok $spec, "$spec should not exist";
 ok $pgxn->init_root, 'Initialize the mirror root';
 file_exists_ok $index, "$index should now exist";
+file_exists_ok $spec, "$spec should now exist";
 
-# Make sure that it contains what it ought to.
+# Make sure that index.json contains what it ought to.
 file_contents_is $index, JSON::XS->new->indent->space_after->canonical->encode(
     $pgxn->config->{uri_templates}
-), '...And it should have the mirror templates specified in it';
+), "... And $index should have the mirror templates specified in it";
 
-# Make sure it doesn't get overwritten by subsequent calls to init_root().
+# Make sure that spec.txt contains what it ought to.
+file_contents_like $spec,
+    qr{PGXN Meta Spec - The PGXN distribution metadata specification},
+    "...And $spec should look like the meta spec";
+
+# Make sure they don't get overwritten by subsequent calls to init_root().
 my $mock_json = Test::MockModule->new('JSON::XS');
 $mock_json->mock(new => sub { fail 'JSON::XS->new should not be called!' });
 ok $pgxn->init_root, 'Init the root again';

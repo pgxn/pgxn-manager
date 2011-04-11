@@ -26,7 +26,8 @@
         "user":      "/user/{user}.json",
         "tag":       "/tag/{tag}.json",
         "stats":     "/stats/{stats}.json",
-        "mirrors":   "/meta/mirrors.json"
+        "mirrors":   "/meta/mirrors.json",
+        "spec":      "/meta/spec.txt"
     },
     "twitter": {
         "consumer_key": "",

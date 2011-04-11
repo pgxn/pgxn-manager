@@ -9,7 +9,7 @@ use Exception::Class::DBI;
 use File::Spec;
 use JSON::XS ();
 use URI::Template;
-use File::Copy qw(move);
+use File::Copy qw(move copy);
 use File::Path qw(make_path remove_tree);
 use File::Basename qw(dirname);
 use Email::MIME::Creator;
@@ -163,6 +163,7 @@ sub init_root {
         File::Path::make_path($root);
     }
 
+    # Output the root index.json file.
     my $index = File::Spec->catfile($root, 'index.json');
     if (!-e $index) {
         open my $fh, '>', $index or die qq{Cannot open "$index": $!\n};
@@ -170,6 +171,24 @@ sub init_root {
             $self->config->{uri_templates}
         );
         close $fh or die qq{Cannot close "$index": $!\n};
+        chmod 0644, $index;
+    }
+
+    # Output the spec.
+    my $spec = File::Spec->catfile(
+        $root,
+        $self->uri_templates->{spec}->process->path_segments
+    );
+    if (!-e $spec) {
+        my $src = File::Spec->catfile(qw(doc spec.txt));
+        make_path dirname $spec;
+        copy $src, $spec or do {
+            # D'oh! Move failed. Try to clean up.
+            my $err = $!;
+            remove_tree $spec;
+            die qq{Failed to copy "$src" to "spec": $!\n};
+        };
+        chmod 0644, $spec;
     }
 
     return $self;
