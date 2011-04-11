@@ -65,6 +65,8 @@ CREATE OR REPLACE FUNCTION setup_meta(
         };
     }
 
+    # XXX Normalize maintainers, licenses, other fields?
+
     # Recreate the JSON.
     my $encoder = JSON::XS->new->utf8(0)->space_after->allow_nonref->indent->canonical;
     my $json = "{\n   " . join(",\n   ", map {
@@ -500,6 +502,13 @@ updates an existing distribution, rather than creating a new one. This may be
 useful of the format of the generated `META.json` file changes: just call this
 method for all existing distributions to have then reindexed with the new
 format.
+
+Note that, for all included extensions, `nick` must have ownership or no one
+must, in which case the user will be given ownership. This might be an issue
+when re-indexing a distribution containing extensions that the user owned at
+the time the distribution was released, but no longer does. In that case,
+you'll probably need to grant the user temporary co-ownership of all
+extensions, re-index, and then revoke.
 
 */
 DECLARE
