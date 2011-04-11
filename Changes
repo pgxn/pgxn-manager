@@ -26,6 +26,8 @@ Revision history for Perl extension PGXN::Manager
         * `reindex`
         * `reindex-all`
       - Added the PGXN Meta spec, as well as a URI template for it, "spec".
+        The file will be updated in the mirror root any time its modification
+        time is older than the copy in `doc/spec.txt`.
 
 0.10.4  2011-03-28T02:01:11
       - Renamed the "dist" URI template to "download".

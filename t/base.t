@@ -2,13 +2,14 @@
 
 use 5.12.0;
 use utf8;
-use Test::More tests => 61;
+use Test::More tests => 64;
 #use Test::More 'no_plan';
 use JSON::XS;
 use Test::File;
 use Test::File::Contents;
 use Test::MockModule;
 use File::Path 'remove_tree';
+use File::Copy 'copy';
 
 BEGIN {
     use_ok 'PGXN::Manager' or die;
@@ -57,6 +58,7 @@ isa_ok $dbh->{HandleError}, 'CODE', 'There should be an error handler';
 is $dbh->selectrow_arrayref('SELECT 1')->[0], 1,
     'We should be able to execute a query';
 
+##############################################################################
 # Make sure we can initialize the mirror root.
 my $index = File::Spec->catfile($pgxn->config->{mirror_root}, 'index.json');
 my $spec = File::Spec->catfile($pgxn->config->{mirror_root}, qw(meta spec.txt));
@@ -80,9 +82,22 @@ file_contents_like $spec,
 # Make sure they don't get overwritten by subsequent calls to init_root().
 my $mock_json = Test::MockModule->new('JSON::XS');
 $mock_json->mock(new => sub { fail 'JSON::XS->new should not be called!' });
+copy 'README.md', $spec;
 ok $pgxn->init_root, 'Init the root again';
 file_exists_ok $index, "$index should still exist";
+file_contents_unlike $spec,
+    qr{PGXN Meta Spec - The PGXN distribution metadata specification},
+    "...And $spec should not have been replaced";
 
+# Make sure a newer spec.txt updates the mirror.
+my $time = (stat File::Spec->catfile qw(doc spec.txt))[9];
+utime $time, $time - 5, $spec;
+ok $pgxn->init_root, 'Init the root once more';
+file_contents_like $spec,
+    qr{PGXN Meta Spec - The PGXN distribution metadata specification},
+    "Now $spec should be updated";
+
+##############################################################################
 # Make sure the URI templates are created.
 ok my $tmpl = $pgxn->uri_templates, 'Get URI templates';
 isa_ok $tmpl, 'HASH', 'Their storage';

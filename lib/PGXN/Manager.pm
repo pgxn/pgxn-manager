@@ -175,12 +175,12 @@ sub init_root {
     }
 
     # Output the spec.
+    my $src = File::Spec->catfile(qw(doc spec.txt));
     my $spec = File::Spec->catfile(
         $root,
         $self->uri_templates->{spec}->process->path_segments
     );
-    if (!-e $spec) {
-        my $src = File::Spec->catfile(qw(doc spec.txt));
+    if (!-e $spec || (stat $src)[9] > (stat $spec)[9]) {
         make_path dirname $spec;
         copy $src, $spec or do {
             # D'oh! Move failed. Try to clean up.
