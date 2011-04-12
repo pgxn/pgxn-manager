@@ -6,6 +6,7 @@ Revision history for Perl extension PGXN::Manager
       - Added `num_to_list` param to the `all_stats_json()` database function.
       - Changed the voltility of the `all_stats_json()` and
         `get_distribution()` database functions from "volatile" to "stable".
+      - Changed the "spec" URL template to "/meta/spec.{format}".
 
 0.11.0  2011-04-11T23:41:16
       - Added JSON-emitting statistics functions:

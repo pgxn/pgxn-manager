@@ -24,7 +24,7 @@
         "tag":       "/tag/{tag}.json",
         "stats":     "/stats/{stats}.json",
         "mirrors":   "/meta/mirrors.json",
-        "spec":      "/meta/spec.txt"
+        "spec":      "/meta/spec.{format}"
     },
     "twitter": {
         "consumer_key": "",

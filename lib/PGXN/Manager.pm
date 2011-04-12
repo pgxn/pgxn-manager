@@ -178,7 +178,7 @@ sub init_root {
     my $src = File::Spec->catfile(qw(doc spec.txt));
     my $spec = File::Spec->catfile(
         $root,
-        $self->uri_templates->{spec}->process->path_segments
+        $self->uri_templates->{spec}->process(format => 'txt')->path_segments
     );
     if (!-e $spec || (stat $src)[9] > (stat $spec)[9]) {
         make_path dirname $spec;
