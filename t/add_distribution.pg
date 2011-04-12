@@ -1,20 +1,23 @@
 SET search_path = public,contrib,tap;
 
 BEGIN;
-SELECT plan(100);
+SELECT plan(118);
 --SELECT * FROM no_plan();
 
 -- Check that we have the functions we think we have.
 SELECT has_function(f)
   FROM unnest(ARRAY[
-      'setup_meta', 'record_ownership', 'add_distribution'
+      'setup_meta', 'record_ownership', 'add_distribution',
+      'get_distribution', 'update_distribution'
   ]) AS f;
 
 SELECT has_function('setup_meta', ARRAY['label', 'text', 'text']);
 SELECT has_function('record_ownership', ARRAY['label', 'text[]']);
 SELECT has_function('add_distribution', ARRAY['label', 'text', 'text']);
+SELECT has_function('get_distribution', ARRAY['text', 'semver']);
+SELECT has_function('update_distribution', ARRAY['label', 'text', 'text']);
 
--- User "pgxn" should not have access to most of them.
+-- User "pgxn" should not have access to private fnctions.
 SELECT ok(
     NOT has_function_privilege('pgxn', f, 'EXECUTE'),
     'User "pgxn" should not have EXECUTE priv on ' || f
@@ -23,19 +26,19 @@ SELECT ok(
     'record_ownership(label, text[])'
 ]) AS f;
 
--- User "pgxn" only has access to add_distribution().
-SELECT ok(
-    has_function_privilege(
-        'pgxn', 'add_distribution(label, text, text)', 'EXECUTE'
-    ),
-    'User "pgxn" should have EXECUTE priv on add_distribution()'
-);
-
+-- User "pgxn" has access to *_distribution().
+SELECT has_function_privilege('pgxn', f, 'EXECUTE')
+  FROM unnest(ARRAY[
+      'add_distribution(label, text, text)',
+      'get_distribution(text, semver)',
+      'update_distribution(label, text, text)'
+  ]) AS f;
+  
 /****************************************************************************/
 -- Test setup_meta().
-SELECT function_returns('setup_meta', 'record' );
-SELECT function_lang_is('setup_meta', 'plperl' );
-SELECT volatility_is(   'setup_meta', 'immutable' );
+SELECT function_returns('setup_meta', ARRAY['label', 'text', 'text'], 'record' );
+SELECT function_lang_is('setup_meta', ARRAY['label', 'text', 'text'], 'plperl' );
+SELECT volatility_is(   'setup_meta', ARRAY['label', 'text', 'text'], 'immutable' );
 
 -- Validate that missing required fields throw an exception.
 SELECT throws_like(
@@ -153,6 +156,10 @@ SELECT results_eq(
 
 /****************************************************************************/
 -- Test record_ownership().
+SELECT function_returns('record_ownership', ARRAY['label', 'text[]'], 'boolean' );
+SELECT function_lang_is('record_ownership', ARRAY['label', 'text[]'], 'plpgsql' );
+SELECT volatility_is(   'record_ownership', ARRAY['label', 'text[]'], 'volatile' );
+
 SELECT throws_ok(
     $$ SELECT record_ownership('nobody', ARRAY['foo']) $$,
     '23503', -- FK constraint violation 
@@ -312,6 +319,11 @@ SELECT is(
 
 /****************************************************************************/
 -- Test add_distribution().
+SELECT function_returns('add_distribution', ARRAY['label', 'text', 'text'], 'setof record' );
+SELECT function_lang_is('add_distribution', ARRAY['label', 'text', 'text'], 'plpgsql' );
+SELECT volatility_is(   'add_distribution', ARRAY['label', 'text', 'text'], 'volatile' );
+SELECT is_strict(       'add_distribution', ARRAY['label', 'text', 'text'] );
+
 SELECT throws_ok(
     $_$ SELECT add_distribution('nobody', 'pshaw', $${
         "name":        "pair",
@@ -1201,6 +1213,11 @@ SELECT bag_eq(
 
 /****************************************************************************/
 -- Test update_distribution().
+SELECT function_returns('update_distribution', ARRAY['label', 'text', 'text'], 'setof record' );
+SELECT function_lang_is('update_distribution', ARRAY['label', 'text', 'text'], 'plpgsql' );
+SELECT volatility_is(   'update_distribution', ARRAY['label', 'text', 'text'], 'volatile' );
+SELECT is_strict(       'update_distribution', ARRAY['label', 'text', 'text'] );
+
 SELECT throws_ok(
     $_$ SELECT update_distribution('nobody', 'pshaw', $${
         "name":        "pair",
@@ -1532,6 +1549,11 @@ SELECT row_eq(
 
 /****************************************************************************/
 -- Make sure we get the same data from get_distribution().
+SELECT function_returns('get_distribution', ARRAY['text', 'semver'], 'setof record' );
+SELECT function_lang_is('get_distribution', ARRAY['text', 'semver'], 'plpgsql' );
+SELECT volatility_is(   'get_distribution', ARRAY['text', 'semver'], 'stable' );
+SELECT is_strict(       'get_distribution', ARRAY['text', 'semver'] );
+
 SELECT bag_eq(
     $$ SELECT * FROM get_distribution('pair', '0.0.3')$$,
     $$ VALUES

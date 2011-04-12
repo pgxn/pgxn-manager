@@ -457,7 +457,7 @@ CREATE OR REPLACE FUNCTION get_distribution(
     template TEXT,
     subject  TEXT,
     json     TEXT
-) LANGUAGE plpgsql STRICT SECURITY DEFINER AS $$
+) LANGUAGE plpgsql STRICT STABLE SECURITY DEFINER AS $$
 /*
 
 Returns all of the metadata updates to be stored for a given distribution. The
@@ -570,7 +570,7 @@ BEGIN
      WHERE de.extension    IS NULL;
 
     -- Delete unwanted extensions.
-    DELETE FROM distribution_extensions 
+    DELETE FROM distribution_extensions
      USING distribution_extensions de
       LEFT JOIN generate_subscripts(distmeta.provided, 1) AS i
         ON de.extension                         = distmeta.provided[i][1]
@@ -595,7 +595,7 @@ BEGIN
      WHERE dt.tag          IS NULL;
 
     -- Remove unwanted tags.
-    DELETE FROM distribution_tags 
+    DELETE FROM distribution_tags
      USING distribution_tags dt
       LEFT JOIN unnest(distmeta.tags) AS tags(tag)
         ON dt.tag                         = tags.tag

@@ -1,7 +1,7 @@
 SET search_path = public,contrib,tap;
 
 BEGIN;
-SELECT plan(114);
+SELECT plan(164);
 --SELECT * FROM no_plan();
 
 /****************************************************************************/
@@ -27,6 +27,20 @@ CREATE OR REPLACE FUNCTION json_ok(
         return $ok->('true', shift);
     }
 $$;
+
+/****************************************************************************/
+-- Test utc_date().
+SELECT has_function(    'utc_date' );
+SELECT has_function(    'utc_date', ARRAY['timestamp with time zone'] );
+SELECT function_returns('utc_date', ARRAY['timestamp with time zone'], 'text' );
+SELECT function_lang_is('utc_date', ARRAY['timestamp with time zone'], 'sql' );
+SELECT is_strict(       'utc_date', ARRAY['timestamp with time zone'] );
+SELECT volatility_is(   'utc_date', ARRAY['timestamp with time zone'], 'immutable' );
+SELECT is(
+    utc_date(now()),
+    to_char(NOW() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"'),
+    'utc_date() should work'
+);
 
 /****************************************************************************/
 -- Test munge_email().
@@ -884,6 +898,16 @@ SELECT json_ok(user_json('theory'), '...And that JSON should be valid');
 
 /****************************************************************************/
 -- Test tag_stats_json().
+SELECT has_function(    'tag_stats_json' );
+SELECT has_function(    'tag_stats_json', ARRAY['integer'] );
+SELECT function_returns('tag_stats_json', ARRAY['integer'], 'text' );
+SELECT function_lang_is('tag_stats_json', ARRAY['integer'], 'sql' );
+SELECT is_strict(       'tag_stats_json', ARRAY['integer'] );
+SELECT volatility_is(   'tag_stats_json', ARRAY['integer'], 'stable' );
+SELECT ok(
+    has_function_privilege('pgxn', 'tag_stats_json(integer)', 'EXECUTE'),
+    'User "pgxn" should have EXECUTE priv on tag_stats_json()'
+);
 
 SELECT json_ok(tag_stats_json(), 'tag_stats_json() JSON should be valid');
 
@@ -914,6 +938,16 @@ SELECT is(
 
 /****************************************************************************/
 -- Test user_stats_json().
+SELECT has_function(    'user_stats_json' );
+SELECT has_function(    'user_stats_json', ARRAY['integer'] );
+SELECT function_returns('user_stats_json', ARRAY['integer'], 'text' );
+SELECT function_lang_is('user_stats_json', ARRAY['integer'], 'sql' );
+SELECT is_strict(       'user_stats_json', ARRAY['integer'] );
+SELECT volatility_is(   'user_stats_json', ARRAY['integer'], 'stable' );
+SELECT ok(
+    has_function_privilege('pgxn', 'user_stats_json(integer)', 'EXECUTE'),
+    'User "pgxn" should have EXECUTE priv on user_stats_json()'
+);
 
 SELECT json_ok(user_stats_json(), 'user_stats_json() JSON should be valid');
 
@@ -942,6 +976,16 @@ SELECT is(
 
 /****************************************************************************/
 -- Test extension_stats_json().
+SELECT has_function(    'extension_stats_json' );
+SELECT has_function(    'extension_stats_json', ARRAY['integer'] );
+SELECT function_returns('extension_stats_json', ARRAY['integer'], 'text' );
+SELECT function_lang_is('extension_stats_json', ARRAY['integer'], 'sql' );
+SELECT is_strict(       'extension_stats_json', ARRAY['integer'] );
+SELECT volatility_is(   'extension_stats_json', ARRAY['integer'], 'stable' );
+SELECT ok(
+    has_function_privilege('pgxn', 'extension_stats_json(integer)', 'EXECUTE'),
+    'Extension "pgxn" should have EXECUTE priv on extension_stats_json()'
+);
 
 SELECT json_ok(extension_stats_json(), 'extension_stats_json() JSON should be valid');
 
@@ -1117,6 +1161,16 @@ SELECT is(
 
 /****************************************************************************/
 -- Test dist_stats_json().
+SELECT has_function(    'dist_stats_json' );
+SELECT has_function(    'dist_stats_json', ARRAY['integer'] );
+SELECT function_returns('dist_stats_json', ARRAY['integer'], 'text' );
+SELECT function_lang_is('dist_stats_json', ARRAY['integer'], 'sql' );
+SELECT is_strict(       'dist_stats_json', ARRAY['integer'] );
+SELECT volatility_is(   'dist_stats_json', ARRAY['integer'], 'stable' );
+SELECT ok(
+    has_function_privilege('pgxn', 'dist_stats_json(integer)', 'EXECUTE'),
+    'Dist "pgxn" should have EXECUTE priv on dist_stats_json()'
+);
 
 SELECT json_ok(dist_stats_json(), 'dist_stats_json() JSON should be valid');
 
@@ -1224,6 +1278,16 @@ SELECT is(
 
 /****************************************************************************/
 -- Test summary_stats_json().
+SELECT has_function(    'summary_stats_json' );
+SELECT has_function(    'summary_stats_json', '{}'::text[] );
+SELECT function_returns('summary_stats_json', '{}'::text[], 'text' );
+SELECT function_lang_is('summary_stats_json', '{}'::text[], 'sql' );
+SELECT is_strict(       'summary_stats_json', '{}'::text[] );
+SELECT volatility_is(   'summary_stats_json', '{}'::text[], 'stable' );
+SELECT ok(
+    has_function_privilege('pgxn', 'summary_stats_json()', 'EXECUTE'),
+    'Summary "pgxn" should have EXECUTE priv on summary_stats_json()'
+);
 
 SELECT json_ok(summary_stats_json(), 'summary_stats_json() JSON should be valid');
 
@@ -1242,6 +1306,17 @@ SELECT is(
 
 /****************************************************************************/
 -- Now let's see what it all looks like together.
+SELECT has_function(    'all_stats_json' );
+SELECT has_function(    'all_stats_json', ARRAY['integer'] );
+SELECT function_returns('all_stats_json', ARRAY['integer'], 'setof record' );
+SELECT function_lang_is('all_stats_json', ARRAY['integer'], 'sql' );
+SELECT is_strict(       'all_stats_json', ARRAY['integer'] );
+SELECT volatility_is(   'all_stats_json', ARRAY['integer'], 'stable' );
+SELECT ok(
+    has_function_privilege('pgxn', 'all_stats_json(integer)', 'EXECUTE'),
+    'All "pgxn" should have EXECUTE priv on all_stats_json()'
+);
+
 SELECT bag_eq(
     'SELECT * FROM all_stats_json()',
     $$VALUES
@@ -1459,6 +1534,83 @@ SELECT bag_eq(
     'Should get all stats from all_stats_json()'
 );
     
+SELECT bag_eq(
+    'SELECT * FROM all_stats_json(2)',
+    $$VALUES
+    ('dist','{
+   "count": 3,
+   "releases": 7,
+   "recent": [
+      {
+         "dist": "pair",
+         "version": "0.0.10",
+         "abstract": "Ordered pair",
+         "date": "2011-03-11T20:36:48Z",
+         "user": "theory",
+         "user_name": ""
+      },
+      {
+         "dist": "pair",
+         "version": "0.0.3",
+         "abstract": "Ordered pair",
+         "date": "2011-03-10T20:31:57Z",
+         "user": "theory",
+         "user_name": ""
+      }
+   ]
+}
+'), ('extension','{
+   "count": 3,
+   "recent": [
+      {
+         "extension": "pair",
+         "abstract": "",
+         "ext_version": "0.2.10",
+         "dist": "pair",
+         "version": "0.0.10",
+         "date": "2011-03-11T20:36:48Z",
+         "user": "theory",
+         "user_name": ""
+      },
+      {
+         "extension": "trip",
+         "abstract": "",
+         "ext_version": "0.2.10",
+         "dist": "pair",
+         "version": "0.0.10",
+         "date": "2011-03-11T20:36:48Z",
+         "user": "theory",
+         "user_name": ""
+      }
+   ]
+}
+'), ('user','{
+   "count": 3,
+   "prolific": [
+      {"nickname": "theory", "name": "", "dists": 2, "releases": 6},
+      {"nickname": "strongrrl", "name": "", "dists": 1, "releases": 1}
+   ]
+}
+'), ('tag','{
+   "count": 3,
+   "popular": [
+      {"tag": "foo", "dists": 2},
+      {"tag": "bar", "dists": 1}
+   ]
+}
+'), ('summary','{
+    "dists": 3,
+    "releases": 7,
+    "extensions": 3,
+    "users": 3,
+    "tags": 3,
+    "mirrors": 2
+}
+') $$,
+    'Should get all limited from all_stats_json(2)'
+);
+
 
 SELECT * FROM finish();
 ROLLBACK;
+

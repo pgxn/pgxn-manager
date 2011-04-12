@@ -228,11 +228,11 @@ $$;
 
 CREATE OR REPLACE FUNCTION utc_date(
     TIMESTAMPTZ
-) RETURNS TEXT LANGUAGE sql STABLE STRICT AS $$
+) RETURNS TEXT LANGUAGE sql IMMUTABLE STRICT AS $$
 /*
 
     % select utc_date(now());
-           utc_date       
+           utc_date
     ──────────────────────
      2011-04-07T22:42:08Z
 
@@ -511,7 +511,7 @@ appear in the popular list. The default limit is 56.
          GROUP BY tag
          ORDER BY COUNT(DISTINCT distribution) DESC, tag
          LIMIT $1
-        ), E',\n') || E'\n   ]\n}\n' 
+        ), E',\n') || E'\n   ]\n}\n'
       FROM distribution_tags
 $$;
 
@@ -554,7 +554,7 @@ appear in the prolific list. The default limit is 56.
          GROUP BY u.nickname, u.full_name
          ORDER BY COUNT(DISTINCT d.name) DESC, u.nickname
          LIMIT $1
-        ), E',\n') || E'\n   ]\n}\n' 
+        ), E',\n') || E'\n   ]\n}\n'
       FROM users
 $$;
 
@@ -630,7 +630,7 @@ that appear in the recent list. The default limit is 56.
             ON d.creator = u.nickname
          ORDER BY d.created_at DESC, de.extension, de.ext_version DESC
          LIMIT $1
-        ), E',\n') || E'\n   ]\n}\n' 
+        ), E',\n') || E'\n   ]\n}\n'
       FROM extensions
 $$;
 
@@ -699,7 +699,7 @@ distributions that appear in the recent list. The default limit is 56.
           JOIN users u ON d.creator = u.nickname
          ORDER BY d.created_at DESC, d.name, d.version DESC
          LIMIT $1
-        ), E',\n') || E'\n   ]\n}\n' 
+        ), E',\n') || E'\n   ]\n}\n'
       FROM distributions;
 $$;
 
@@ -708,7 +708,7 @@ CREATE OR REPLACE FUNCTION summary_stats_json(
 /*
 
     % select summary_stats_json();
-      summary_stats_json  
+      summary_stats_json
     ────────────────────────
      {                     ↵
          "dists": 92,      ↵
@@ -727,6 +727,10 @@ Returns a JSON string containing basic statistics about the system. These includ
 * `users`: Number of users.
 * `mirrors`: Number of mirrors.
 
+Pass in the optional `num_to_list` parameter to limit the number of objects
+that will appear in the recent/popular/prolific lists in the results. The
+default limit is 56.
+
 */
     SELECT E'{\n    "dists": '      || (SELECT COUNT(DISTINCT name) FROM distributions)
         || E',\n    "releases": '   || (SELECT COUNT(*) FROM distributions)
@@ -737,10 +741,13 @@ Returns a JSON string containing basic statistics about the system. These includ
         || E'\n}\n';
 $$;
 
-CREATE OR REPLACE FUNCTION all_stats_json() RETURNS TABLE (
+DROP FUNCTION IF EXISTS all_stats_json();
+CREATE OR REPLACE FUNCTION all_stats_json(
+    num_to_list INT DEFAULT 56
+) RETURNS TABLE (
     stats_name TEXT,
     json       TEXT
-) LANGUAGE sql STRICT SECURITY DEFINER AS $$
+) LANGUAGE sql STABLE STRICT SECURITY DEFINER AS $$
 /*
 
     % select all_stats_json();
@@ -829,10 +836,10 @@ contains the name of the statistics file. The second column contains the
 statistics in JSON format.
 
 */
-          SELECT 'dist',      * FROM dist_stats_json()
-    UNION SELECT 'extension', * FROM extension_stats_json()
-    UNION SELECT 'user',      * FROM user_stats_json()
-    UNION SELECT 'tag',       * FROM tag_stats_json()
+          SELECT 'dist',      * FROM dist_stats_json($1)
+    UNION SELECT 'extension', * FROM extension_stats_json($1)
+    UNION SELECT 'user',      * FROM user_stats_json($1)
+    UNION SELECT 'tag',       * FROM tag_stats_json($1)
     UNION SELECT 'summary',   * FROM summary_stats_json();
 $$;
 
