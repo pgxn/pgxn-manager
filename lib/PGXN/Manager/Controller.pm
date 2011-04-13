@@ -44,8 +44,10 @@ sub render {
     my ($self, $template, $p) = @_;
     my $req = $p->{req} ||= Request->new($p->{env});
     my $res = $req->new_response($p->{code} || 200);
+    my $body = encode_utf8 +Template::Declare->show($template, $p->{req}, $p->{vars});
+    $res->body($body);
+    $res->content_length(length $body);
     $res->content_type($p->{type} || 'text/html; charset=UTF-8');
-    $res->body(encode_utf8 +Template::Declare->show($template, $p->{req}, $p->{vars}));
     return $res->finalize;
 }
 
@@ -106,7 +108,11 @@ sub respond_with {
             $msg = encode_utf8 $msg;
         }
     }
-    return [$code, ['Content-Type' => $type], [$msg]];
+    return [
+        $code,
+        ['Content-Type' => $type, 'Content-Length' => length $msg],
+        [$msg]
+    ];
 }
 
 sub root {
