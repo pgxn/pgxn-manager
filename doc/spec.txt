@@ -97,16 +97,16 @@ automated tools that index, examine, package, or install PGXN distributions.
 Terminology
 ===========
 
-=distribution=
-    The primary object described by the metadata. In the context of this
+distribution
+:   The primary object described by the metadata. In the context of this
     document it usually refers to a collection of extensions, SQL scripts,
     tests, and/or documents that are distributed together for other developers
     to use. Examples of distributions are [`pgTAP`](http://pgtap.org/),
     [`uri`](http://pgfoundry.org/projects/uri/), and
     [`PostGIS`](http://www.postgis.org/).
 
-=extension=
-    A reusable library of code contained in a single file or within files
+extension
+:   A reusable library of code contained in a single file or within files
     referenced by the (forthcoming) [`CREATE EXTENSION`
     statement](http://wiki.postgresql.org/wiki/ExtensionPackaging). Extensions
     usually contain one or more PostgreSQL objects -- such as data types,
@@ -114,16 +114,16 @@ Terminology
     primary object that can be mapped to the file name. For example, one might
     refer to `pgTAP` instead of `sql/pgtap.sql`.
 
-=consumer=
-    Code that reads a metadata file, deserializes it into a data structure in
+consumer
+:   Code that reads a metadata file, deserializes it into a data structure in
     memory, or interprets a data structure of metadata elements.
 
-=producer=
-    Code that constructs a metadata data structure, serializes into a
+producer
+:    Code that constructs a metadata data structure, serializes into a
     bytestream and/or writes it to disk.
 
-=must, should, may, etc.=
-    These terms are interpreted as described in [IETF RFC
+must, should, may, etc.
+:   These terms are interpreted as described in [IETF RFC
     2119](http://www.ietf.org/rfc/rfc2119.txt).
 
 Data Types
@@ -352,12 +352,12 @@ possible and abort further metadata processing if the meta-spec
 
 The following keys are valid, but only `version` is required.
 
-=version=
-    This subkey gives the integer [Version](#Version) of the PGXN Meta Spec
+version
+:   This subkey gives the integer [Version](#Version) of the PGXN Meta Spec
     against which the document was generated.
 
-=url=
-    This is a [URI](#URI) of the metadata specification document corresponding
+url
+:   This is a [URI](#URI) of the metadata specification document corresponding
     to the given version. This is strictly for human-consumption and should
     not impact the interpretation of the document.
 
@@ -439,12 +439,12 @@ indexing or search tools.
 
 Valid subkeys are as follows:
 
-=file=
-    A [List](#List) of relative paths to files. Paths **must be** specified
+file
+:   A [List](#List) of relative paths to files. Paths **must be** specified
     with unix conventions.
 
-=directory=
-    A [List](#List) of relative paths to directories. Paths **must be**
+directory
+:   A [List](#List) of relative paths to directories. Paths **must be**
     specified with unix conventions.
 
 ### prereqs ###
@@ -515,17 +515,17 @@ The keys of `provides` are extension names that can be found within the
 distribution. The values are [Maps](#Map) with the following subkeys, of which
 only `abstract` is optional:
 
-=file=
-    The value must contain a relative file path from the root of the
+file
+:   The value must contain a relative file path from the root of the
     distribution to the file containing the extension. The path **must
     be** specified with unix conventions.
 
-=version=
-    This field contains a [Version](#Version) for the extension. All
+version
+:    This field contains a [Version](#Version) for the extension. All
     extensions must have versions.
 
-=abstract=
-    A short [String](#String) value describing the extension.
+abstract
+:   A short [String](#String) value describing the extension.
 
 ### release_status ###
 
@@ -538,18 +538,18 @@ Example:
 This field specifies the release status of this distribution. It **must** have
 one of the following values:
 
-=stable=
-    Indicates an ordinary, "final" release that should be indexed by PGXN.
+stable
+:   Indicates an ordinary, "final" release that should be indexed by PGXN.
 
-=testing=
-    Indicates a "beta" release that is substantially complete, but has an
+testing
+:   Indicates a "beta" release that is substantially complete, but has an
     elevated risk of bugs and requires additional testing. The distribution
     should not be installed over a stable release without an explicit request
     or other confirmation from a user. This release status may also be used
     for "release candidate" versions of a distribution.
 
-=unstable=
-    Indicates an "alpha" release that is under active development, but has
+unstable
+:   Indicates an "alpha" release that is under active development, but has
     been released for early feedback or testing and may be missing features or
     may have serious bugs. The distribution should not be installed over a
     stable release without an explicit request or other confirmation from a
@@ -583,34 +583,35 @@ This field describes resources related to this distribution.
 
 Valid subkeys include:
 
-=homepage=
-    The official home of this project on the web.
+homepage
 
-=bugtracker=
-    This entry describes the bug tracking system for this distribution. It is
+:   The official home of this project on the web.
+
+bugtracker
+:   This entry describes the bug tracking system for this distribution. It is
     a [Map](#Map) with the following valid keys:
 
-    =web=
-        a <a href="#URI">URI</a> pointing to a web front-end for the bug
+    web
+    :   a <a href="#URI">URI</a> pointing to a web front-end for the bug
         tracker
 
-    =mailto=
-        an email address to which bug reports can be sent
+    mailto
+    :   an email address to which bug reports can be sent
 
-=repository=
-    This entry describes the source control repository for this distribution.
+repository
+:   This entry describes the source control repository for this distribution.
     It is a [Map](#Map) with the following valid keys:
 
-    =url=
-        a [URI](#URI) pointing to the repository itself
+    url
+    :   a [URI](#URI) pointing to the repository itself
 
-    =web=
-        a [URI](#URI) pointing to a web front-end for the repository
+    we
+    :   a [URI](#URI) pointing to a web front-end for the repository
 
-    =type=
-        a lowercase string indicating the VCS used
+    type
+    :   a lowercase string indicating the VCS used
 
-    Because a URI like `http://myrepo.example.com/` is ambiguous as to type,
+:   Because a URI like `http://myrepo.example.com/` is ambiguous as to type,
     producers should provide a `type` whenever a `url` key is given. The
     `type` field should be the name of the most common program used to work
     with the repository, e.g. git, svn, cvs, darcs, bzr or hg.
@@ -682,28 +683,28 @@ phases.
 ----------------|---------------------------------
   make install  | rutime
 
-=configure=
-    The configure phase occurs before any dynamic configuration has been
+configure
+:   The configure phase occurs before any dynamic configuration has been
     attempted. Extensions required by the configure phase **must** be
     available for use before the distribution building tool has been executed.
 
-=build=
-    The build phase is when the distribution's source code is compiled (if
+build
+:   The build phase is when the distribution's source code is compiled (if
     necessary) and otherwise made ready for installation.
 
-=test=
-    The test phase is when the distribution's automated test suite is run. Any
+test
+:   The test phase is when the distribution's automated test suite is run. Any
     extension needed only for testing and not for subsequent use should be
     listed here.
 
-=runtime=
-    The runtime phase refers not only to when the distribution's contents are
+runtime
+:   The runtime phase refers not only to when the distribution's contents are
     installed, but also to its continued use. Any extension that is a
     prerequisite for regular use of this distribution should be indicated
     here.
 
-=develop=
-    The develop phase's prereqs are extensions needed to work on the
+develop
+:   The develop phase's prereqs are extensions needed to work on the
     distribution's source code as its maintainer does. These tools might be
     needed to build a release tarball, to run maintainer-only tests, or to
     perform other tasks related to developing new versions of the
@@ -711,16 +712,16 @@ phases.
 
 ### Relationships ###
 
-=requires=
-    These dependencies **must** be installed for proper completion of the
+requires
+:   These dependencies **must** be installed for proper completion of the
     phase.
 
-=recommends=
-    Recommended dependencies are *strongly* encouraged and should be satisfied
+recommends
+:   Recommended dependencies are *strongly* encouraged and should be satisfied
     except in resource constrained environments.
 
-=suggests=
-    These dependencies are optional, but are suggested for enhanced operation
+suggests
+:   These dependencies are optional, but are suggested for enhanced operation
     of the described distribution.
 
 Merging and Resolving Prerequisites
