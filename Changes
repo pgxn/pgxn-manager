@@ -1,6 +1,6 @@
 Revision history for Perl extension PGXN::Manager
 
-0.11.1
+0.11.1  2011-04-13T02:25:37
       - Changed the volatility option on the `utc_date()` database function
         from "stable" to "immutable".
       - Added `num_to_list` param to the `all_stats_json()` database function.
