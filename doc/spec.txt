@@ -584,32 +584,28 @@ This field describes resources related to this distribution.
 Valid subkeys include:
 
 homepage
-
 :   The official home of this project on the web.
 
 bugtracker
 :   This entry describes the bug tracking system for this distribution. It is
-    a [Map](#Map) with the following valid keys:
-
-    web
-    :   a <a href="#URI">URI</a> pointing to a web front-end for the bug
-        tracker
-
-    mailto
-    :   an email address to which bug reports can be sent
+    a [Map](#Map) with the following valid keys:<dl>
+<dt>web</dt>
+<dd><p>a <a href="#URI">URI</a> pointing to a web front-end for the bug
+    tracker</p></dd>
+<dt>mailto</dt>
+<dd><p>an email address to which bug reports can be sent</p></dd>
+</dl>
 
 repository
 :   This entry describes the source control repository for this distribution.
-    It is a [Map](#Map) with the following valid keys:
-
-    url
-    :   a [URI](#URI) pointing to the repository itself
-
-    we
-    :   a [URI](#URI) pointing to a web front-end for the repository
-
-    type
-    :   a lowercase string indicating the VCS used
+    It is a [Map](#Map) with the following valid keys:<dl>
+<dt>url</dt>
+<dd><p>a [URI](#URI) pointing to the repository itself</p></dd>
+<dt>web</dt>
+<dd><p>a [URI](#URI) pointing to a web front-end for the repository</p></dd>
+<dt>type</dt>
+<dd><p>a lowercase string indicating the VCS used</p></dd>
+</dl>
 
 :   Because a URI like `http://myrepo.example.com/` is ambiguous as to type,
     producers should provide a `type` whenever a `url` key is given. The
