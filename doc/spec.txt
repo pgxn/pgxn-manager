@@ -75,18 +75,18 @@ Description
 ===========
 
 This document describes version 1.0.0dev5 of the PGXN distribution metadata
-specification, also known as the "PGXN Meta Spec." It is formatted using the
+specification, also known as the “PGXN Meta Spec.” It is formatted using the
 [MultiMarkdown](http://fletcherpenney.net/multimarkdown/) variant of
 [Markdown](http://daringfireball.net/projects/markdown/), and the canonical
 copy may always be found at
 [master.pgxn.org/meta/spec.txt](http://master.pgxn.org/meta/spec.txt). A
-generated HTML version found at [pgxn.org/spec/](http://pgxn.org/spec/) may
-also be considered canonical.
+generated HTML-formatted copy found at [pgxn.org/spec/](http://pgxn.org/spec/)
+may also be considered canonical.
 
 This document is in development, and may change before version 1.0.0. At that
 time, it will be considered stable, and any revisions to this specification
-for typo corrections and prose clarifications may be issued as "PGXN Meta Spec
-1.0.*x*". These revisions will never change semantics or add or remove
+for typo corrections and prose clarifications may be issued as “PGXN Meta Spec
+1.0.*x*”. These revisions will never change semantics or add or remove
 specified behavior.
 
 Distribution metadata describe important properties of PGXN distributions.
@@ -99,27 +99,28 @@ Terminology
 
 distribution
 :   The primary object described by the metadata. In the context of this
-    document it usually refers to a collection of extensions, SQL scripts,
+    document it usually refers to a collection of extensions, source code,
     tests, and/or documents that are distributed together for other developers
-    to use. Examples of distributions are [`pgTAP`](http://pgtap.org/),
-    [`uri`](http://pgfoundry.org/projects/uri/), and
-    [`PostGIS`](http://www.postgis.org/).
+    to use. Examples of distributions are
+    [`semver`](http://pgxn.org/dist/semver/),
+    [`pair`](http://pgxn.org/dist/pair/), and
+    [`pgTAP`](http://pgxn.org/dist/pgTAP/).
 
 extension
 :   A reusable library of code contained in a single file or within files
     referenced by the (forthcoming) [`CREATE EXTENSION`
-    statement](http://wiki.postgresql.org/wiki/ExtensionPackaging). Extensions
-    usually contain one or more PostgreSQL objects -- such as data types,
-    functions, and operators -- and are often referred to by the name of a
-    primary object that can be mapped to the file name. For example, one might
-    refer to `pgTAP` instead of `sql/pgtap.sql`.
+    statement](http://developer.postgresql.org/pgdocs/postgres/sql-createextension.html).
+    Extensions usually contain one or more PostgreSQL objects — such as data
+    types, functions, and operators — and are often referred to by the name
+    of a primary object that can be mapped to the file name. For example, one
+    might refer to `pgTAP` instead of `sql/pgtap.sql`.
 
 consumer
 :   Code that reads a metadata file, deserializes it into a data structure in
     memory, or interprets a data structure of metadata elements.
 
 producer
-:    Code that constructs a metadata data structure, serializes into a
+:   Code that constructs a metadata data structure, serializes into a
     bytestream and/or writes it to disk.
 
 must, should, may, etc.
@@ -163,8 +164,8 @@ to a List of length 1.
 Map
 ---
 
-A *Map* is an unordered collection of zero or more data elements ("values"),
-indexed by associated [String](#String) elements ("keys"). The Map's value
+A *Map* is an unordered collection of zero or more data elements (“values”),
+indexed by associated [String](#String) elements (“keys”). The Map’s value
 elements may be of mixed types.
 
 License String
@@ -196,9 +197,9 @@ describes valid keys within the [Map](#Map).
 
 Any keys not described in this specification document (whether top-level or
 within compound data structures described herein) are considered *custom keys*
-and **must** begin with an "x" or "X" and be followed by an underscore; i.e.
+and **must** begin with an “x” or “X” and be followed by an underscore; i.e.
 they must match the pattern: `/\Ax_/i`. If a custom key refers to a compound
-data structure, subkeys within it do not need an "x_" or "X_" prefix.
+data structure, subkeys within it do not need an “x_” or “X_” prefix.
 
 Consumers of metadata may ignore any or all custom keys. All other keys not
 described herein are invalid and should be ignored by consumers. Producers
@@ -258,7 +259,7 @@ fields provided within the [resources](#resources) field, such as
 not limited to: (security) problems with the distribution, questions about the
 distribution, or bugs in the distribution.
 
-A distribution's original author is usually the contact listed within this
+A distribution’s original author is usually the contact listed within this
 field. Co-maintainers, successor maintainers or mailing lists devoted to the
 distribution may also be listed in addition to or instead of the original
 author.
@@ -370,7 +371,7 @@ Example:
 (Spec 1) [required] {[String](#String)}
 
 This field is the name of the distribution. This is usually the same as the
-name of the "main extension" in the distribution, but may be completely
+name of the “main extension” in the distribution, but may be completely
 unrelated to the extensions within the distribution. This string should have
 no spaces in it, and will be used for the distribution file name on PGXN.
 
@@ -409,7 +410,7 @@ Example:
 
 This field indicates the tool that was used to create this metadata. There are
 no defined semantics for this field, but it is traditional to use a string in
-the form "Software package version 1.23" or the maintainer's name, if the file
+the form “Software package version 1.23” or the maintainer’s name, if the file
 was generated by hand.
 
 ### tags ###
@@ -539,17 +540,17 @@ This field specifies the release status of this distribution. It **must** have
 one of the following values:
 
 stable
-:   Indicates an ordinary, "final" release that should be indexed by PGXN.
+:   Indicates an ordinary, “final” release that should be indexed by PGXN.
 
 testing
-:   Indicates a "beta" release that is substantially complete, but has an
+:   Indicates a “beta” release that is substantially complete, but has an
     elevated risk of bugs and requires additional testing. The distribution
     should not be installed over a stable release without an explicit request
     or other confirmation from a user. This release status may also be used
-    for "release candidate" versions of a distribution.
+    for “release candidate” versions of a distribution.
 
 unstable
-:   Indicates an "alpha" release that is under active development, but has
+:   Indicates an “alpha” release that is under active development, but has
     been released for early feedback or testing and may be missing features or
     may have serious bugs. The distribution should not be installed over a
     stable release without an explicit request or other confirmation from a
@@ -557,7 +558,7 @@ unstable
 
 Consumers **may** use this field to determine how to index the distribution
 for PGXN or other repositories. If this field is not present, consumers
-**may** assume that the distribution status is "stable."
+**may** assume that the distribution status is “stable.”
 
 ### resources ###
 
@@ -600,9 +601,9 @@ repository
 :   This entry describes the source control repository for this distribution.
     It is a [Map](#Map) with the following valid keys:<dl>
 <dt>url</dt>
-<dd><p>a [URI](#URI) pointing to the repository itself</p></dd>
+<dd><p>a <a href="#URI">URI</a> pointing to the repository itself</p></dd>
 <dt>web</dt>
-<dd><p>a [URI](#URI) pointing to a web front-end for the repository</p></dd>
+<dd><p>a <a href="#URI">URI</a> pointing to a web front-end for the repository</p></dd>
 <dt>type</dt>
 <dd><p>a lowercase string indicating the VCS used</p></dd>
 </dl>
@@ -624,8 +625,8 @@ fields in the PGXN Meta Spec.
 Version numbers must be treated as strings, and adhere to the [Semantic
 Versioning Specification](http://semver.org/). Semantic versions take a
 dotted-integer format consisting of three positive integers separated by full
-stop characters (i.e. "dots", "periods" or "decimal points"). A "special
-version" *may* be denoted by appending an arbitrary ASCII string immediately
+stop characters (i.e. “dots”, “periods” or “decimal points”). A “special
+version” *may* be denoted by appending an arbitrary ASCII string immediately
 following the patch version.
 
 This format has the benefit not only of being fully specified, but also that
@@ -685,23 +686,23 @@ configure
     available for use before the distribution building tool has been executed.
 
 build
-:   The build phase is when the distribution's source code is compiled (if
+:   The build phase is when the distribution’s source code is compiled (if
     necessary) and otherwise made ready for installation.
 
 test
-:   The test phase is when the distribution's automated test suite is run. Any
+:   The test phase is when the distribution’s automated test suite is run. Any
     extension needed only for testing and not for subsequent use should be
     listed here.
 
 runtime
-:   The runtime phase refers not only to when the distribution's contents are
+:   The runtime phase refers not only to when the distribution’s contents are
     installed, but also to its continued use. Any extension that is a
     prerequisite for regular use of this distribution should be indicated
     here.
 
 develop
-:   The develop phase's prereqs are extensions needed to work on the
-    distribution's source code as its maintainer does. These tools might be
+:   The develop phase’s prereqs are extensions needed to work on the
+    distribution’s source code as its maintainer does. These tools might be
     needed to build a release tarball, to run maintainer-only tests, or to
     perform other tasks related to developing new versions of the
     distribution.
@@ -743,12 +744,12 @@ mappings:
 
 Note that functap was removed from the pgTAP distribution sometime after
 0.18.1. Consider the case where pgTAP 0.25.0 is installed. If a distribution
-specified "functap" as a prerequisite, it could result in
+specified “functap” as a prerequisite, it could result in
 `pgTAP-0.18.1.tar.gz` being installed, overwriting any files from
 `pgTAP-0.25.0.pgz`.
 
 Consumers of metadata **should** test whether prerequisites would result in
-installed module files being "downgraded" to an older version and **may** warn
+installed module files being “downgraded” to an older version and **may** warn
 users or ignore the prerequisite that would cause such a result.
 
 Serialization
@@ -765,7 +766,7 @@ Comparing Version Numbers
 
 Following the [Semantic Versioning Spec](http://semver.org/), version numbers
 **must** be strictly compared by splitting the [Version](#Version)
-string on full stop characters (i.e. "dots", "periods" or "decimal points")
+string on full stop characters (i.e. “dots”, “periods” or “decimal points”)
 and comparing each of the three parts as integers. If an ASCII string has been
 appended to the third number, it will be extracted and compared in
 ASCII-betical order, and in any event will be considered to be less than an
