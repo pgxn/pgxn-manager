@@ -52,6 +52,14 @@ Manager configuration file. Currently, they include:
 
 =back
 
+=head3 C<update-users>
+
+  pgxn_maint update-users;
+
+Updates the JSON files for all users in the database. The location of the
+files is defined by the C<users> URI template in the PGXN Manager
+configuration file.
+
 =head3 C<reindex>
 
   pgxn_maint reindex pair 0.1.1

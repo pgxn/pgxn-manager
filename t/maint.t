@@ -2,12 +2,13 @@
 
 use 5.12.0;
 use utf8;
-use Test::More tests => 79;
+use Test::More tests => 83;
 #use Test::More 'no_plan';
 use Test::File;
 use File::Path qw(remove_tree);
 use File::Basename qw(basename);
 use Test::MockModule;
+use Test::File::Contents;
 use lib 't/lib';
 use TxnTest;
 
@@ -25,6 +26,7 @@ can_ok $CLASS => qw(
     verbosity
     workdir
     update_stats
+    update_users
     reindex
     reindex_all
     _write_json_to
@@ -259,4 +261,15 @@ REINDEX: {
     # Reindex named distros.
     @exp = ($pgz2, $pgz3, $pgz4);
     ok $maint->reindex_all('pair', 'foo'), 'Reindex all pairs and foos';
+}
+
+##############################################################################
+# Test update_users().
+USERS: {
+    my $json = File::Spec->catfile($root, 'user', "$user.json");
+    file_not_exists_ok $json, 'user.json should not exist';
+    ok $maint->update_users, 'Update users';
+    file_exists_ok $json, 'user.json should now exist';
+    file_contents_like $json, qr{"nickname": "user",},
+        'And it should look like user JSON';
 }

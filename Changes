@@ -7,6 +7,8 @@ Revision history for Perl extension PGXN::Manager
         and is updated whenever the user updates her data via the UI. This
         means that usr JSON files should now always be up-to-date, and will be
         present even for users who have no distributions (yet).
+      - Added the `update_users` method to PGXN::Manager::Maint, which
+        implicitly also adds the `update-users` task to `pgxn_maint`.
 
 0.11.1  2011-04-13T02:25:37
       - Changed the volatility option on the `utc_date()` database function

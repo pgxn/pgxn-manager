@@ -62,6 +62,37 @@ sub update_stats {
     return $self;
 }
 
+sub update_users {
+    my $self = shift;
+    my $pgxn = PGXN::Manager->instance;
+    my $tmpl = $pgxn->uri_templates->{user};
+    my $dir  = File::Spec->catdir($self->workdir, 'dest');
+    my $root = PGXN::Manager->instance->config->{mirror_root};
+    make_path $dir;
+
+    $pgxn->conn->run(sub {
+        my $sth = $_->prepare(q{
+            SELECT nickname, user_json(nickname)
+              FROM users
+             ORDER BY nickname
+        });
+        $sth->execute;
+        $sth->bind_columns(\my ($nick, $json));
+
+        while ($sth->fetch) {
+            my $uri = $tmpl->process( user => $nick );
+            my $fn  = File::Spec->catfile($dir, $uri->path_segments);
+            $self->_write_json_to($json, $fn);
+            PGXN::Manager->move_file(
+                $fn,
+                File::Spec->catfile($root, $uri->path_segments)
+            );
+        }
+    });
+
+    return $self;
+}
+
 sub reindex {
     my ($self, @args) = @_;
     my $pgxn = PGXN::Manager->instance;
@@ -275,6 +306,14 @@ Manager configuration file. Currently, they include:
 =item F<summary.json>
 
 =back
+
+=head3 C<update_users>
+
+  $maint->update_users;
+
+Updates the JSON files for all users in the database. The location of the
+files is defined by the C<users> URI template in the PGXN Manager
+configuration file.
 
 =head3 C<reindex>
 
