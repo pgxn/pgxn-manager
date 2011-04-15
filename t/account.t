@@ -3,7 +3,7 @@
 use 5.12.0;
 use utf8;
 
-use Test::More tests => 327;
+use Test::More tests => 331;
 #use Test::More 'no_plan';
 use Plack::Test;
 use HTTP::Request::Common;
@@ -12,7 +12,10 @@ use PGXN::Manager::Router;
 use HTTP::Message::PSGI;
 use Test::XML;
 use Test::XPath;
+use Test::File;
+use Test::File::Contents;
 use MIME::Base64;
+use File::Path 'remove_tree';
 use lib 't/lib';
 use TxnTest;
 use XPathTest;
@@ -20,11 +23,14 @@ use XPathTest;
 my $app  = PGXN::Manager::Router->app;
 my $mt   = PGXN::Manager::Locale->accept('en');
 my $uri  = '/auth/account';
+my $root = PGXN::Manager->instance->config->{mirror_root};
 my $head = {
     h1            => 'Edit Your Account',
     validate_form => '#accform',
     page_title    => 'Edit your account information',
 };
+
+END { remove_tree $root }
 
 # Connect without authenticating.
 test_psgi $app => sub {
@@ -156,8 +162,11 @@ test_psgi +PGXN::Manager::Router->app => sub {
 
 # Okay, let's submit the form.
 test_psgi $app => sub {
-    my $cb     = shift;
-    my $user   = TxnTest->user;
+    my $cb   = shift;
+    my $user = TxnTest->user;
+    my $json = File::Spec->catfile($root, 'user', "$user.json");
+    file_not_exists_ok $json, 'user.json should not yet exist';
+
     ok my $res = $cb->(POST(
         $uri,
         Authorization => 'Basic ' . encode_base64("$user:****"),
@@ -184,12 +193,25 @@ test_psgi $app => sub {
             'Tom Lane', 'tgl@pgxn.org', '', 'tommylane',
         ], 'User should be updated'
     });
+
+    # And so should the JSON file.
+    file_exists_ok $json, 'user.json should now exist';
+    file_contents_eq_or_diff $json, '{
+   "nickname": "user",
+   "name": "Tom Lane",
+   "email": "tgl@pgxn.org",
+   "uri": "",
+   "twitter": "tommylane"
+}
+', 'And the contents of user.json should be correct';
 };
 
 # Try an update via an XMLHttpRequest.
 test_psgi $app => sub {
-    my $cb     = shift;
-    my $user   = TxnTest->user;
+    my $cb   = shift;
+    my $user = TxnTest->user;
+    my $json = File::Spec->catfile($root, 'user', "$user.json");
+
     ok my $res = $cb->(POST(
         $uri,
         Authorization => 'Basic ' . encode_base64("$user:****"),
@@ -214,6 +236,16 @@ test_psgi $app => sub {
             'Josh Berkus', 'josh@pgxn.org', '', 'agliodbs',
         ], 'User should be updated'
     });
+
+    # And so should the JSON file.
+    file_contents_eq_or_diff $json, '{
+   "nickname": "user",
+   "name": "Josh Berkus",
+   "email": "josh@pgxn.org",
+   "uri": "",
+   "twitter": "agliodbs"
+}
+', 'And the contents of user.json should be updated';
 };
 
 # Need to mock user_is_admin to get around dead transactions.

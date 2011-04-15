@@ -4,25 +4,31 @@ use 5.12.0;
 use utf8;
 BEGIN { $ENV{EMAIL_SENDER_TRANSPORT} = 'Test' }
 
-use Test::More tests => 280;
+use Test::More tests => 283;
 #use Test::More 'no_plan';
 use Plack::Test;
 use HTTP::Request::Common;
 use PGXN::Manager;
+use Test::File;
+use Test::File::Contents;
 use PGXN::Manager::Router;
 use HTTP::Message::PSGI;
 use Test::XML;
 use Test::XPath;
 use MIME::Base64;
+use File::Path 'remove_tree';
 use lib 't/lib';
 use TxnTest;
 use XPathTest;
 
-my $app      = PGXN::Manager::Router->app;
-my $mt       = PGXN::Manager::Locale->accept('en');
-my $uri      = '/auth/admin/moderate';
-my $user     = TxnTest->user;
-my $admin    = TxnTest->admin;
+my $app   = PGXN::Manager::Router->app;
+my $mt    = PGXN::Manager::Locale->accept('en');
+my $uri   = '/auth/admin/moderate';
+my $user  = TxnTest->user;
+my $admin = TxnTest->admin;
+my $root  = PGXN::Manager->instance->config->{mirror_root};
+
+END { remove_tree $root }
 
 # Connect without authenticating.
 test_psgi $app => sub {
@@ -581,8 +587,10 @@ PGXN::Manager->conn->run(sub {
 
 # Accept bob.
 test_psgi +PGXN::Manager::Router->app => sub {
-    my $cb     = shift;
-    my $req    = POST(
+    my $cb   = shift;
+    my $json = File::Spec->catfile($root, qw(user bob.json));
+    file_not_exists_ok $json, 'bob.json should not exist';
+    my $req  = POST(
         '/auth/admin/user/bob/status',
         Authorization => 'Basic ' . encode_base64("$admin:****"),
         Content => [ status => 'active' ],
@@ -594,6 +602,15 @@ test_psgi +PGXN::Manager::Router->app => sub {
     $req->env->{SCRIPT_NAME} = '/auth';
     is $res->headers->header('location'), $req->uri_for('/admin/moderate'),
         "Should redirect to $uri";
+
+    # Did we write out the JSON file?
+    file_exists_ok $json, 'bob.json should now exist';
+    file_contents_eq_or_diff $json, '{
+   "nickname": "bob",
+   "name": "",
+   "email": "bob@pgxn.org"
+}
+', 'And it should have the proper json';
 
     # Did we send him email?
     ok my $deliveries = Email::Sender::Simple->default_transport->deliveries,

@@ -431,11 +431,15 @@ sub set_status {
     if ($status eq 'active') {
         # Generate a password-changing token.
         my $token = $pgxn->conn->run(sub {
-            shift->selectcol_arrayref(
+            my $dbh = shift;
+            $self->_update_user_json($dbh, $params->{nick});
+            $dbh->selectcol_arrayref(
                 'SELECT forgot_password(?)',
                 undef, $params->{nick}
             )->[0];
         });
+
+        # Update the user JSON.
 
         my $uri = $req->auth_uri_for("/account/reset/$token->[0]");
         $to   = $token->[1];
@@ -590,13 +594,30 @@ sub show_account {
     return $self->render('/show_account', { req => $req, vars => $user });
 }
 
+sub _update_user_json {
+    my ($self, $dbh, $nick) = @_;
+    my $tmp = File::Temp->new;
+    binmode $tmp, ':utf8';
+    print $tmp $dbh->selectrow_array( 'SELECT user_json(?)', undef, $nick);
+    close $tmp;
+
+    my $pgxn = PGXN::Manager->instance;
+    my $tmpl = $pgxn->uri_templates->{user}
+        or die "No user template found in config\n";
+    my $uri = $tmpl->process( user => $nick );
+    PGXN::Manager->move_file($tmp->filename, File::Spec->catfile(
+        $pgxn->config->{mirror_root}, $uri->path_segments
+    ));
+}
+
 sub update_account {
     my $self   = shift;
     my $req    = Request->new(shift);
     my $params = $req->body_parameters;
 
     PGXN::Manager->conn->run(sub {
-        $_->do(
+        my $dbh = shift;
+        $dbh->do(
             q{SELECT update_user(
                 nickname  := ?,
                 full_name := ?,
@@ -613,6 +634,9 @@ sub update_account {
                 uri
             )}
         );
+
+        # Update the user JSON.
+        $self->_update_user_json($dbh, $req->user);
 
         # Success!
         return $self->respond_with('success', $req) if $req->is_xhr;
