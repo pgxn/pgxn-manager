@@ -1,4 +1,4 @@
--- sql/1282692433-add_distribution.sql SQL Migration
+-- sql/11-add_distribution.sql SQL Migration
 
 CREATE OR REPLACE FUNCTION setup_meta(
     IN  nick        LABEL,

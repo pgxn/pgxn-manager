@@ -1,4 +1,4 @@
--- sql/1285884050-distview.sql SQL Migration
+-- sql/13-distview.sql SQL Migration
 
 SET client_min_messages TO warning;
 SET log_min_messages    TO warning;

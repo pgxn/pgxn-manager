@@ -1,4 +1,4 @@
--- sql/1282347462-tokens.sql SQL Migration
+-- sql/04-tokens.sql SQL Migration
 
 SET client_min_messages TO warning;
 SET log_min_messages    TO warning;

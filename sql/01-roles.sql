@@ -1,4 +1,4 @@
--- sql/1282089300-roles.sql SQL Migration
+-- sql/01-roles.sql SQL Migration
 
 SET client_min_messages TO warning;
 SET log_min_messages    TO warning;

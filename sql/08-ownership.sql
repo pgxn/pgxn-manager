@@ -1,4 +1,4 @@
--- sql/1283039854-ownership.sql SQL Migration
+-- sql/08-ownership.sql SQL Migration
 
 CREATE OR REPLACE FUNCTION is_admin_or_owns(
     nick LABEL,

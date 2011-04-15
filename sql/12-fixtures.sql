@@ -1,4 +1,4 @@
--- sql/1284518517-fixtures.sql SQL Migration
+-- sql/12-fixtures.sql SQL Migration
 
 SET client_min_messages TO warning;
 SET log_min_messages    TO warning;

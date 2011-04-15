@@ -1,4 +1,4 @@
--- sql/1282089359-users.sql SQL Migration
+-- sql/03-users.sql SQL Migration
 
 SET client_min_messages TO warning;
 SET log_min_messages    TO warning;

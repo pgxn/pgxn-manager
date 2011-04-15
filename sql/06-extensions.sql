@@ -1,4 +1,4 @@
--- sql/1282690796-extensions.sql SQL Migration
+-- sql/06-extensions.sql SQL Migration
 
 SET client_min_messages TO warning;
 SET log_min_messages    TO warning;

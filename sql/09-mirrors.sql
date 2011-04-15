@@ -1,4 +1,4 @@
--- sql/1283200230-mirrors.sql SQL Migration
+-- sql/09-mirrors.sql SQL Migration
 
 SET client_min_messages TO warning;
 SET log_min_messages    TO warning;
