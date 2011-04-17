@@ -1,6 +1,6 @@
 Revision history for Perl extension PGXN::Manager
 
-0.11.2
+0.12.0
       - Requests should now all be returned with an appropriate
         `Content-Length` header.
       - A JSON file is now created for new users as soon as they're approved,
