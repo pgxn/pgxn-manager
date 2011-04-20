@@ -686,6 +686,8 @@ phases.
 ----------------|---------------------------------
   make install  | runtime
 
+<div></div><!-- Fix for MultiMarkdown not liking a single-row table. -->
+
 configure
 :   The configure phase occurs before any dynamic configuration has been
     attempted. Extensions required by the configure phase **must** be
