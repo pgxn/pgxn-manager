@@ -1,5 +1,9 @@
 Revision history for Perl extension PGXN::Manager
 
+0.12.1
+      - Fixed JSON writing in PGXN::Manager::Maint so that it properly writes
+        out UTF-8 encoded data read from the database.
+
 0.12.0  2011-04-20T05:35:52
       - Requests should now all be returned with an appropriate
         `Content-Length` header.

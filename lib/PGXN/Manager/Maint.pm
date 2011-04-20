@@ -160,7 +160,7 @@ sub reindex_all {
 sub _write_json_to {
     my ($self, $json, $fn) = @_;
     make_path dirname $fn;
-    open my $fh, '>', $fn or die "Cannot open $fn: $!\n";
+    open my $fh, '>encoding(UTF-8)', $fn or die "Cannot open $fn: $!\n";
     print $fh $json;
     close $fh or die "Cannot close $fn: $!\n";
 }

@@ -2,13 +2,14 @@
 
 use 5.12.0;
 use utf8;
-use Test::More tests => 83;
+use Test::More tests => 87;
 #use Test::More 'no_plan';
 use Test::File;
 use File::Path qw(remove_tree);
 use File::Basename qw(basename);
 use Test::MockModule;
 use Test::File::Contents;
+use JSON::XS;
 use lib 't/lib';
 use TxnTest;
 
@@ -57,6 +58,19 @@ DEFAULT: {
     is_deeply { $maint->_config }, \%defopts,
         'Default options should be correct';
 }
+
+##############################################################################
+# Test _write_json_to().
+my $file = File::Spec->catfile($root, 'tmp.json');
+file_not_exists_ok $file, 'Test JSON file should not exist';
+ok $maint->_write_json_to('{"name": "Bjørn"}', $file), 'Write JSON to a file';
+file_exists_ok $file, 'Test JSON file should now exist';
+my $data = decode_json do {
+    open my $fh, '<:raw', $file or die "Cannot open $file: $!\n";
+    local $/;
+    <$fh>;
+};
+is_deeply $data, {name => 'Bjørn'}, 'The JSON should have been properly written';
 
 ##############################################################################
 # Test run().
