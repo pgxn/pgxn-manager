@@ -1,6 +1,6 @@
 Revision history for Perl extension PGXN::Manager
 
-0.12.1
+0.12.1  
       - Fixed JSON writing in PGXN::Manager::Maint so that it properly writes
         out UTF-8 encoded data read from the database.
 
