@@ -9,6 +9,9 @@ Revision history for Perl extension PGXN::Manager
         present even for users who have no distributions (yet).
       - Added the `update_users` method to PGXN::Manager::Maint, which
         implicitly also adds the `update-users` task to `pgxn_maint`.
+      - Changed the `doc` key under `provides` in the meta spec to `docfile`.
+        It's more specific that it should be a file, and doesn't interfere
+        with the existing use of `doc` by the API.
 
 0.11.1  2011-04-13T02:25:37
       - Changed the volatility option on the `utc_date()` database function

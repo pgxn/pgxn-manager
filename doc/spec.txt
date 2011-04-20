@@ -37,13 +37,13 @@ Synopsis
        "provides": {
          "pgtap": {
            "file": "sql/pgtap.sql",
-           "doc": "doc/pgtap.mmd",
+           "docfile": "doc/pgtap.mmd",
            "version": "0.2.4",
            "abstract": "Unit testing assertions for PostgreSQL"
          },
          "schematap": {
            "file": "sql/schematap.sql",
-           "doc": "doc/schematap.mmd",
+           "docfile": "doc/schematap.mmd",
            "version": "0.2.4",
            "abstract": "Schema testing assertions for PostgreSQL"
          }
@@ -499,13 +499,13 @@ Example:
     "provides": {
       "pgtap": {
         "file": "sql/pgtap.sql",
-        "doc": "doc/pgtap.mmd",
+        "docfile": "doc/pgtap.mmd",
         "version": "0.2.4",
         "abstract": "Unit testing assertions for PostgreSQL"
       },
       "schematap": {
         "file": "sql/schematap.sql",
-        "doc": "doc/schematap.mmd",
+        "docfile": "doc/schematap.mmd",
         "version": "0.2.4",
         "abstract": "Schema testing assertions for PostgreSQL"
       }
@@ -532,7 +532,7 @@ version
 abstract
 :   A short [String](#String) value describing the extension. Optional.
 
-doc
+docfile
 :   The value must contain a relative file path from the root of the
     distribution to the file containing documentation for the extension. The
     path **must be** specified with unix conventions. Optional.
