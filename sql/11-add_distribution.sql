@@ -354,7 +354,7 @@ maintainer
 abstract
 : Short description of the distribution.
 
-See the [PGXN Meta Spec](http://pgxn.org/meta/spec.html)
+See the [PGXN Meta Spec](http://pgxn.org/spec/)
 for the complete list of specified keys.
 
 With this data, `add_distribution()` does the following things:
