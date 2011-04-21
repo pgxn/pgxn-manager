@@ -32,7 +32,7 @@
    "generated_by": "theory",
    "meta-spec": {
       "version": "1.0.0",
-      "url": "http://github.com/theory/pgxn/wiki/PGXN-Meta-Spec"
+      "url": "http://pgxn.org/meta/spec.txt"
    },
    "tags": [
       "widget",

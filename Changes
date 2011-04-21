@@ -5,7 +5,8 @@ Revision history for Perl extension PGXN::Manager
         this time for MultiMarkdown's inability to properly parse a single-row
         table. Hopefully these workarounds can be removed someday when
         MultiMarkdown 3.0 is ported to Perl.
-      - Updated Meta Spec links to their new URL, http://pgxn.org/spec/.
+      - Updated Meta Spec links to their new URL, http://pgxn.org/spec/,
+        and GitHub link to their new URL, http://github.com/spec/.
 
 0.12.1  2011-04-20T05:59:39
       - Fixed JSON writing in PGXN::Manager::Maint so that it properly writes

@@ -12,7 +12,7 @@ There is ongoing work to integrate the idea of extensions more deeply into the P
 
 ### That's So Meta ###
 
-At its simplest, the only thing PGXN requires of a distribution is a single file, `META.json`, which describes the package. This is (currently) the only file that PGXN Manager uses to index a distribution, so it's important to get it right. The [PGXN Meta Spec](http://github.com/theory/pgxn/wiki/PGXN-Meta-Spec) has a rather complete example of a hypothetical pgTAP `META.json`. 
+At its simplest, the only thing PGXN requires of a distribution is a single file, `META.json`, which describes the package. This is (currently) the only file that PGXN Manager uses to index a distribution, so it's important to get it right. The [PGXN Meta Spec](http://pgxn.org/spec/) has a rather complete example of a hypothetical pgTAP `META.json`. 
 
 If you have only one .sql file for your extension and it's the same name as the distribution (which is commonly the case), then you can make it pretty simple. For example, the [`pair`](http://master.pgxn.org/dist/pair/) distribution has only one SQL file. So the `META.json` could be:
 
@@ -24,7 +24,7 @@ If you have only one .sql file for your extension and it's the same name as the 
        "license": "postgresql",
        "meta-spec": {
           "version": "1.0.0",
-          "url": "http://github.com/theory/pgxn/wiki/PGXN-Meta-Spec"
+          "url": "http://pgxn.org/meta/spec.txt"
        },
     }
     
@@ -32,11 +32,11 @@ That's it. The only thing that may not be obvious from this example is that all 
 
 In the short run, you won't need anything more in your `META.json` file. But once the proposed [search site](http://wiki.postgresql.org/wiki/PGXN#Search_Site) and [command-line client](http://wiki.postgresql.org/wiki/PGXN#PGXN_Client) have been implemented, you're probably going to want to do more. Other useful keys to include are:
 
-* [`tags`](http://github.com/theory/pgxn/wiki/PGXN-Meta-Spec#tags): An array of tags to associate with a distribution. Will help with searching.
-* [`prereqs`](http://github.com/theory/pgxn/wiki/PGXN-Meta-Spec#prereqs): A list of prerequisite extensions or PostgreSQL contrib modules (or PostgreSQL itself).
-* [`provides`](http://github.com/theory/pgxn/wiki/PGXN-Meta-Spec#provides): A list of included extensions. Useful if you have more than one in a single distribution. It also will assign ownership of the specified extension names to you -- if they haven't been claimed by any previous distribution.
-* [`release_status`](http://github.com/theory/pgxn/wiki/PGXN-Meta-Spec#release_status): To label a distribution as "stable," "unstable," or "testing." The latter two are useful for distributing extensions for testing but that should not be installed by automated clients.
-* [`resources`](http://github.com/theory/pgxn/wiki/PGXN-Meta-Spec#resources): A list of related links, such as to an SCM repository or bug tracker. The search site will output these links.
+* [`tags`](http://pgxn.org/spec/#tags): An array of tags to associate with a distribution. Will help with searching.
+* [`prereqs`](http://pgxn.org/spec/#prereqs): A list of prerequisite extensions or PostgreSQL contrib modules (or PostgreSQL itself).
+* [`provides`](http://pgxn.org/spec/#provides): A list of included extensions. Useful if you have more than one in a single distribution. It also will assign ownership of the specified extension names to you -- if they haven't been claimed by any previous distribution.
+* [`release_status`](http://pgxn.org/spec/#release_status): To label a distribution as "stable," "unstable," or "testing." The latter two are useful for distributing extensions for testing but that should not be installed by automated clients.
+* [`resources`](http://pgxn.org/spec/#resources): A list of related links, such as to an SCM repository or bug tracker. The search site will output these links.
 
 Have a look at the [`pair` `META.json` file](http://github.com/theory/kv-pair/blob/master/META.json) for an extended example.
 

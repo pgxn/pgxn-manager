@@ -185,7 +185,7 @@ BEGIN { create_wrapper wrapper => sub {
                 id is 'footer';
                 p {
                     outs 'PGXN::Manager ' . PGXN::Manager->VERSION;
-                    outs_raw '. <a href="http://github.com/theory/pgxn-manager">Distributed</a> under the <a href="http://www.opensource.org/licenses/postgresql">PostgreSQL License</a>.';
+                    outs_raw '. <a href="http://github.com/pgxn/pgxn-manager">Distributed</a> under the <a href="http://www.opensource.org/licenses/postgresql">PostgreSQL License</a>.';
                 };
             };
         }; # /body
@@ -336,7 +336,7 @@ template contact => sub {
                 p {
                     outs T 'Please send bug reports to the';
                     a {
-                        href is 'http://github.com/theory/pgxn-manager/issues';
+                        href is 'http://github.com/pgxn/pgxn-manager/issues';
                         T 'PGXN Manager Issue Tracker.';
                     };
                 };
@@ -352,7 +352,7 @@ template contact => sub {
                     outs '. ';
                     outs T 'Download PGXN Manager releases from';
                     a {
-                        href is 'http://github.com/theory/pgxn-manager/downloads';
+                        href is 'http://github.com/pgxn/pgxn-manager/downloads';
                         T 'GitHub Downloads';
                     };
                     outs '.';
@@ -363,7 +363,7 @@ template contact => sub {
                 p {
                     outs T 'The PGXN Manager source is availabe in a Git repository';
                     a {
-                        href is 'http://github.com/theory/pgxn-manager';
+                        href is 'http://github.com/pgxn/pgxn-manager';
                         T 'on GitHub';
                     };
                     outs '. ';

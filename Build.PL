@@ -106,8 +106,8 @@ $class->new(
     meta_merge => {
         resources => {
             homepage   => 'http://manager.pgxn.org/',
-            bugtracker => 'http://github.com/theory/pgxn-manager/issues/',
-            repository => 'http://github.com/theory/pgxn-manager/tree/',
+            bugtracker => 'http://github.com/pgxn/pgxn-manager/issues/',
+            repository => 'http://github.com/pgxn/pgxn-manager/tree/',
         }
     },
 )->create_build_script;
