@@ -26,6 +26,7 @@
         "mirrors":   "/meta/mirrors.json",
         "spec":      "/meta/spec.{format}"
     },
+    "release_permalink": "http://pgxn.org/dist/{dist}/",
     "twitter": {
         "consumer_key": "",
         "consumer_secret": "",
