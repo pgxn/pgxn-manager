@@ -311,7 +311,6 @@ test_psgi $app => sub {
 
     ok my $res = $cb->($req), "Get $uri";
     ok $res->is_success, 'Response should be success';
-    diag $res->content;
     is_well_formed_xml $res->content, 'The HTML should be well-formed';
 };
 
