@@ -7,6 +7,10 @@ Revision history for Perl extension PGXN::Manager
         MultiMarkdown 3.0 is ported to Perl.
       - Updated Meta Spec links to their new URL, http://pgxn.org/spec/,
         and GitHub link to their new URL, http://github.com/spec/.
+      - The "provides" section of a `META.json` file is now properly
+        validated, so a missing version no longer triggers a 500 error, but
+        tells the user that the version is missing. Reported by Hitoshi
+        Harada.
 
 0.12.1  2011-04-20T05:59:39
       - Fixed JSON writing in PGXN::Manager::Maint so that it properly writes

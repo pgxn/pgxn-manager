@@ -156,10 +156,9 @@ sub normalize {
     if (my @missing = grep { !exists $meta->{$_} } qw(
         name version license maintainer abstract
     )) {
-        my $pl = @missing > 1 ? 's' : '';
         my $keys = join '", "', @missing;
         $self->error([
-            '“[_1]” is missing the required [numerate,_2,key] [qlist,_3]',
+            '"[_1]" is missing the required [numerate,_2,key] [qlist,_3]',
             $self->metamemb->fileName,
             scalar @missing,
             \@missing,
@@ -192,10 +191,23 @@ sub normalize {
 
     # Do the provides versions need normalizing?
     if (my $provides = $meta->{provides}) {
-        for my $ext (values %{ $provides }) {
-            my $norm = SemVer->declare($ext->{version})->normal;
-            next if $norm eq $ext->{version};
-            $ext->{version} = $norm;
+        while (my ($ext, $info) = each %{ $provides }) {
+            # Make sure we have required keys.
+            if (my @missing = grep { !exists $info->{$_} } qw(file version)) {
+                my $keys = join '", "', @missing;
+                $self->error([
+                    '"[_1]" is missing the required [numerate,_2,key] [qlist,_3] under [_4]',
+                    $self->metamemb->fileName,
+                    scalar @missing,
+                    \@missing,
+                    "provides/$ext",
+                ]);
+                return;
+            }
+
+            my $norm = SemVer->declare($info->{version})->normal;
+            next if $norm eq $info->{version};
+            $info->{version} = $norm;
             $self->modified($meta_modified = 1);
         }
     }

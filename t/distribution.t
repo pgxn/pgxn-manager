@@ -2,8 +2,8 @@
 
 use 5.12.0;
 use utf8;
-use Test::More tests => 242;
-#use Test::More 'no_plan';
+#use Test::More tests => 242;
+use Test::More 'no_plan';
 use Archive::Zip qw(:ERROR_CODES);
 use HTTP::Headers;
 use Test::File;
@@ -254,7 +254,7 @@ ok $dist->extract, 'Extract it';
 ok $dist->read_meta, 'Read its meta data';
 ok !$dist->normalize, 'Should get false from normalize()';
 is_deeply scalar $dist->error, [
-    '“[_1]” is missing the required [numerate,_2,key] [qlist,_3]',
+    '"[_1]" is missing the required [numerate,_2,key] [qlist,_3]',
     'widget-0.2.5/META.json', 3, [qw(license maintainer abstract)],
 ], 'Sould get missing keys error';
 is $dist->localized_error,
@@ -298,6 +298,25 @@ $distmeta->{prereqs}{runtime}{requires}{PostgreSQL} = '8.0.0';
 is_deeply $dist->distmeta, $distmeta,
     'The distmeta should have the normalized prereq version';
 is $updated, 1, 'And _update_meta() should have been called';
+
+# Try a "provides" section missing the version.
+delete $distmeta->{provides}{widget}{version};
+$dzip->memberNamed('widget-0.2.5/META.json')->contents(encode_json $distmeta);
+$dzip->writeToFileNamed($nonsemzip) == AZ_OK or die 'write error';
+ok $dist = new_dist($nonsemzip), 'Create a distribution with bad provides meta zip';
+ok $dist->extract, 'Extract it';
+ok $dist->read_meta, 'Read its meta data';
+ok !$dist->normalize, 'Try to normalize it';
+is_deeply scalar $dist->error, [
+    '"[_1]" is missing the required [numerate,_2,key] [qlist,_3] under [_4]',
+    'widget-0.2.5/META.json',
+    1,
+    ['version'],
+    'provides/widget',
+], 'The error message should be set';
+is $dist->localized_error,
+    '“widget-0.2.5/META.json” is missing the required key “version” under provides/widget',
+    'And it should localize properly';
 
 # Make sure that the "provides" versions are normalized.
 $updated = 0;

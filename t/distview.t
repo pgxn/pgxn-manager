@@ -89,7 +89,7 @@ ok $dist->process, 'Process the widget-0.2.6 distribution';
 # And finally, create one for the admin user.
 $meta->{name} = 'pgTAP';
 $meta->{version} = '0.35.0';
-$meta->{provides} = { 'pgtap' => { version => '0.35.0' } };
+$meta->{provides} = { 'pgtap' => { file => 'sql/pgtap.sql', version => '0.35.0' } };
 $dzip->memberNamed('widget-0.2.5/META.json')->contents(encode_json $meta);
 $dzip->writeToFileNamed($distzip) == AZ_OK or die 'write error';
 
@@ -311,6 +311,7 @@ test_psgi $app => sub {
 
     ok my $res = $cb->($req), "Get $uri";
     ok $res->is_success, 'Response should be success';
+    diag $res->content;
     is_well_formed_xml $res->content, 'The HTML should be well-formed';
 };
 
