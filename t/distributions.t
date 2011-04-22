@@ -175,7 +175,7 @@ ok $dist->process, 'Process the pair-1.3.0 distribution';
 # And finally, create one for the admin user.
 $meta->{name} = 'pgTAP';
 $meta->{version} = '0.35.0';
-$meta->{provides} = { 'pgtap' => { version => '0.35.0' } };
+$meta->{provides} = { 'pgtap' => { file => 'sql/pgtap.sql', version => '0.35.0' } };
 $dzip->memberNamed('widget-0.2.5/META.json')->contents(encode_json $meta);
 $dzip->writeToFileNamed($distzip) == AZ_OK or die 'write error';
 
