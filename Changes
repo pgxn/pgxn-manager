@@ -1,6 +1,6 @@
 Revision history for Perl extension PGXN::Manager
 
-0.12.2
+0.12.2  2011-04-22T18:51:42
       - Added another workaround to a MultiMarkdown bug to `doc/spec.txt`,
         this time for MultiMarkdown's inability to properly parse a single-row
         table. Hopefully these workarounds can be removed someday when
