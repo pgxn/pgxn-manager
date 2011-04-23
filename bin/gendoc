@@ -73,10 +73,13 @@ for my $fn (@ARGV) {
             my $buf = "\n### `$func` ###\n";
 
             # Find everything up to the start of the function body
-            my @sig;
+            my (@sig, $dollar_quote);
             while (<$fh>) {
                 push @sig, $_;
-                last if /\bAS\s+\$(?:BODY|_)?\$/i;
+                if (/\bAS\s+(\$(?:BODY|_)?\$)/i) {
+                    $dollar_quote = $1;
+                    last;
+                }
             }
 
             # Parse the signature.
@@ -150,7 +153,7 @@ for my $fn (@ARGV) {
             # Find any documentation.
             my $doc = '';
             DOC: while (<$fh>) {
-                last if /\bAS\s+\$(?:BODY|_)?\$/i;
+                last if /^\Q$dollar_quote\E/i;
                 if (m{^(?:/[*]|=begin markdown)}i) {
                     print STDERR "    Markdown comment found\n" if $opts{verbose} > 1;
                     while (<$fh>) {
