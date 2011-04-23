@@ -383,7 +383,7 @@ With this data, `add_distribution()` does the following things:
 
 * Inserts the distribution data into the `distributions` table.
 
-* Inserts records for all included exentions into the
+* Inserts records for all included extensions into the
   `distribution_extensions` table.
 
 * Inserts records for all associated tags into the `distribution_tags` table.
