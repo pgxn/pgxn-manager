@@ -511,8 +511,8 @@ sub upload {
         $nick = $nick ? "\@$nick" : $req->user;
 
         my $url = URI::Template->new($pgxn->config->{release_permalink})->process({
-            dist    => $meta->{name},
-            version => $meta->{version},
+            dist    => lc $meta->{name},
+            version => lc $meta->{version},
         });
         $pgxn->send_tweet({
             whom => $nick,
@@ -604,7 +604,7 @@ sub _update_user_json {
     my $pgxn = PGXN::Manager->instance;
     my $tmpl = $pgxn->uri_templates->{user}
         or die "No user template found in config\n";
-    my $uri = $tmpl->process( user => $nick );
+    my $uri = $tmpl->process( user => lc $nick );
     PGXN::Manager->move_file($tmp->filename, File::Spec->catfile(
         $pgxn->config->{mirror_root}, $uri->path_segments
     ));

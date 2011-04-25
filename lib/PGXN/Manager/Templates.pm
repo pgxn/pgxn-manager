@@ -759,8 +759,8 @@ template distribution => sub {
     my $uri_templates = PGXN::Manager->uri_templates;
     my $mirror_uri    = PGXN::Manager->config->{mirror_uri};
     my @uri_vars      = (
-        dist => $dist->{name},
-        version => $dist->{version},
+        dist    => lc $dist->{name},
+        version => lc $dist->{version},
     );
 
     wrapper {

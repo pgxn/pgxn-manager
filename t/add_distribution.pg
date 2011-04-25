@@ -383,7 +383,7 @@ DELETE FROM extensions;
 -- Add a distribution.
 SELECT bag_eq(
     $$ SELECT * FROM add_distribution('theory', 'pshaw', '{
-        "name": "pair",
+        "name": "Pair",
         "version": "0.0.01",
         "license": "postgresql",
         "maintainer": "theory",
@@ -404,7 +404,7 @@ SELECT bag_eq(
         },
         "provides": {
             "pair": { "file": "pair.sql.in", "version": "0.02.02" },
-            "trip": { "file": "trip.sql.in", "version": "0.02.01", "abstract": "A triplet" }
+            "Trip": { "file": "trip.sql.in", "version": "0.02.01", "abstract": "A triplet" }
         },
         "release_status": "testing",
         "resources": {
@@ -412,7 +412,7 @@ SELECT bag_eq(
         }
     }')$$,
     $$ VALUES ('meta', 'pair', '{
-   "name": "pair",
+   "name": "Pair",
    "abstract": "Ordered pair",
    "description": "An ordered pair for PostgreSQL",
    "version": "0.0.1",
@@ -434,14 +434,14 @@ SELECT bag_eq(
       }
    },
    "provides": {
-      "pair": {
-         "file": "pair.sql.in",
-         "version": "0.2.2"
-      },
-      "trip": {
+      "Trip": {
          "abstract": "A triplet",
          "file": "trip.sql.in",
          "version": "0.2.1"
+      },
+      "pair": {
+         "file": "pair.sql.in",
+         "version": "0.2.2"
       }
    },
    "tags": ["foo", "bar", "baz"],
@@ -450,7 +450,7 @@ SELECT bag_eq(
    }
 }
 '), ('dist', 'pair', '{
-   "name": "pair",
+   "name": "Pair",
    "releases": {
       "testing": [
          {"version": "0.0.1", "date": "' || utc_date(NOW()) || '"}
@@ -460,20 +460,20 @@ SELECT bag_eq(
 '), ('extension', 'pair', '{
    "extension": "pair",
    "latest": "testing",
-   "testing": { "dist": "pair", "version": "0.0.1", "sha1": "pshaw" },
+   "testing": { "dist": "Pair", "version": "0.0.1", "sha1": "pshaw" },
    "versions": {
       "0.2.2": [
-         { "dist": "pair", "version": "0.0.1", "status": "testing" }
+         { "dist": "Pair", "version": "0.0.1", "status": "testing" }
       ]
    }
 }
 '), ('extension', 'trip', '{
-   "extension": "trip",
+   "extension": "Trip",
    "latest": "testing",
-   "testing": { "dist": "pair", "version": "0.0.1", "sha1": "pshaw" },
+   "testing": { "dist": "Pair", "version": "0.0.1", "sha1": "pshaw" },
    "versions": {
       "0.2.1": [
-         { "dist": "pair", "version": "0.0.1", "status": "testing" }
+         { "dist": "Pair", "version": "0.0.1", "status": "testing" }
       ]
    }
 }
@@ -482,7 +482,7 @@ SELECT bag_eq(
    "name": "",
    "email": "theory@pgxn.org",
    "releases": {
-      "pair": {
+      "Pair": {
          "testing": [
             {"version": "0.0.1", "date": "' || utc_date(NOW()) || '"}
          ]
@@ -492,7 +492,7 @@ SELECT bag_eq(
 '), ('tag', 'bar', '{
    "tag": "bar",
    "releases": {
-      "pair": {
+      "Pair": {
          "testing": [
             {"version": "0.0.1", "date": "' || utc_date(NOW()) || '"}
          ]
@@ -502,7 +502,7 @@ SELECT bag_eq(
 '), ('tag', 'foo', '{
    "tag": "foo",
    "releases": {
-      "pair": {
+      "Pair": {
          "testing": [
             {"version": "0.0.1", "date": "' || utc_date(NOW()) || '"}
          ]
@@ -512,7 +512,7 @@ SELECT bag_eq(
 '), ('tag', 'baz', '{
    "tag": "baz",
    "releases": {
-      "pair": {
+      "Pair": {
          "testing": [
             {"version": "0.0.1", "date": "' || utc_date(NOW()) || '"}
          ]
@@ -532,7 +532,7 @@ SELECT bag_eq(
    "releases": 1,
    "recent": [
       {
-         "dist": "pair",
+         "dist": "Pair",
          "version": "0.0.1",
          "abstract": "Ordered pair",
          "date": "' || utc_date(NOW()) || '",
@@ -548,17 +548,17 @@ SELECT bag_eq(
          "extension": "pair",
          "abstract": "",
          "ext_version": "0.2.2",
-         "dist": "pair",
+         "dist": "Pair",
          "version": "0.0.1",
          "date": "' || utc_date(NOW()) || '",
          "user": "theory",
          "user_name": ""
       },
       {
-         "extension": "trip",
+         "extension": "Trip",
          "abstract": "A triplet",
          "ext_version": "0.2.1",
-         "dist": "pair",
+         "dist": "Pair",
          "version": "0.0.1",
          "date": "' || utc_date(NOW()) || '",
          "user": "theory",
@@ -590,7 +590,7 @@ SELECT row_eq(
 );
 
 SELECT is(meta, '{
-   "name": "pair",
+   "name": "Pair",
    "abstract": "Ordered pair",
    "description": "An ordered pair for PostgreSQL",
    "version": "0.0.1",
@@ -612,14 +612,14 @@ SELECT is(meta, '{
       }
    },
    "provides": {
-      "pair": {
-         "file": "pair.sql.in",
-         "version": "0.2.2"
-      },
-      "trip": {
+      "Trip": {
          "abstract": "A triplet",
          "file": "trip.sql.in",
          "version": "0.2.1"
+      },
+      "pair": {
+         "file": "pair.sql.in",
+         "version": "0.2.2"
       }
    },
    "tags": ["foo", "bar", "baz"],
@@ -636,7 +636,7 @@ SELECT bag_eq(
     $$ SELECT * FROM extensions ORDER BY name $$,
     $$ VALUES
        ('pair', 'theory', NOW(), NOW()),
-       ('trip', 'theory', NOW(), NOW())
+       ('Trip', 'theory', NOW(), NOW())
     $$,
     'We should have the expected extensions'
 );
@@ -646,8 +646,8 @@ SELECT is(COUNT(*)::int, 2, 'Should now have two distribution extensions')
 SELECT bag_eq(
     $$ SELECT extension, ext_version, abstract, distribution, dist_version FROM distribution_extensions $$,
     $$ VALUES
-       ('pair', '0.2.2'::semver, '',          'pair', '0.0.1'::semver),
-       ('trip', '0.2.1'::semver, 'A triplet', 'pair', '0.0.1'::semver)
+       ('pair', '0.2.2'::semver, '',          'Pair', '0.0.1'::semver),
+       ('Trip', '0.2.1'::semver, 'A triplet', 'Pair', '0.0.1'::semver)
     $$,
     'We should have the expected distribution extensions'
 );
@@ -739,7 +739,7 @@ SELECT bag_eq(
 '), ('tag', 'foo', '{
    "tag": "foo",
    "releases": {
-      "pair": {
+      "Pair": {
          "testing": [
             {"version": "0.0.1", "date": "' || utc_date(NOW()) || '"}
          ]
@@ -790,7 +790,7 @@ SELECT bag_eq(
          "user_name": "Julie Wheeler"
       },
       {
-         "dist": "pair",
+         "dist": "Pair",
          "version": "0.0.1",
          "abstract": "Ordered pair",
          "date": "' || utc_date(NOW()) || '",
@@ -816,17 +816,17 @@ SELECT bag_eq(
          "extension": "pair",
          "abstract": "",
          "ext_version": "0.2.2",
-         "dist": "pair",
+         "dist": "Pair",
          "version": "0.0.1",
          "date": "' || utc_date(NOW()) || '",
          "user": "theory",
          "user_name": ""
       },
       {
-         "extension": "trip",
+         "extension": "Trip",
          "abstract": "A triplet",
          "ext_version": "0.2.1",
-         "dist": "pair",
+         "dist": "Pair",
          "version": "0.0.1",
          "date": "' || utc_date(NOW()) || '",
          "user": "theory",
@@ -878,7 +878,7 @@ SELECT bag_eq(
     $$ SELECT * FROM extensions ORDER BY name $$,
     $$ VALUES
        ('pair', 'theory', NOW(), NOW()),
-       ('trip', 'theory', NOW(), NOW()),
+       ('Trip', 'theory', NOW(), NOW()),
        ('foo', 'strongrrl', NOW(), NOW())
     $$,
     'We should have the expected extensions'
@@ -889,8 +889,8 @@ SELECT is(COUNT(*)::int, 3, 'Should now have three distribution extensions')
 SELECT bag_eq(
     $$ SELECT extension, ext_version, abstract, distribution, dist_version FROM distribution_extensions $$,
     $$ VALUES
-       ('pair', '0.2.2'::semver, '',          'pair', '0.0.1'::semver),
-       ('trip', '0.2.1'::semver, 'A triplet', 'pair', '0.0.1'::semver),
+       ('pair', '0.2.2'::semver, '',          'Pair', '0.0.1'::semver),
+       ('Trip', '0.2.1'::semver, 'A triplet', 'Pair', '0.0.1'::semver),
        ('foo',  '0.0.2'::semver, 'whatever',  'foo',  '0.0.2'::semver)
     $$,
     'We should have the expected distribution extensions'
@@ -982,10 +982,10 @@ SELECT bag_eq(
    "extension": "pair",
    "latest": "testing",
    "stable": { "dist": "pair", "version": "0.0.3", "sha1": "howdy" },
-   "testing": { "dist": "pair", "version": "0.0.1", "sha1": "pshaw" },
+   "testing": { "dist": "Pair", "version": "0.0.1", "sha1": "pshaw" },
    "versions": {
       "0.2.2": [
-         { "dist": "pair", "version": "0.0.1", "status": "testing" }
+         { "dist": "Pair", "version": "0.0.1", "status": "testing" }
       ],
       "0.0.3": [
          { "dist": "pair", "version": "0.0.3" }
@@ -1071,7 +1071,7 @@ SELECT bag_eq(
          "user_name": "Julie Wheeler"
       },
       {
-         "dist": "pair",
+         "dist": "Pair",
          "version": "0.0.1",
          "abstract": "Ordered pair",
          "date": "' || utc_date(NOW()) || '",
@@ -1104,7 +1104,7 @@ SELECT bag_eq(
          "extension": "pair",
          "abstract": "",
          "ext_version": "0.2.2",
-         "dist": "pair",
+         "dist": "Pair",
          "version": "0.0.1",
          "date": "' || utc_date(NOW()) || '",
          "user": "theory",
@@ -1121,10 +1121,10 @@ SELECT bag_eq(
          "user_name": "Julie Wheeler"
       },
       {
-         "extension": "trip",
+         "extension": "Trip",
          "abstract": "A triplet",
          "ext_version": "0.2.1",
-         "dist": "pair",
+         "dist": "Pair",
          "version": "0.0.1",
          "date": "' || utc_date(NOW()) || '",
          "user": "theory",
@@ -1190,7 +1190,7 @@ SELECT bag_eq(
     $$ SELECT * FROM extensions ORDER BY name $$,
     $$ VALUES
        ('pair', 'theory',    NOW(), NOW()),
-       ('trip', 'theory',    NOW(), NOW()),
+       ('Trip', 'theory',    NOW(), NOW()),
        ('foo',  'strongrrl', NOW(), NOW()),
        ('wake', 'strongrrl', NOW(), NOW())
     $$,
@@ -1202,8 +1202,8 @@ SELECT is(COUNT(*)::int, 5, 'Should now have five distribution extensions')
 SELECT bag_eq(
     $$ SELECT * FROM distribution_extensions $$,
     $$ VALUES
-       ('pair', '0.2.2'::semver, '',          'pair', '0.0.1'::semver),
-       ('trip', '0.2.1'::semver, 'A triplet', 'pair', '0.0.1'::semver),
+       ('pair', '0.2.2'::semver, '',          'Pair', '0.0.1'::semver),
+       ('Trip', '0.2.1'::semver, 'A triplet', 'Pair', '0.0.1'::semver),
        ('foo', '0.0.2'::semver,  'whatever',  'foo',  '0.0.2'::semver),
        ('pair', '0.0.3'::semver, 'whatever',  'pair', '0.0.3'::semver),
        ('wake', '0.0.5'::semver, 'da wake',   'pair', '0.0.3'::semver)
@@ -1345,7 +1345,7 @@ SELECT bag_eq(
          "extension": "pair",
          "abstract": "",
          "ext_version": "0.2.2",
-         "dist": "pair",
+         "dist": "Pair",
          "version": "0.0.1",
          "date": "' || utc_date(NOW()) || '",
          "user": "theory",
@@ -1362,10 +1362,10 @@ SELECT bag_eq(
          "user_name": "Julie Wheeler"
       },
       {
-         "extension": "trip",
+         "extension": "Trip",
          "abstract": "A triplet",
          "ext_version": "0.2.1",
-         "dist": "pair",
+         "dist": "Pair",
          "version": "0.0.1",
          "date": "' || utc_date(NOW()) || '",
          "user": "theory",
@@ -1386,10 +1386,10 @@ SELECT bag_eq(
 '), ('extension','pair','{
    "extension": "pair",
    "latest": "testing",
-   "testing": { "dist": "pair", "version": "0.0.1", "sha1": "pshaw" },
+   "testing": { "dist": "Pair", "version": "0.0.1", "sha1": "pshaw" },
    "versions": {
       "0.2.2": [
-         { "dist": "pair", "version": "0.0.1", "status": "testing" }
+         { "dist": "Pair", "version": "0.0.1", "status": "testing" }
       ],
       "0.0.3": [
          { "dist": "pair", "version": "0.0.3", "status": "testing" }
@@ -1439,7 +1439,7 @@ SELECT bag_eq(
          "user_name": "Julie Wheeler"
       },
       {
-         "dist": "pair",
+         "dist": "Pair",
          "version": "0.0.1",
          "abstract": "Ordered pair",
          "date": "' || utc_date(NOW()) || '",
@@ -1503,9 +1503,9 @@ SELECT is(ARRAY(
 -- Now that we have all that data, have a look at distribution_details.
 SELECT row_eq(
     $$ SELECT * FROM distribution_details WHERE name = 'pair' AND version = '0.0.1' $$,
-    ROW('pair', '0.0.1', 'Ordered pair', 'An ordered pair for PostgreSQL',
+    ROW('Pair', '0.0.1', 'Ordered pair', 'An ordered pair for PostgreSQL',
         'testing', 'theory', 'pshaw', '{
-   "name": "pair",
+   "name": "Pair",
    "abstract": "Ordered pair",
    "description": "An ordered pair for PostgreSQL",
    "version": "0.0.1",
@@ -1527,14 +1527,14 @@ SELECT row_eq(
       }
    },
    "provides": {
-      "pair": {
-         "file": "pair.sql.in",
-         "version": "0.2.2"
-      },
-      "trip": {
+      "Trip": {
          "abstract": "A triplet",
          "file": "trip.sql.in",
          "version": "0.2.1"
+      },
+      "pair": {
+         "file": "pair.sql.in",
+         "version": "0.2.2"
       }
    },
    "tags": ["foo", "bar", "baz"],
@@ -1542,7 +1542,7 @@ SELECT row_eq(
       "homepage": "http://pgxn.org/dist/pair/"
    }
 }
-', ARRAY[['pair','0.2.2'], ['trip', '0.2.1']],
+', ARRAY[['Trip', '0.2.1'],['pair','0.2.2']],
    ARRAY['bar', 'baz', 'foo'])::distribution_details,
    'Should get proper dist details for pair 0.0.1'
 );
@@ -1635,7 +1635,7 @@ SELECT bag_eq(
          "extension": "pair",
          "abstract": "",
          "ext_version": "0.2.2",
-         "dist": "pair",
+         "dist": "Pair",
          "version": "0.0.1",
          "date": "' || utc_date(NOW()) || '",
          "user": "theory",
@@ -1652,10 +1652,10 @@ SELECT bag_eq(
          "user_name": "Julie Wheeler"
       },
       {
-         "extension": "trip",
+         "extension": "Trip",
          "abstract": "A triplet",
          "ext_version": "0.2.1",
-         "dist": "pair",
+         "dist": "Pair",
          "version": "0.0.1",
          "date": "' || utc_date(NOW()) || '",
          "user": "theory",
@@ -1676,10 +1676,10 @@ SELECT bag_eq(
 '), ('extension','pair','{
    "extension": "pair",
    "latest": "testing",
-   "testing": { "dist": "pair", "version": "0.0.1", "sha1": "pshaw" },
+   "testing": { "dist": "Pair", "version": "0.0.1", "sha1": "pshaw" },
    "versions": {
       "0.2.2": [
-         { "dist": "pair", "version": "0.0.1", "status": "testing" }
+         { "dist": "Pair", "version": "0.0.1", "status": "testing" }
       ],
       "0.0.3": [
          { "dist": "pair", "version": "0.0.3", "status": "testing" }
@@ -1729,7 +1729,7 @@ SELECT bag_eq(
          "user_name": "Julie Wheeler"
       },
       {
-         "dist": "pair",
+         "dist": "Pair",
          "version": "0.0.1",
          "abstract": "Ordered pair",
          "date": "' || utc_date(NOW()) || '",

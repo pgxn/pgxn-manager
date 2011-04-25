@@ -309,7 +309,7 @@ sub _indexit {
     my $templates = PGXN::Manager->uri_templates;
     my $meta      = $self->distmeta;
     my $destdir   = File::Spec->catdir($self->workdir, 'dest');
-    my @vars      = ( dist => $meta->{name}, version => $meta->{version} );
+    my @vars      = ( dist => lc $meta->{name}, version => lc $meta->{version} );
     my %files;
 
     PGXN::Manager->conn->run(sub {

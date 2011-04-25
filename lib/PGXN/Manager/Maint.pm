@@ -72,7 +72,7 @@ sub update_users {
 
     $pgxn->conn->run(sub {
         my $sth = $_->prepare(q{
-            SELECT nickname, user_json(nickname)
+            SELECT LOWER(nickname), user_json(nickname)
               FROM users
              ORDER BY nickname
         });
@@ -107,7 +107,7 @@ sub reindex {
             'SELECT creator FROM distributions WHERE name = ? AND version = ?'
         );
         while (@args) {
-            my ($name, $version) = (shift @args, shift @args);
+            my ($name, $version) = (lc shift @args, lc shift @args);
             my ($user) = $dbh->selectrow_array($sth, undef, $name, $version);
             unless ($user) {
                 warn "$name $version is not a known release\n";
@@ -137,7 +137,7 @@ sub reindex_all {
 
     $pgxn->conn->run(sub {
         my $sth = shift->prepare(
-            'SELECT name, version, creator FROM distributions'
+            'SELECT LOWER(name), LOWER(version::TEXT), creator FROM distributions'
             . (@args ? ' WHERE name = ANY(?)' : '')
             . ' ORDER BY name, version DESC'
         );

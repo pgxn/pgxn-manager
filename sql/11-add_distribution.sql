@@ -435,9 +435,9 @@ BEGIN
       FROM unnest(distmeta.tags) AS tag;
 
     RETURN QUERY
-        SELECT 'meta'::TEXT, distmeta.name::TEXT, distmeta.json
+        SELECT 'meta'::TEXT, LOWER(distmeta.name::TEXT), distmeta.json
     UNION
-        SELECT 'dist', distmeta.name::TEXT, dist_json(distmeta.name)
+        SELECT 'dist', LOWER(distmeta.name::TEXT), dist_json(distmeta.name)
     UNION
         SELECT 'extension', * FROM extension_json(distmeta.name, distmeta.version)
     UNION
@@ -476,8 +476,8 @@ BEGIN
      WHERE distributions.name    = dist
        AND distributions.version = get_distribution.version;
     IF nick IS NOT NULL THEN RETURN QUERY
-              SELECT 'meta'::TEXT, dist, distmeta
-        UNION SELECT 'dist',       dist, dist_json(dist)
+              SELECT 'meta'::TEXT, LOWER(dist), distmeta
+        UNION SELECT 'dist',       LOWER(dist), dist_json(dist)
         UNION SELECT 'extension',  * FROM extension_json(dist, version)
         UNION SELECT 'user',       LOWER(nick::TEXT), user_json(nick)
         UNION SELECT 'tag',        * FROM tag_json(dist, version)
@@ -607,9 +607,9 @@ BEGIN
        AND distribution_tags.tag          = dt.tag;
 
     RETURN QUERY
-        SELECT 'meta'::TEXT, distmeta.name::TEXT, distmeta.json
+        SELECT 'meta'::TEXT, LOWER(distmeta.name::TEXT), distmeta.json
     UNION
-        SELECT 'dist', distmeta.name::TEXT, dist_json(distmeta.name)
+        SELECT 'dist', LOWER(distmeta.name::TEXT), dist_json(distmeta.name)
     UNION
         SELECT 'extension', * FROM extension_json(distmeta.name, distmeta.version)
     UNION

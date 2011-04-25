@@ -170,8 +170,8 @@ BEGIN
          UNION SELECT NULL, NULL, NULL
          ORDER BY extension, ext_version USING >
     LOOP
-        IF (prev IS NOT NULL AND prev <> ext) OR ext IS NULL THEN
-            extension := prev;
+        IF (prev IS NOT NULL AND prev <> LOWER(ext)) OR ext IS NULL THEN
+            extension := LOWER(prev);
             json := E'{\n   "extension": ' || json_value(prev)
                  || E',\n   "latest": ' || json_value(latest)
                  || COALESCE(E',\n   "stable":'   || stable, '')
@@ -266,7 +266,7 @@ Returns a JSON string describing a distribution, including all of its released
 versions and their dates.
 
 */
-    SELECT E'{\n   "name": ' || json_value(distribution)
+    SELECT E'{\n   "name": ' || json_value($1)
            || E',\n   "releases": {\n      '
            || array_to_string(ARRAY[
                '"stable": '   || stable,
@@ -298,7 +298,7 @@ versions and their dates.
           FROM distributions
          GROUP BY name
       ) AS dv
-     WHERE distribution = $1;
+     WHERE distribution = $1::CITEXT;
 $$;
 
 CREATE OR REPLACE FUNCTION tag_json(
