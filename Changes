@@ -1,6 +1,6 @@
 Revision history for Perl extension PGXN::Manager
 
-0.12.3
+0.12.3  2011-04-25T16:35:28
       - Distribution and extension names, as well as version strings, should
         now always be converted to lowercase before writing files to disk.
         This is because all these values (as well as tags and nicknames, which
