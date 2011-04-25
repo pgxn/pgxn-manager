@@ -219,7 +219,7 @@ sub normalize {
     (my $meta_prefix = $self->metamemb->fileName) =~ s{/$META_RE}{};
     $meta_prefix //= '';
 
-    my $prefix = "$meta->{name}-$meta->{version}";
+    my $prefix = lc "$meta->{name}-$meta->{version}";
     if ($meta_prefix ne $prefix) {
         # Rename all members.
         my $old = quotemeta $meta_prefix;
@@ -296,15 +296,15 @@ after zipfile => sub {
 
 sub indexit {
     my $self = shift;
-    $self->_indexit( add => 1 );
+    $self->_indexit( 'add' );
 }
 
 sub reindexit {
-    shift->_indexit( update => 0 );
+    shift->_indexit( 'update' );
 }
 
 sub _indexit {
-    my ($self, $action, $move_zip) = @_;
+    my ($self, $action) = @_;
     my $root      = PGXN::Manager->config->{mirror_root};
     my $templates = PGXN::Manager->uri_templates;
     my $meta      = $self->distmeta;
@@ -354,7 +354,7 @@ sub _indexit {
     }) or return;
 
     # Copy the README.
-    my $prefix = quotemeta "$meta->{name}-$meta->{version}";
+    my $prefix = quotemeta lc "$meta->{name}-$meta->{version}";
     my ($readme) = $self->zip->membersMatching(
         qr{^$prefix/README(?:[.][^.]+)?$}
     );
@@ -369,11 +369,11 @@ sub _indexit {
     }
 
     # Move the archive to the mirror root.
-    my $uri  = $templates->{download}->process(@vars);
+    my $uri = $templates->{download}->process(@vars);
     PGXN::Manager->move_file(
         $self->zipfile,
         File::Spec->catfile($root, $uri->path_segments)
-    ) if $move_zip;
+    );
 
     # Move all the other files over.
     while (my ($src, $dest) = each %files) {
