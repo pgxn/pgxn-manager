@@ -19,9 +19,10 @@ Template::Declare->init( dispatch_to => ['PGXN::Manager::Templates'] );
 
 my %message_for = (
     success     => q{Success},
+    badrequest  => q{Bad request: no archive parameter.},
     forbidden   => q{Sorry, you do not have permission to access this resource.},
     notfound    => q{Resource not found.},
-    notallowed  => q{The requted method is not allowed for the resource.},
+    notallowed  => q{The requested method is not allowed for the resource.},
     conflict    => q{There is a conflict in the current state of the resource.}, # Bleh
     gone        => q{The resource is no longer available.},
     servererror => q{Internal server error.}
@@ -30,6 +31,7 @@ my %message_for = (
 my %code_for = (
     success     => 200,
     seeother    => 303,
+    badrequest  => 400,
     forbidden   => 403,
     notfound    => 404,
     notallowed  => 405,
@@ -489,8 +491,24 @@ sub show_upload {
 sub upload {
     my $self   = shift;
     my $req    = Request->new(shift);
-    my $upload = $req->uploads->{archive};
-    my $dist   = Distribution->new(
+    my $upload = do {
+        my $uploads = $req->uploads;
+        if ($uploads && $uploads->{archive}) {
+            $uploads->{archive};
+        } else {
+            # Error.
+            return $self->respond_with('badrequest', $req) if $req->is_xhr;
+
+            # Re-display the form.
+            return $self->render('/show_upload', {
+                req => $req,
+                code => $code_for{badrequest},
+                vars => { error => ['Oops! I think you forgot to select a file to upload.'] }
+            });
+        }
+    };
+
+    my $dist = Distribution->new(
         archive  => $upload->path,
         basename => $upload->basename,
         creator  => $req->user,

@@ -7,6 +7,9 @@ Revision history for Perl extension PGXN::Manager
         were already lowercased in file names) are case-insensitive. So while
         preserving case in JSON files, force lowercase in file names for
         consistency.
+      - An attept to upload a file without actually selecting a file to upload
+        no longer causes a 500 error. A 400 error is returned instead,
+        presenting the user with the form.
 
 0.12.2  2011-04-22T18:51:42
       - Added another workaround to a MultiMarkdown bug to `doc/spec.txt`,

@@ -2,7 +2,7 @@
 
 use 5.12.0;
 use utf8;
-use Test::More tests => 182;
+use Test::More tests => 192;
 #use Test::More 'no_plan';
 use Test::File;
 use Test::MockModule;
@@ -268,3 +268,42 @@ test_psgi $app => sub {
     });
 };
 
+##############################################################################
+# Now try a submit with no file.
+TxnTest->restart;
+$user = TxnTest->user;
+remove_tree $root;
+test_psgi $app => sub {
+    my $cb = shift;
+    ok my $res = $cb->(POST(
+        '/auth/upload',
+        Authorization => 'Basic ' . encode_base64("$user:****"),
+        Content_Type => 'form-data',
+        Content => [ archive => [] ],
+    )), 'POST no archive to /auth/upload again';
+    ok !$res->is_success, 'Response should not be success';
+    is $res->code, 400, 'Should get 400 response';
+    is_well_formed_xml $res->content, 'The HTML should be well-formed';
+    my $tx = Test::XPath->new( xml => $res->content, is_html => 1 );
+
+    # Now verify that we have the error message.
+    $tx->ok('/html/body/div[@id="content"]', 'Test the content', sub {
+        my $err = $mt->maketext('Oops! I think you forgot to select a file to upload.');
+        $tx->is('./p[@class="error"]', $err, '... Error paragraph should be set');
+    });
+};
+
+# Now try an Ajax request.
+test_psgi $app => sub {
+    my $cb = shift;
+    ok my $res = $cb->(POST(
+        '/auth/upload',
+        Authorization => 'Basic ' . encode_base64("$user:****"),
+        'X-Requested-With' => 'XMLHttpRequest',
+        Content_Type => 'form-data',
+        Content => [ archive => [] ],
+    )), 'POST no zip archive to /auth/upload via Ajax';
+    ok !$res->is_success, 'Response should not be success';
+    is $res->code, 400, 'Should get 400 response';
+    is $res->content, 'Bad request: no archive parameter.'
+};
