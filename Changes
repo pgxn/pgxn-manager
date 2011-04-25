@@ -1,6 +1,6 @@
 Revision history for Perl extension PGXN::Manager
 
-0.12.4
+0.12.4  2011-04-25T16:59:36
       - The directory prefix in rewritten zip files is now lowercase, just
         like the zip file name.
       - The zip file is now replaced when a distribution is re-indexed. This
