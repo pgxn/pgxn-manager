@@ -92,7 +92,7 @@ Once you've got your extension developed and well-tested, and your distribution 
 
 Then the `pair-0.1.0.zip` file was ready to upload. Simple, eh?
 
-Now, one can upload any kind of archive file to PGXN, including a tarball, or bzip2…um…ball? Basically, any kind of archive format recognized by [Archive::Extract](http://search.cpan.org/perldoc?Archive::Extract). You can upload a `.pgz` if you like, in which case PGXN will assume that it's a zip file. A zip file is best because then PGXN::Manager won't have to rewrite it. It's also preferable that everything be packed into a directory with the name `$distribution-$version`, as in the example `pair-0.1.0` example above. If not, PGXN will rewrite it that way. But it saves the server some effort if all it has to do is move a .zip file that's properly formatted, so it would be appreciated if you would upload stuff that's already nicely formatted for distribution in a zip archive.
+Now, one can upload any kind of archive file to PGXN, including a tarball, or bzip2…um…ball? Basically, any kind of archive format recognized by [Archive::Extract](http://search.cpan.org/perldoc?Archive::Extract). A zip file is best because then PGXN::Manager won't have to rewrite it. It's also preferable that everything be packed into a directory with the name `$distribution-$version`, as in the example `pair-0.1.0` example above. If not, PGXN will rewrite it that way. But it saves the server some effort if all it has to do is move a .zip file that's properly formatted, so it would be appreciated if you would upload stuff that's already nicely formatted for distribution in a zip archive.
 
 ### Release It! ###
 

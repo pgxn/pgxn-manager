@@ -18,7 +18,7 @@
     "uri_script_name_key": "HTTP_X_FORWARDED_SCRIPT_NAME",
     "auth_uri": "https://manager.pgxn.org/",
     "uri_templates": {
-        "download":  "/dist/{dist}/{version}/{dist}-{version}.pgz",
+        "download":  "/dist/{dist}/{version}/{dist}-{version}.zip",
         "readme":    "/dist/{dist}/{version}/README.txt",
         "meta":      "/dist/{dist}/{version}/META.json",
         "dist":      "/dist/{dist}.json",

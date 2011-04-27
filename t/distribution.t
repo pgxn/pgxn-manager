@@ -30,12 +30,12 @@ can_ok $CLASS, qw(
 );
 
 my $distdir    = File::Spec->catdir(qw(t dist widget));
-my $distzip    = File::Spec->catdir(qw(t dist widget-0.2.5.pgz));
+my $distzip    = File::Spec->catdir(qw(t dist widget-0.2.5.zip));
 my $disttgz    = File::Spec->catdir(qw(t dist widget-0.2.5.tar.gz));
-my $nometazip  = File::Spec->catdir(qw(t dist nometa-0.2.5.pgz));
-my $badmetazip = File::Spec->catdir(qw(t dist badmeta-0.2.5.pgz));
-my $nonsemzip  = File::Spec->catdir(qw(t dist nonsem-0.2.5.pgz));
-my $noreadzip  = File::Spec->catdir(qw(t dist badmeta-0.2.5.pgz));
+my $nometazip  = File::Spec->catdir(qw(t dist nometa-0.2.5.zip));
+my $badmetazip = File::Spec->catdir(qw(t dist badmeta-0.2.5.zip));
+my $nonsemzip  = File::Spec->catdir(qw(t dist nonsem-0.2.5.zip));
+my $noreadzip  = File::Spec->catdir(qw(t dist badmeta-0.2.5.zip));
 my $tmpdir     = File::Spec->catdir(File::Spec->tmpdir, 'pgxn');
 my $root       = PGXN::Manager->new->config->{mirror_root};
 
@@ -169,10 +169,10 @@ is $dist->metamemb, undef, 'The meta member should not be set';
 is $dist->distmeta, undef, 'Should have no distmeta';
 is_deeply scalar $dist->error, [
     'Cannot find a “[_1]” in “[_2]”',
-    'META.json', 'nometa-0.2.5.pgz',
+    'META.json', 'nometa-0.2.5.zip',
 ], 'The error message should be set';
 is $dist->localized_error,
-    'Cannot find a “META.json” in “nometa-0.2.5.pgz”',
+    'Cannot find a “META.json” in “nometa-0.2.5.zip”',
     'And it should localize properly';
 
 # Now try an archive with a broken META.json.
@@ -381,7 +381,7 @@ my %files = map { join('/', @{ $_ }) => File::Spec->catfile($root, @{ $_ } ) } (
    ['extension', 'widget.json'],
    ['dist',      'widget', '0.2.5', 'META.json'],
    ['dist',      'widget', '0.2.5', 'README.txt'],
-   ['dist',      'widget', '0.2.5', 'widget-0.2.5.pgz'],
+   ['dist',      'widget', '0.2.5', 'widget-0.2.5.zip'],
    ['tag',       'full text search.json'],
    ['stats',     'tag.json'],
    ['stats',     'user.json'],
@@ -447,7 +447,7 @@ PGXN::Manager->conn->run(sub {
 });
 
 # Check the distribution itself.
-is _sha1_for($files{'dist/widget/0.2.5/widget-0.2.5.pgz'}), $distzip_sha1,
+is _sha1_for($files{'dist/widget/0.2.5/widget-0.2.5.zip'}), $distzip_sha1,
     'The distribution archive should be as expected';
 
 file_contents_is $files{'dist/widget/0.2.5/README.txt'},
@@ -462,7 +462,7 @@ file_contents_is $files{'dist/widget/0.2.5/README.txt'},
    ['tag',       'widget.json'],
    ['extension', 'widget.json'],
    ['dist',      'widget', '2.5.0', 'META.json'],
-   ['dist',      'widget', '2.5.0', 'widget-2.5.0.pgz'],
+   ['dist',      'widget', '2.5.0', 'widget-2.5.0.zip'],
    ['tag',       'full text search.json'],
    ['stats',     'tag.json'],
    ['stats',     'user.json'],
@@ -499,11 +499,11 @@ unlink for values %files;
 file_not_exists_ok $files{$_}, "File $_ again should not exist" for keys %files;
 
 $files{"dist/widget/0.2.5/$_"} = File::Spec->catfile($root, qw(dist widget 0.2.5), $_ )
-    for qw(META.json README.txt widget-0.2.5.pgz);
+    for qw(META.json README.txt widget-0.2.5.zip);
 file_exists_ok $files{"dist/widget/0.2.5/$_"}, "File dist/widget/0.2.5/$_ should exist"
-    for qw(META.json README.txt widget-0.2.5.pgz);
+    for qw(META.json README.txt widget-0.2.5.zip);
 
-isa_ok $dist = new_dist($files{'dist/widget/0.2.5/widget-0.2.5.pgz'}),
+isa_ok $dist = new_dist($files{'dist/widget/0.2.5/widget-0.2.5.zip'}),
     $CLASS, 'Another new object';
 ok $dist->reindex, 'Reindex the distribution'
     or diag $dist->localized_error;
@@ -525,11 +525,11 @@ is $dist->localized_error,
 # Test distribution constraint exception.
 TxnTest->restart;
 $user = TxnTest->user;
-move +File::Spec->catfile($root, qw(dist widget 0.2.5 widget-0.2.5.pgz)), $distzip;
+move +File::Spec->catfile($root, qw(dist widget 0.2.5 widget-0.2.5.zip)), $distzip;
 ok $dist = new_dist($distzip), 'Create dist with a zip archive yet again';
 ok $dist->process, 'First creation of distribution should succeed';
 
-move +File::Spec->catfile($root, qw(dist widget 0.2.5 widget-0.2.5.pgz)), $distzip;
+move +File::Spec->catfile($root, qw(dist widget 0.2.5 widget-0.2.5.zip)), $distzip;
 ok $dist = new_dist($distzip), 'Create dist with a zip archive yet again';
 ok !$dist->process, 'Second creation of distribution should fail';
 is_deeply [$dist->error], ['Distribution “[_1]” already exists', 'widget 0.2.5'],

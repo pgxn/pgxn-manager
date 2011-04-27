@@ -123,7 +123,7 @@ test_psgi $app => sub {
 my $tmpdir     = File::Spec->catdir(File::Spec->tmpdir, 'pgxn');
 my $root       = PGXN::Manager->new->config->{mirror_root};
 my $distdir    = File::Spec->catdir(qw(t dist widget));
-my $distzip    = File::Spec->catdir(qw(t dist widget-0.2.5.pgz));
+my $distzip    = File::Spec->catdir(qw(t dist widget-0.2.5.zip));
 
 # First, create a distribution.
 my $dzip = Archive::Zip->new;
@@ -154,7 +154,7 @@ my %files = map { join('/', @{ $_ }) => File::Spec->catfile($root, @{ $_ } ) } (
    ['tag',       'widget.json'],
    ['extension', 'widget.json'],
    ['dist',      'widget', '0.2.5', 'META.json'],
-   ['dist',      'widget', '0.2.5', 'widget-0.2.5.pgz'],
+   ['dist',      'widget', '0.2.5', 'widget-0.2.5.zip'],
    ['tag',       'full text search.json'],
 );
 file_not_exists_ok $files{$_}, "File $_ should not yet exist" for keys %files;

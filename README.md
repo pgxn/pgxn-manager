@@ -47,9 +47,8 @@ Installation
       gmake install
 
 * Install the PostreSQL `semver` extension. It's available from PGXN itself.
-  Grab the latest `.pgz` from the [`master
-  mirror`](http://master.pgxn.org/dist/semver/) and follow its installation
-  instructions.
+  Grab [the latest release](http://pgxn.org/dist/semver/) and follow its
+  installation instructions.
 
 * Create a "pgxn" system user and the master mirror directory:
 
@@ -69,9 +68,7 @@ Installation
   another host. (Consult the [DBI](http://search.cpan.org/perldoc?DBI) and
   [DBD::Pg](http://search.cpan.org/perldoc?DBD::Pg) documentation for details
   on the attributes that can be included in the DSN). You can also change the
-  templates for the files that will be managed on the master mirror, though
-  only changing the extension of the "dist" template from ".pgz" to whatever
-  is appropriate for your network is really recommended.
+  templates for the files that will be managed on the master mirror.
 
 * Build PGXN::Manager:
 

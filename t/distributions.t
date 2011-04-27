@@ -125,7 +125,7 @@ test_psgi +PGXN::Manager::Router->app => sub {
 my $tmpdir     = File::Spec->catdir(File::Spec->tmpdir, 'pgxn');
 my $root       = PGXN::Manager->new->config->{mirror_root};
 my $distdir    = File::Spec->catdir(qw(t dist widget));
-my $distzip    = File::Spec->catdir(qw(t dist widget-0.2.5.pgz));
+my $distzip    = File::Spec->catdir(qw(t dist widget-0.2.5.zip));
 
 # First, create a distribution.
 my $dzip = Archive::Zip->new;
@@ -140,7 +140,7 @@ END {
 ok my $dist = PGXN::Manager::Distribution->new(
     creator  => TxnTest->user,
     archive  => $distzip,
-    basename => 'widget-0.2.5.pgz',
+    basename => 'widget-0.2.5.zip',
 ), 'Create a widget-0.2.5 distribution';
 ok $dist->process, 'Process the widget-0.2.5 distribution';
 
@@ -154,7 +154,7 @@ $dzip->writeToFileNamed($distzip) == AZ_OK or die 'write error';
 ok $dist = PGXN::Manager::Distribution->new(
     creator  => TxnTest->user,
     archive  => $distzip,
-    basename => 'widget-0.2.6.pgz',
+    basename => 'widget-0.2.6.zip',
 ), 'Create a widget-0.2.6 distribution';
 ok $dist->process, 'Process the widget-0.2.6 distribution';
 
@@ -168,7 +168,7 @@ $dzip->writeToFileNamed($distzip) == AZ_OK or die 'write error';
 ok $dist = PGXN::Manager::Distribution->new(
     creator  => TxnTest->user,
     archive  => $distzip,
-    basename => 'pair-1.3.0.pgz',
+    basename => 'pair-1.3.0.zip',
 ), 'Create a pair-1.3.0 distribution';
 ok $dist->process, 'Process the pair-1.3.0 distribution';
 
@@ -182,7 +182,7 @@ $dzip->writeToFileNamed($distzip) == AZ_OK or die 'write error';
 ok $dist = PGXN::Manager::Distribution->new(
     creator  => TxnTest->admin,
     archive  => $distzip,
-    basename => 'pgTAP-0.35.0.pgz',
+    basename => 'pgTAP-0.35.0.zip',
 ), 'Create a pgTAP-0.35.0 distribution for admin';
 ok $dist->process, 'Process the pgTAP-0.35.0 distribution';
 

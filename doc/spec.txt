@@ -746,15 +746,15 @@ mappings:
 
   Extension | Version |   Distribution
 ------------|---------|------------------
- pgtap      | 0.25.0  | pgTAP-0.25.0.pgz
- schematap  | 0.25.0  | pgTAP-0.25.0.pgz
- functap    | 0.18.1  | pgTAP-0.18.1.pgz
+ pgtap      | 0.25.0  | pgTAP-0.25.0.zip
+ schematap  | 0.25.0  | pgTAP-0.25.0.zip
+ functap    | 0.18.1  | pgTAP-0.18.1.zip
 
 Note that functap was removed from the pgTAP distribution sometime after
 0.18.1. Consider the case where pgTAP 0.25.0 is installed. If a distribution
 specified “functap” as a prerequisite, it could result in
 `pgTAP-0.18.1.tar.gz` being installed, overwriting any files from
-`pgTAP-0.25.0.pgz`.
+`pgTAP-0.25.0.zip`.
 
 Consumers of metadata **should** test whether prerequisites would result in
 installed module files being “downgraded” to an older version and **may** warn

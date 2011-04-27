@@ -51,7 +51,7 @@ test_psgi $app => sub {
 my $tmpdir     = File::Spec->catdir(File::Spec->tmpdir, 'pgxn');
 my $root       = PGXN::Manager->new->config->{mirror_root};
 my $distdir    = File::Spec->catdir(qw(t dist widget));
-my $distzip    = File::Spec->catdir(qw(t dist widget-0.2.5.pgz));
+my $distzip    = File::Spec->catdir(qw(t dist widget-0.2.5.zip));
 
 # First, create a distribution.
 my $dzip = Archive::Zip->new;
@@ -66,7 +66,7 @@ END {
 ok my $dist = PGXN::Manager::Distribution->new(
     creator  => TxnTest->user,
     archive  => $distzip,
-    basename => 'widget-0.2.5.pgz',
+    basename => 'widget-0.2.5.zip',
 ), 'Create a widget-0.2.5 distribution';
 ok $dist->process, 'Process the widget-0.2.5 distribution';
 my $sha1 = $dist->sha1;
@@ -82,7 +82,7 @@ $dzip->writeToFileNamed($distzip) == AZ_OK or die 'write error';
 ok $dist = PGXN::Manager::Distribution->new(
     creator  => TxnTest->user,
     archive  => $distzip,
-    basename => 'widget-0.2.6.pgz',
+    basename => 'widget-0.2.6.zip',
 ), 'Create a widget-0.2.6 distribution';
 ok $dist->process, 'Process the widget-0.2.6 distribution';
 
@@ -96,7 +96,7 @@ $dzip->writeToFileNamed($distzip) == AZ_OK or die 'write error';
 ok $dist = PGXN::Manager::Distribution->new(
     creator  => TxnTest->admin,
     archive  => $distzip,
-    basename => 'pgTAP-0.35.0.pgz',
+    basename => 'pgTAP-0.35.0.zip',
 ), 'Create a pgTAP-0.35.0 distribution for admin';
 ok $dist->process, 'Process the pgTAP-0.35.0 distribution';
 
@@ -135,7 +135,7 @@ test_psgi $app => sub {
                 $tx->ok('./a', '......... Test link', sub {
                     $tx->is(
                         './@href',
-                        'http://localhost/mirror/dist/widget/0.2.5/widget-0.2.5.pgz',
+                        'http://localhost/mirror/dist/widget/0.2.5/widget-0.2.5.zip',
                         '............ Should link to archive'
                     );
                     $tx->is(
@@ -280,7 +280,7 @@ test_psgi $app => sub {
             $tx->is('count(./li)', 2, '...... All list items');
             $tx->is(
                 './li[1]/a/@href',
-                'http://localhost/mirror/dist/widget/0.2.6/widget-0.2.6.pgz',
+                'http://localhost/mirror/dist/widget/0.2.6/widget-0.2.6.zip',
                 '......... First should be the archive link'
             );
             $tx->is(

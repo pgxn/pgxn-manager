@@ -207,20 +207,20 @@ file_exists_ok $files{$_}, "File $_ should now exist" for keys %files;
 # Test reindex(). First, we need some distributions.
 REINDEX: {
     my $mocker = Test::MockModule->new('PGXN::Manager::Distribution');
-    my $pgz = File::Spec->catfile($root, qw(dist pair 0.0.1 pair-0.0.1.pgz));
+    my $zip = File::Spec->catfile($root, qw(dist pair 0.0.1 pair-0.0.1.zip));
     $mocker->mock(reindex => sub {
         my $dist = shift;
         pass 'Distribution->reindex should be called';
-        is $dist->archive, $pgz, 'Dist should have archive';
-        is $dist->basename, 'pair-0.0.1.pgz', 'Dist should have basename';
+        is $dist->archive, $zip, 'Dist should have archive';
+        is $dist->basename, 'pair-0.0.1.zip', 'Dist should have basename';
         is $dist->creator, $user, 'Dist should have user as creator';
     });
 
     ok $maint->reindex('pair', '0.0.1'), 'Reindex pair 0.0.1';
 
     # Reindex two different distributions.
-    my $pgz2 = File::Spec->catfile($root, qw(dist foo 0.0.2 foo-0.0.2.pgz));
-    my @exp = ($pgz, $pgz2);
+    my $zip2 = File::Spec->catfile($root, qw(dist foo 0.0.2 foo-0.0.2.zip));
+    my @exp = ($zip, $zip2);
 
     $mocker->mock(reindex => sub {
         my $dist = shift;
@@ -248,14 +248,14 @@ REINDEX: {
 # Test reindex_all.
 
 REINDEX: {
-    my $pgz1 = File::Spec->catfile($root, qw(dist bar 0.3.2 bar-0.3.2.pgz));
-    my $pgz2 = File::Spec->catfile($root, qw(dist foo 0.0.2 foo-0.0.2.pgz));
-    my $pgz3 = File::Spec->catfile($root, qw(dist pair 0.0.2 pair-0.0.2.pgz));
-    my $pgz4 = File::Spec->catfile($root, qw(dist pair 0.0.1 pair-0.0.1.pgz));
+    my $zip1 = File::Spec->catfile($root, qw(dist bar 0.3.2 bar-0.3.2.zip));
+    my $zip2 = File::Spec->catfile($root, qw(dist foo 0.0.2 foo-0.0.2.zip));
+    my $zip3 = File::Spec->catfile($root, qw(dist pair 0.0.2 pair-0.0.2.zip));
+    my $zip4 = File::Spec->catfile($root, qw(dist pair 0.0.1 pair-0.0.1.zip));
 
     # Reindex *everything*.
     my $mocker = Test::MockModule->new('PGXN::Manager::Distribution');
-    my @exp = ($pgz1, $pgz2, $pgz3, $pgz4);
+    my @exp = ($zip1, $zip2, $zip3, $zip4);
     $mocker->mock(reindex => sub {
         my $dist = shift;
         pass 'Distribution->reindex should be called';
@@ -269,11 +269,11 @@ REINDEX: {
     ok $maint->reindex_all, 'Reindex everything';
 
     # Just reindex all pair distributions.
-    @exp = ($pgz3, $pgz4);
+    @exp = ($zip3, $zip4);
     ok $maint->reindex_all('pair'), 'Reindex all pairs';
 
     # Reindex named distros.
-    @exp = ($pgz2, $pgz3, $pgz4);
+    @exp = ($zip2, $zip3, $zip4);
     ok $maint->reindex_all('pair', 'foo'), 'Reindex all pairs and foos';
 }
 
