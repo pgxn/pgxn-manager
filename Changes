@@ -1,6 +1,6 @@
 Revision history for Perl extension PGXN::Manager
 
-0.12.5
+0.12.5  2011-04-27T18:52:18
       - Changed the default download file suffix from `.pgz` to `zip`.
 
 0.12.4  2011-04-25T16:59:36
