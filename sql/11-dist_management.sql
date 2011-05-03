@@ -5,7 +5,7 @@ CREATE OR REPLACE FUNCTION setup_meta(
     IN  sha1        TEXT,
     IN  json        TEXT,
     OUT name        CITEXT,
-    OUT VERSION     SEMVER,
+    OUT version     SEMVER,
     OUT relstatus   RELSTATUS,
     OUT abstract    TEXT,
     OUT description TEXT,
@@ -34,9 +34,14 @@ CREATE OR REPLACE FUNCTION setup_meta(
     # Normalize version string.
     $idx_meta->{version} = SemVer->declare($idx_meta->{version})->normal;
 
-    # Set the date.
-    $idx_meta->{date} = spi_exec_query(
-        'SELECT utc_date(NOW())'
+    # Set the date; use an existing one if it's available.
+    $idx_meta->{date} = spi_exec_query(sprintf
+        q{SELECT utc_date(COALESCE(
+            (SELECT created_at FROM distributions WHERE name = %s AND version = %s),
+            NOW()
+        ))},
+        quote_literal($idx_meta->{name}),
+        quote_literal($idx_meta->{version})
     )->{rows}[0]{utc_date};
 
     # Normalize "prereq" version strings.

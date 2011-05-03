@@ -1,7 +1,7 @@
 SET search_path = public,contrib,tap;
 
 BEGIN;
-SELECT plan(118);
+SELECT plan(119);
 --SELECT * FROM no_plan();
 
 -- Check that we have the functions we think we have.
@@ -34,6 +34,23 @@ SELECT has_function_privilege('pgxn', f, 'EXECUTE')
       'update_distribution(label, text, text)'
   ]) AS f;
   
+/*****************************************************************************/
+-- Mock NOW().
+CREATE SCHEMA mock;
+
+CREATE FUNCTION set_now(timestamptz) RETURNS SETOF boolean LANGUAGE plperl AS $$
+    $_SHARED{now} = shift;
+    return;
+$$;
+
+-- Won't be used by table defaults, which seem to be linked to
+-- pg_catalog.now() at creation time.
+CREATE FUNCTION mock.now() RETURNS timestamptz LANGUAGE plperl AS '$_SHARED{now}';
+
+SELECT set_now(pg_catalog.now());
+
+SET search_path = mock,public,contrib,tap,pg_catalog;
+
 /****************************************************************************/
 -- Test setup_meta().
 SELECT function_returns('setup_meta', ARRAY['label', 'text', 'text'], 'record' );
@@ -1244,6 +1261,9 @@ SELECT throws_ok(
     'Should get an exception from update_distribution() for user without permission'
 );
 
+-- Mock the time; the date should *not* be this time.
+SELECT set_now(pg_catalog.now() + '1 day'::interval);
+
 /****************************************************************************/
 -- Okay, now re-index Strongrrl's release with different metadata.
 SELECT bag_eq(
@@ -1271,8 +1291,8 @@ SELECT bag_eq(
    "name": "pair",
    "releases": {
       "testing": [
-         {"version": "0.0.3", "date": "' || utc_date(NOW()) || '"},
-         {"version": "0.0.1", "date": "' || utc_date(NOW()) || '"}
+         {"version": "0.0.3", "date": "' || utc_date(pg_catalog.NOW()) || '"},
+         {"version": "0.0.1", "date": "' || utc_date(pg_catalog.NOW()) || '"}
       ]
    }
 }
@@ -1281,7 +1301,7 @@ SELECT bag_eq(
    "releases": {
       "pair": {
          "testing": [
-            {"version": "0.0.3", "date": "' || utc_date(NOW()) || '"}
+            {"version": "0.0.3", "date": "' || utc_date(pg_catalog.NOW()) || '"}
          ]
       }
    }
@@ -1291,7 +1311,7 @@ SELECT bag_eq(
    "releases": {
       "pair": {
          "testing": [
-            {"version": "0.0.3", "date": "' || utc_date(NOW()) || '"}
+            {"version": "0.0.3", "date": "' || utc_date(pg_catalog.NOW()) || '"}
          ]
       }
    }
@@ -1301,7 +1321,7 @@ SELECT bag_eq(
    "releases": {
       "pair": {
          "testing": [
-            {"version": "0.0.3", "date": "' || utc_date(NOW()) || '"}
+            {"version": "0.0.3", "date": "' || utc_date(pg_catalog.NOW()) || '"}
          ]
       }
    }
@@ -1310,7 +1330,7 @@ SELECT bag_eq(
    "name": "pair",
    "abstract": "howdy",
    "version": "0.0.3",
-   "date": "' || utc_date(NOW()) || '",
+   "date": "' || utc_date(pg_catalog.NOW()) || '",
    "maintainer": "theory",
    "release_status": "testing",
    "user": "strongrrl",
@@ -1337,7 +1357,7 @@ SELECT bag_eq(
          "ext_version": "0.0.2",
          "dist": "foo",
          "version": "0.0.2",
-         "date": "' || utc_date(NOW()) || '",
+         "date": "' || utc_date(pg_catalog.NOW()) || '",
          "user": "strongrrl",
          "user_name": "Julie Wheeler"
       },
@@ -1347,7 +1367,7 @@ SELECT bag_eq(
          "ext_version": "0.2.2",
          "dist": "Pair",
          "version": "0.0.1",
-         "date": "' || utc_date(NOW()) || '",
+         "date": "' || utc_date(pg_catalog.NOW()) || '",
          "user": "theory",
          "user_name": ""
       },
@@ -1357,7 +1377,7 @@ SELECT bag_eq(
          "ext_version": "0.0.3",
          "dist": "pair",
          "version": "0.0.3",
-         "date": "' || utc_date(NOW()) || '",
+         "date": "' || utc_date(pg_catalog.NOW()) || '",
          "user": "strongrrl",
          "user_name": "Julie Wheeler"
       },
@@ -1367,7 +1387,7 @@ SELECT bag_eq(
          "ext_version": "0.2.1",
          "dist": "Pair",
          "version": "0.0.1",
-         "date": "' || utc_date(NOW()) || '",
+         "date": "' || utc_date(pg_catalog.NOW()) || '",
          "user": "theory",
          "user_name": ""
       },
@@ -1377,7 +1397,7 @@ SELECT bag_eq(
          "ext_version": "0.0.8",
          "dist": "pair",
          "version": "0.0.3",
-         "date": "' || utc_date(NOW()) || '",
+         "date": "' || utc_date(pg_catalog.NOW()) || '",
          "user": "strongrrl",
          "user_name": "Julie Wheeler"
       }
@@ -1426,7 +1446,7 @@ SELECT bag_eq(
          "dist": "foo",
          "version": "0.0.2",
          "abstract": "whatever",
-         "date": "' || utc_date(NOW()) || '",
+         "date": "' || utc_date(pg_catalog.NOW()) || '",
          "user": "strongrrl",
          "user_name": "Julie Wheeler"
       },
@@ -1434,7 +1454,7 @@ SELECT bag_eq(
          "dist": "pair",
          "version": "0.0.3",
          "abstract": "howdy",
-         "date": "' || utc_date(NOW()) || '",
+         "date": "' || utc_date(pg_catalog.NOW()) || '",
          "user": "strongrrl",
          "user_name": "Julie Wheeler"
       },
@@ -1442,7 +1462,7 @@ SELECT bag_eq(
          "dist": "Pair",
          "version": "0.0.1",
          "abstract": "Ordered pair",
-         "date": "' || utc_date(NOW()) || '",
+         "date": "' || utc_date(pg_catalog.NOW()) || '",
          "user": "theory",
          "user_name": ""
       }
@@ -1462,12 +1482,12 @@ SELECT bag_eq(
    "releases": {
       "foo": {
          "stable": [
-            {"version": "0.0.2", "date": "' || utc_date(NOW()) || '"}
+            {"version": "0.0.2", "date": "' || utc_date(pg_catalog.NOW()) || '"}
          ]
       },
       "pair": {
          "testing": [
-            {"version": "0.0.3", "date": "' || utc_date(NOW()) || '"}
+            {"version": "0.0.3", "date": "' || utc_date(pg_catalog.NOW()) || '"}
          ]
       }
    }
@@ -1489,6 +1509,33 @@ SELECT is(
     'Should have udpated tags'
 );
 
+-- And the distribution should be updated.
+SELECT is(meta, '{
+   "name": "pair",
+   "abstract": "howdy",
+   "version": "0.0.3",
+   "date": "' || utc_date(pg_catalog.NOW()) || '",
+   "maintainer": "theory",
+   "release_status": "testing",
+   "user": "strongrrl",
+   "sha1": "oops",
+   "license": "mit",
+   "provides": {
+      "pair": {
+         "abstract": "new abstract",
+         "version": "0.0.3"
+      },
+      "wang": {
+         "abstract": "the wang",
+         "version": "0.0.8"
+      }
+   },
+   "tags": ["wang", "words", "yo"]
+}
+', 'The dist metadata should be updated but have original date')
+  FROM distributions
+ WHERE name = 'pair' AND version = '0.0.3';
+
 -- And the extensions should be updated, too.
 SELECT is(ARRAY(
     SELECT (extension || '-' || ext_version::text || ' (' || abstract || ')')
@@ -1509,7 +1556,7 @@ SELECT row_eq(
    "abstract": "Ordered pair",
    "description": "An ordered pair for PostgreSQL",
    "version": "0.0.1",
-   "date": "' || utc_date(NOW()) || '",
+   "date": "' || utc_date(pg_catalog.NOW()) || '",
    "maintainer": "theory",
    "release_status": "testing",
    "user": "theory",
@@ -1549,6 +1596,7 @@ SELECT row_eq(
 
 /****************************************************************************/
 -- Make sure we get the same data from get_distribution().
+SELECT set_now(pg_catalog.now());
 SELECT function_returns('get_distribution', ARRAY['text', 'semver'], 'setof record' );
 SELECT function_lang_is('get_distribution', ARRAY['text', 'semver'], 'plpgsql' );
 SELECT volatility_is(   'get_distribution', ARRAY['text', 'semver'], 'stable' );
