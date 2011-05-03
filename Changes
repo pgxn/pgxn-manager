@@ -1,5 +1,7 @@
 Revision history for Perl extension PGXN::Manager
 
+0.12.7
+
 0.12.6  2011-05-03T21:06:43
       - Fixed a bug where reindexing a distribution would cause the release
         date to be updated in the generated `META.json` file (Issue #26).
