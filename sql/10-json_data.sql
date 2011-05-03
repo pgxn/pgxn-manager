@@ -457,7 +457,7 @@ user and thus not included in the JSON.
         '"nickname": ' || json_value(u.nickname),
         '"name": '     || json_value(u.full_name),
         '"email": '    || json_value(u.email),
-        '"uri": '      || json_value(uri, NULL),
+        '"uri": '      || json_value(CASE uri WHEN '' THEN NULL ELSE uri END, NULL),
         '"twitter": '  || json_value(CASE u.twitter WHEN '' THEN NULL ELSE u.twitter END, NULL)
     ], E',\n   ') || COALESCE(E',\n   "releases": {\n' ||
            string_agg(

@@ -818,7 +818,7 @@ SELECT is(
 
 -- Insert a new user who will have no distributions.
 SELECT ok(
-    insert_user('anna', 'wet blanket', email := 'anna@pgxn.org'),
+    insert_user('anna', 'wet blanket', email := 'anna@pgxn.org', uri := ''),
     'Insert user "anna"'
 );
 

@@ -200,7 +200,6 @@ test_psgi $app => sub {
    "nickname": "user",
    "name": "Tom Lane",
    "email": "tgl@pgxn.org",
-   "uri": "",
    "twitter": "tommylane"
 }
 ', 'And the contents of user.json should be correct';
@@ -242,7 +241,6 @@ test_psgi $app => sub {
    "nickname": "user",
    "name": "Josh Berkus",
    "email": "josh@pgxn.org",
-   "uri": "",
    "twitter": "agliodbs"
 }
 ', 'And the contents of user.json should be updated';
