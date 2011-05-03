@@ -3,20 +3,20 @@ package PGXN::Manager::Maint;
 use 5.12.0;
 use utf8;
 use Moose;
-use PGXN::Manager;
 use File::Spec;
 use File::Path qw(make_path remove_tree);
 use File::Basename qw(dirname basename);
 use Carp;
 use namespace::autoclean;
 
-my $TMPDIR = PGXN::Manager->new->config->{tmpdir}
-          || File::Spec->catdir(File::Spec->tmpdir, 'pgxn');
-make_path $TMPDIR if !-d $TMPDIR;
 
 has verbosity => (is => 'rw', required => 1, isa => 'Int', default => 0);
-has workdir  => (is => 'rw', required => 0, isa => 'Str', default => sub {
-    File::Spec->catdir($TMPDIR, "working.$$")
+has workdir  => (is => 'rw', required => 0, isa => 'Str', lazy => 1, default => sub {
+    require PGXN::Manager;
+    my $tmpdir = PGXN::Manager->new->config->{tmpdir}
+        || File::Spec->catdir(File::Spec->tmpdir, 'pgxn');
+    make_path $tmpdir if !-d $tmpdir;
+    File::Spec->catdir($tmpdir, "working.$$");
 });
 
 sub go {
@@ -29,6 +29,7 @@ sub run {
     $command =~ s/-/_/g;
     my $meth = $self->can($command)
         or croak qq{PGXN Maint: "$command" is not a command};
+    require PGXN::Manager;
     $self->$meth(@_);
 }
 
@@ -194,11 +195,13 @@ sub _config {
     );
 
     Getopt::Long::GetOptions(
-        'verbose|V+'         => \$opts{verbosity},
-        'help|h'             => \$opts{help},
-        'man|M'              => \$opts{man},
-        'version|v'          => \$opts{version},
+        'env|E=s'    => \my $env,
+        'verbose|V+' => \$opts{verbosity},
+        'help|h'     => \$opts{help},
+        'man|M'      => \$opts{man},
+        'version|v'  => \$opts{version},
     ) or $self->_pod2usage;
+    $ENV{PLACK_ENV} = $env || 'development';
 
     # Handle documentation requests.
     $self->_pod2usage(

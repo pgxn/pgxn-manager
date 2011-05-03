@@ -5,6 +5,9 @@ Revision history for Perl extension PGXN::Manager
         date to be updated in the generated `META.json` file (Issue #26).
       - User JSON files will no longer output a "uri" key if the value is an
         empty string (Issue #25).
+      - Added the `-E` option to `pgxn_maint`, to specify the environment in
+        which to run, just like the Plack app. This ensures that the proper
+        configuration file is loaded.
 
 0.12.5  2011-04-27T18:52:18
       - Changed the default download file suffix from `.pgz` to `zip`.
