@@ -36,8 +36,8 @@ CREATE OR REPLACE FUNCTION setup_meta(
 
     # Set the date.
     $idx_meta->{date} = spi_exec_query(
-        q{SELECT to_char(NOW() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"')},
-    )->{rows}[0]{to_char};
+        'SELECT utc_date(NOW())'
+    )->{rows}[0]{utc_date};
 
     # Normalize "prereq" version strings.
     if (my $prereqs = $idx_meta->{prereqs}) {
