@@ -66,7 +66,7 @@ BEGIN { create_wrapper wrapper => sub {
                 script {
                     # http://docs.jquery.com/Downloading_jQuery#CDN_Hosted_jQuery
                     type is 'text/javascript';
-                    src is 'http://code.jquery.com/jquery-1.4.2.min.js';
+                    src is 'http://code.jquery.com/jquery-1.6.min.js';
                 };
                 script {
                     type is 'text/javascript';

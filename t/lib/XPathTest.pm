@@ -77,7 +77,7 @@ sub test_basics {
         if ($p->{with_jquery} || $p->{validate_form}) {
             $_->is(
                 './script[1][@type="text/javascript"]/@src',
-                'http://code.jquery.com/jquery-1.4.2.min.js',
+                'http://code.jquery.com/jquery-1.6.min.js',
                 'Should load jQuery'
             );
             $_->is(
