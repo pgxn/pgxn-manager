@@ -166,6 +166,17 @@ sub normalize {
         return;
     }
 
+    # Validate the distribution name.
+    if (length $meta->{name} < 2
+            || $meta->{name} =~ m{[\p{Cntrl}\p{Space}\p{Blank}/\\:]}
+    ) {
+        $self->error([
+            '"[_1]" is an invalid distribution name',
+            $meta->{name}
+        ]);
+        return;
+    }
+
     my $meta_modified = 0;
     # Does the version need normalizing?
     my $normal = SemVer->declare($meta->{version})->normal;

@@ -2,8 +2,8 @@
 
 use 5.12.0;
 use utf8;
-#use Test::More tests => 242;
-use Test::More 'no_plan';
+use Test::More tests => 284;
+#use Test::More 'no_plan';
 use Archive::Zip qw(:ERROR_CODES);
 use HTTP::Headers;
 use Test::File;
@@ -242,6 +242,37 @@ is_deeply [sort $dist->zip->memberNames ], [
     map { "widget-0.2.5/$_"} qw(META.json Makefile README widget.sql.in)
 ], 'All of the files should have the new prefix';
 is $updated, 0, '_update_meta() should not have been called';
+
+# Try invalid distribution names.
+my $dmeta = {
+    version => '1.2.2',
+    license => 'bsd',
+    maintainer => 'Someone',
+    abstract   => 'Not the blues',
+};
+for my $name (
+    '@honky/tonk#', # Slash
+    'h',            # too short
+    "foo\0bar",     # unprintable
+    'foo bar',      # whitespace
+    'foo:bar',      # colon
+    'foo\\bar',     # backslash
+) {
+    $dmeta->{name} = $name;
+    $dzip->memberNamed('widget-0.2.5/META.json')->contents(encode_json $dmeta);
+    $dzip->writeToFileNamed($badmetazip) == AZ_OK or die 'write error';
+    ok $dist = new_dist($badmetazip), qq{Create dist with bad name "$name"};
+    ok $dist->extract, '... Extract it';
+    ok $dist->read_meta, '... Read its meta data';
+    ok !$dist->normalize, '... Should get false from normalize()';
+    is_deeply scalar $dist->error, [
+        '"[_1]" is an invalid distribution name',
+        $name,
+    ], '... Sould get invalid name error';
+    is $dist->localized_error,
+        "“$name” is not a valid distribution name. Distribution names must be at least two characters and may not contain unprintable or whitespace characters or /, \\, or :.",
+            '... Should get the localized invalid name message';
+}
 
 # Try an archive with keys missing from the META.json.
 $dzip->memberNamed('widget-0.2.5/META.json')->contents(encode_json {

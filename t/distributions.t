@@ -184,7 +184,7 @@ ok $dist = PGXN::Manager::Distribution->new(
     archive  => $distzip,
     basename => 'pgTAP-0.35.0.zip',
 ), 'Create a pgTAP-0.35.0 distribution for admin';
-ok $dist->process, 'Process the pgTAP-0.35.0 distribution';
+ok $dist->process, 'Process the pgTAP-0.35.0 distribution' or diag $dist->localized_error;
 
 ##################################################################################
 # Okay, now have the user fetch the list again.

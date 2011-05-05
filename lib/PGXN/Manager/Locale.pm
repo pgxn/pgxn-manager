@@ -22,6 +22,7 @@ our %Lexicon = (
     contact_page_title => 'How to get in touch with the responsible parties',
     '"[_1]" is missing the required [numerate,_2,key] [qlist,_3]' => '“[_1]” is missing the required [numerate,_2,key] [qlist,_3]',
     '"[_1]" is missing the required [numerate,_2,key] [qlist,_3] under [_4]' => '“[_1]” is missing the required [numerate,_2,key] [qlist,_3] under [_4]',
+    '"[_1]" is an invalid distribution name' => '“[_1]” is not a valid distribution name. Distribution names must be at least two characters and may not contain unprintable or whitespace characters or /, \\, or :.',
     howto_page_title => 'How to create PostgreSQL extensions and distribute them on PGXN',
     howto_body => q{<p>PGXN is the PostgreSQL Extension Network. If you&#8217;re a PostgreSQL developer, you&#8217;ve no doubt created customizations to make your life simpler. This is possible because PostgreSQL today is not merely a database, it’s an application development platform. If you&#8217;d like to distribute such customizations in open-source releases for your fellow PostgreSQL enthusiasts to enjoy, PGXN is the place to do it.</p>
 

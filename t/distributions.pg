@@ -1,7 +1,7 @@
 SET search_path = public,contrib,tap;
 
 BEGIN;
-SELECT plan(86);
+SELECT plan(92);
 --SELECT * FROM no_plan();
 
 SELECT has_enum('relstatus');
@@ -96,6 +96,24 @@ SELECT ok(
     'TRIGGER'
 ]) AS priv;
 
+-- Test CHECK.
+INSERT INTO users (nickname, password, full_name, email, set_by)
+VALUES ('theory', '', '', 'foo@example.com', 'theory');
+
+SELECT throws_like(
+    $$ INSERT INTO distributions (name, version, creator, sha1, meta)
+       VALUES($$ || quote_literal(bad) || $$, '1.0.0', 'theory', 'bar', 'baz')$$,
+    '%distributions_name_check%',
+    'Should get exception for name "' || bad || 'h"'
+) FROM unnest(ARRAY[
+    'h',           -- too short
+    'foo/bar',     -- slash
+    'foo:bar',     -- colon
+    'foo\bar',     -- backslash
+    'foo bar',     -- whitespace
+    E'foo\x0abar'  -- unprintable
+]) AS bad;
+
 /****************************************************************************/
 -- Test distribution_tags.
 SELECT has_table('public', 'distribution_tags', 'Should have table public.distribution_tags');
@@ -134,6 +152,7 @@ SELECT fk_ok(
 
 SELECT has_index('distribution_tags', 'idx_distribution_tags_tag');
 SELECT index_is_type('distribution_tags', 'idx_distribution_tags_tag', 'btree');
+
 -- Check privileges.
 SELECT ok(
     has_table_privilege('pgxn', 'distribution_tags', 'SELECT'),
