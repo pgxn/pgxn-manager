@@ -104,7 +104,7 @@ SELECT throws_like(
     $$ INSERT INTO distributions (name, version, creator, sha1, meta)
        VALUES($$ || quote_literal(bad) || $$, '1.0.0', 'theory', 'bar', 'baz')$$,
     '%distributions_name_check%',
-    'Should get exception for name "' || bad || 'h"'
+    'Should get exception for name "' || bad || '"'
 ) FROM unnest(ARRAY[
     'h',           -- too short
     'foo/bar',     -- slash

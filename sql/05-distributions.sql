@@ -13,7 +13,7 @@ CREATE TYPE relstatus AS ENUM(
 
 CREATE TABLE distributions (
     name        CITEXT      NOT NULL CHECK (
-         length(name) >=2 AND name !~ '[[:space:][:blank:][:cntrl:]/\\:]'
+         length(name) >= 2 AND name !~ '[[:space:][:blank:][:cntrl:]/\\:]'
     ),
     version     SEMVER      NOT NULL,
     abstract    TEXT        NOT NULL DEFAULT '',
