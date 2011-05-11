@@ -1,6 +1,6 @@
 #!/usr/bin/env perl -w
 
-use 5.12.0;
+use 5.10.0;
 use utf8;
 
 use Test::More tests => 331;
@@ -278,6 +278,7 @@ test_psgi $app => sub {
     )), "POST email conflict to $uri";
     ok !$res->is_redirect, 'It should not be a redirect response';
     is $res->code, 409, 'Should have 409 status code';
+    $dmock->unmock('selectcol_arrayref');
 
     # So check the content.
     is_well_formed_xml $res->content, 'The HTML should be well-formed';

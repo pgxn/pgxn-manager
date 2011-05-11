@@ -1,6 +1,6 @@
 package PGXN::Manager::Maint;
 
-use 5.12.0;
+use 5.10.0;
 use utf8;
 use Moose;
 use File::Spec;

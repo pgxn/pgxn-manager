@@ -1,6 +1,6 @@
 package XPathTest;
 
-use 5.12.0;
+use 5.10.0;
 use utf8;
 
 # Call this function for every request to make sure that they all

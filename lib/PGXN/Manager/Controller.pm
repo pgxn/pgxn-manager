@@ -1,6 +1,6 @@
 package PGXN::Manager::Controller;
 
-use 5.12.0;
+use 5.10.0;
 use utf8;
 use PGXN::Manager;
 use aliased 'PGXN::Manager::Request';

@@ -1,6 +1,6 @@
-package PGXN::Manager v0.12.7;
+package PGXN::Manager;
 
-use 5.12.0;
+use 5.10.0;
 use utf8;
 use MooseX::Singleton;
 use Moose::Util::TypeConstraints;
@@ -17,6 +17,8 @@ use Try::Tiny;
 use Net::Twitter::Lite;
 use Email::Sender::Simple;
 use namespace::autoclean;
+
+our $VERSION = v0.12.7;
 
 =head1 Name
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env perl -w
 
-use 5.12.0;
+use 5.10.0;
 use utf8;
 use Test::More tests => 284;
 #use Test::More 'no_plan';
@@ -70,9 +70,9 @@ file_not_exists_ok $dist->workdir, 'Working directory should be gone';
 # Now try a tarball.
 my $tgz = Archive::Tar->new;
 opendir my $dir, $distdir or die "Cannot open directory $distdir: $!\n";
-while (readdir $dir) {
-    next if /^[.]{1,2}$/;
-    my $file = Archive::Tar::File->new(file => File::Spec->catfile($distdir, $_));
+while (my $fn = readdir $dir) {
+    next if $fn =~ /^[.]{1,2}$/;
+    my $file = Archive::Tar::File->new(file => File::Spec->catfile($distdir, $fn));
     $file->prefix('widget');
     $tgz->add_files($file);
 }
