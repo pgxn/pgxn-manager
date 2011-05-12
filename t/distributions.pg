@@ -1,7 +1,7 @@
 SET search_path = public,contrib,tap;
 
 BEGIN;
-SELECT plan(92);
+SELECT plan(91);
 --SELECT * FROM no_plan();
 
 SELECT has_enum('relstatus');
@@ -108,7 +108,6 @@ SELECT throws_like(
 ) FROM unnest(ARRAY[
     'h',           -- too short
     'foo/bar',     -- slash
-    'foo:bar',     -- colon
     'foo\bar',     -- backslash
     'foo bar',     -- whitespace
     E'foo\x0abar'  -- unprintable

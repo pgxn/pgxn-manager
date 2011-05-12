@@ -2,7 +2,7 @@
 
 use 5.10.0;
 use utf8;
-use Test::More tests => 284;
+use Test::More tests => 278;
 #use Test::More 'no_plan';
 use Archive::Zip qw(:ERROR_CODES);
 use HTTP::Headers;
@@ -255,7 +255,6 @@ for my $name (
     'h',            # too short
     "foo\0bar",     # unprintable
     'foo bar',      # whitespace
-    'foo:bar',      # colon
     'foo\\bar',     # backslash
 ) {
     $dmeta->{name} = $name;

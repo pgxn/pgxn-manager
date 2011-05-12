@@ -3,7 +3,7 @@ Revision history for Perl extension PGXN::Manager
 0.12.7
       - Upgraded to jQuery 1.6.
       - Distributions names containing control characters, whitespace
-        characters, /, \, and : are now disallowed.
+        characters, /, and \ are now disallowed.
       - Backported to Perl 5.10.
 
 0.12.6  2011-05-03T21:06:43

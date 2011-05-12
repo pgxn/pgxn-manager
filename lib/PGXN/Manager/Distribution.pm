@@ -168,7 +168,7 @@ sub normalize {
 
     # Validate the distribution name.
     if (length $meta->{name} < 2
-            || $meta->{name} =~ m{[\p{Cntrl}\p{Space}\p{Blank}/\\:]}
+            || $meta->{name} =~ m{[\p{Cntrl}\p{Space}\p{Blank}/\\]}
     ) {
         $self->error([
             '"[_1]" is an invalid distribution name',
