@@ -90,7 +90,7 @@ file_contents_unlike $spec,
     "...And $spec should not have been replaced";
 
 # Make sure a newer spec.txt updates the mirror.
-my $time = (stat File::Spec->catfile qw(doc spec.txt))[9];
+my $time = (stat File::Spec->catfile(qw(doc spec.txt)))[9];
 utime $time, $time - 5, $spec;
 ok $pgxn->init_root, 'Init the root once more';
 file_contents_like $spec,
