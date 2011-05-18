@@ -76,7 +76,7 @@ Synopsis
 Description
 ===========
 
-This document describes version 1.0.0dev5 of the PGXN distribution metadata
+This document describes version 1.0.0dev6 of the PGXN distribution metadata
 specification, also known as the “PGXN Meta Spec.” It is formatted using the
 [MultiMarkdown](http://fletcherpenney.net/multimarkdown/) variant of
 [Markdown](http://daringfireball.net/projects/markdown/), and the canonical
@@ -344,6 +344,51 @@ other licensing not described above:
 
 All other strings are invalid in the license [List](#List).
 
+### provides ###
+
+Example:
+
+    "provides": {
+      "pgtap": {
+        "file": "sql/pgtap.sql",
+        "docfile": "doc/pgtap.mmd",
+        "version": "0.2.4",
+        "abstract": "Unit testing assertions for PostgreSQL"
+      },
+      "schematap": {
+        "file": "sql/schematap.sql",
+        "docfile": "doc/schematap.mmd",
+        "version": "0.2.4",
+        "abstract": "Schema testing assertions for PostgreSQL"
+      }
+    }
+
+(Spec 1) [optional] {[Map](#Map)}
+
+This describes all extensions provided by this distribution. This information
+is used by PGXN to build indexes identifying in which distributions various
+extensions can be found.
+
+The keys of `provides` are extension names that can be found within the
+distribution. The values are [Maps](#Map) with the following subkeys:
+
+file
+:   The value must contain a relative file path from the root of the
+    distribution to the file containing the extension. The path **must
+    be** specified with unix conventions. Required.
+
+version
+:   This field contains a [Version](#Version) for the extension. All
+    extensions must have versions. Required.
+
+abstract
+:   A short [String](#String) value describing the extension. Optional.
+
+docfile
+:   The value must contain a relative file path from the root of the
+    distribution to the file containing documentation for the extension. The
+    path **must be** specified with unix conventions. Optional.
+
 ### meta-spec ###
 
 Example:
@@ -498,51 +543,6 @@ and the values provide sets of prerequisite relations. The sets of relations
 
 The full definition for this field is given in the [Prereq Spec](#Prereq.Spec)
 section.
-
-### provides ###
-
-Example:
-
-    "provides": {
-      "pgtap": {
-        "file": "sql/pgtap.sql",
-        "docfile": "doc/pgtap.mmd",
-        "version": "0.2.4",
-        "abstract": "Unit testing assertions for PostgreSQL"
-      },
-      "schematap": {
-        "file": "sql/schematap.sql",
-        "docfile": "doc/schematap.mmd",
-        "version": "0.2.4",
-        "abstract": "Schema testing assertions for PostgreSQL"
-      }
-    }
-
-(Spec 1) [optional] {[Map](#Map)}
-
-This describes all extensions provided by this distribution. This information
-is used by PGXN to build indexes identifying in which distributions various
-extensions can be found.
-
-The keys of `provides` are extension names that can be found within the
-distribution. The values are [Maps](#Map) with the following subkeys:
-
-file
-:   The value must contain a relative file path from the root of the
-    distribution to the file containing the extension. The path **must
-    be** specified with unix conventions. Required.
-
-version
-:   This field contains a [Version](#Version) for the extension. All
-    extensions must have versions. Required.
-
-abstract
-:   A short [String](#String) value describing the extension. Optional.
-
-docfile
-:   The value must contain a relative file path from the root of the
-    distribution to the file containing documentation for the extension. The
-    path **must be** specified with unix conventions. Optional.
 
 ### release_status ###
 
