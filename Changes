@@ -1,6 +1,9 @@
 Revision history for Perl extension PGXN::Manager
 
 0.12.9
+      - Added version ranges to the spec. These may be used in the `prereqs`
+        field to specify precise version requirements. Stolen directly from
+        CPAN::Meta Spec 2.0.
 
 0.12.8  2011-05-12T23:57:44
       - Updated the HOWTO to add details for better indexing and support for

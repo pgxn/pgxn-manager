@@ -6,7 +6,7 @@ PGXN Meta Spec - The PGXN distribution metadata specification
 Version
 =======
 
-1.0.0dev5
+1.0.0dev6
 
 Synopsis
 ========
@@ -190,6 +190,13 @@ A *Version* is a subtype of [String](#String) containing a value that
 describes the version number of extensions or distributions. Restrictions on
 format are described in detail in the [Version Format](#Version.Format)
 section.
+
+Version Range
+-------------
+
+The *Version Range* type is a subtype of [String](#String). It describes a
+range of Versions that may be present or installed to fulfill prerequisites.
+It is specified in detail in the [Version Ranges](#Version.Ranges) section.
 
 Structure
 =========
@@ -487,7 +494,7 @@ distribution. The keys are phases of activity, such as `configure`, `build`,
 of prerequisite relationship such as `requires`, `recommends`, or `suggests`,
 and the values provide sets of prerequisite relations. The sets of relations
 **must** be specified as a [Map](#Map) of extension names to
-[Versions](#Version).
+[Version Ranges](#Version.Ranges).
 
 The full definition for this field is given in the [Prereq Spec](#Prereq.Spec)
 section.
@@ -639,6 +646,28 @@ version” *may* be denoted by appending an arbitrary ASCII string immediately
 following the patch version. Please see
 [the specification](http://semver.org/) for all details on the format.
 
+Version Ranges
+--------------
+
+Some fields (`prereqs`) indicate the particular version(s) of some other
+extension that may be required as a prerequisite. This section details the
+[Version Range](#Version.Range) type used to provide this information.
+
+The simplest format for a Version Range is just the version number itself,
+e.g. `2.4.0`. This means that **at least**version 2.4.0 must be present. To
+indicate that **any** version of a prerequisite is okay, even if the
+prerequisite doesn’t define a version at all, use the version `0`.
+
+Alternatively, a version range **may** use the operators `<` (less than), `<=`
+(less than or equal), `>` (greater than), `>=` (greater than or equal), `==`
+(equal), and `!=` (not equal). For example, the specification `< 2.0.0` means
+that any version of the prerequisite less than 2.0.0 is suitable.
+
+For more complicated situations, version specifications **may** be AND-ed
+together using commas. The specification `>= 1.2.0, != 1.5.0, < 2.0.0`
+indicates a version that must be **at least** 1.2.0, **less than** 2.0.0, and
+**not equal to** 1.5.0.
+
 Prerequisites
 =============
 
@@ -734,6 +763,8 @@ Merging and Resolving Prerequisites
 
 Whenever metadata consumers merge prerequisites, they should be merged in a
 way that preserves the intended semantics of the prerequisite structure.
+Generally, this means concatenating the version specifications using commas,
+as described in the [Version Ranges](#Version.Ranges) section.
 
 A subtle error that can occur when resolving prerequisites comes from the way
 that extensions in prerequisites are indexed to distribution files on PGXN.
