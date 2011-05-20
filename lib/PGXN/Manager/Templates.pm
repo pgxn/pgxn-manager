@@ -203,7 +203,7 @@ template home => sub {
             };
         }
         p {
-            outs T q{PGXN Manger is a Webapp that allows you to upload PostgreSQL extension distributions and have them be distributed to the PostgreSQL Extension Network.};
+            outs T q{PGXN Manager is a Webapp that allows you to upload PostgreSQL extension distributions and have them be distributed to the PostgreSQL Extension Network.};
             a {
                 href is $req->uri_for('/about');
                 T q{See "About" for details on how to get started.};

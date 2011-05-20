@@ -5,6 +5,8 @@ Revision history for Perl extension PGXN::Manager
         field to specify precise version requirements. Stolen directly from
         CPAN::Meta Spec 2.0.
       - The "provides" field is now required by the meta spec.
+      - Fixed embarrassing typo on the home page. Thanks to Stefan Kaltenbrunner
+        for the spot.
 
 0.12.8  2011-05-12T23:57:44
       - Updated the HOWTO to add details for better indexing and support for
