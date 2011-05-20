@@ -274,7 +274,7 @@ sub register {
                     when (/\blabel_check\b/) {
                     $highlight = 'nickname';
                         $msg = [
-                            'Sorry, the nickname “[_1]” is invalid. Your nickname must start with a letter, end with a letter or digit, and otherwise contain only letters, digits, or hyphen. Sorry to be so strict.',
+                            'Sorry, the nickname “[_1]” is invalid. Your nickname must start with an ASCII letter (a-z), end with an ASCII letter or digit, and otherwise contain only ASCII letters, digits, or hyphen. Sorry to be so strict.',
                             encode_entities delete $params->{nickname},
                         ];
                     } when (/\bemail_check\b/) {

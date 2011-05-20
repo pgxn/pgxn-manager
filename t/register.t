@@ -100,7 +100,7 @@ test_psgi $app => sub {
                 },
                 {
                     id    => 'nickname',
-                    title => $mt->maketext('By what name would you like to be known? Letters, numbers, and dashes only, please.'),
+                    title => $mt->maketext('By what name would you like to be known? ASCII letters, numbers, and dashes only, please.'),
                     label => $mt->maketext('Nickname'),
                     type  => 'text',
                     phold => 'bobama',
@@ -461,7 +461,7 @@ test_psgi $app => sub {
         $tx->is('count(./*)', 4, '... It should have four subelements');
         $tx->is('./h1', $h1, '... The title h1 should be set');
         $tx->is('./p[1]', $p, '... Intro paragraph should be set');
-        my $err = $mt->maketext('Sorry, the nickname “[_1]” is invalid. Your nickname must start with a letter, end with a letter or digit, and otherwise contain only letters, digits, or hyphen. Sorry to be so strict.', '');
+        my $err = $mt->maketext('Sorry, the nickname “[_1]” is invalid. Your nickname must start with an ASCII letter (a-z), end with an ASCII letter or digit, and otherwise contain only ASCII letters, digits, or hyphen. Sorry to be so strict.', '');
         $tx->is('./p[@class="error"]', $err, '... Error paragraph should be set');
         $tx->is(
             './form/fieldset[1]/input[@id="nickname"]/@class',
@@ -501,7 +501,7 @@ test_psgi $app => sub {
         $tx->is('count(./*)', 4, '... It should have four subelements');
         $tx->is('./h1', $h1, '... The title h1 should be set');
         $tx->is('./p[1]', $p, '... Intro paragraph should be set');
-        my $err = $mt->maketext('Sorry, the nickname “[_1]” is invalid. Your nickname must start with a letter, end with a letter or digit, and otherwise contain only letters, digits, or hyphen. Sorry to be so strict.', '-@@-');
+        my $err = $mt->maketext('Sorry, the nickname “[_1]” is invalid. Your nickname must start with an ASCII letter (a-z), end with an ASCII letter or digit, and otherwise contain only ASCII letters, digits, or hyphen. Sorry to be so strict.', '-@@-');
         $tx->is('./p[@class="error"]', $err, '... Error paragraph should be set');
         $tx->ok('./form/fieldset[1]/input[@id="nickname"]', '... Test nickname input', sub {
             $tx->is('./@value', '', '...... Its value should be empty');

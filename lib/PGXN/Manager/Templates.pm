@@ -995,7 +995,7 @@ template essentials => sub {
             [qw(full_name Name     text),  'Barack Obama', T 'What does your mother call you?'    ],
             [qw(email     Email    email), 'you@example.com', T('Where can we get hold of you?'), 'required email' ],
             [qw(uri       URI      url),   'http://blog.example.com/', T 'Got a blog or personal site?'  ],
-            ($args->{nonick} ? () : [qw(nickname  Nickname text),  'bobama', T('By what name would you like to be known? Letters, numbers, and dashes only, please.'), 'required' ]),
+            ($args->{nonick} ? () : [qw(nickname  Nickname text),  'bobama', T('By what name would you like to be known? ASCII letters, numbers, and dashes only, please.'), 'required' ]),
             [qw(twitter   Twitter   text),   '@barackobama', T 'Got a Twitter account? Tell us the username and your uploads will be tweeted!'  ],
         ) {
             label {
