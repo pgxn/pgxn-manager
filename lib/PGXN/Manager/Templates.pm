@@ -331,6 +331,16 @@ template contact => sub {
         h1 { T 'Contact Us' };
         p { T q{Noticed an issue with PGXN? Got a bug to report? Just want to send kudos or complaints? Here's how.}};
         dl{
+            dt { T 'List' };
+            dd {
+                p {
+                    outs T 'Join the discussion on the';
+                    a {
+                        href is 'http://groups.google.com/group/pgxn-users';
+                        T 'PGXN User Mail List.';
+                    };
+                };
+            };
             dt { T 'Bugs' };
             dd {
                 p {
