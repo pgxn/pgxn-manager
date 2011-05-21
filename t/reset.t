@@ -4,7 +4,7 @@ use 5.10.0;
 use utf8;
 BEGIN { $ENV{EMAIL_SENDER_TRANSPORT} = 'Test' }
 
-use Test::More tests => 283;
+use Test::More tests => 340;
 #use Test::More 'no_plan';
 use Plack::Test;
 use HTTP::Request::Common;
@@ -89,6 +89,60 @@ test_psgi $app => sub {
         })
     });
 };
+
+# Try an empty submit.
+test_psgi $app => sub {
+    my $cb = shift;
+    ok my $res = $cb->(POST '/pub/account/forgotten', [
+        who => '',
+    ]), 'POST empty form to /account/forgotten';
+
+    ok !$res->is_success, 'Should not be successful';
+    is $res->code, 400, 'Should get 400 response';
+
+    is_well_formed_xml $res->content, 'The HTML should be well-formed';
+    my $tx = Test::XPath->new( xml => $res->content, is_html => 1 );
+    my $req = PGXN::Manager::Request->new(req_to_psgi($res->request));
+    $req->env->{SCRIPT_NAME} = '/pub';
+
+    XPathTest->test_basics($tx, $req, $mt, {
+        h1 => 'Forgot Your Password?',
+        page_title => 'Forgot your password? Request a reset link',
+    });
+
+    $tx->ok('/html/body/div[@id="content"]', 'Look at the content', sub {
+        $tx->is('count(./*)', 4, '... Should have four subelements');
+        $tx->is(
+            './p[@class="error"]',
+            $mt->maketext('Oops! I think you forgot to to tell me who you are.'),
+            '... Should have the error message'
+        );
+    });
+
+    is @{ Email::Sender::Simple->default_transport->deliveries },
+        0, 'No email should have been sent'
+};
+
+# Try an empty submit with xhr.
+test_psgi $app => sub {
+    my $cb = shift;
+    my $req    = POST(
+        '/pub/account/forgotten',
+        'X-Requested-With' => 'XMLHttpRequest',
+        Content => [who => ''],
+    );
+
+    ok my $res = $cb->($req), 'Send XMLHttpRequest empty POST to forgotten';
+
+    ok !$res->is_success, 'Should not be successful';
+    is $res->code, 400, 'Should get 400 response';
+    is $res->content, $mt->maketext('Bad request: no who parameter.'),
+        'And the content should say so';
+
+    is @{ Email::Sender::Simple->default_transport->deliveries },
+        0, 'No email should have been sent'
+};
+
 
 # Now submit a password change. First for non-existent user.
 test_psgi $app => sub {

@@ -321,6 +321,16 @@ sub send_reset {
     my $who  = $req->body_parameters->{who};
     my $pgxn = PGXN::Manager->instance;
 
+    unless ($who) {
+        return $self->respond_with('badrequest', $req, ['Bad request: no who parameter.'])
+            if $req->is_xhr;
+        return $self->render('/forgotten', {
+            req => $req,
+            code => $code_for{badrequest},
+            vars => { error => ['Oops! I think you forgot to to tell me who you are.'] }
+        })
+    }
+
     my $token = $pgxn->conn->run(sub {
         my $sql = $who =~ /@/
             ? 'SELECT forgot_password(nickname) FROM users WHERE email = ?'

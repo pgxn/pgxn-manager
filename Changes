@@ -10,7 +10,10 @@ Revision history for Perl extension PGXN::Manager
       - The hints for creating user names now specify that onlyASCII letters
         are supported. Thanks to Stefan Kaltenbrunner for the gripe.
       - Added a link to the mail list to the contact page. Suggested by Stefan
-        Kaltenbrunner
+        Kaltenbrunner.
+      - Submitting an empty forgotten form no longer returns a 500 error, but
+        a nice 400 error and the form to properly fill in. Reported by Stefan
+        Kaltenbrunner.
 
 0.12.8  2011-05-12T23:57:44
       - Updated the HOWTO to add details for better indexing and support for

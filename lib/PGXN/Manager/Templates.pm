@@ -858,6 +858,12 @@ template forgotten => sub {
     wrapper {
         h1 { T 'Forgot Your Password?' };
         p { T q{Please type your email address or PGXN nickname below.} };
+        if (my $err = $args->{error}) {
+            p {
+                class is 'error';
+                outs_raw T @{ $err };
+            };
+        }
         form {
             id      is 'forgotform';
             action  is $req->uri_for('/account/forgotten');
