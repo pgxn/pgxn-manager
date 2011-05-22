@@ -15,13 +15,13 @@ CREATE OR REPLACE VIEW distribution_details AS
 SELECT d.name, d.version, d.abstract, d.description, d.relstatus, d.creator,
        d.sha1, d.meta,
        multi_array_agg(
-       DISTINCT ARRAY[[de.extension, de.ext_version::text]]
-          ORDER BY ARRAY[[de.extension, de.ext_version::text]]
+       DISTINCT ARRAY[[de.extension::citext, de.ext_version::text]]
+          ORDER BY ARRAY[[de.extension::citext, de.ext_version::text]]
        ) AS extensions,
        -- I sure wish you could make array_agg() exclude NULLs.
        ARRAY(
            SELECT x
-             FROM unnest(array_agg(DISTINCT dt.tag ORDER BY dt.tag)) g(x)
+             FROM unnest(array_agg(DISTINCT dt.tag::citext ORDER BY dt.tag::citext)) g(x)
             WHERE x IS NOT NULL
        ) AS tags
   FROM distributions d

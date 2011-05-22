@@ -12,9 +12,7 @@ CREATE TYPE relstatus AS ENUM(
 );
 
 CREATE TABLE distributions (
-    name        CITEXT      NOT NULL CHECK (
-         length(name) >= 2 AND name !~ '[[:space:][:blank:][:cntrl:]/\\]'
-    ),
+    name        WORD        NOT NULL CHECK (length(name) >= 2),
     version     SEMVER      NOT NULL,
     abstract    TEXT        NOT NULL DEFAULT '',
     description TEXT        NOT NULL DEFAULT '',
@@ -29,9 +27,9 @@ CREATE TABLE distributions (
 GRANT SELECT ON distributions TO pgxn;
 
 CREATE TABLE distribution_tags (
-    distribution CITEXT,
+    distribution WORD,
     version      SEMVER,
-    tag          CITEXT,
+    tag          TAG,
     PRIMARY KEY (distribution, version, tag),
     FOREIGN KEY (distribution, version) REFERENCES distributions(name, version)
 );

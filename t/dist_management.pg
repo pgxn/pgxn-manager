@@ -14,7 +14,7 @@ SELECT has_function(f)
 SELECT has_function('setup_meta', ARRAY['label', 'text', 'text']);
 SELECT has_function('record_ownership', ARRAY['label', 'text[]']);
 SELECT has_function('add_distribution', ARRAY['label', 'text', 'text']);
-SELECT has_function('get_distribution', ARRAY['text', 'semver']);
+SELECT has_function('get_distribution', ARRAY['word', 'semver']);
 SELECT has_function('update_distribution', ARRAY['label', 'text', 'text']);
 
 -- User "pgxn" should not have access to private fnctions.
@@ -30,7 +30,7 @@ SELECT ok(
 SELECT has_function_privilege('pgxn', f, 'EXECUTE')
   FROM unnest(ARRAY[
       'add_distribution(label, text, text)',
-      'get_distribution(text, semver)',
+      'get_distribution(word, semver)',
       'update_distribution(label, text, text)'
   ]) AS f;
   
@@ -119,7 +119,7 @@ SELECT results_eq(
           "homepage": "http://pgxn.org/dist/pair/"
         }
     }') $$,
-    $$ VALUES('pair'::citext, '0.0.1'::semver, 'testing'::relstatus, 'Ordered pair',
+    $$ VALUES('pair'::word, '0.0.1'::semver, 'testing'::relstatus, 'Ordered pair',
     'An ordered pair for PostgreSQL',
     ARRAY[['pair', '0.2.2', ''], ['trip', '0.2.1', '']],
     ARRAY['foo'::citext, 'bar', 'baz'], '{
@@ -329,8 +329,8 @@ SELECT is(COUNT(*)::int, 4, 'Should now have four extensions') FROM extensions;
 SELECT is(COUNT(*)::int, 2, 'Should still have two co-owners') FROM coowners;
 
 SELECT is(
-    ARRAY(SELECT name FROM extensions WHERE owner = 'theory' ORDER BY name),
-    ARRAY['bar', 'foo', 'pair']::citext[],
+    ARRAY(SELECT name::text FROM extensions WHERE owner = 'theory' ORDER BY name),
+    ARRAY['bar', 'foo', 'pair'],
     'Theory should have ownership of three extensions'
 );
 
@@ -673,12 +673,12 @@ SELECT is(COUNT(*)::int, 3, 'Should now have three distribution tags')
   FROM distribution_tags;
 SELECT is(
     ARRAY(
-        SELECT tag
+        SELECT tag::text
           FROM distribution_tags
          WHERE distribution = 'pair'
            AND VERSION = '0.0.1' ORDER BY tag
     ),
-    ARRAY['bar'::citext, 'baz', 'foo'],
+    ARRAY['bar', 'baz', 'foo'],
     'And they should be the expected tags'
 );
 
@@ -917,12 +917,12 @@ SELECT is(COUNT(*)::int, 5, 'Should now have five distribution tags')
   FROM distribution_tags;
 SELECT is(
     ARRAY(
-        SELECT tag
+        SELECT tag::text
           FROM distribution_tags
          WHERE distribution = 'foo'
            AND VERSION = '0.0.2' ORDER BY tag
     ),
-    ARRAY['foo'::citext, 'PAIR'],
+    ARRAY['Foo', 'PAIR'],
     'And they should be the expected tags'
 );
 
@@ -1504,8 +1504,8 @@ SELECT bag_eq(
 
 -- So now we should have the updated tags.
 SELECT is(
-    ARRAY(SELECT (tag) FROM distribution_tags WHERE distribution = 'pair' AND version = '0.0.3' ORDER BY tag),
-    ARRAY['wang'::citext, 'words', 'yo'],
+    ARRAY(SELECT (tag::text) FROM distribution_tags WHERE distribution = 'pair' AND version = '0.0.3' ORDER BY tag),
+    ARRAY['wang', 'words', 'yo'],
     'Should have udpated tags'
 );
 
@@ -1597,10 +1597,10 @@ SELECT row_eq(
 /****************************************************************************/
 -- Make sure we get the same data from get_distribution().
 SELECT set_now(pg_catalog.now());
-SELECT function_returns('get_distribution', ARRAY['text', 'semver'], 'setof record' );
-SELECT function_lang_is('get_distribution', ARRAY['text', 'semver'], 'plpgsql' );
-SELECT volatility_is(   'get_distribution', ARRAY['text', 'semver'], 'stable' );
-SELECT is_strict(       'get_distribution', ARRAY['text', 'semver'] );
+SELECT function_returns('get_distribution', ARRAY['word', 'semver'], 'setof record' );
+SELECT function_lang_is('get_distribution', ARRAY['word', 'semver'], 'plpgsql' );
+SELECT volatility_is(   'get_distribution', ARRAY['word', 'semver'], 'stable' );
+SELECT is_strict(       'get_distribution', ARRAY['word', 'semver'] );
 
 SELECT bag_eq(
     $$ SELECT * FROM get_distribution('pair', '0.0.3')$$,

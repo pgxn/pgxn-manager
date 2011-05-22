@@ -81,10 +81,10 @@ objects. All the required fields will be present, and the optional fields
 $$;
 
 CREATE OR REPLACE FUNCTION extension_json(
-   dist      TEXT,
+   dist      WORD,
    version   SEMVER
 ) RETURNS TABLE (
-    extension CITEXT,
+    extension WORD,
     json      TEXT
 ) LANGUAGE plpgsql STABLE STRICT AS $$
 /*
@@ -141,7 +141,7 @@ DECLARE
     stable   TEXT;
     testing  TEXT;
     unstable TEXT;
-    ext      TEXT;
+    ext      WORD;
     prev     TEXT;
     extv     TEXT;
     distjson TEXT[] := '{}';
@@ -245,7 +245,7 @@ time" (UTC).
 $$;
 
 CREATE OR REPLACE FUNCTION dist_json(
-   dist      TEXT
+   dist WORD
 ) RETURNS TEXT LANGUAGE sql STABLE STRICT AS $$
 /*
 
@@ -302,10 +302,10 @@ versions and their dates.
 $$;
 
 CREATE OR REPLACE FUNCTION tag_json(
-   dist      TEXT,
+   dist      WORD,
    version   SEMVER
 ) RETURNS TABLE (
-    tag  CITEXT,
+    tag  TAG,
     json TEXT
 ) LANGUAGE sql STABLE STRICT AS $$
 /*
@@ -384,7 +384,7 @@ well.
           FROM ds
          GROUP BY tag, distribution
     )
-    SELECT LOWER(tag)::CITEXT, E'{\n   "tag": ' || json_value(tag) || E',\n   "releases": {\n      '
+    SELECT LOWER(tag)::tag, E'{\n   "tag": ' || json_value(tag) || E',\n   "releases": {\n      '
         || string_agg(json_key(distribution) || E': {\n         '
         || array_to_string(relv, E',\n         '), E'\n      },\n      ')
         || E'\n      }\n   }\n}\n'

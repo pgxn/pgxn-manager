@@ -1,7 +1,7 @@
 SET search_path = public,contrib,tap;
 
 BEGIN;
-SELECT plan(88);
+SELECT plan(116);
 --SELECT * FROM no_plan();
 
 -- Test the label data type.
@@ -157,6 +157,64 @@ SELECT throws_ok(
     'value for domain uri violates check constraint "uri_check"',
     'URI with unencoded spaces should not be valid'
 );
+
+-- Test the word data type.
+SELECT has_type('word');
+SELECT is( 'foo'::word, 'FOO'::word, 'words should be case-insensitive' );
+SELECT is( NULL::word, NULL, 'words should be NULLable' );
+
+SELECT throws_like(
+    'SELECT ' || quote_literal(bad) || '::word',
+    '%"word_check"%',
+    'Should get invalid word exception for "' || bad || '"'
+) FROM unnest(ARRAY[
+    'foo/bar',     -- slash
+    'foo\bar',     -- backslash
+    'foo bar',     -- whitespace
+    E'foo\nbar',   -- newline
+    E'foo\rbar',   -- return
+    E'foo\x0abar'  -- unprintable
+]) AS bad;
+
+SELECT lives_ok(
+    'SELECT ' || quote_literal(good) || '::word',
+    '"' || good || '" should be a valid word'
+) FROM unnest(ARRAY[
+    'foo',
+    'foo,bar',
+    'foo9bar',
+    'foo**^%#Wbar',
+    E'“fooabar”'
+]) AS good;
+
+-- Test the tag data type.
+SELECT has_type('tag');
+SELECT is( 'foo'::tag, 'FOO'::tag, 'tags should be case-insensitive' );
+SELECT is( NULL::tag, NULL, 'tags should be NULLable' );
+
+SELECT throws_like(
+    'SELECT ' || quote_literal(bad) || '::tag',
+    '%"tag_check"%',
+    'Should get invalid tag exception for "' || bad || '"'
+) FROM unnest(ARRAY[
+    'foo/bar',     -- slash
+    'foo\bar',     -- backslash
+    E'foo\nbar',   -- newline
+    E'foo\rbar',   -- return
+    E'foo\x0abar'  -- unprintable
+]) AS bad;
+
+SELECT lives_ok(
+    'SELECT ' || quote_literal(good) || '::tag',
+    '"' || good || '" should be a valid tag'
+) FROM unnest(ARRAY[
+    'foo',
+    'foo bar',     -- whitespace
+    'foo,bar',
+    'foo9bar',
+    'foo**^%#Wbar',
+    E'“fooabar”'
+]) AS good;
 
 SELECT * FROM finish();
 ROLLBACK;

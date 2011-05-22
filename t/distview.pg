@@ -32,7 +32,7 @@ SELECT columns_are('public', 'distribution_details', ARRAY[
 ]);
 
 SELECT has_column(  'distribution_details', 'name' );
-SELECT col_type_is( 'distribution_details', 'name', 'citext' );
+SELECT col_type_is( 'distribution_details', 'name', 'word' );
 SELECT has_column(  'distribution_details', 'version' );
 SELECT col_type_is( 'distribution_details', 'version', 'semver' );
 SELECT has_column(  'distribution_details', 'abstract' );
@@ -75,7 +75,7 @@ SELECT lives_ok(
 
 SELECT results_eq(
     'SELECT * FROM distribution_details',
-    $$ VALUES('pair'::citext,'0.0.1'::semver, 'whatever', '','stable'::relstatus,'theory'::label,'foo'::citext,'{
+    $$ VALUES('pair'::word,'0.0.1'::semver, 'whatever', '','stable'::relstatus,'theory'::label,'foo'::citext,'{
    "name": "pair",
    "abstract": "whatever",
    "version": "0.0.1",
@@ -117,7 +117,7 @@ SELECT lives_ok(
 
 SELECT results_eq(
     $$ SELECT * FROM distribution_details WHERE name = 'whatevs' $$,
-    $$ VALUES('whatevs'::citext,'0.1.0'::semver, 'whatevers', 'Whatever you want','testing'::relstatus,'theory'::label,'ick'::citext,'{
+    $$ VALUES('whatevs'::word,'0.1.0'::semver, 'whatevers', 'Whatever you want','testing'::relstatus,'theory'::label,'ick'::citext,'{
    "name": "whatevs",
    "abstract": "whatevers",
    "description": "Whatever you want",

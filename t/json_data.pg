@@ -178,13 +178,13 @@ SELECT json_ok(get_mirrors_json(), 'Two-item mirror JSON should be valid');
 -- Test extension_json().
 
 SELECT has_function(    'extension_json' );
-SELECT has_function(    'extension_json', ARRAY['text', 'semver'] );
-SELECT function_returns('extension_json', ARRAY['text', 'semver'], 'setof record' );
-SELECT function_lang_is('extension_json', ARRAY['text', 'semver'], 'plpgsql' );
-SELECT volatility_is(   'extension_json', ARRAY['text', 'semver'], 'stable' );
-SELECT is_strict(       'extension_json', ARRAY['text', 'semver'] );
+SELECT has_function(    'extension_json', ARRAY['word', 'semver'] );
+SELECT function_returns('extension_json', ARRAY['word', 'semver'], 'setof record' );
+SELECT function_lang_is('extension_json', ARRAY['word', 'semver'], 'plpgsql' );
+SELECT volatility_is(   'extension_json', ARRAY['word', 'semver'], 'stable' );
+SELECT is_strict(       'extension_json', ARRAY['word', 'semver'] );
 SELECT ok(
-    has_function_privilege('pgxn', 'extension_json(text, semver)', 'EXECUTE'),
+    has_function_privilege('pgxn', 'extension_json(word, semver)', 'EXECUTE'),
     'User "pgxn" should have EXECUTE priv on extension_json()'
 );
 
@@ -213,7 +213,7 @@ SELECT lives_ok(
 SELECT results_eq(
     $$ SELECT * FROM extension_json('pair', '0.0.1') $$,
     $$ VALUES
-        ('pair'::citext, '{
+        ('pair'::word, '{
    "extension": "pair",
    "latest": "testing",
    "testing": { "dist": "pair", "version": "0.0.1", "sha1": "pshaw" },
@@ -224,7 +224,7 @@ SELECT results_eq(
    }
 }
 '),
-        ('trip', '{
+        ('trip'::word, '{
    "extension": "trip",
    "latest": "testing",
    "testing": { "dist": "pair", "version": "0.0.1", "sha1": "pshaw" },
@@ -259,7 +259,7 @@ SELECT lives_ok(
 SELECT results_eq(
     $$ SELECT * FROM extension_json('pair', '0.0.2a1') $$,
     $$ VALUES
-        ('pair'::citext, '{
+        ('pair'::word, '{
    "extension": "pair",
    "latest": "unstable",
    "testing": { "dist": "pair", "version": "0.0.1", "sha1": "pshaw" },
@@ -274,7 +274,7 @@ SELECT results_eq(
    }
 }
 '),
-        ('trip', '{
+        ('trip'::word, '{
    "extension": "trip",
    "latest": "unstable",
    "testing": { "dist": "pair", "version": "0.0.1", "sha1": "pshaw" },
@@ -312,7 +312,7 @@ SELECT lives_ok(
 SELECT results_eq(
     $$ SELECT * FROM extension_json('pair', '0.0.2') $$,
     $$ VALUES
-        ('pair'::citext, '{
+        ('pair'::word, '{
    "extension": "pair",
    "latest": "stable",
    "stable": { "dist": "pair", "version": "0.0.2", "sha1": "pshaw" },
@@ -331,7 +331,7 @@ SELECT results_eq(
    }
 }
 '),
-        ('trip', '{
+        ('trip'::word, '{
    "extension": "trip",
    "latest": "stable",
    "stable": { "dist": "pair", "version": "0.0.2", "sha1": "pshaw" },
@@ -380,7 +380,7 @@ SELECT lives_ok(
 SELECT results_eq(
     $$ SELECT * FROM extension_json('trip', '0.2.5') $$,
     $$ VALUES
-        ('trip'::citext, '{
+        ('trip'::word, '{
    "extension": "trip",
    "latest": "stable",
    "stable": { "dist": "trip", "version": "0.2.5", "sha1": "pshaw" },
@@ -430,7 +430,7 @@ UPDATE distributions SET created_at = created_at + '1 day'::interval WHERE name 
 SELECT results_eq(
     $$ SELECT * FROM extension_json('pair', '0.0.3') $$,
     $$ VALUES
-        ('pair'::citext, '{
+        ('pair'::word, '{
    "extension": "pair",
    "latest": "stable",
    "stable": { "dist": "pair", "version": "0.0.3", "sha1": "rickshaw" },
@@ -450,7 +450,7 @@ SELECT results_eq(
    }
 }
 '),
-        ('trip', '{
+        ('trip'::word, '{
    "extension": "trip",
    "latest": "stable",
    "stable": { "dist": "pair", "version": "0.0.3", "sha1": "rickshaw" },
@@ -482,13 +482,13 @@ SELECT results_eq(
 -- Test dist_json().
 
 SELECT has_function(    'dist_json' );
-SELECT has_function(    'dist_json', ARRAY['text'] );
-SELECT function_returns('dist_json', ARRAY['text'], 'text' );
-SELECT function_lang_is('dist_json', ARRAY['text'], 'sql' );
-SELECT volatility_is(   'dist_json', ARRAY['text'], 'stable' );
-SELECT is_strict(       'dist_json', ARRAY['text'] );
+SELECT has_function(    'dist_json', ARRAY['word'] );
+SELECT function_returns('dist_json', ARRAY['word'], 'text' );
+SELECT function_lang_is('dist_json', ARRAY['word'], 'sql' );
+SELECT volatility_is(   'dist_json', ARRAY['word'], 'stable' );
+SELECT is_strict(       'dist_json', ARRAY['word'] );
 SELECT ok(
-    has_function_privilege('pgxn', 'dist_json(text)', 'EXECUTE'),
+    has_function_privilege('pgxn', 'dist_json(word)', 'EXECUTE'),
     'User "pgxn" should have EXECUTE priv on dist_json()'
 );
 
@@ -599,13 +599,13 @@ SELECT json_ok(dist_json('trip'), '...And its JSON should be valid');
 -- Test tag_json().
 
 SELECT has_function(    'tag_json' );
-SELECT has_function(    'tag_json', ARRAY['text', 'semver'] );
-SELECT function_returns('tag_json', ARRAY['text', 'semver'], 'setof record' );
-SELECT function_lang_is('tag_json', ARRAY['text', 'semver'], 'sql' );
-SELECT volatility_is(   'tag_json', ARRAY['text', 'semver'], 'stable' );
-SELECT is_strict(       'tag_json', ARRAY['text', 'semver'] );
+SELECT has_function(    'tag_json', ARRAY['word', 'semver'] );
+SELECT function_returns('tag_json', ARRAY['word', 'semver'], 'setof record' );
+SELECT function_lang_is('tag_json', ARRAY['word', 'semver'], 'sql' );
+SELECT volatility_is(   'tag_json', ARRAY['word', 'semver'], 'stable' );
+SELECT is_strict(       'tag_json', ARRAY['word', 'semver'] );
 SELECT ok(
-    has_function_privilege('pgxn', 'tag_json(text, semver)', 'EXECUTE'),
+    has_function_privilege('pgxn', 'tag_json(word, semver)', 'EXECUTE'),
     'User "pgxn" should have EXECUTE priv on tag_json()'
 );
 
@@ -637,7 +637,7 @@ SELECT is_empty(
 -- Check distribution with one tag.
 SELECT results_eq(
     $$ SELECT * FROM tag_json('trip', '0.2.5') $$,
-    $$ VALUES ('foo'::citext, '{
+    $$ VALUES ('foo'::tag, '{
    "tag": "foo",
    "releases": {
       "pair": {
@@ -665,7 +665,7 @@ SELECT results_eq(
 INSERT INTO distribution_tags VALUES('trip', '0.2.5', 'baz');
 SELECT results_eq(
     $$ SELECT * FROM tag_json('trip', '0.2.5') ORDER BY tag $$,
-    $$ VALUES ('baz'::citext, '{
+    $$ VALUES ('baz'::tag, '{
    "tag": "baz",
    "releases": {
       "trip": {
@@ -675,7 +675,7 @@ SELECT results_eq(
       }
    }
 }
-'), ('foo', '{
+'), ('foo'::tag, '{
    "tag": "foo",
    "releases": {
       "pair": {
@@ -710,7 +710,7 @@ SELECT is_empty(
 -- Now see how things look for pair's tags.
 SELECT results_eq(
     $$ SELECT * FROM tag_json('pair', '0.0.1') ORDER BY tag $$,
-    $$ VALUES ('foo'::citext, '{
+    $$ VALUES ('foo'::tag, '{
    "tag": "foo",
    "releases": {
       "pair": {
@@ -736,7 +736,7 @@ SELECT results_eq(
 
 SELECT results_eq(
     $$ SELECT * FROM tag_json('pair', '0.0.10') ORDER BY tag $$,
-    $$ VALUES ('bar'::citext, '{
+    $$ VALUES ('bar'::tag, '{
    "tag": "bar",
    "releases": {
       "pair": {
@@ -747,7 +747,7 @@ SELECT results_eq(
       }
    }
 }
-'), ('foo'::citext, '{
+'), ('foo'::tag, '{
    "tag": "foo",
    "releases": {
       "pair": {

@@ -23,6 +23,15 @@ $$;
 CREATE DOMAIN timezone AS CITEXT CHECK ( is_timezone( VALUE ) );
 
 ------------------------------------------------------------------------------
+-- Create a tag text type that bans unprintable characters, /, and \.
+CREATE DOMAIN tag CITEXT CHECK ( VALUE !~ '[[:cntrl:]/\\]' );
+
+------------------------------------------------------------------------------
+-- Create a word text type that bans spaces, unprintable characters, /, and \.
+CREATE DOMAIN word CITEXT
+CHECK ( VALUE !~ '[[:space:][:cntrl:]/\\]');
+
+------------------------------------------------------------------------------
 -- Create a label data type, following the rules in RFC 1034. Labels can then
 -- be used as host names in domains.
 --

@@ -4,7 +4,7 @@ CREATE OR REPLACE FUNCTION setup_meta(
     IN  nick        LABEL,
     IN  sha1        TEXT,
     IN  json        TEXT,
-    OUT name        CITEXT,
+    OUT name        WORD,
     OUT version     SEMVER,
     OUT relstatus   RELSTATUS,
     OUT abstract    TEXT,
@@ -17,14 +17,14 @@ CREATE OR REPLACE FUNCTION setup_meta(
     my $dist_meta = JSON::XS->new->utf8(0)->decode(shift);
 
     # Check required keys.
-    for my $key qw(name version license maintainer abstract) {
+    for my $key (qw(name version license maintainer abstract)) {
         $idx_meta->{$key} = $dist_meta->{$key} or elog(
             ERROR, qq{Metadata is missing the required “$key” key}
         );
     }
 
     # Grab optional fields.
-    for my $key qw(description tags no_index prereqs provides release_status resources) {
+    for my $key (qw(description tags no_index prereqs provides release_status resources)) {
         $idx_meta->{$key} = $dist_meta->{$key} if exists $dist_meta->{$key};
     }
 
@@ -116,7 +116,7 @@ DECLARE
     is_owner BOOLEAN;
 BEGIN
     -- See what we own already.
-    SELECT array_agg(e.name), bool_and(e.owner = nick OR co.nickname IS NOT NULL)
+    SELECT array_agg(e.name::text), bool_and(e.owner = nick OR co.nickname IS NOT NULL)
       INTO owned, is_owner
       FROM extensions e
       LEFT JOIN coowners co ON e.name = co.extension AND co.nickname = nick
@@ -456,7 +456,7 @@ END;
 $$;
 
 CREATE OR REPLACE FUNCTION get_distribution(
-    dist    TEXT,
+    dist    WORD,
     version SEMVER
 ) RETURNS TABLE (
     template TEXT,
