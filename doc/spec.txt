@@ -177,6 +177,20 @@ A *License String* is a subtype of [String](#String) with a restricted set of
 values. Valid values are described in detail in the description of the
 [license field](#license).
 
+Term
+----
+
+A *Term* is a subtype of [String](#String) that **must** be at least two
+characters long contain no slash (`/`), backslash (`\`), control, or space
+characters.
+
+Tag
+---
+
+A *Tag* is a subtype of [String](#String) that **must** be fewer than 256
+characters long contain no slash (`/`), backslash (`\`), control, or space
+characters.
+
 URI
 ---
 
@@ -363,14 +377,15 @@ Example:
       }
     }
 
-(Spec 1) [optional] {[Map](#Map)}
+(Spec 1) [optional] {[Map](#Map) of [Terms](#Term)}
 
 This describes all extensions provided by this distribution. This information
 is used by PGXN to build indexes identifying in which distributions various
 extensions can be found.
 
-The keys of `provides` are extension names that can be found within the
-distribution. The values are [Maps](#Map) with the following subkeys:
+The keys of `provides` are [Terms](#Term) that name the extensions found
+within the distribution. The values are [Maps](#Map) with the following
+subkeys:
 
 file
 :   The value must contain a relative file path from the root of the
@@ -422,12 +437,12 @@ Example:
 
     "name": "pgTAP"
 
-(Spec 1) [required] {[String](#String)}
+(Spec 1) [required] {[Term](#Term)}
 
 This field is the name of the distribution. This is usually the same as the
 name of the “main extension” in the distribution, but may be completely
-unrelated to the extensions within the distribution. This string should have
-no spaces in it, and will be used in the distribution file name on PGXN.
+unrelated to the extensions within the distribution. This value will be used
+in the distribution file name on PGXN.
 
 ### version ###
 
@@ -473,7 +488,7 @@ Example:
 
     "tags": [ "testing", "unit testing", "tap" ]
 
-(Spec 1) [optional] {[List](#List) of [Strings](#String)}
+(Spec 1) [optional] {[List](#List) of [Tags](#Tag)}
 
 A [List](#List) of keywords that describe this distribution.
 
