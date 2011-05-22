@@ -249,6 +249,7 @@ my $dmeta = {
     license => 'bsd',
     maintainer => 'Someone',
     abstract   => 'Not the blues',
+    provides => { foo => { version => '0.0.2', abstract => 'whatever' } },
 };
 for my $name (
     '@honky/tonk#', # Slash
@@ -285,10 +286,10 @@ ok $dist->read_meta, 'Read its meta data';
 ok !$dist->normalize, 'Should get false from normalize()';
 is_deeply scalar $dist->error, [
     '"[_1]" is missing the required [numerate,_2,key] [qlist,_3]',
-    'widget-0.2.5/META.json', 3, [qw(license maintainer abstract)],
+    'widget-0.2.5/META.json', 4, [qw(license maintainer abstract provides)],
 ], 'Sould get missing keys error';
 is $dist->localized_error,
-    '“widget-0.2.5/META.json” is missing the required keys “license”, “maintainer”, and “abstract”',
+    '“widget-0.2.5/META.json” is missing the required keys “license”, “maintainer”, “abstract”, and “provides”',
 
 # Try with metdata that's got some non-semantic versions.
 $distmeta->{version} = '2.5';

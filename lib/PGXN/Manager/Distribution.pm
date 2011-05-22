@@ -154,7 +154,7 @@ sub normalize {
 
     # Check required keys.
     if (my @missing = grep { !exists $meta->{$_} } qw(
-        name version license maintainer abstract
+        name version license maintainer abstract provides
     )) {
         my $keys = join '", "', @missing;
         $self->error([
@@ -201,26 +201,25 @@ sub normalize {
     }
 
     # Do the provides versions need normalizing?
-    if (my $provides = $meta->{provides}) {
-        while (my ($ext, $info) = each %{ $provides }) {
-            # Make sure we have required keys.
-            if (my @missing = grep { !exists $info->{$_} } qw(file version)) {
-                my $keys = join '", "', @missing;
-                $self->error([
-                    '"[_1]" is missing the required [numerate,_2,key] [qlist,_3] under [_4]',
-                    $self->metamemb->fileName,
-                    scalar @missing,
-                    \@missing,
-                    "provides/$ext",
-                ]);
-                return;
-            }
-
-            my $norm = SemVer->declare($info->{version})->normal;
-            next if $norm eq $info->{version};
-            $info->{version} = $norm;
-            $self->modified($meta_modified = 1);
+    my $provides = $meta->{provides};
+    while (my ($ext, $info) = each %{ $provides }) {
+        # Make sure we have required keys.
+        if (my @missing = grep { !exists $info->{$_} } qw(file version)) {
+            my $keys = join '", "', @missing;
+            $self->error([
+                '"[_1]" is missing the required [numerate,_2,key] [qlist,_3] under [_4]',
+                $self->metamemb->fileName,
+                scalar @missing,
+                \@missing,
+                "provides/$ext",
+            ]);
+            return;
         }
+
+        my $norm = SemVer->declare($info->{version})->normal;
+        next if $norm eq $info->{version};
+        $info->{version} = $norm;
+        $self->modified($meta_modified = 1);
     }
 
     # Rewrite JSON if distmeta is modified.
