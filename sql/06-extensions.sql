@@ -6,7 +6,7 @@ SET log_min_messages    TO warning;
 BEGIN;
 
 CREATE TABLE extensions (
-    name       term        PRIMARY KEY,
+    name       TERM        PRIMARY KEY,
     owner      LABEL       NOT NULL REFERENCES users(nickname),
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
