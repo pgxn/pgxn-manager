@@ -1,7 +1,7 @@
 SET search_path = public,contrib,tap;
 
 BEGIN;
-SELECT plan(119);
+SELECT plan(122);
 --SELECT * FROM no_plan();
 
 -- Check that we have the functions we think we have.
@@ -27,8 +27,10 @@ SELECT ok(
 ]) AS f;
 
 -- User "pgxn" has access to *_distribution().
-SELECT has_function_privilege('pgxn', f, 'EXECUTE')
-  FROM unnest(ARRAY[
+SELECT ok(
+    has_function_privilege('pgxn', f, 'EXECUTE'),
+    'User "pgxn" should have EXECUTE priv on ' || f
+) FROM unnest(ARRAY[
       'add_distribution(label, text, text)',
       'get_distribution(term, semver)',
       'update_distribution(label, text, text)'
