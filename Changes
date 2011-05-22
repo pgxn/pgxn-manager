@@ -15,7 +15,7 @@ Revision history for Perl extension PGXN::Manager
         a nice 400 error and the form to properly fill in. Reported by Stefan
         Kaltenbrunner.
       - Tag names may no longer contain slashes, backslashes, or control
-        characters.
+        characters, and must be 256 characters or less.
       - Extension names may no longer contain slashes, backslashes, control
         characters, or space characters.
 

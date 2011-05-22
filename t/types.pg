@@ -1,7 +1,7 @@
 SET search_path = public,contrib,tap;
 
 BEGIN;
-SELECT plan(116);
+SELECT plan(120);
 --SELECT * FROM no_plan();
 
 -- Test the label data type.
@@ -168,12 +168,13 @@ SELECT throws_like(
     '%"word_check"%',
     'Should get invalid word exception for "' || bad || '"'
 ) FROM unnest(ARRAY[
-    'foo/bar',     -- slash
-    'foo\bar',     -- backslash
-    'foo bar',     -- whitespace
-    E'foo\nbar',   -- newline
-    E'foo\rbar',   -- return
-    E'foo\x0abar'  -- unprintable
+    'foo/bar',    -- slash
+    'foo\bar',    -- backslash
+    'foo	bar', -- tab
+    E'foo\nbar',  -- newline
+    E'foo\rbar',  -- return
+    E'foo\fbar',  -- feed
+    E'foo\x0abar' -- unprintable
 ]) AS bad;
 
 SELECT lives_ok(
@@ -197,11 +198,14 @@ SELECT throws_like(
     '%"tag_check"%',
     'Should get invalid tag exception for "' || bad || '"'
 ) FROM unnest(ARRAY[
-    'foo/bar',     -- slash
-    'foo\bar',     -- backslash
-    E'foo\nbar',   -- newline
-    E'foo\rbar',   -- return
-    E'foo\x0abar'  -- unprintable
+    'foo/bar',       -- slash
+    'foo\bar',       -- backslash
+    'foo	bar',    -- tab
+    E'foo\nbar',     -- newline
+    E'foo\rbar',     -- return
+    E'foo\fbar',     -- feed
+    E'foo\x0abar',   -- unprintable
+    repeat('x', 257) -- too long
 ]) AS bad;
 
 SELECT lives_ok(
@@ -209,7 +213,7 @@ SELECT lives_ok(
     '"' || good || '" should be a valid tag'
 ) FROM unnest(ARRAY[
     'foo',
-    'foo bar',     -- whitespace
+    'foo bar',
     'foo,bar',
     'foo9bar',
     'foo**^%#Wbar',

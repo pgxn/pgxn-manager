@@ -23,8 +23,13 @@ $$;
 CREATE DOMAIN timezone AS CITEXT CHECK ( is_timezone( VALUE ) );
 
 ------------------------------------------------------------------------------
--- Create a tag text type that bans unprintable characters, /, and \.
-CREATE DOMAIN tag CITEXT CHECK ( VALUE !~ '[[:cntrl:]/\\]' );
+-- Create a tag text type that bans unprintable characters, /, and \. It also
+-- may be no more than 256 characters long.
+
+CREATE DOMAIN tag CITEXT CHECK (
+    VALUE !~ '[[:cntrl:]/\\]'
+      AND length(VALUE) <= 256
+);
 
 ------------------------------------------------------------------------------
 -- Create a word text type that bans spaces, unprintable characters, /, and \.
