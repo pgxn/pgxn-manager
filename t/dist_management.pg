@@ -168,7 +168,7 @@ SELECT results_eq(
 -- Make sure that the "provided", "relstatus", and "tags" columns get defaults.
 SELECT results_eq(
     $$ SELECT provided, relstatus, tags
-         FROM setup_meta('nobody', 'pshaw', '{"name": "pair", "version": "0.0.1", "license": "postgresql","maintainer": "theory", "abstract": "whatever"}') $$,
+         FROM setup_meta('nobody', 'pshaw', '{"name": "pair", "version": "0.0.1", "license": "postgresql","maintainer": "theory", "abstract": "whatever", "provides": { "pair": { "version": "0.0.1", "abstract": "whatever" }}}') $$,
     $$ VALUES (ARRAY[['pair', '0.0.1', 'whatever']], 'stable'::relstatus, '{}'::citext[]) $$,
     'Should get expected default provided, release_status, and tags from setup_meta()'
 );
@@ -349,7 +349,8 @@ SELECT throws_ok(
         "version":     "0.0.1",
         "license":     "postgresql",
         "maintainer":  "theory",
-        "abstract":    "whatever"
+        "abstract":    "whatever",
+        "provides": { "pair": { "version": "0.0.1", "abstract": "whatever" }}
     }$$) $_$,
     'P0001',
     'User “nobody” does not own all provided extensions',
@@ -364,7 +365,8 @@ SELECT throws_ok(
         "version":     "0.0.1",
         "license":     "postgresql",
         "maintainer":  "theory",
-        "abstract":    "whatever"
+        "abstract":    "whatever",
+        "provides": { "triple": { "version": "0.0.1", "abstract": "whatever" } }
     }$$) $_$,
     'P0001',
     'User “theory” does not own all provided extensions',
@@ -690,7 +692,8 @@ SELECT throws_ok(
         "version":     "0.0.1",
         "license":     "postgresql",
         "maintainer":  "theory",
-        "abstract":    "whatever"
+        "abstract":    "whatever",
+        "provides": { "pair": { "version": "0.0.1", "abstract": "whatever" } }
     }') $$,
     'P0001',
     'Distribution “pair 0.0.1” already exists',
@@ -705,6 +708,7 @@ SELECT bag_eq(
         "license":     "postgresql",
         "maintainer":  "strongrrl",
         "abstract":    "whatever",
+        "provides": { "foo": { "version": "0.0.2", "abstract": "whatever" } },
         "tags": ["Foo", "PAIR", "pair"]
     }')$$,
     $$ VALUES('meta', 'foo', '{
@@ -935,7 +939,9 @@ SELECT throws_ok(
         "version":     "0.0.3",
         "license":     "postgresql",
         "maintainer":  "theory",
-        "abstract":    "whatever"
+        "abstract":    "whatever",
+         "provides": { "pair": { "version": "0.0.3", "abstract": "whatever" } }
+
     }$$) $_$,
     'P0001',
     'User “strongrrl” does not own all provided extensions',
@@ -1243,7 +1249,9 @@ SELECT throws_ok(
         "version":     "0.0.1",
         "license":     "postgresql",
         "maintainer":  "theory",
-        "abstract":    "whatever"
+        "abstract":    "whatever",
+        "provides": { "pair": { "version": "0.0.1", "abstract": "whatever" } }
+
     }$$) $_$,
     'P0001',
     'User “nobody” does not own all provided extensions',
@@ -1256,7 +1264,8 @@ SELECT throws_ok(
         "version":     "0.0.1",
         "license":     "postgresql",
         "maintainer":  "theory",
-        "abstract":    "whatever"
+        "abstract":    "whatever",
+        "provides": { "foo": { "version": "0.0.1", "abstract": "whatever" } }
     }$$) $_$,
     'P0001',
     'User “theory” does not own all provided extensions',

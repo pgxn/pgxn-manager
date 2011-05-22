@@ -171,7 +171,8 @@ PGXN::Manager->instance->conn->run(sub {
         "license":     "postgresql",
         "maintainer":  "strongrrl",
         "abstract":    "whatever",
-        "tags": ["Foo", "PAIR", "pair"]
+        "tags": ["Foo", "PAIR", "pair"],
+        "provides": { "foo": { "version": "0.0.2", "abstract": "whatever" } }
     }'
     );
 
@@ -183,7 +184,8 @@ PGXN::Manager->instance->conn->run(sub {
         "version":     "0.3.2",
         "license":     "postgresql",
         "maintainer":  "someone else",
-        "abstract":    "whatever"
+        "abstract":    "whatever",
+        "provides": { "bar": { "version": "0.3.2", "abstract": "whatever" } }
     }'
     );
 });

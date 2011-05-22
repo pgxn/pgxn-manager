@@ -68,7 +68,8 @@ SELECT lives_ok(
         "version":     "0.0.1",
         "license":     "postgresql",
         "maintainer":  "theory",
-        "abstract":    "whatever"
+        "abstract":    "whatever",
+        "provides": { "pair": { "version": "0.0.1", "abstract": "whatever" } }
     }') $$,
     'Add a distribution'
 );

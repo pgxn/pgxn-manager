@@ -17,14 +17,14 @@ CREATE OR REPLACE FUNCTION setup_meta(
     my $dist_meta = JSON::XS->new->utf8(0)->decode(shift);
 
     # Check required keys.
-    for my $key (qw(name version license maintainer abstract)) {
+    for my $key (qw(name version license maintainer abstract provides)) {
         $idx_meta->{$key} = $dist_meta->{$key} or elog(
             ERROR, qq{Metadata is missing the required “$key” key}
         );
     }
 
     # Grab optional fields.
-    for my $key (qw(description tags no_index prereqs provides release_status resources)) {
+    for my $key (qw(description tags no_index prereqs release_status resources)) {
         $idx_meta->{$key} = $dist_meta->{$key} if exists $dist_meta->{$key};
     }
 
@@ -55,19 +55,10 @@ CREATE OR REPLACE FUNCTION setup_meta(
         }
     }
 
-    if (my $provides = $idx_meta->{provides}) {
-        # Normalize "provides" version strings.
-        for my $ext (values %{ $provides }) {
-            $ext->{version} = SemVer->declare($ext->{version})->normal;
-        }
-    } else {
-        # Default to using the distribution info as the extension.
-        $idx_meta->{provides} = {
-            $idx_meta->{name} => {
-                version  => $idx_meta->{version},
-                abstract => $idx_meta->{abstract},
-            }
-        };
+    my $provides = $idx_meta->{provides};
+    # Normalize "provides" version strings.
+    for my $ext (values %{ $provides }) {
+        $ext->{version} = SemVer->declare($ext->{version})->normal;
     }
 
     # XXX Normalize maintainers, licenses, other fields?

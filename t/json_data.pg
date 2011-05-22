@@ -372,7 +372,8 @@ SELECT lives_ok(
         "version": "0.2.5",
         "license": "postgresql",
         "maintainer": "theory",
-        "abstract": "Ordered triplet"
+        "abstract": "Ordered triplet",
+        "provides": { "trip": { "version": "0.2.5", "abstract": "Ordered triplet" } }
     }') $$,
     'Add a trip distribution'
 );
@@ -781,7 +782,8 @@ SELECT lives_ok(
         "version": "0.50.1",
         "license": "postgresql",
         "maintainer": "theory",
-        "abstract": "Do wa, p-diddy"
+        "abstract": "Do wa, p-diddy",
+        "provides": { "duwop": { "version": "0.50.1", "abstract": "Do wa, p-diddy" } }
     }') $$,
     'Add another distribution'
 );
