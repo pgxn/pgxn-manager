@@ -32,9 +32,12 @@ CREATE DOMAIN tag CITEXT CHECK (
 );
 
 ------------------------------------------------------------------------------
--- Create a word text type that bans spaces, unprintable characters, /, and \.
-CREATE DOMAIN word CITEXT
-CHECK ( VALUE !~ '[[:space:][:cntrl:]/\\]');
+-- Create a term text type that bans spaces, unprintable characters, /, and \.
+-- It also must be at least two characters long.
+CREATE DOMAIN term CITEXT CHECK (
+    VALUE !~ '[[:space:][:cntrl:]/\\]'
+      AND length(VALUE) >= 2
+);
 
 ------------------------------------------------------------------------------
 -- Create a label data type, following the rules in RFC 1034. Labels can then

@@ -1,7 +1,7 @@
 SET search_path = public,contrib,tap;
 
 BEGIN;
-SELECT plan(120);
+SELECT plan(121);
 --SELECT * FROM no_plan();
 
 -- Test the label data type.
@@ -158,19 +158,20 @@ SELECT throws_ok(
     'URI with unencoded spaces should not be valid'
 );
 
--- Test the word data type.
-SELECT has_type('word');
-SELECT is( 'foo'::word, 'FOO'::word, 'words should be case-insensitive' );
-SELECT is( NULL::word, NULL, 'words should be NULLable' );
+-- Test the term data type.
+SELECT has_type('term');
+SELECT is( 'foo'::term, 'FOO'::term, 'terms should be case-insensitive' );
+SELECT is( NULL::term, NULL, 'terms should be NULLable' );
 
 SELECT throws_like(
-    'SELECT ' || quote_literal(bad) || '::word',
-    '%"word_check"%',
-    'Should get invalid word exception for "' || bad || '"'
+    'SELECT ' || quote_literal(bad) || '::term',
+    '%"term_check"%',
+    'Should get invalid term exception for "' || bad || '"'
 ) FROM unnest(ARRAY[
     'foo/bar',    -- slash
     'foo\bar',    -- backslash
     'foo	bar', -- tab
+    'f',          -- length
     E'foo\nbar',  -- newline
     E'foo\rbar',  -- return
     E'foo\fbar',  -- feed
@@ -178,8 +179,8 @@ SELECT throws_like(
 ]) AS bad;
 
 SELECT lives_ok(
-    'SELECT ' || quote_literal(good) || '::word',
-    '"' || good || '" should be a valid word'
+    'SELECT ' || quote_literal(good) || '::term',
+    '"' || good || '" should be a valid term'
 ) FROM unnest(ARRAY[
     'foo',
     'foo,bar',

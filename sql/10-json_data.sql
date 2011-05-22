@@ -81,10 +81,10 @@ objects. All the required fields will be present, and the optional fields
 $$;
 
 CREATE OR REPLACE FUNCTION extension_json(
-   dist      WORD,
+   dist      TERM,
    version   SEMVER
 ) RETURNS TABLE (
-    extension WORD,
+    extension TERM,
     json      TEXT
 ) LANGUAGE plpgsql STABLE STRICT AS $$
 /*
@@ -141,7 +141,7 @@ DECLARE
     stable   TEXT;
     testing  TEXT;
     unstable TEXT;
-    ext      WORD;
+    ext      TERM;
     prev     TEXT;
     extv     TEXT;
     distjson TEXT[] := '{}';
@@ -245,7 +245,7 @@ time" (UTC).
 $$;
 
 CREATE OR REPLACE FUNCTION dist_json(
-   dist WORD
+   dist TERM
 ) RETURNS TEXT LANGUAGE sql STABLE STRICT AS $$
 /*
 
@@ -302,7 +302,7 @@ versions and their dates.
 $$;
 
 CREATE OR REPLACE FUNCTION tag_json(
-   dist      WORD,
+   dist      TERM,
    version   SEMVER
 ) RETURNS TABLE (
     tag  TAG,

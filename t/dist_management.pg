@@ -14,7 +14,7 @@ SELECT has_function(f)
 SELECT has_function('setup_meta', ARRAY['label', 'text', 'text']);
 SELECT has_function('record_ownership', ARRAY['label', 'text[]']);
 SELECT has_function('add_distribution', ARRAY['label', 'text', 'text']);
-SELECT has_function('get_distribution', ARRAY['word', 'semver']);
+SELECT has_function('get_distribution', ARRAY['term', 'semver']);
 SELECT has_function('update_distribution', ARRAY['label', 'text', 'text']);
 
 -- User "pgxn" should not have access to private fnctions.
@@ -30,7 +30,7 @@ SELECT ok(
 SELECT has_function_privilege('pgxn', f, 'EXECUTE')
   FROM unnest(ARRAY[
       'add_distribution(label, text, text)',
-      'get_distribution(word, semver)',
+      'get_distribution(term, semver)',
       'update_distribution(label, text, text)'
   ]) AS f;
   
@@ -119,7 +119,7 @@ SELECT results_eq(
           "homepage": "http://pgxn.org/dist/pair/"
         }
     }') $$,
-    $$ VALUES('pair'::word, '0.0.1'::semver, 'testing'::relstatus, 'Ordered pair',
+    $$ VALUES('pair'::term, '0.0.1'::semver, 'testing'::relstatus, 'Ordered pair',
     'An ordered pair for PostgreSQL',
     ARRAY[['pair', '0.2.2', ''], ['trip', '0.2.1', '']],
     ARRAY['foo'::citext, 'bar', 'baz'], '{
@@ -1597,10 +1597,10 @@ SELECT row_eq(
 /****************************************************************************/
 -- Make sure we get the same data from get_distribution().
 SELECT set_now(pg_catalog.now());
-SELECT function_returns('get_distribution', ARRAY['word', 'semver'], 'setof record' );
-SELECT function_lang_is('get_distribution', ARRAY['word', 'semver'], 'plpgsql' );
-SELECT volatility_is(   'get_distribution', ARRAY['word', 'semver'], 'stable' );
-SELECT is_strict(       'get_distribution', ARRAY['word', 'semver'] );
+SELECT function_returns('get_distribution', ARRAY['term', 'semver'], 'setof record' );
+SELECT function_lang_is('get_distribution', ARRAY['term', 'semver'], 'plpgsql' );
+SELECT volatility_is(   'get_distribution', ARRAY['term', 'semver'], 'stable' );
+SELECT is_strict(       'get_distribution', ARRAY['term', 'semver'] );
 
 SELECT bag_eq(
     $$ SELECT * FROM get_distribution('pair', '0.0.3')$$,

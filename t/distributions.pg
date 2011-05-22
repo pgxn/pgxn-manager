@@ -26,7 +26,7 @@ SELECT has_pk(    'distributions' );
 SELECT has_fk(    'distributions' );
 
 SELECT has_column(        'distributions', 'name' );
-SELECT col_type_is(       'distributions', 'name', 'word' );
+SELECT col_type_is(       'distributions', 'name', 'term' );
 SELECT col_not_null(      'distributions', 'name' );
 SELECT col_hasnt_default( 'distributions', 'name' );
 
@@ -103,22 +103,15 @@ VALUES ('theory', '', '', 'foo@example.com', 'theory');
 SELECT throws_like(
     $$ INSERT INTO distributions (name, version, creator, sha1, meta)
        VALUES($$ || quote_literal(bad) || $$, '1.0.0', 'theory', 'bar', 'baz')$$,
-    '%"word_check"%',
+    '%"term_check"%',
     'Should get exception for name "' || bad || '"'
 ) FROM unnest(ARRAY[
+    'f',           -- too short
     'foo/bar',     -- slash
     'foo\bar',     -- backslash
     'foo bar',     -- whitespace
     E'foo\x0abar'  -- unprintable
 ]) AS bad;
-
--- Too short.
-SELECT throws_like(
-    $$ INSERT INTO distributions (name, version, creator, sha1, meta)
-       VALUES('h', '1.0.0', 'theory', 'bar', 'baz')$$,
-    '%distributions_name_check%',
-    'Should get exception for name "h"'
-);       
 
 /****************************************************************************/
 -- Test distribution_tags.
@@ -135,7 +128,7 @@ SELECT has_pk(    'distribution_tags' );
 SELECT has_fk(    'distribution_tags' );
 
 SELECT has_column(        'distribution_tags', 'distribution' );
-SELECT col_type_is(       'distribution_tags', 'distribution', 'word' );
+SELECT col_type_is(       'distribution_tags', 'distribution', 'term' );
 SELECT col_not_null(      'distribution_tags', 'distribution' );
 SELECT col_hasnt_default( 'distribution_tags', 'distribution' );
 

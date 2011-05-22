@@ -4,7 +4,7 @@ CREATE OR REPLACE FUNCTION setup_meta(
     IN  nick        LABEL,
     IN  sha1        TEXT,
     IN  json        TEXT,
-    OUT name        WORD,
+    OUT name        TERM,
     OUT version     SEMVER,
     OUT relstatus   RELSTATUS,
     OUT abstract    TEXT,
@@ -456,7 +456,7 @@ END;
 $$;
 
 CREATE OR REPLACE FUNCTION get_distribution(
-    dist    WORD,
+    dist    TERM,
     version SEMVER
 ) RETURNS TABLE (
     template TEXT,

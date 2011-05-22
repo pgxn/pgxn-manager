@@ -12,7 +12,7 @@ CREATE TYPE relstatus AS ENUM(
 );
 
 CREATE TABLE distributions (
-    name        WORD        NOT NULL CHECK (length(name) >= 2),
+    name        TERM        NOT NULL,
     version     SEMVER      NOT NULL,
     abstract    TEXT        NOT NULL DEFAULT '',
     description TEXT        NOT NULL DEFAULT '',
@@ -27,7 +27,7 @@ CREATE TABLE distributions (
 GRANT SELECT ON distributions TO pgxn;
 
 CREATE TABLE distribution_tags (
-    distribution WORD,
+    distribution TERM,
     version      SEMVER,
     tag          TAG,
     PRIMARY KEY (distribution, version, tag),

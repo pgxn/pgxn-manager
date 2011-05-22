@@ -18,7 +18,7 @@ SELECT has_pk(    'extensions' );
 SELECT has_fk(    'extensions' );
 
 SELECT has_column(        'extensions', 'name' );
-SELECT col_type_is(       'extensions', 'name', 'word' );
+SELECT col_type_is(       'extensions', 'name', 'term' );
 SELECT col_hasnt_default( 'extensions', 'name' );
 SELECT col_is_pk(         'extensions', 'name' );
 
@@ -74,7 +74,7 @@ SELECT has_pk(    'coowners' );
 SELECT has_fk(    'coowners' );
 
 SELECT has_column(        'coowners', 'extension' );
-SELECT col_type_is(       'coowners', 'extension', 'word' );
+SELECT col_type_is(       'coowners', 'extension', 'term' );
 SELECT col_not_null(      'coowners', 'extension' );
 SELECT col_hasnt_default( 'coowners', 'extension' );
 SELECT col_is_fk(         'coowners', 'extension' );
@@ -125,7 +125,7 @@ SELECT has_pk(    'distribution_extensions' );
 SELECT has_fk(    'distribution_extensions' );
 
 SELECT has_column(        'distribution_extensions', 'extension' );
-SELECT col_type_is(       'distribution_extensions', 'extension', 'word' );
+SELECT col_type_is(       'distribution_extensions', 'extension', 'term' );
 SELECT col_not_null(      'distribution_extensions', 'extension' );
 SELECT col_hasnt_default( 'distribution_extensions', 'extension' );
 SELECT col_is_fk(         'distribution_extensions', 'extension' );
@@ -143,7 +143,7 @@ SELECT col_not_null(      'distribution_extensions', 'abstract' );
 SELECT col_hasnt_default( 'distribution_extensions', 'abstract' );
 
 SELECT has_column(        'distribution_extensions', 'distribution' );
-SELECT col_type_is(       'distribution_extensions', 'distribution', 'word' );
+SELECT col_type_is(       'distribution_extensions', 'distribution', 'term' );
 SELECT col_not_null(      'distribution_extensions', 'distribution' );
 SELECT col_hasnt_default( 'distribution_extensions', 'distribution' );
 
