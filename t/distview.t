@@ -214,7 +214,7 @@ test_psgi $app => sub {
             # Check simple key/value pairs.
             my $i;
             for my $spec (
-                [ Description   => 'A widget is just thing thing, you know' ],
+                [ Description   => '¿A widget is just thing thing, yoŭ know?' ],
                 [ 'Released By' => $user ],
                 [ Status        => 'stable' ],
                 [ SHA1          => $sha1 ],

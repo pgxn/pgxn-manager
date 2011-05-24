@@ -2,7 +2,7 @@
 
 use 5.10.0;
 use utf8;
-use Test::More tests => 278;
+use Test::More tests => 279;
 #use Test::More 'no_plan';
 use Archive::Zip qw(:ERROR_CODES);
 use HTTP::Headers;
@@ -14,6 +14,7 @@ use File::Basename;
 use File::Copy;
 use JSON::XS;
 use Test::MockModule;
+use Test::NoWarnings;
 use lib 't/lib';
 use TxnTest;
 
@@ -218,7 +219,8 @@ is $updated, 0, 'And _update_meta() should not have been called';
 $mock->unmock('_update_meta');
 ok $dist->_update_meta, 'Update the metadata';
 $distmeta->{generated_by} = 'PGXN::Manager ' . PGXN::Manager->VERSION;
-is_deeply decode_json $dist->metamemb->contents, $distmeta,
+use Encode;
+is_deeply decode_json scalar encode_utf8 $dist->metamemb->contents, $distmeta,
     'The distmeta should be complete';
 
 # Mock _update_meta again.
@@ -442,6 +444,7 @@ PGXN::Manager->conn->run(sub {
         undef, 'widget', '0.2.5',
     );
     file_contents_is $files{'dist/widget/0.2.5/META.json'}, $json,
+        { encoding => 'UTF-8' },
         "Distribution JSON file should be correct";
 
     # Check extension JSON.

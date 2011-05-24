@@ -1,7 +1,7 @@
 {
    "name": "widget",
    "abstract": "Widget for PostgreSQL",
-   "description": "A widget is just thing thing, you know",
+   "description": "¿A widget is just thing thing, yoŭ know?",
    "version": "0.2.5",
    "maintainer": [
       "David E. Wheeler <theory@pgxn.org>"

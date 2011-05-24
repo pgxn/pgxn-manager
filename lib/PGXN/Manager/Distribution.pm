@@ -342,7 +342,7 @@ sub _indexit {
             my $fn  = File::Spec->catfile($destdir, $uri->path_segments);
 
             make_path dirname $fn;
-            open my $fh, '>', $fn or die "Cannot open $fn: $!\n";
+            open my $fh, '>:utf8', $fn or die "Cannot open $fn: $!\n";
             print $fh $json;
             close $fh or die "Cannot close $fn: $!\n";
 
