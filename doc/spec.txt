@@ -102,19 +102,19 @@ Terminology
 distribution
 :   The primary object described by the metadata. In the context of this
     document it usually refers to a collection of extensions, source code,
-    tests, and/or documents that are distributed together for other developers
-    to use. Examples of distributions are
+    utilities, tests, and/or documents that are distributed together for other
+    developers to use. Examples of distributions are
     [`semver`](http://pgxn.org/dist/semver/),
     [`pair`](http://pgxn.org/dist/pair/), and
     [`pgTAP`](http://pgxn.org/dist/pgTAP/).
 
 extension
 :   A reusable library of code contained in a single file or within files
-    referenced by the (forthcoming) [`CREATE EXTENSION`
-    statement](http://developer.postgresql.org/pgdocs/postgres/sql-createextension.html).
+    referenced by the [`CREATE EXTENSION`
+    statement](http://www.postgresql.org/docs/9.1/static/sql-createextension.html).
     Extensions usually contain one or more PostgreSQL objects — such as data
-    types, functions, and operators — and are often referred to by the name
-    of a primary object that can be mapped to the file name. For example, one
+    types, functions, and operators — and are often referred to by the name of
+    a primary object that can be mapped to the file name. For example, one
     might refer to `pgTAP` instead of `sql/pgtap.sql`.
 
 consumer
@@ -283,7 +283,7 @@ not limited to: (security) problems with the distribution, questions about the
 distribution, or bugs in the distribution.
 
 A distribution’s original author is usually the contact listed within this
-field. Co-maintainers, successor maintainers or mailing lists devoted to the
+field. Co-maintainers, successor maintainers, or mailing lists devoted to the
 distribution may also be listed in addition to or instead of the original
 author.
 
@@ -377,7 +377,7 @@ Example:
       }
     }
 
-(Spec 1) [optional] {[Map](#Map) of [Terms](#Term)}
+(Spec 1) [required] {[Map](#Map) of [Terms](#Term)}
 
 This describes all extensions provided by this distribution. This information
 is used by PGXN to build indexes identifying in which distributions various
@@ -616,7 +616,7 @@ This field describes resources related to this distribution.
 Valid subkeys include:
 
 homepage
-:   The official home of this project on the web.
+:   A [URI](#URI) for the official home of this project on the web.
 
 bugtracker
 :   This entry describes the bug tracking system for this distribution. It is
