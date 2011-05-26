@@ -551,9 +551,9 @@ Example:
 This is a [Map](#Map) that describes all the prerequisites of the
 distribution. The keys are phases of activity, such as `configure`, `build`,
 `test`, or `runtime`. Values are [Maps](#Map) in which the keys name the type
-of prerequisite relationship such as `requires`, `recommends`, or `suggests`,
-and the values provide sets of prerequisite relations. The sets of relations
-**must** be specified as a [Map](#Map) of extension names to
+of prerequisite relationship such as `requires`, `recommends`, `suggests`, or
+"conflicts", and the values provide sets of prerequisite relations. The sets
+of relations **must** be specified as a [Map](#Map) of extension names to
 [Version Ranges](#Version.Ranges).
 
 The full definition for this field is given in the [Prereq Spec](#Prereq.Spec)
@@ -772,6 +772,12 @@ recommends
 suggests
 :   These dependencies are optional, but are suggested for enhanced operation
     of the described distribution.
+
+conflicts
+
+:   These dependencies cannot be installed when the phase is in operation.
+    This is a very rare situation, and the conflicts relationship should be
+    used with great caution, or not at all.
 
 Merging and Resolving Prerequisites
 -----------------------------------

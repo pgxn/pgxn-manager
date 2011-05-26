@@ -19,6 +19,7 @@ Revision history for Perl extension PGXN::Manager
       - Extension names may no longer contain slashes, backslashes, control
         characters, or space characters.
       - Eliminated "Wide character in print" warnings.
+      - Added the "conflicts" relationship to the meta spec `prereqs` field.
 
 0.12.8  2011-05-12T23:57:44
       - Updated the HOWTO to add details for better indexing and support for
