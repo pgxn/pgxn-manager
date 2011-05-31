@@ -2,7 +2,7 @@
 
 use 5.10.0;
 use utf8;
-use Test::More tests => 279;
+use Test::More tests => 269;
 #use Test::More 'no_plan';
 use Archive::Zip qw(:ERROR_CODES);
 use HTTP::Headers;
@@ -267,12 +267,16 @@ for my $name (
     ok $dist->extract, '... Extract it';
     ok $dist->read_meta, '... Read its meta data';
     ok !$dist->normalize, '... Should get false from normalize()';
+    my $msg = $name eq 'h'
+        ? 'term value must be at least 2 characters'
+        : "'$name' is not a valid term";
     is_deeply scalar $dist->error, [
-        '"[_1]" is an invalid distribution name',
-        $name,
+        'The [_1] file does not adhere to the <a href="http://pgxn.org/spec/">PGXN Meta Specification</a>. Errors:<br/>[_2]',
+        'widget-0.2.5/META.json',
+        qq{• Missing mandatory field, 'version' (meta-spec -> version) [Validation: 1.0.0]<br/>• Missing mandatory field, 'file' (provides -> foo -> file) [Validation: 1.0.0]<br/>• $msg (name) [Validation: 1.0.0]},
     ], '... Sould get invalid name error';
     is $dist->localized_error,
-        "“$name” is not a valid distribution name. Distribution names must be at least two characters and may not contain unprintable or whitespace characters or /, \\, or :.",
+        qq{The widget-0.2.5/META.json file does not adhere to the <a href="http://pgxn.org/spec/">PGXN Meta Specification</a>. Errors:<br/>• Missing mandatory field, 'version' (meta-spec -> version) [Validation: 1.0.0]<br/>• Missing mandatory field, 'file' (provides -> foo -> file) [Validation: 1.0.0]<br/>• $msg (name) [Validation: 1.0.0]},
             '... Should get the localized invalid name message';
 }
 
@@ -287,11 +291,13 @@ ok $dist->extract, 'Extract it';
 ok $dist->read_meta, 'Read its meta data';
 ok !$dist->normalize, 'Should get false from normalize()';
 is_deeply scalar $dist->error, [
-    '"[_1]" is missing the required [numerate,_2,key] [qlist,_3]',
-    'widget-0.2.5/META.json', 4, [qw(license maintainer abstract provides)],
+    'The [_1] file does not adhere to the <a href="http://pgxn.org/spec/">PGXN Meta Specification</a>. Errors:<br/>[_2]',
+    'widget-0.2.5/META.json',
+    "• Missing mandatory field, 'maintainer' (maintainer) [Validation: 1.0.0]<br/>• Missing mandatory field, 'license' (license) [Validation: 1.0.0]<br/>• Missing mandatory field, 'provides' (provides) [Validation: 1.0.0]<br/>• Missing mandatory field, 'abstract' (abstract) [Validation: 1.0.0]<br/>• Missing mandatory field, 'version' (meta-spec -> version) [Validation: 1.0.0]",
 ], 'Sould get missing keys error';
 is $dist->localized_error,
-    '“widget-0.2.5/META.json” is missing the required keys “license”, “maintainer”, “abstract”, and “provides”',
+    q{The widget-0.2.5/META.json file does not adhere to the <a href="http://pgxn.org/spec/">PGXN Meta Specification</a>. Errors:<br/>• Missing mandatory field, 'maintainer' (maintainer) [Validation: 1.0.0]<br/>• Missing mandatory field, 'license' (license) [Validation: 1.0.0]<br/>• Missing mandatory field, 'provides' (provides) [Validation: 1.0.0]<br/>• Missing mandatory field, 'abstract' (abstract) [Validation: 1.0.0]<br/>• Missing mandatory field, 'version' (meta-spec -> version) [Validation: 1.0.0]},
+    'Should get localized missing keys error';
 
 # Try with metdata that's got some non-semantic versions.
 $distmeta->{version} = '2.5';
@@ -301,21 +307,19 @@ $dzip->writeToFileNamed($nonsemzip) == AZ_OK or die 'write error';
 ok $dist = new_dist($nonsemzip), 'Create dist with non-smantic version';
 ok $dist->extract, 'Extract it';
 ok $dist->read_meta, 'Read its meta data';
-ok $dist->normalize, 'Normalize it';
-ok !$dist->error, 'Should be successful';
-ok $dist->modified, 'Should be modified';
-ok $dist->metamemb, 'It should have the meta member';
-$distmeta->{version} = '2.5.0';
-is_deeply $dist->distmeta, $distmeta,
-    'The distmeta should have the normalized version';
-is $updated, 1, 'And _update_meta() should have been called';
-is_deeply [sort $dist->zip->memberNames ], [
-    'widget-2.5.0/',
-    map { "widget-2.5.0/$_"} qw(META.json Makefile README widget.sql.in)
-], 'All of the files should have normalized version in their prefix';
+ok !$dist->normalize, 'Normalization should fail';
+is_deeply scalar $dist->error, [
+    'The [_1] file does not adhere to the <a href="http://pgxn.org/spec/">PGXN Meta Specification</a>. Errors:<br/>[_2]',
+    'widget-0.2.5/META.json',
+    "• '2.5' for 'version' is not a valid version. (version) [Validation: 1.0.0]",
+], 'Sould get missing keys error';
+is $dist->localized_error,
+    q{The widget-0.2.5/META.json file does not adhere to the <a href="http://pgxn.org/spec/">PGXN Meta Specification</a>. Errors:<br/>• '2.5' for 'version' is not a valid version. (version) [Validation: 1.0.0]},
+    'Should get localized missing keys error';
 
-# Make sure that the "prereq" versions are normalized.
+# Make sure that the "prereq" versions are validated.
 $updated = 0;
+$distmeta->{version} = '2.5.0';
 $distmeta->{prereqs}{runtime}{requires}{PostgreSQL} = '8.0';
 $dzip->memberNamed('widget-0.2.5/META.json')->contents(encode_json $distmeta);
 $dzip->writeToFileNamed($nonsemzip) == AZ_OK or die 'write error';
@@ -323,16 +327,18 @@ $dzip->writeToFileNamed($nonsemzip) == AZ_OK or die 'write error';
 ok $dist = new_dist($nonsemzip), 'Create dist with non-smantic "prereq" version';
 ok $dist->extract, 'Extract it';
 ok $dist->read_meta, 'Read its meta data';
-ok $dist->normalize, 'Normalize it';
-ok !$dist->error, 'Should be successful';
-ok $dist->modified, 'Should be modified';
-ok $dist->metamemb, 'It should have the meta member';
-$distmeta->{prereqs}{runtime}{requires}{PostgreSQL} = '8.0.0';
-is_deeply $dist->distmeta, $distmeta,
-    'The distmeta should have the normalized prereq version';
-is $updated, 1, 'And _update_meta() should have been called';
+ok !$dist->normalize, 'Normalization should fail';
+is_deeply scalar $dist->error, [
+    'The [_1] file does not adhere to the <a href="http://pgxn.org/spec/">PGXN Meta Specification</a>. Errors:<br/>[_2]',
+    'widget-0.2.5/META.json',
+    "• '8.0' for 'PostgreSQL' is not a valid version. (prereqs -> runtime -> requires -> PostgreSQL) [Validation: 1.0.0]",
+], 'Sould get missing keys error';
+is $dist->localized_error,
+    q{The widget-0.2.5/META.json file does not adhere to the <a href="http://pgxn.org/spec/">PGXN Meta Specification</a>. Errors:<br/>• '8.0' for 'PostgreSQL' is not a valid version. (prereqs -> runtime -> requires -> PostgreSQL) [Validation: 1.0.0]},
+    'Should get localized missing keys error';
 
 # Try a "provides" section missing the version.
+$distmeta->{prereqs}{runtime}{requires}{PostgreSQL} = '8.0.0';
 delete $distmeta->{provides}{widget}{version};
 $dzip->memberNamed('widget-0.2.5/META.json')->contents(encode_json $distmeta);
 $dzip->writeToFileNamed($nonsemzip) == AZ_OK or die 'write error';
@@ -341,17 +347,15 @@ ok $dist->extract, 'Extract it';
 ok $dist->read_meta, 'Read its meta data';
 ok !$dist->normalize, 'Try to normalize it';
 is_deeply scalar $dist->error, [
-    '"[_1]" is missing the required [numerate,_2,key] [qlist,_3] under [_4]',
+    'The [_1] file does not adhere to the <a href="http://pgxn.org/spec/">PGXN Meta Specification</a>. Errors:<br/>[_2]',
     'widget-0.2.5/META.json',
-    1,
-    ['version'],
-    'provides/widget',
+    "• Missing mandatory field, 'version' (provides -> widget -> version) [Validation: 1.0.0]",
 ], 'The error message should be set';
 is $dist->localized_error,
-    '“widget-0.2.5/META.json” is missing the required key “version” under provides/widget',
+    q{The widget-0.2.5/META.json file does not adhere to the <a href="http://pgxn.org/spec/">PGXN Meta Specification</a>. Errors:<br/>• Missing mandatory field, 'version' (provides -> widget -> version) [Validation: 1.0.0]},
     'And it should localize properly';
 
-# Make sure that the "provides" versions are normalized.
+# Make sure that the "provides" versions are validated.
 $updated = 0;
 $distmeta->{provides}{widget}{version} = '1.095';
 $dzip->memberNamed('widget-0.2.5/META.json')->contents(encode_json $distmeta);
@@ -360,14 +364,15 @@ $dzip->writeToFileNamed($nonsemzip) == AZ_OK or die 'write error';
 ok $dist = new_dist($nonsemzip), 'Create dist with non-smantic "provides" version';
 ok $dist->extract, 'Extract it';
 ok $dist->read_meta, 'Read its meta data';
-ok $dist->normalize, 'Normalize it';
-ok !$dist->error, 'Should be successful';
-ok $dist->modified, 'Should be modified';
-ok $dist->metamemb, 'It should have the meta member';
-$distmeta->{provides}{widget}{version} = '1.95.0';
-is_deeply $dist->distmeta, $distmeta,
-    'The distmeta should have the normalized prvides version';
-is $updated, 1, 'And _update_meta() should have been called again';
+ok !$dist->normalize, 'Normalization should fail';
+is_deeply scalar $dist->error, [
+    'The [_1] file does not adhere to the <a href="http://pgxn.org/spec/">PGXN Meta Specification</a>. Errors:<br/>[_2]',
+    'widget-0.2.5/META.json',
+    "• '1.095' for 'version' is not a valid version. (provides -> widget -> version) [Validation: 1.0.0]",
+], 'The error message should be set';
+is $dist->localized_error,
+    q{The widget-0.2.5/META.json file does not adhere to the <a href="http://pgxn.org/spec/">PGXN Meta Specification</a>. Errors:<br/>• '1.095' for 'version' is not a valid version. (provides -> widget -> version) [Validation: 1.0.0]},
+    'And it should localize properly';
 
 ##############################################################################
 # Test zipit().
@@ -505,10 +510,12 @@ file_contents_is $files{'dist/widget/0.2.5/README.txt'},
    ['stats',     'summary.json'],
 );
 $dzip->removeMember('widget-0.2.5/README');
+$distmeta->{provides}{widget}{version} = '0.2.5';
+$dzip->memberNamed('widget-0.2.5/META.json')->contents(encode_json $distmeta);
 $dzip->writeToFileNamed($noreadzip) == AZ_OK or die 'write error';
 
 ok $dist = new_dist($noreadzip), 'Create a distribution with README-less zip';
-ok $dist->process, 'Process the distribution';
+ok $dist->process, 'Process the distribution' or note $dist->localized_error;
 file_exists_ok $files{$_}, "File $_ should now exist" for keys %files;
 file_not_exists_ok +File::Spec->catfile('dist', 'widget', 'widget/2.5.0/README.txt'),
     'There should be no README on the mirror';

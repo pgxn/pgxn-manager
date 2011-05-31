@@ -20,6 +20,12 @@ Revision history for Perl extension PGXN::Manager
         characters, or space characters.
       - Eliminated "Wide character in print" warnings.
       - Added the "conflicts" relationship to the meta spec `prereqs` field.
+      - Now using PGXN::Meta::Validator to validate the `META.json` file on
+        upload and in the database. This will make it easier for users to
+        figure out what's wrong with their file when they try to release to
+        PGXN, while also enforcing the requirement for the `provides` field.
+      - Version numbers are no longer be normalized into semantic versions.
+        They now must be valid semantic versions on upload.
 
 0.12.8  2011-05-12T23:57:44
       - Updated the HOWTO to add details for better indexing and support for

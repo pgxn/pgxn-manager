@@ -15,6 +15,7 @@ use Cwd;
 use JSON::XS;
 use SemVer;
 use Digest::SHA1;
+use PGXN::Meta::Validator v0.12.0;
 use namespace::autoclean;
 
 my $TMPDIR = PGXN::Manager->new->config->{tmpdir}
@@ -152,78 +153,16 @@ sub normalize {
     my $self = shift;
     my $meta = $self->distmeta;
 
-    # Check required keys.
-    if (my @missing = grep { !exists $meta->{$_} } qw(
-        name version license maintainer abstract provides
-    )) {
-        my $keys = join '", "', @missing;
+    # Validate the metadata.
+    my $pmv = PGXN::Meta::Validator->new($meta);
+    unless ($pmv->is_valid) {
         $self->error([
-            '"[_1]" is missing the required [numerate,_2,key] [qlist,_3]',
+            'The [_1] file does not adhere to the <a href="http://pgxn.org/spec/">PGXN Meta Specification</a>. Errors:<br/>[_2]',
             $self->metamemb->fileName,
-            scalar @missing,
-            \@missing,
+            '• ' . join '<br/>• ', $pmv->errors
         ]);
         return;
     }
-
-    # Validate the distribution name.
-    if (length $meta->{name} < 2
-            || $meta->{name} =~ m{[\p{Cntrl}\p{Space}\p{Blank}/\\]}
-    ) {
-        $self->error([
-            '"[_1]" is an invalid distribution name',
-            $meta->{name}
-        ]);
-        return;
-    }
-
-    my $meta_modified = 0;
-    # Does the version need normalizing?
-    my $normal = SemVer->declare($meta->{version})->normal;
-    if ($normal ne $meta->{version}) {
-        $meta->{version} = $normal;
-        $self->modified($meta_modified = 1);
-    }
-
-    # Do the "prereq" versions need normalizing?
-    if (my $prereqs = $meta->{prereqs}) {
-        for my $phase (values %{ $prereqs }) {
-            for my $type ( values %{ $phase }) {
-                for my $prereq (keys %{ $type }) {
-                    my $v = $type->{$prereq} or next; # 0 is valid.
-                    my $norm = SemVer->declare($type->{$prereq})->normal;
-                    next if $norm eq $v;
-                    $type->{$prereq} = $norm;
-                    $self->modified($meta_modified = 1);
-                }
-            }
-        }
-    }
-
-    # Do the provides versions need normalizing?
-    my $provides = $meta->{provides};
-    while (my ($ext, $info) = each %{ $provides }) {
-        # Make sure we have required keys.
-        if (my @missing = grep { !exists $info->{$_} } qw(file version)) {
-            my $keys = join '", "', @missing;
-            $self->error([
-                '"[_1]" is missing the required [numerate,_2,key] [qlist,_3] under [_4]',
-                $self->metamemb->fileName,
-                scalar @missing,
-                \@missing,
-                "provides/$ext",
-            ]);
-            return;
-        }
-
-        my $norm = SemVer->declare($info->{version})->normal;
-        next if $norm eq $info->{version};
-        $info->{version} = $norm;
-        $self->modified($meta_modified = 1);
-    }
-
-    # Rewrite JSON if distmeta is modified.
-    $self->_update_meta if $meta_modified;
 
     # Is the prefix right?
     (my $meta_prefix = $self->metamemb->fileName) =~ s{/$META_RE}{};
@@ -353,12 +292,19 @@ sub _indexit {
     }, sub {
         die $_ if $_->state ne 'P0001' && $_->state ne 'XX000';
         (my $err = $_->errstr) =~ s/^[[:upper:]]+:\s+//;
+        $err =~ s/(?:at line \d+\.)\s+CONTEXT:.+//ms;
         my @params;
-        my $i = 0;
-        $err =~ s{“([^”]+)”}{
-            push @params => $1;
-            '“[_' . ++$i . ']”';
-        }gesm;
+        if ($err =~ /Metadata is not valid; errors:/) {
+            ($err, @params) = split /\n/ => $err, 2;
+            $err .= "<br />[_1]";
+            $params[0] =~ s{\n}{<br />}g;
+        } else {
+            my $i = 0;
+            $err =~ s{“([^”]+)”}{
+                push @params => $1;
+                '“[_' . ++$i . ']”';
+            }gesm;
+        }
         $self->error([$err, @params]);
         return;
     }) or return;

@@ -69,7 +69,11 @@ SELECT lives_ok(
         "license":     "postgresql",
         "maintainer":  "theory",
         "abstract":    "whatever",
-        "provides": { "pair": { "version": "0.0.1", "abstract": "whatever" } }
+        "meta-spec": {
+           "version": "1.0.0",
+           "url": "http://pgxn.org/meta/spec.txt"
+        },
+        "provides": { "pair": { "version": "0.0.1", "abstract": "whatever", "file": "pair.sql" } }
     }') $$,
     'Add a distribution'
 );
@@ -89,6 +93,7 @@ SELECT results_eq(
    "provides": {
       "pair": {
          "abstract": "whatever",
+         "file": "pair.sql",
          "version": "0.0.1"
       }
    }
@@ -107,9 +112,13 @@ SELECT lives_ok(
         "release_status": "testing",
         "description": "Whatever you want",
         "abstract":    "whatevers",
+        "meta-spec": {
+           "version": "1.0.0",
+           "url": "http://pgxn.org/meta/spec.txt"
+        },
         "provides": {
-            "what": { "version": "0.1.2" },
-            "that": { "version": "0.1.0" }
+            "what": { "version": "0.1.2", "file": "what.sql" },
+            "that": { "version": "0.1.0", "file": "that.sql" }
         },
         "tags": ["this","that","other"]
     }') $$,
@@ -131,9 +140,11 @@ SELECT results_eq(
    "license": "postgresql",
    "provides": {
       "that": {
+         "file": "that.sql",
          "version": "0.1.0"
       },
       "what": {
+         "file": "what.sql",
          "version": "0.1.2"
       }
    },

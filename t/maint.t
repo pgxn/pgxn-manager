@@ -120,19 +120,22 @@ PGXN::Manager->instance->conn->run(sub {
         undef, $user, 'the-sha1-hash',
         '{
         "name": "pair",
-        "version": "0.0.01",
+        "version": "0.0.1",
         "license": "postgresql",
         "maintainer": "theory",
         "abstract": "Ordered pair",
         "description": "An ordered pair for PostgreSQL",
         "tags": ["foo", "bar", "baz"],
-        "no_index": null,
         "provides": {
-            "pair": { "file": "pair.sql.in", "version": "0.02.02" },
-            "trip": { "file": "trip.sql.in", "version": "0.02.01" }
+            "pair": { "file": "pair.sql.in", "version": "0.2.2" },
+            "trip": { "file": "trip.sql.in", "version": "0.2.1" }
         },
         "tags": ["foo", "bar", "baz"],
         "release_status": "testing",
+        "meta-spec": {
+           "version": "1.0.0",
+           "url": "http://pgxn.org/meta/spec.txt"
+        },
         "resources": {
           "homepage": "http://pgxn.org/dist/pair/"
         }
@@ -149,13 +152,16 @@ PGXN::Manager->instance->conn->run(sub {
         "abstract": "Ordered pair",
         "description": "An ordered pair for PostgreSQL",
         "tags": ["foo", "bar", "baz"],
-        "no_index": null,
         "tags": ["foo", "bar", "baz", "yo"],
         "provides": {
             "pair": { "file": "pair.sql.in", "version": "0.2.2" },
             "trip": { "file": "trip.sql.in", "version": "0.2.2" }
         },
         "release_status": "testing",
+        "meta-spec": {
+           "version": "1.0.0",
+           "url": "http://pgxn.org/meta/spec.txt"
+        },
         "resources": {
           "homepage": "http://pgxn.org/dist/pair/"
         }
@@ -172,7 +178,11 @@ PGXN::Manager->instance->conn->run(sub {
         "maintainer":  "strongrrl",
         "abstract":    "whatever",
         "tags": ["Foo", "PAIR", "pair"],
-        "provides": { "foo": { "version": "0.0.2", "abstract": "whatever" } }
+        "meta-spec": {
+           "version": "1.0.0",
+           "url": "http://pgxn.org/meta/spec.txt"
+        },
+        "provides": { "foo": { "version": "0.0.2", "abstract": "whatever", "file": "foo.sql" } }
     }'
     );
 
@@ -185,7 +195,11 @@ PGXN::Manager->instance->conn->run(sub {
         "license":     "postgresql",
         "maintainer":  "someone else",
         "abstract":    "whatever",
-        "provides": { "bar": { "version": "0.3.2", "abstract": "whatever" } }
+        "meta-spec": {
+           "version": "1.0.0",
+           "url": "http://pgxn.org/meta/spec.txt"
+        },
+        "provides": { "bar": { "version": "0.3.2", "abstract": "whatever", "file": "bar.sql" } }
     }'
     );
 });

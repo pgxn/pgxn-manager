@@ -27,7 +27,7 @@ Installation
 
       custom_variable_classes = 'plperl'
       plperl.use_strict = on
-      plperl.on_init='use 5.12.0; use JSON::XS; use Email::Valid; use Data::Validate::URI; use SemVer;'
+      plperl.on_init='use 5.12.0; use JSON::XS; use Email::Valid; use Data::Validate::URI; use SemVer; use PGXN::Meta::Validator;'
 
 * Install the PostgreSQL
   [`CITEXT`](http://www.postgresql.org/docs/current/static/citext.html) data

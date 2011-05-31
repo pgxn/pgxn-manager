@@ -62,45 +62,44 @@ SELECT volatility_is(   'setup_meta', ARRAY['label', 'text', 'text'], 'immutable
 -- Validate that missing required fields throw an exception.
 SELECT throws_like(
     $$ SELECT setup_meta('nobody', 'pshaw', '{"foo": "whatever"}') $$,
-    '%Metadata is missing the required “name” key%',
-    'Should get error from setup_meta for messing name'
+    '%Missing mandatory field, ''name'' (name) [Validation: 1.0.0]%',
+    'Should get error from setup_meta for missing name'
 );
 
 SELECT throws_like(
     $$ SELECT setup_meta('nobody', 'pshaw', '{"name": "pair"}') $$,
-    '%Metadata is missing the required “version” key%',
-    'Should get error from setup_meta for messing version'
+    '%Missing mandatory field, ''version'' (version) [Validation: 1.0.0]%',
+    'Should get error from setup_meta for missing version'
 );
 
 SELECT throws_like(
     $$ SELECT setup_meta('nobody', 'pshaw', '{"name": "pair", "version": "0.0.1"}') $$,
-    '%Metadata is missing the required “license” key%',
-    'Should get error from setup_meta for messing license'
+    '%Missing mandatory field, ''license'' (license) [Validation: 1.0.0]%',
+    'Should get error from setup_meta for missing license'
 );
 
 SELECT throws_like(
     $$ SELECT setup_meta('nobody', 'pshaw', '{"name": "pair", "version": "0.0.1", "license": "postgresql"}') $$,
-    '%Metadata is missing the required “maintainer” key%',
-    'Should get error from setup_meta for messing maintainer'
+    '%Missing mandatory field, ''maintainer'' (maintainer) [Validation: 1.0.0]%',
+    'Should get error from setup_meta for missing maintainer'
 );
 
 SELECT throws_like(
     $$ SELECT setup_meta('nobody', 'pshaw', '{"name": "pair", "version": "0.0.1", "license": "postgresql", "maintainer": "theory"}') $$,
-    '%Metadata is missing the required “abstract” key%',
-    'Should get error from setup_meta for messing abstract'
+    '%Missing mandatory field, ''abstract'' (abstract) [Validation: 1.0.0]%',
+    'Should get error from setup_meta for missing abstract'
 );
 
 -- Pass everything.
 SELECT results_eq(
     $$ SELECT * FROM setup_meta('nobody', 'pshaw', '{
         "name": "pair",
-        "version": "0.0.01",
+        "version": "0.0.1",
         "license": "postgresql",
         "maintainer": "theory",
         "abstract": "Ordered pair",
         "description": "An ordered pair for PostgreSQL",
         "tags": ["foo", "bar", "baz"],
-        "no_index": null,
         "prereqs": {
           "runtime": {
             "requires": {
@@ -108,13 +107,17 @@ SELECT results_eq(
               "PostGIS": "1.5.0"
             },
             "recommends": {
-              "PostgreSQL": "8.04.0"
+              "PostgreSQL": "8.4.0"
             }
           }
         },
         "provides": {
-            "pair": { "file": "pair.sql.in", "version": "0.02.02" },
-            "trip": { "file": "trip.sql.in", "version": "0.02.01" }
+            "pair": { "file": "pair.sql.in", "version": "0.2.2" },
+            "trip": { "file": "trip.sql.in", "version": "0.2.1" }
+        },
+        "meta-spec": {
+           "version": "1.0.0",
+           "url": "http://pgxn.org/meta/spec.txt"
         },
         "release_status": "testing",
         "resources": {
@@ -165,12 +168,23 @@ SELECT results_eq(
     'Should get expected record from setup_meta()'
 );
 
--- Make sure that the "provided", "relstatus", and "tags" columns get defaults.
+-- Make sure that the "relstatus" and "tags" columns get defaults.
 SELECT results_eq(
-    $$ SELECT provided, relstatus, tags
-         FROM setup_meta('nobody', 'pshaw', '{"name": "pair", "version": "0.0.1", "license": "postgresql","maintainer": "theory", "abstract": "whatever", "provides": { "pair": { "version": "0.0.1", "abstract": "whatever" }}}') $$,
-    $$ VALUES (ARRAY[['pair', '0.0.1', 'whatever']], 'stable'::relstatus, '{}'::citext[]) $$,
-    'Should get expected default provided, release_status, and tags from setup_meta()'
+    $$ SELECT relstatus, tags
+         FROM setup_meta('nobody', 'pshaw', '{
+        "name": "pair",
+        "version": "0.0.1",
+        "license": "postgresql",
+        "maintainer": "theory",
+        "abstract": "whatever",
+        "meta-spec": {
+           "version": "1.0.0",
+           "url": "http://pgxn.org/meta/spec.txt"
+        },
+        "provides": { "pair": { "version": "0.0.1", "abstract": "whatever", "file": "pair.sql" }}
+    }') $$,
+    $$ VALUES ('stable'::relstatus, '{}'::citext[]) $$,
+    'Should get expected default release_status and tags from setup_meta()'
 );
 
 /****************************************************************************/
@@ -350,7 +364,11 @@ SELECT throws_ok(
         "license":     "postgresql",
         "maintainer":  "theory",
         "abstract":    "whatever",
-        "provides": { "pair": { "version": "0.0.1", "abstract": "whatever" }}
+        "meta-spec": {
+           "version": "1.0.0",
+           "url": "http://pgxn.org/meta/spec.txt"
+        },
+        "provides": { "pair": { "version": "0.0.1", "abstract": "whatever", "file": "pair.sql" }}
     }$$) $_$,
     'P0001',
     'User “nobody” does not own all provided extensions',
@@ -366,7 +384,11 @@ SELECT throws_ok(
         "license":     "postgresql",
         "maintainer":  "theory",
         "abstract":    "whatever",
-        "provides": { "triple": { "version": "0.0.1", "abstract": "whatever" } }
+        "meta-spec": {
+           "version": "1.0.0",
+           "url": "http://pgxn.org/meta/spec.txt"
+        },
+        "provides": { "triple": { "version": "0.0.1", "abstract": "whatever", "file": "pair.sql" } }
     }$$) $_$,
     'P0001',
     'User “theory” does not own all provided extensions',
@@ -381,22 +403,26 @@ SELECT throws_like(
         "maintainer":  "theory",
         "abstract":    "whatever"
     }$$) $_$,
-    'Metadata is missing the required “version” key%',
+    '%Missing mandatory field, ''version'' (meta-spec -> version) [Validation: 1.0.0]%',
     'Should get an exception for blank version string'
 );
 
 SELECT throws_like(
     $_$ SELECT add_distribution('theory', 'pshaw', $${
         "name":        "pair",
-        "version":     "2.2",
+        "version":     "2.2.2",
         "license":     "postgresql",
         "maintainer":  "theory",
         "abstract":    "whatever",
+        "meta-spec": {
+           "version": "1.0.0",
+           "url": "http://pgxn.org/meta/spec.txt"
+        },
         "provides": {
             "pair": { "file": "pair.sql.in", "version": "" }
         }
     }$$) $_$,
-    'Invalid version format (version required)%',
+    '%'''' for ''version'' is not a valid version. (provides -> pair -> version) [Validation: 1.0.0]%',
     'Should get an exception for blank "provides" version string'
 );
 
@@ -405,13 +431,12 @@ DELETE FROM extensions;
 SELECT bag_eq(
     $$ SELECT * FROM add_distribution('theory', 'pshaw', '{
         "name": "Pair",
-        "version": "0.0.01",
+        "version": "0.0.1",
         "license": "postgresql",
         "maintainer": "theory",
         "abstract": "Ordered pair",
         "description": "An ordered pair for PostgreSQL",
         "tags": ["foo", "bar", "baz"],
-        "no_index": null,
         "prereqs": {
           "runtime": {
             "requires": {
@@ -419,13 +444,17 @@ SELECT bag_eq(
               "PostGIS": "1.5.0"
             },
             "recommends": {
-              "PostgreSQL": "8.04.0"
+              "PostgreSQL": "8.4.0"
             }
           }
         },
         "provides": {
-            "pair": { "file": "pair.sql.in", "version": "0.02.02" },
-            "Trip": { "file": "trip.sql.in", "version": "0.02.01", "abstract": "A triplet" }
+            "pair": { "file": "pair.sql.in", "version": "0.2.2" },
+            "Trip": { "file": "trip.sql.in", "version": "0.2.1", "abstract": "A triplet" }
+        },
+        "meta-spec": {
+           "version": "1.0.0",
+           "url": "http://pgxn.org/meta/spec.txt"
         },
         "release_status": "testing",
         "resources": {
@@ -693,7 +722,11 @@ SELECT throws_ok(
         "license":     "postgresql",
         "maintainer":  "theory",
         "abstract":    "whatever",
-        "provides": { "pair": { "version": "0.0.1", "abstract": "whatever" } }
+        "meta-spec": {
+           "version": "1.0.0",
+           "url": "http://pgxn.org/meta/spec.txt"
+        },
+        "provides": { "pair": { "version": "0.0.1", "abstract": "whatever", "file": "pair.sql" } }
     }') $$,
     'P0001',
     'Distribution “pair 0.0.1” already exists',
@@ -708,7 +741,11 @@ SELECT bag_eq(
         "license":     "postgresql",
         "maintainer":  "strongrrl",
         "abstract":    "whatever",
-        "provides": { "foo": { "version": "0.0.2", "abstract": "whatever" } },
+        "meta-spec": {
+           "version": "1.0.0",
+           "url": "http://pgxn.org/meta/spec.txt"
+        },
+        "provides": { "foo": { "version": "0.0.2", "abstract": "whatever", "file": "foo.sql" } },
         "tags": ["Foo", "PAIR", "pair"]
     }')$$,
     $$ VALUES('meta', 'foo', '{
@@ -724,6 +761,7 @@ SELECT bag_eq(
    "provides": {
       "foo": {
          "abstract": "whatever",
+         "file": "foo.sql",
          "version": "0.0.2"
       }
    },
@@ -887,6 +925,7 @@ SELECT is(meta, '{
    "provides": {
       "foo": {
          "abstract": "whatever",
+         "file": "foo.sql",
          "version": "0.0.2"
       }
    },
@@ -940,7 +979,11 @@ SELECT throws_ok(
         "license":     "postgresql",
         "maintainer":  "theory",
         "abstract":    "whatever",
-         "provides": { "pair": { "version": "0.0.3", "abstract": "whatever" } }
+        "meta-spec": {
+           "version": "1.0.0",
+           "url": "http://pgxn.org/meta/spec.txt"
+        },
+        "provides": { "pair": { "version": "0.0.3", "abstract": "whatever", "file": "pair.sql" } }
 
     }$$) $_$,
     'P0001',
@@ -959,13 +1002,19 @@ SELECT bag_eq(
         "maintainer":  "theory",
         "abstract":    "whatever",
         "tags": ["heavy", "words"],
+        "meta-spec": {
+           "version": "1.0.0",
+           "url": "http://pgxn.org/meta/spec.txt"
+        },
         "provides": {
            "pair": {
               "abstract": "whatever",
+              "file": "pair.sql",
               "version": "0.0.3"
            },
            "wake": {
               "abstract": "da wake",
+              "file": "wake.sql",
               "version": "0.0.5"
            }
         }
@@ -983,10 +1032,12 @@ SELECT bag_eq(
    "provides": {
       "pair": {
          "abstract": "whatever",
+         "file": "pair.sql",
          "version": "0.0.3"
       },
       "wake": {
          "abstract": "da wake",
+         "file": "wake.sql",
          "version": "0.0.5"
       }
    },
@@ -1197,10 +1248,12 @@ SELECT is(meta, '{
    "provides": {
       "pair": {
          "abstract": "whatever",
+         "file": "pair.sql",
          "version": "0.0.3"
       },
       "wake": {
          "abstract": "da wake",
+         "file": "wake.sql",
          "version": "0.0.5"
       }
    },
@@ -1250,7 +1303,11 @@ SELECT throws_ok(
         "license":     "postgresql",
         "maintainer":  "theory",
         "abstract":    "whatever",
-        "provides": { "pair": { "version": "0.0.1", "abstract": "whatever" } }
+        "meta-spec": {
+           "version": "1.0.0",
+           "url": "http://pgxn.org/meta/spec.txt"
+        },
+        "provides": { "pair": { "version": "0.0.1", "abstract": "whatever", "file": "pair.sql" } }
 
     }$$) $_$,
     'P0001',
@@ -1265,7 +1322,11 @@ SELECT throws_ok(
         "license":     "postgresql",
         "maintainer":  "theory",
         "abstract":    "whatever",
-        "provides": { "foo": { "version": "0.0.1", "abstract": "whatever" } }
+        "meta-spec": {
+           "version": "1.0.0",
+           "url": "http://pgxn.org/meta/spec.txt"
+        },
+        "provides": { "foo": { "version": "0.0.1", "abstract": "whatever", "file": "pair.sql" } }
     }$$) $_$,
     'P0001',
     'User “theory” does not own all provided extensions',
@@ -1286,13 +1347,19 @@ SELECT bag_eq(
         "abstract":    "howdy",
         "release_status": "testing",
         "tags": ["wang", "words", "yo"],
+        "meta-spec": {
+           "version": "1.0.0",
+           "url": "http://pgxn.org/meta/spec.txt"
+        },
         "provides": {
            "pair": {
               "abstract": "new abstract",
+              "file": "pair.sql",
               "version": "0.0.3"
            },
            "wang": {
               "abstract": "the wang",
+              "file": "wang.sql",
               "version": "0.0.8"
            }
         }
@@ -1350,10 +1417,12 @@ SELECT bag_eq(
    "provides": {
       "pair": {
          "abstract": "new abstract",
+         "file": "pair.sql",
          "version": "0.0.3"
       },
       "wang": {
          "abstract": "the wang",
+         "file": "wang.sql",
          "version": "0.0.8"
       }
    },
@@ -1534,10 +1603,12 @@ SELECT is(meta, '{
    "provides": {
       "pair": {
          "abstract": "new abstract",
+         "file": "pair.sql",
          "version": "0.0.3"
       },
       "wang": {
          "abstract": "the wang",
+         "file": "wang.sql",
          "version": "0.0.8"
       }
    },
@@ -1668,10 +1739,12 @@ SELECT bag_eq(
    "provides": {
       "pair": {
          "abstract": "new abstract",
+         "file": "pair.sql",
          "version": "0.0.3"
       },
       "wang": {
          "abstract": "the wang",
+         "file": "wang.sql",
          "version": "0.0.8"
       }
    },

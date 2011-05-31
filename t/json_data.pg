@@ -197,13 +197,17 @@ SELECT is_empty(
 SELECT lives_ok(
      $$ SELECT * FROM add_distribution('theory', 'pshaw', '{
         "name": "pair",
-        "version": "0.0.01",
+        "version": "0.0.1",
         "license": "postgresql",
         "maintainer": "theory",
         "abstract": "Ordered pair",
+        "meta-spec": {
+           "version": "1.0.0",
+           "url": "http://pgxn.org/meta/spec.txt"
+        },
         "provides": {
-            "pair": { "file": "pair.sql.in", "version": "0.02.02" },
-            "trip": { "file": "trip.sql.in", "version": "0.02.01" }
+            "pair": { "file": "pair.sql.in", "version": "0.2.2" },
+            "trip": { "file": "trip.sql.in", "version": "0.2.1" }
         },
         "release_status": "testing"
     }')$$,
@@ -247,9 +251,13 @@ SELECT lives_ok(
         "license": "postgresql",
         "maintainer": "theory",
         "abstract": "Ordered pair",
+        "meta-spec": {
+           "version": "1.0.0",
+           "url": "http://pgxn.org/meta/spec.txt"
+        },
         "provides": {
-            "pair": { "file": "pair.sql.in", "version": "0.02.03" },
-            "trip": { "file": "trip.sql.in", "version": "0.02.02" }
+            "pair": { "file": "pair.sql.in", "version": "0.2.3" },
+            "trip": { "file": "trip.sql.in", "version": "0.2.2" }
         },
         "release_status": "unstable"
     }') $$,
@@ -301,6 +309,10 @@ SELECT lives_ok(
         "license": "postgresql",
         "maintainer": "theory",
         "abstract": "Ordered pair",
+        "meta-spec": {
+           "version": "1.0.0",
+           "url": "http://pgxn.org/meta/spec.txt"
+        },
         "provides": {
             "pair": { "file": "pair.sql.in", "version": "0.2.4" },
             "trip": { "file": "trip.sql.in", "version": "0.2.3" }
@@ -373,7 +385,11 @@ SELECT lives_ok(
         "license": "postgresql",
         "maintainer": "theory",
         "abstract": "Ordered triplet",
-        "provides": { "trip": { "version": "0.2.5", "abstract": "Ordered triplet" } }
+        "meta-spec": {
+           "version": "1.0.0",
+           "url": "http://pgxn.org/meta/spec.txt"
+        },
+        "provides": { "trip": { "version": "0.2.5", "abstract": "Ordered triplet", "file": "trip.sql" } }
     }') $$,
     'Add a trip distribution'
 );
@@ -410,7 +426,7 @@ SELECT results_eq(
 SELECT json_ok(json, 'JSON for extension ' || extension || ' should be valid')
   FROM extension_json('trip', '0.2.5');
 
--- Great, now do a release with dup versions of both extensions.
+-- Great, now do a release with dupe versions of both extensions.
 SELECT lives_ok(
      $$ SELECT * FROM add_distribution('theory', 'rickshaw', '{
         "name": "pair",
@@ -418,6 +434,10 @@ SELECT lives_ok(
         "license": "postgresql",
         "maintainer": "theory",
         "abstract": "Ordered pair",
+        "meta-spec": {
+           "version": "1.0.0",
+           "url": "http://pgxn.org/meta/spec.txt"
+        },
         "provides": {
             "pair": { "file": "pair.sql.in", "version": "0.2.4" },
             "trip": { "file": "trip.sql.in", "version": "0.2.5" }
@@ -546,8 +566,12 @@ SELECT lives_ok(
         "maintainer": "theory",
         "abstract": "Ordered pair",
         "provides": {
-            "pair": { "file": "pair.sql.in", "version": "0.02.10" },
-            "trip": { "file": "trip.sql.in", "version": "0.02.10" }
+            "pair": { "file": "pair.sql.in", "version": "0.2.10" },
+            "trip": { "file": "trip.sql.in", "version": "0.2.10" }
+        },
+       "meta-spec": {
+          "version": "1.0.0",
+          "url": "http://pgxn.org/meta/spec.txt"
         }
     }') $$,
     'Add a stable distribution pair 0.0.10'
@@ -783,7 +807,11 @@ SELECT lives_ok(
         "license": "postgresql",
         "maintainer": "theory",
         "abstract": "Do wa, p-diddy",
-        "provides": { "duwop": { "version": "0.50.1", "abstract": "Do wa, p-diddy" } }
+        "provides": { "duwop": { "version": "0.50.1", "abstract": "Do wa, p-diddy", "file": "duwop.sql" } },
+        "meta-spec": {
+           "version": "1.0.0",
+           "url": "http://pgxn.org/meta/spec.txt"
+        }
     }') $$,
     'Add another distribution'
 );
