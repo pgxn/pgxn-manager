@@ -1,5 +1,7 @@
 Revision history for Perl extension PGXN::Manager
 
+0.13.1
+
 0.13.0  2011-06-01T03:51:17
       - Added version ranges to the spec. These may be used in the `prereqs`
         field to specify precise version requirements. Stolen directly from
