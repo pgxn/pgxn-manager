@@ -207,8 +207,8 @@ way to separate these is to set up two reverse proxy servers: One to serve
        uploads. The simplest way to do so is to run `bin/get_twitter_token -h`
        for helpful intructions and easy configuration.
 
-  You'll also find these settings in `conf/proxied.json` to help get you
-  started.
+    You'll also find these settings in `conf/proxied.json` to help get you
+    started.
 
 * Restart your Apache server and then your PGXN Manager server. You should now
   be able to hit the public site at the root of your domain on port 80, and at
