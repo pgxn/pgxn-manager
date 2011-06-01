@@ -1,6 +1,6 @@
 Revision history for Perl extension PGXN::Manager
 
-0.13.1
+0.13.1  2011-06-01T04:26:20
       - Replaced a leftover `ORDER BY semver USING <` with `ORDER BY semver
         ASC`, as it was causing errors on the "Your Distributions" page and
         hasn't been needed since the `semver` domain was replaced with the
