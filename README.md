@@ -62,7 +62,7 @@ Installation
 
 * Create the configuration file. The easiest way is to copy one of the templates:
 
-       cp conf/local.json conf/prod.json
+        cp conf/local.json conf/prod.json
 
   Change the DSN if you'd like to use a different database name or connect to
   another host. (Consult the [DBI](http://search.cpan.org/perldoc?DBI) and
@@ -187,21 +187,21 @@ way to separate these is to set up two reverse proxy servers: One to serve
     1. Add the ReverseProxy middleware. The "middleware" key should end up
        looking something like this:
 
-          "middleware": [
-              ["ErrorDocument", 500, "/error", "subrequest", 1],
-              ["HTTPExceptions"],
-              ["StackTrace", "no_print_errors", 1],
-              ["ReverseProxy"]
-          ],
+            "middleware": [
+               ["ErrorDocument", 500, "/error", "subrequest", 1],
+               ["HTTPExceptions"],
+               ["StackTrace", "no_print_errors", 1],
+               ["ReverseProxy"]
+            ],
 
     2. Tell PGXN::Manager to use the X-Forwarded-Script-Name header to create
        proper URLs (otherwise no images, CSS, or JavaScript will work):
 
-          "uri_script_name_key": "HTTP_X_FORWARDED_SCRIPT_NAME",
+            "uri_script_name_key": "HTTP_X_FORWARDED_SCRIPT_NAME",
 
     3. Tell the public site what link to use to the authenticated site:
 
-          "auth_uri": "https://manager.pgxn.org/",
+            "auth_uri": "https://manager.pgxn.org/",
 
     4. Configure the Twitter OAuth token so that PGXN::Manager can tweet
        uploads. The simplest way to do so is to run `bin/get_twitter_token -h`
