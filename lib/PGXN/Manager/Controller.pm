@@ -579,7 +579,7 @@ sub distributions {
                    to_char(created_at, 'IYYY-MM-DD') AS date
               FROM distributions
              WHERE creator = ?
-             ORDER BY name, version USING <
+             ORDER BY name, version ASC
         });
     });
     $sth->execute($req->user);
