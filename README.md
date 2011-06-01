@@ -20,14 +20,14 @@ Installation
 * Next, you'll need to install all CPAN dependencies. To determine what they
   are, simply run
 
-      perl Build.PL
+        perl Build.PL
 
 * Configure the PostgreSQL server to preload modules used by PL/Perl
   functions. Just add these lines to the end of your `postgresql.conf` file:
 
-      custom_variable_classes = 'plperl'
-      plperl.use_strict = on
-      plperl.on_init='use 5.12.0; use JSON::XS; use Email::Valid; use Data::Validate::URI; use SemVer; use PGXN::Meta::Validator;'
+        custom_variable_classes = 'plperl'
+        plperl.use_strict = on
+        plperl.on_init='use 5.12.0; use JSON::XS; use Email::Valid; use Data::Validate::URI; use SemVer; use PGXN::Meta::Validator;'
 
 * Install the PostgreSQL
   [`CITEXT`](http://www.postgresql.org/docs/current/static/citext.html) data
@@ -36,15 +36,15 @@ Installation
   used a vendor PostreSQL, it's probably already installed. If you installed
   from source, you can either install all the core extensions, like so:
 
-      cd contrib/
-      gmake
-      gmake install
+        cd contrib/
+        gmake
+        gmake install
 
   Or if you like, you can install `CITEXT` only:
 
-      cd contrib/citext
-      gmake
-      gmake install
+        cd contrib/citext
+        gmake
+        gmake install
 
 * Install the PostreSQL `semver` extension. It's available from PGXN itself.
   Grab [the latest release](http://pgxn.org/dist/semver/) and follow its
@@ -52,9 +52,9 @@ Installation
 
 * Create a "pgxn" system user and the master mirror directory:
 
-      useradd pgxn -d /nonexistent
-      mkdir -p /var/www/master.pgxn.org
-      chown -R pgxn:pgxn /var/www/master.pgxn.org
+        useradd pgxn -d /nonexistent
+        mkdir -p /var/www/master.pgxn.org
+        chown -R pgxn:pgxn /var/www/master.pgxn.org
 
   The "pgxn" user should not have any system access. You should also configure
   your Web server to serve this directory. For proper networking, it should
@@ -62,7 +62,7 @@ Installation
 
 * Create the configuration file. The easiest way is to copy one of the templates:
 
-      cp conf/local.json conf/prod.json
+       cp conf/local.json conf/prod.json
 
   Change the DSN if you'd like to use a different database name or connect to
   another host. (Consult the [DBI](http://search.cpan.org/perldoc?DBI) and
@@ -72,34 +72,34 @@ Installation
 
 * Build PGXN::Manager:
 
-      perl Build.PL --db_super_user postgres \
-                    --db_client /usr/local/pgsql/bin/psql \
-                    --context prod
-      ./Build
-      ./Build db
+        perl Build.PL --db_super_user postgres \
+                      --db_client /usr/local/pgsql/bin/psql \
+                      --context prod
+        ./Build
+        ./Build db
 
 * If you'd like to run the test suite, create a test database database and
   install [pgTAP](http://pgtap.org/) into it under the schema named "tap":
 
-      PATH=$PATH:/usr/local/pgsql/bin
-      createdb -U postgres pgxn_manager_test
-      make TAPSCHEMA=tap
-      make install
-      psql -U postgres -d pgxn_manager_test -f pgrap.sql
+        PATH=$PATH:/usr/local/pgsql/bin
+        createdb -U postgres pgxn_manager_test
+        make TAPSCHEMA=tap
+        make install
+        psql -U postgres -d pgxn_manager_test -f pgrap.sql
 
   Then edit the DSN in `conf/test.json` so that it will connect to the test
   database. Then run the tests, which will need to be able to find `psql` in
   the system path:
 
-      PATH=$PATH:/usr/local/pgsql/bin ./Build test --context test
+        PATH=$PATH:/usr/local/pgsql/bin ./Build test --context test
 
   You can then drop the test database if you like:
 
-      /usr/local/pgsql/bin/dropdb -U postgres pgxn_manager_test
+        /usr/local/pgsql/bin/dropdb -U postgres pgxn_manager_test
 
 * Fire up the app:
 
-      sudo -u pgxn plackup -E prod bin/pgxn_manager.psgi
+        sudo -u pgxn plackup -E prod bin/pgxn_manager.psgi
 
 * Connect to port 5000 on your host and you should see the UI!
 
@@ -108,23 +108,23 @@ Installation
 
 * Now connect to the database:
 
-      /usr/local/pgsql/bin/psql -U postgres pgxn_manager
+        /usr/local/pgsql/bin/psql -U postgres pgxn_manager
 
   And approve your account, making youself an admin while you're at it. Also,
   set your password to an empty string. Assuming you gave yourself the
   nickname "fred", the query is:
 
-      UPDATE users
-         SET status   = 'active',
-             is_admin = true,
-             set_by   = 'fred',
-             password = ''
-       WHERE nickname = 'fred';
+        UPDATE users
+           SET status   = 'active',
+               is_admin = true,
+               set_by   = 'fred',
+               password = ''
+         WHERE nickname = 'fred';
 
 * Then give yourself a proper password by executing the `change_password()`
   function. Make sure the third argument is your great new password:
 
-    SELECT change_password('fred', '', 'changme!');
+      SELECT change_password('fred', '', 'changme!');
 
 * Hit the "Log In" link and log yourself in.
 
@@ -145,7 +145,7 @@ way to separate these is to set up two reverse proxy servers: One to serve
   configuration for manager.pgxn.org looks like, both apps to a a
   PGXN::Manager instance running locally on port 7496:
 
-      <VirtualHost *:80>
+        <VirtualHost *:80>
           ServerName manager.pgxn.org
           ProxyPass / http://localhost:7496/pub/
           ProxyPassReverse / http://localhost:7496/pub/
@@ -153,9 +153,9 @@ way to separate these is to set up two reverse proxy servers: One to serve
           RequestHeader set X-Forwaded-Proto http
           RequestHeader set X-Forwarded-Port 80
           RequestHeader set X-Forwarded-Script-Name ""
-      </VirtualHost>
+        </VirtualHost>
 
-      <VirtualHost *:443>
+        <VirtualHost *:443>
           ServerName manager.pgxn.org
           SSLEngine On
           SSLCertificateFile /path/to/certs/manager.pgxn.org.crt
@@ -167,7 +167,7 @@ way to separate these is to set up two reverse proxy servers: One to serve
           RequestHeader set X-Forwaded-Proto https
           RequestHeader set X-Forwarded-Port 443
           RequestHeader set X-Forwarded-Script-Name ""
-      </VirtualHost>
+        </VirtualHost>
 
   Note that to do this, you need to have
   [mod_proxy](http://httpd.apache.org/docs/2.2/mod/mod_proxy.html),
@@ -179,7 +179,7 @@ way to separate these is to set up two reverse proxy servers: One to serve
   [Plack::Middleware::ReverseProxy](http://search.cpan.org/perloc?Plack::Middleware::ReverseProxy)
   from CPAN:
 
-      cpan Plack::Middleware::ReverseProxy
+        cpan Plack::Middleware::ReverseProxy
 
 * Edit the production configuration file. The there are only a few additional
   keys to edit:
@@ -187,21 +187,21 @@ way to separate these is to set up two reverse proxy servers: One to serve
     1. Add the ReverseProxy middleware. The "middleware" key should end up
        looking something like this:
 
-        "middleware": [
-            ["ErrorDocument", 500, "/error", "subrequest", 1],
-            ["HTTPExceptions"],
-            ["StackTrace", "no_print_errors", 1],
-            ["ReverseProxy"]
-        ],
+          "middleware": [
+              ["ErrorDocument", 500, "/error", "subrequest", 1],
+              ["HTTPExceptions"],
+              ["StackTrace", "no_print_errors", 1],
+              ["ReverseProxy"]
+          ],
 
     2. Tell PGXN::Manager to use the X-Forwarded-Script-Name header to create
        proper URLs (otherwise no images, CSS, or JavaScript will work):
 
-        "uri_script_name_key": "HTTP_X_FORWARDED_SCRIPT_NAME",
+          "uri_script_name_key": "HTTP_X_FORWARDED_SCRIPT_NAME",
 
     3. Tell the public site what link to use to the authenticated site:
 
-        "auth_uri": "https://manager.pgxn.org/",
+          "auth_uri": "https://manager.pgxn.org/",
 
     4. Configure the Twitter OAuth token so that PGXN::Manager can tweet
        uploads. The simplest way to do so is to run `bin/get_twitter_token -h`
