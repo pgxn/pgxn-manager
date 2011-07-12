@@ -5,6 +5,8 @@ Revision history for Perl extension PGXN::Manager
         ASC`, as it was causing errors on the "Your Distributions" page and
         hasn't been needed since the `semver` domain was replaced with the
         `semver` C data type.
+      - Changed the `utc_date()` function from IMMUTABLE to STABLE, because
+        converting between time zones is not immutable, alas.
 
 0.13.0  2011-06-01T03:51:17
       - Added version ranges to the spec. These may be used in the `prereqs`

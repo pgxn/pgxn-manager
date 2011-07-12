@@ -35,7 +35,7 @@ SELECT has_function(    'utc_date', ARRAY['timestamp with time zone'] );
 SELECT function_returns('utc_date', ARRAY['timestamp with time zone'], 'text' );
 SELECT function_lang_is('utc_date', ARRAY['timestamp with time zone'], 'sql' );
 SELECT is_strict(       'utc_date', ARRAY['timestamp with time zone'] );
-SELECT volatility_is(   'utc_date', ARRAY['timestamp with time zone'], 'immutable' );
+SELECT volatility_is(   'utc_date', ARRAY['timestamp with time zone'], 'stable' );
 SELECT is(
     utc_date(now()),
     to_char(NOW() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"'),

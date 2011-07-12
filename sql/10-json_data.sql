@@ -228,7 +228,7 @@ $$;
 
 CREATE OR REPLACE FUNCTION utc_date(
     TIMESTAMPTZ
-) RETURNS TEXT LANGUAGE sql IMMUTABLE STRICT AS $$
+) RETURNS TEXT LANGUAGE sql STABLE STRICT AS $$
 /*
 
     % select utc_date(now());
@@ -241,6 +241,7 @@ and formatted in strict ISO-8601 format, always with the ending "Z" for "Zulu
 time" (UTC).
 
 */
+    -- Converting time zones is never immutable, so this function must be stable.
     SELECT to_char($1 AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"');
 $$;
 
