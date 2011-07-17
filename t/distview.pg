@@ -1,5 +1,3 @@
-SET search_path = public,contrib,tap;
-
 BEGIN;
 SELECT plan(34);
 --SELECT * FROM no_plan();
@@ -54,7 +52,6 @@ SELECT col_type_is( 'distribution_details', 'tags', 'citext[]' );
 
 /*****************************************************************************/
 -- Make sure that the pgxn user can use the view.
-GRANT USAGE ON SCHEMA tap TO pgxn;
 SET ROLE pgxn;
 
 SELECT ok(

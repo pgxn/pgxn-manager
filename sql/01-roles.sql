@@ -14,6 +14,4 @@ BEGIN
 END;
 $$;
 
-GRANT USAGE ON SCHEMA contrib TO pgxn;
-
 COMMIT;

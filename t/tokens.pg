@@ -1,5 +1,3 @@
-SET search_path = public,contrib,tap;
-
 BEGIN;
 SELECT plan(112);
 --SELECT * FROM no_plan();
@@ -86,7 +84,11 @@ CREATE FUNCTION mock.rand_str_of_len(
     return $_SHARED{random_string};
 $$;
 
-SET search_path = mock,public,contrib,tap,pg_catalog;
+DO LANGUAGE plpgsql $$
+BEGIN
+    EXECUTE 'SET search_path = mock,' || current_setting('search_path') || ',pg_catalog';
+END;
+$$;
 
 SELECT * FROM set_rand_str('foobar');
 SELECT is(rand_str_of_len(NULL), 'foobar', 'Should get mocked random string');

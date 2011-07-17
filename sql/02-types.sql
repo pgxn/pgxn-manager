@@ -5,6 +5,21 @@ SET log_min_messages    TO warning;
 
 BEGIN;
 
+DO LANGUAGE plpgsql $$
+BEGIN
+    IF EXISTS (SELECT TRUE FROM pg_catalog.pg_class WHERE relname = 'pg_extension') THEN
+        CREATE EXTENSION semver;
+        CREATE EXTENSION citext;
+        CREATE EXTENSION hstore;
+        CREATE EXTENSION plperl;
+        CREATE EXTENSION pgcrypto;
+        IF current_database() = 'pgxn_manager_test' THEN
+            CREATE EXTENSION pgtap;
+        END IF;
+    END IF;
+END;
+$$;
+
 ------------------------------------------------------------------------------
 -- Create a timezone data type. This is really fast. See
 -- http://justatheory.com/computers/databases/postgresql/timezone_validation.html.

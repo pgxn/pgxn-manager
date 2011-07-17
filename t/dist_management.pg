@@ -1,5 +1,3 @@
-SET search_path = public,contrib,tap;
-
 BEGIN;
 SELECT plan(122);
 --SELECT * FROM no_plan();
@@ -51,7 +49,11 @@ CREATE FUNCTION mock.now() RETURNS timestamptz LANGUAGE plperl AS '$_SHARED{now}
 
 SELECT set_now(pg_catalog.now());
 
-SET search_path = mock,public,contrib,tap,pg_catalog;
+DO LANGUAGE plpgsql $$
+BEGIN
+    EXECUTE 'SET search_path = mock,' || current_setting('search_path') || ',pg_catalog';
+END;
+$$;
 
 /****************************************************************************/
 -- Test setup_meta().

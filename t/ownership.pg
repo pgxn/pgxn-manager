@@ -1,5 +1,3 @@
-SET search_path = public,contrib,tap;
-
 BEGIN;
 SELECT plan(90);
 --SELECT * FROM no_plan();

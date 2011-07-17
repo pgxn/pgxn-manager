@@ -1,19 +1,16 @@
-SET search_path = public,contrib,tap;
-
 BEGIN;
-SELECT plan(11);
+SELECT plan(10);
 
 -- Check languages.
 SELECT has_language('plpgsql');
 SELECT has_language('plperl');
 
--- Check schemas.
-SELECT schemas_are(ARRAY['public', 'contrib', 'tap']);
-
--- Check contrib extensions.
-SELECT has_type('contrib', 'hstore', 'Should have contrib.hstore');
-SELECT has_function('contrib', 'crypt', 'Should have contrib.crypt()');
-SELECT has_function('contrib', 'gen_salt', 'Should have contrib.gen_salt()');
+-- Check extensions.
+SELECT has_type('hstore', 'Should have hstore');
+SELECT has_type('semver', 'Should have semver');
+SELECT has_type('citext', 'Should have citext');
+SELECT has_function('crypt', 'Should have crypt()');
+SELECT has_function('gen_salt', 'Should have gen_salt()');
 
 -- Check pgxn role.
 SELECT has_role('pgxn');
@@ -21,14 +18,6 @@ SELECT isnt_superuser('pgxn');
 SELECT ok(
     has_schema_privilege('pgxn', 'public', 'usage'),
     'User "pgxn" should be able to use the public schema'
-);
-SELECT ok(
-    has_schema_privilege('pgxn', 'contrib', 'usage'),
-    'User "pgxn" should be able to use the contrib schema'
-);
-SELECT ok(
-    NOT has_schema_privilege('pgxn', 'tap', 'usage'),
-    'User "pgxn" should not be able to use the tap schema'
 );
 
 SELECT * FROM finish();
