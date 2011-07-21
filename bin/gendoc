@@ -44,7 +44,7 @@ my %funcs_for  = ( $schema => [] );
 
 my $ident   = qr/"(?:""|[^"])+"|\w+/;
 my $literal = qr/'(?:''|[^'])+'/;
-my $type    = qr/$ident(?:[\[\]]+|[(]\d+[)])?/;
+my $type    = qr/$ident(?:[.]$ident)?(?:[\[\]]+|[(]\d+[)])?/;
 
 for my $fn (@ARGV) {
     say STDERR "Parsing $fn..." if $opts{verbose};
