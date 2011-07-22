@@ -122,13 +122,13 @@ for my $fn (@ARGV) {
                 # Parse the return value.
                 while (@sig) {
                     my $line = shift @sig;
-                    if ($line =~ /RETURNS\s+($ident)/i) {
+                    if ($line =~ /RETURNS\s+($ident(?:[.]$ident)?)/i) {
                         if (lc $1 eq 'table') {
                             my $tab = "TABLE (\n";
                             # Parse till we get to the end of the table.
                             while (@sig) {
                                 my $tline = shift @sig;
-                                last unless $tline =~ /^\s*(?<name>$ident)\s+(?<type>$ident)(?:\s*(?<comma>,))?$/;
+                                last unless $tline =~ /^\s*(?<name>$ident)\s+(?<type>$type)(?:\s*(?<comma>,))?$/;
                                 $tab .= "      $+{name}" . ' ' . uc($+{type}) . ($+{comma} || '') . $/;
                                 last unless $+{comma}
                             }
