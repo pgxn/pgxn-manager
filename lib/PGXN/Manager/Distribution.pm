@@ -261,35 +261,37 @@ sub _indexit {
     my @vars      = ( dist => lc $meta->{name}, version => lc $meta->{version} );
     my %files;
 
-    PGXN::Manager->conn->run(sub {
-        my $sth = $_->prepare("SELECT * FROM $action\_distribution(?, ?, ?)");
-        $sth->execute(
-            $self->creator,
-            $self->sha1,
-            scalar $self->metamemb->contents,
-        );
-        $sth->bind_columns(\my ($template_name, $subject, $json));
-
-        while ($sth->fetch) {
-            my $tmpl  = $templates->{$template_name}
-                or die "No $template_name template found in config\n";
-
-            my $uri = $tmpl->process(
-                @vars,
-                $template_name || 'dist' => $subject
+    try {
+        PGXN::Manager->conn->run(sub {
+            my $sth = $_->prepare("SELECT * FROM $action\_distribution(?, ?, ?)");
+            $sth->execute(
+                $self->creator,
+                $self->sha1,
+                scalar $self->metamemb->contents,
             );
-            my $fn  = File::Spec->catfile($destdir, $uri->path_segments);
+            $sth->bind_columns(\my ($template_name, $subject, $json));
 
-            make_path dirname $fn;
-            open my $fh, '>:utf8', $fn or die "Cannot open $fn: $!\n";
-            print $fh $json;
-            close $fh or die "Cannot close $fn: $!\n";
+            while ($sth->fetch) {
+                my $tmpl  = $templates->{$template_name}
+                    or die "No $template_name template found in config\n";
 
-            $files{$fn} = File::Spec->catfile($root, $uri->path_segments);
-        }
+                my $uri = $tmpl->process(
+                    @vars,
+                    $template_name || 'dist' => $subject
+                );
+                my $fn  = File::Spec->catfile($destdir, $uri->path_segments);
 
-        return $self;
-    }, sub {
+                make_path dirname $fn;
+                open my $fh, '>:utf8', $fn or die "Cannot open $fn: $!\n";
+                print $fh $json;
+                close $fh or die "Cannot close $fn: $!\n";
+
+                $files{$fn} = File::Spec->catfile($root, $uri->path_segments);
+            }
+
+            return $self;
+        });
+    } catch {
         die $_ if $_->state ne 'P0001' && $_->state ne 'XX000';
         (my $err = $_->errstr) =~ s/^[[:upper:]]+:\s+//;
         $err =~ s/(?:at line \d+\.)\s+CONTEXT:.+//ms;
@@ -307,7 +309,7 @@ sub _indexit {
         }
         $self->error([$err, @params]);
         return;
-    }) or return;
+    } or return;
 
     # Copy the README.
     my $prefix = quotemeta lc "$meta->{name}-$meta->{version}";

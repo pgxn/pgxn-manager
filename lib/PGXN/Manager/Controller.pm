@@ -13,6 +13,7 @@ use Encode;
 use File::Temp ();
 use Data::Dump 'pp';
 use Data::Validate::URI 'is_uri';
+use Try::Tiny;
 use namespace::autoclean;
 
 Template::Declare->init( dispatch_to => ['PGXN::Manager::Templates'] );
@@ -195,56 +196,58 @@ sub register {
         }});
     }
 
-    $pgxn->conn->run(sub {
-        $_->do(
-            q{SELECT insert_user(
-                nickname  := ?,
-                password  := rand_str_of_len(5),
-                full_name := ?,
-                email     := ?,
-                why       := ?,
-                twitter   := ?,
-                uri       := ?
-            );},
-            undef,
-            @{ $params }{qw(
-                nickname
-                full_name
-                email
-                why
-                twitter
-                uri
-            )}
-        );
+    try {
+        $pgxn->conn->run(sub {
+            $_->do(
+                q{SELECT insert_user(
+                    nickname  := ?,
+                    password  := rand_str_of_len(5),
+                    full_name := ?,
+                    email     := ?,
+                    why       := ?,
+                    twitter   := ?,
+                    uri       := ?
+                );},
+                undef,
+                @{ $params }{qw(
+                    nickname
+                    full_name
+                    email
+                    why
+                    twitter
+                    uri
+                )}
+            );
 
-        # Success! Notify the admins.
-        my $host = $req->remote_host || $req->address;
-        my $name = $params->{full_name} ? "     Name: $params->{full_name}\n" : '';
-        my $twit = $params->{twitter}   ? "  Twitter: http://twitter.com/$params->{twitter}\n" : '';
-        my $uri  = $params->{uri}       ? "      URI: $params->{uri}\n" : '';
-        (my $why = $params->{why}) =~ s/^/> /g;
+            # Success! Notify the admins.
+            my $host = $req->remote_host || $req->address;
+            my $name = $params->{full_name} ? "     Name: $params->{full_name}\n" : '';
+            my $twit = $params->{twitter}   ? "  Twitter: http://twitter.com/$params->{twitter}\n" : '';
+            my $uri  = $params->{uri}       ? "      URI: $params->{uri}\n" : '';
+            (my $why = $params->{why}) =~ s/^/> /g;
 
-        $pgxn->send_email({
-            from => $pgxn->config->{admin_email},
-            to   => $pgxn->config->{alert_email},
-            subject => "New User Request for $params->{nickname}",
-            body => "A new PGXN account has been requested from $host:\n\n"
-                  . $name
-                  . " Nickname: $params->{nickname}\n"
-                  . "    Email: $params->{email}\n"
-                  . $uri
-                  . $twit
-                  . "   Reason:\n\n$why\n\n"
-                  . "Moderate at " . $req->auth_uri_for('admin/moderate') . ".\n"
+            $pgxn->send_email({
+                from => $pgxn->config->{admin_email},
+                to   => $pgxn->config->{alert_email},
+                subject => "New User Request for $params->{nickname}",
+                body => "A new PGXN account has been requested from $host:\n\n"
+                      . $name
+                      . " Nickname: $params->{nickname}\n"
+                      . "    Email: $params->{email}\n"
+                      . $uri
+                      . $twit
+                      . "   Reason:\n\n$why\n\n"
+                      . "Moderate at " . $req->auth_uri_for('admin/moderate') . ".\n"
+            });
+
+            return $self->respond_with('success', $req) if $req->is_xhr;
+
+            # XXX Consider returning 201 and URI to the user profile?
+            $req->session->{name} = $req->param('nickname');
+            return $self->redirect('/account/thanks', $req);
+
         });
-
-        return $self->respond_with('success', $req) if $req->is_xhr;
-
-        # XXX Consider returning 201 and URI to the user profile?
-        $req->session->{name} = $req->param('nickname');
-        return $self->redirect('/account/thanks', $req);
-
-    }, sub {
+    } catch {
         # Failure!
         my $err = shift;
         my ($msg, $highlight);
@@ -307,7 +310,7 @@ sub register {
             highlight => $highlight,
             error     => $msg,
         }});
-    });
+    };
 }
 
 sub forgotten {
@@ -643,36 +646,38 @@ sub update_account {
     my $req    = Request->new(shift);
     my $params = $req->body_parameters;
 
-    PGXN::Manager->conn->run(sub {
-        my $dbh = shift;
-        $dbh->do(
-            q{SELECT update_user(
-                nickname  := ?,
-                full_name := ?,
-                email     := ?,
-                twitter   := ?,
-                uri       := ?
-            );},
-            undef,
-            $req->user,
-            @{ $params }{qw(
-                full_name
-                email
-                twitter
-                uri
-            )}
-        );
+    try {
+        PGXN::Manager->conn->run(sub {
+            my $dbh = shift;
+            $dbh->do(
+                q{SELECT update_user(
+                    nickname  := ?,
+                    full_name := ?,
+                    email     := ?,
+                    twitter   := ?,
+                    uri       := ?
+                );},
+                undef,
+                $req->user,
+                @{ $params }{qw(
+                    full_name
+                    email
+                    twitter
+                    uri
+                )}
+            );
 
-        # Update the user JSON.
-        $self->_update_user_json($dbh, $req->user);
+            # Update the user JSON.
+            $self->_update_user_json($dbh, $req->user);
 
-        # Success!
-        return $self->respond_with('success', $req) if $req->is_xhr;
+            # Success!
+            return $self->respond_with('success', $req) if $req->is_xhr;
 
-        $req->session->{updated} = 1;
-        return $self->redirect($req->path_info, $req);
+            $req->session->{updated} = 1;
+            return $self->redirect($req->path_info, $req);
 
-    }, sub {
+        });
+    } catch {
         # Failure!
         my $err = shift;
         my ($msg, $highlight);
@@ -722,7 +727,7 @@ sub update_account {
             highlight => $highlight,
             error     => $msg,
         }});
-    });
+    };
 }
 
 sub show_password {
@@ -860,61 +865,68 @@ sub _do_mirror {
     }
 
     my $old_uri = shift->{splat}[0];
-    PGXN::Manager->conn->run(sub {
-        my $ret = shift->selectcol_arrayref(
-            qq{SELECT $action\_mirror(
-                admin        := ?,} . ($update ? "\n                old_uri      := ?," : '') . q{
-                uri          := ?,
-                frequency    := ?,
-                location     := ?,
-                bandwidth    := ?,
-                organization := ?,
-                timezone     := ?,
-                email        := ?,
-                src          := ?,
-                rsync        := ?,
-                notes        := ?
-            )},
-            undef,
-            $req->user,
-            ($update ? ($old_uri) : ()),
-            @{ $params }{qw(
-                uri
-                frequency
-                location
-                bandwidth
-                organization
-                timezone
-                email
-                src
-                rsync
-                notes
-            )}
-        )->[0];
+    try {
+        PGXN::Manager->conn->run(sub {
+            my $ret = shift->selectcol_arrayref(
+                qq{SELECT $action\_mirror(
+                    admin        := ?,} . ($update ? "\n                old_uri      := ?," : '') . q{
+                    uri          := ?,
+                    frequency    := ?,
+                    location     := ?,
+                    bandwidth    := ?,
+                    organization := ?,
+                    timezone     := ?,
+                    email        := ?,
+                    src          := ?,
+                    rsync        := ?,
+                    notes        := ?
+                )},
+                undef,
+                $req->user,
+                ($update ? ($old_uri) : ()),
+                @{ $params }{qw(
+                    uri
+                    frequency
+                    location
+                    bandwidth
+                    organization
+                    timezone
+                    email
+                    src
+                    rsync
+                    notes
+                )}
+            )->[0];
 
 
-        if ($ret) {
-            # Success! Write out a new mirrors.json.
-            $self->_write_mirrors_meta;
+            if ($ret) {
+                # Success! Write out a new mirrors.json.
+                $self->_write_mirrors_meta;
 
-            return $self->respond_with('success', $req) if $req->is_xhr;
+                return $self->respond_with('success', $req) if $req->is_xhr;
 
-            # XXX Consider returning 201 and URI to the mirror profile?
-            $req->session->{uri} = $req->param('uri');
-            return $self->redirect('/admin/mirrors', $req);
-        }
+                # XXX Consider returning 201 and URI to the mirror profile?
+                $req->session->{uri} = $req->param('uri');
+                return $self->redirect('/admin/mirrors', $req);
+            }
 
-        # Respond with error code for XHR request.
-        my $msg = ['Update failed; maybe someone deleted this mirror?'];
-        return $self->respond_with('notfound', $req, $msg) if $req->is_xhr;
+            # Respond with error code for XHR request.
+            my $msg = ['Update failed; maybe someone deleted this mirror?'];
+            return $self->respond_with('notfound', $req, $msg)
+                if $req->is_xhr;
 
-        return $self->render('/show_mirror', { req => $req, code => $code_for{notfound}, vars => {
-            %{ $params },
-            error  => $msg,
-            update => $update,
-        }});
+            return $self->render('/show_mirror', {
+                req  => $req,
+                code => $code_for{notfound},
+                vars => {
+                    %{ $params },
+                    error  => $msg,
+                    update => $update,
+                }
+            });
 
-    }, sub {
+        });
+    } catch {
         # Failure!
         my $err = shift;
         my ($msg, $highlight);
@@ -972,7 +984,7 @@ sub _do_mirror {
             error     => $msg,
             update    => $update,
         }});
-    });
+    };
 }
 
 sub insert_mirror {

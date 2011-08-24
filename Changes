@@ -7,6 +7,9 @@ Revision history for Perl extension PGXN::Manager
         `semver` C data type.
       - Changed the `utc_date()` function from IMMUTABLE to STABLE, because
         converting between time zones is not immutable, alas.
+      - Removed use of `catch` blocks with DBIx::Connector, switching to
+        Try::Tiny. This is because DBIx::Connector deprecated its support of
+        `catch` blocks in v0.46.
 
 0.13.0  2011-06-01T03:51:17
       - Added version ranges to the spec. These may be used in the `prereqs`
