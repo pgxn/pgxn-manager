@@ -90,6 +90,7 @@ $class->new(
         'URI::Template'                     => '0.15',
     },
     recommends => {
+        'Plack::Middleware::Debug'        => '0.12',
         'Plack::Middleware::ReverseProxy' => '0.07',
         'Test::Pod'                       => '1.41',
         'Test::Pod::Coverage'             => '1.06',
