@@ -31,6 +31,7 @@ Installation
 
 * Install these PostgreSQL core
   [extensions](http://www.postgresql.org/docs/current/static/contrib.html):
+
     + [citext](http://www.postgresql.org/docs/current/static/citext.html)
     + [hstore](http://www.postgresql.org/docs/current/static/hstore.html)
     + [pgcrypto](http://www.postgresql.org/docs/current/static/pgcrypto.html)
@@ -91,10 +92,10 @@ Installation
   Then use the `$PGOPTIONS` environment variable to load the extensions into
   that schema:
 
-        export PGOPTIONS=--search_path=contrib
         for ext in citext hstore pgcrypto semver
         do
-            psql -d template1 -f /path/to/pgsql/share/contrib/$ext.sql
+            PGOPTIONS=--search_path=contrib psql -d template1 \
+              -f /path/to/pgsql/share/contrib/$ext.sql
         done
 
 * Build PGXN::Manager:
@@ -108,7 +109,7 @@ Installation
   If you're on PostgreSQL 9.0 and have installed the extensions into the
   "contrib" schema, you'll need to set `$PGOPTIONS` for `./Build db`:
 
-        PGOPTIONS=--search_path=contrib ./Build db
+        PGOPTIONS=--search_path=public,contrib ./Build db
 
 * Once the databas has been built, if you're running PostgreSQL 9.1, you can
   drop the "contrib" schema from the template database:
@@ -133,7 +134,8 @@ Installation
 
         make
         make install
-        psql -U postgres -d pgxn_manager_test -f pgrap.sql
+        PGOPTIONS=--search_path=contrib psql -U postgres \
+          -d pgxn_manager_test -f pgtap.sql
 
   Next, edit the DSN in `conf/test.json` so that it will connect to the test
   database. Then run the tests, which will need to be able to find `psql` in
