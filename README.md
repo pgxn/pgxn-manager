@@ -29,22 +29,29 @@ Installation
         plperl.use_strict = on
         plperl.on_init='use 5.12.0; use JSON::XS; use Email::Valid; use Data::Validate::URI; use SemVer; use PGXN::Meta::Validator;'
 
-* Install the PostgreSQL
-  [`CITEXT`](http://www.postgresql.org/docs/current/static/citext.html) data
-  type. It's one of the core [additional supplied
-  modules](http://www.postgresql.org/docs/current/static/contrib.html). If you
-  used a vendor PostreSQL, it's probably already installed. If you installed
-  from source, you can either install all the core extensions, like so:
+* Install these PostgreSQL core
+  [extensions](http://www.postgresql.org/docs/current/static/contrib.html):
+    + [citext](http://www.postgresql.org/docs/current/static/citext.html)
+    + [hstore](http://www.postgresql.org/docs/current/static/hstore.html)
+    + [pgcrypto](http://www.postgresql.org/docs/current/static/pgcrypto.html)
+
+  If you installed from source, you can either install all the core
+  extensions, like so:
 
         cd contrib/
         gmake
         gmake install
 
-  Or if you like, you can install `CITEXT` only:
+  Or if you like, you can install individual extensions like so:
 
-        cd contrib/citext
-        gmake
-        gmake install
+        cd contrib
+        for ext in citext hstore pgcrypto
+        do
+            cd citext
+            gmake
+            gmake install
+            cd ..
+        done
 
 * Install the PostreSQL `semver` extension. It's available from PGXN itself.
   Grab [the latest release](http://pgxn.org/dist/semver/) and follow its
@@ -70,32 +77,73 @@ Installation
   on the attributes that can be included in the DSN). You can also change the
   templates for the files that will be managed on the master mirror.
 
+* If you're using PostgreSQL 9.0, you'll need to load the extensions into the
+  template database so that they'll be included in the PGXN database when it's
+  created. (This isn't necessary for PostgreSQL 9.1, as the installer will
+  load the extenions for you). The simplest way to do so is to create a
+  "contrib" schema and put them there. You'll also need to create the "pgxn"
+  user and give it access to the schema.
+
+        psql -U postgres -d template1 -c 'CREATE SCHEMA contrib;'
+        psql -U postgres -d template1 -c 'CREATE USER pgxn;'
+        psql -U postgres -d template1 -c 'GRANT USAGE ON SCHEMA contrib TO pgxn;'
+
+  Then use the `$PGOPTIONS` environment variable to load the extensions into
+  that schema:
+
+        export PGOPTIONS=--search_path=contrib
+        for ext in citext hstore pgcrypto semver
+        do
+            psql -d template1 -f /path/to/pgsql/share/contrib/$ext.sql
+        done
+
 * Build PGXN::Manager:
 
         perl Build.PL --db_super_user postgres \
-                      --db_client /usr/local/pgsql/bin/psql \
+                      --db_client /path/to/pgsql/bin/psql \
                       --context prod
         ./Build
         ./Build db
 
-* If you'd like to run the test suite, create a test database database and
-  install [pgTAP](http://pgtap.org/) into it under the schema named "tap":
+  If you're on PostgreSQL 9.0 and have installed the extensions into the
+  "contrib" schema, you'll need to set `$PGOPTIONS` for `./Build db`:
 
-        PATH=$PATH:/usr/local/pgsql/bin
-        createdb -U postgres pgxn_manager_test
-        make TAPSCHEMA=tap
+        PGOPTIONS=--search_path=contrib ./Build db
+
+* Once the databas has been built, if you're running PostgreSQL 9.1, you can
+  drop the "contrib" schema from the template database:
+
+        psql -U postgres -d template1 -c 'DROP SCHEMA contrib CASCADE;'
+
+  You'll also need to make sure that the "contrib" schema is in the search
+  path of your new database (so you don't have to use the `$PGOPTIONS`
+  environment variable anymore):
+
+        psql -U postgres -c 'ALTER DATABASE pgxn_manager SET search_path = "$user",public,contrib;'
+
+* If you'd like to run the test suite, you'll need to repeate the above steps
+  but use the "test" context, specified by the call to `Build.PL` like so:
+
+        perl Build.PL --db_super_user postgres \
+                      --db_client /path/to/pgsql/bin/psql \
+                      --context test
+
+  Then install [pgTAP](http://pgtap.org/) into the new database, which will
+  be named "pgxn_manager_test":
+
+        make
         make install
         psql -U postgres -d pgxn_manager_test -f pgrap.sql
 
-  Then edit the DSN in `conf/test.json` so that it will connect to the test
+  Next, edit the DSN in `conf/test.json` so that it will connect to the test
   database. Then run the tests, which will need to be able to find `psql` in
   the system path:
 
-        PATH=$PATH:/usr/local/pgsql/bin ./Build test --context test
+        ./Build test --context test
 
   You can then drop the test database if you like:
 
-        /usr/local/pgsql/bin/dropdb -U postgres pgxn_manager_test
+        dropdb -U postgres pgxn_manager_test
 
 * Fire up the app:
 

@@ -10,6 +10,7 @@ Revision history for Perl extension PGXN::Manager
       - Removed use of `catch` blocks with DBIx::Connector, switching to
         Try::Tiny. This is because DBIx::Connector deprecated its support of
         `catch` blocks in v0.46.
+      - Updated for PostgreSQL 9.1 `CREATE EXTENSION` support.
 
 0.13.0  2011-06-01T03:51:17
       - Added version ranges to the spec. These may be used in the `prereqs`
