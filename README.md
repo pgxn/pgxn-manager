@@ -122,26 +122,30 @@ Installation
 
         psql -U postgres -c 'ALTER DATABASE pgxn_manager SET search_path = "$user",public,contrib;'
 
-* If you'd like to run the test suite, you'll need to repeate the above steps
-  but use the "test" context, specified by the call to `Build.PL` like so:
+* If you'd like to run the test suite, you'll need to install pgTAP from
+  [pgTAP](http://pgtap.org/). Download it and install it like so:
+
+        gmake
+        gmake install
+
+  Then repeat the steps aboe but use the "test" context, specified by the call
+  to `Build.PL` like so:
 
         perl Build.PL --db_super_user postgres \
                       --db_client /path/to/pgsql/bin/psql \
                       --context test
 
-  Then install [pgTAP](http://pgtap.org/) into the new database, which will
-  be named "pgxn_manager_test":
+  If you're on 9.0, you'll need to load pgTAP into the database; I recommend
+  putting it into the "contrib" schema along with the other extensions:
 
-        make
-        make install
-        PGOPTIONS=--search_path=contrib psql -U postgres \
-          -d pgxn_manager_test -f pgtap.sql
+        PGOPTIONS=--search_path=contrib psql -U postgres-d pgxn_manager_test \
+          -f /path/to/pgsql/share/contrib/pgtap.sql
 
   Next, edit the DSN in `conf/test.json` so that it will connect to the test
   database. Then run the tests, which will need to be able to find `psql` in
   the system path:
 
-        ./Build test --context test
+        ./Build test
 
   You can then drop the test database if you like:
 

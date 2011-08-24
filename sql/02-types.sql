@@ -11,13 +11,16 @@ BEGIN
         EXECUTE $_$
             CREATE EXTENSION semver;
             CREATE EXTENSION citext;
+            -- Silence "=> is deprecated as an operator name" warning
+            SET client_min_messages = error;            
             CREATE EXTENSION hstore;
+            RESET client_min_messages;
             CREATE EXTENSION plperl;
             CREATE EXTENSION pgcrypto;
-            IF current_database() = 'pgxn_manager_test' THEN
-                CREATE EXTENSION pgtap;
-            END IF;
         $_$;
+        IF current_database() = 'pgxn_manager_test' THEN
+            EXECUTE 'CREATE EXTENSION pgtap;';
+        END IF;
     END IF;
 END;
 $$;
