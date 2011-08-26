@@ -1,16 +1,21 @@
 Revision history for Perl extension PGXN::Manager
 
-0.13.1  2011-06-01T04:26:20
-      - Replaced a leftover `ORDER BY semver USING <` with `ORDER BY semver
-        ASC`, as it was causing errors on the "Your Distributions" page and
-        hasn't been needed since the `semver` domain was replaced with the
-        `semver` C data type.
+0.13.2
       - Changed the `utc_date()` function from IMMUTABLE to STABLE, because
         converting between time zones is not immutable, alas.
       - Removed use of `catch` blocks with DBIx::Connector, switching to
         Try::Tiny. This is because DBIx::Connector deprecated its support of
         `catch` blocks in v0.46.
       - Updated for PostgreSQL 9.1 `CREATE EXTENSION` support.
+      - Added `Capfile` for capistrano deployment.
+      - Added `eg/debian_init`, an example init script for Debian that runs
+        PGXN::Manager on Starman.
+
+0.13.1  2011-06-01T04:26:20
+      - Replaced a leftover `ORDER BY semver USING <` with `ORDER BY semver
+        ASC`, as it was causing errors on the "Your Distributions" page and
+        hasn't been needed since the `semver` domain was replaced with the
+        `semver` C data type.
 
 0.13.0  2011-06-01T03:51:17
       - Added version ranges to the spec. These may be used in the `prereqs`
