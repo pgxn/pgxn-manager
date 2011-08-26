@@ -1,6 +1,6 @@
 Revision history for Perl extension PGXN::Manager
 
-0.13.2
+0.14.0
       - Changed the `utc_date()` function from IMMUTABLE to STABLE, because
         converting between time zones is not immutable, alas.
       - Removed use of `catch` blocks with DBIx::Connector, switching to
