@@ -29,7 +29,7 @@ PLACK_SERVER_OPTS="-E prod --workers 5 --preload-app --max-requests 100"
 SOCKET=127.0.0.1:7496
 # Leave these unset and we won't try to setuid/setgid.
 USER=pgxn
-GROUP=pgxn
+GROUP=
 # Set this if you have more than one instance of the app and you don't want
 # them to step on each other's pidfile.
 PIDSUFFIX=
@@ -44,7 +44,9 @@ fi
 if [ $(id -u) -eq 0 ] ; then
     PIDDIR=/var/run/$UNIXNAME
     mkdir $PIDDIR >/dev/null 2>&1
-    chown $USER:$GROUP $PIDDIR
+    if [ -n "$USER" ] ; then
+        chown $USER${GROUP:+":"}$GROUP $PIDDIR
+    fi
     chmod 775 $PIDDIR
 else
     PIDDIR=/tmp
@@ -69,7 +71,7 @@ check_running() {
 
 check_compile() {
     if [ -n "$USER" ] ; then
-        if su $USER -c "cd $APPDIR ; perl -Ilib -M$APPNAME -c $PSGI" ; then
+        if cd $APPDIR ; sudo -u $USER perl -Ilib -M$APPNAME -c $PSGI ; then
             return 0
         fi
         return 1
