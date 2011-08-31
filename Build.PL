@@ -72,7 +72,7 @@ $class->new(
         'Net::Twitter::Lite'                => '0.10003',
         'parent'                            => '0.223',
         'perl'                              => 5.010,
-        'PGXN::Meta::Validator'             => '0.13.0',
+        'PGXN::Meta::Validator'             => '0.14.0',
         'Plack'                             => '0.9956',
         'Plack::Builder'                    => 0,
         'Plack::App::File'                  => 0,

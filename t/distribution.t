@@ -268,15 +268,15 @@ for my $name (
     ok $dist->read_meta, '... Read its meta data';
     ok !$dist->normalize, '... Should get false from normalize()';
     my $msg = $name eq 'h'
-        ? 'term value must be at least 2 characters'
-        : "'$name' is not a valid term";
+        ? 'term must be at least 2 characters'
+        : qq{"$name" is not a valid term};
     is_deeply scalar $dist->error, [
         'The [_1] file does not adhere to the <a href="http://pgxn.org/spec/">PGXN Meta Specification</a>. Errors:<br/>[_2]',
         'widget-0.2.5/META.json',
-        qq{• Missing mandatory field, 'version' (meta-spec -> version) [Validation: 1.0.0]<br/>• Missing mandatory field, 'file' (provides -> foo -> file) [Validation: 1.0.0]<br/>• $msg (name) [Validation: 1.0.0]},
+        qq{• Required field /meta-spec: missing [Spec v1.0.0]<br/>• Required field /provides/foo/file: missing [Spec v1.0.0]<br/>• Field /name: $msg [Spec v1.0.0]},
     ], '... Sould get invalid name error';
     is $dist->localized_error,
-        qq{The widget-0.2.5/META.json file does not adhere to the <a href="http://pgxn.org/spec/">PGXN Meta Specification</a>. Errors:<br/>• Missing mandatory field, 'version' (meta-spec -> version) [Validation: 1.0.0]<br/>• Missing mandatory field, 'file' (provides -> foo -> file) [Validation: 1.0.0]<br/>• $msg (name) [Validation: 1.0.0]},
+        qq{The widget-0.2.5/META.json file does not adhere to the <a href="http://pgxn.org/spec/">PGXN Meta Specification</a>. Errors:<br/>• Required field /meta-spec: missing [Spec v1.0.0]<br/>• Required field /provides/foo/file: missing [Spec v1.0.0]<br/>• Field /name: $msg [Spec v1.0.0]},
             '... Should get the localized invalid name message';
 }
 
@@ -293,10 +293,10 @@ ok !$dist->normalize, 'Should get false from normalize()';
 is_deeply scalar $dist->error, [
     'The [_1] file does not adhere to the <a href="http://pgxn.org/spec/">PGXN Meta Specification</a>. Errors:<br/>[_2]',
     'widget-0.2.5/META.json',
-    "• Missing mandatory field, 'maintainer' (maintainer) [Validation: 1.0.0]<br/>• Missing mandatory field, 'license' (license) [Validation: 1.0.0]<br/>• Missing mandatory field, 'provides' (provides) [Validation: 1.0.0]<br/>• Missing mandatory field, 'abstract' (abstract) [Validation: 1.0.0]<br/>• Missing mandatory field, 'version' (meta-spec -> version) [Validation: 1.0.0]",
+    '• Required field /maintainer: missing [Spec v1.0.0]<br/>• Required field /meta-spec: missing [Spec v1.0.0]<br/>• Required field /license: missing [Spec v1.0.0]<br/>• Required field /provides: missing [Spec v1.0.0]<br/>• Required field /abstract: missing [Spec v1.0.0]',
 ], 'Sould get missing keys error';
 is $dist->localized_error,
-    q{The widget-0.2.5/META.json file does not adhere to the <a href="http://pgxn.org/spec/">PGXN Meta Specification</a>. Errors:<br/>• Missing mandatory field, 'maintainer' (maintainer) [Validation: 1.0.0]<br/>• Missing mandatory field, 'license' (license) [Validation: 1.0.0]<br/>• Missing mandatory field, 'provides' (provides) [Validation: 1.0.0]<br/>• Missing mandatory field, 'abstract' (abstract) [Validation: 1.0.0]<br/>• Missing mandatory field, 'version' (meta-spec -> version) [Validation: 1.0.0]},
+    q{The widget-0.2.5/META.json file does not adhere to the <a href="http://pgxn.org/spec/">PGXN Meta Specification</a>. Errors:<br/>• Required field /maintainer: missing [Spec v1.0.0]<br/>• Required field /meta-spec: missing [Spec v1.0.0]<br/>• Required field /license: missing [Spec v1.0.0]<br/>• Required field /provides: missing [Spec v1.0.0]<br/>• Required field /abstract: missing [Spec v1.0.0]},
     'Should get localized missing keys error';
 
 # Try with metdata that's got some non-semantic versions.
@@ -311,10 +311,10 @@ ok !$dist->normalize, 'Normalization should fail';
 is_deeply scalar $dist->error, [
     'The [_1] file does not adhere to the <a href="http://pgxn.org/spec/">PGXN Meta Specification</a>. Errors:<br/>[_2]',
     'widget-0.2.5/META.json',
-    "• '2.5' for 'version' is not a valid version. (version) [Validation: 1.0.0]",
+    '• Field /version: "2.5" is not a valid semantic version [Spec v1.0.0]',
 ], 'Sould get missing keys error';
 is $dist->localized_error,
-    q{The widget-0.2.5/META.json file does not adhere to the <a href="http://pgxn.org/spec/">PGXN Meta Specification</a>. Errors:<br/>• '2.5' for 'version' is not a valid version. (version) [Validation: 1.0.0]},
+    'The widget-0.2.5/META.json file does not adhere to the <a href="http://pgxn.org/spec/">PGXN Meta Specification</a>. Errors:<br/>• Field /version: "2.5" is not a valid semantic version [Spec v1.0.0]',
     'Should get localized missing keys error';
 
 # Make sure that the "prereq" versions are validated.
@@ -331,10 +331,10 @@ ok !$dist->normalize, 'Normalization should fail';
 is_deeply scalar $dist->error, [
     'The [_1] file does not adhere to the <a href="http://pgxn.org/spec/">PGXN Meta Specification</a>. Errors:<br/>[_2]',
     'widget-0.2.5/META.json',
-    "• '8.0' for 'PostgreSQL' is not a valid version. (prereqs -> runtime -> requires -> PostgreSQL) [Validation: 1.0.0]",
+    '• Field /prereqs/runtime/requires/PostgreSQL: "8.0" is not a valid semantic version [Spec v1.0.0]',
 ], 'Sould get missing keys error';
 is $dist->localized_error,
-    q{The widget-0.2.5/META.json file does not adhere to the <a href="http://pgxn.org/spec/">PGXN Meta Specification</a>. Errors:<br/>• '8.0' for 'PostgreSQL' is not a valid version. (prereqs -> runtime -> requires -> PostgreSQL) [Validation: 1.0.0]},
+    'The widget-0.2.5/META.json file does not adhere to the <a href="http://pgxn.org/spec/">PGXN Meta Specification</a>. Errors:<br/>• Field /prereqs/runtime/requires/PostgreSQL: "8.0" is not a valid semantic version [Spec v1.0.0]',
     'Should get localized missing keys error';
 
 # Try a "provides" section missing the version.
@@ -349,10 +349,10 @@ ok !$dist->normalize, 'Try to normalize it';
 is_deeply scalar $dist->error, [
     'The [_1] file does not adhere to the <a href="http://pgxn.org/spec/">PGXN Meta Specification</a>. Errors:<br/>[_2]',
     'widget-0.2.5/META.json',
-    "• Missing mandatory field, 'version' (provides -> widget -> version) [Validation: 1.0.0]",
+    '• Required field /provides/widget/version: missing [Spec v1.0.0]',
 ], 'The error message should be set';
 is $dist->localized_error,
-    q{The widget-0.2.5/META.json file does not adhere to the <a href="http://pgxn.org/spec/">PGXN Meta Specification</a>. Errors:<br/>• Missing mandatory field, 'version' (provides -> widget -> version) [Validation: 1.0.0]},
+    'The widget-0.2.5/META.json file does not adhere to the <a href="http://pgxn.org/spec/">PGXN Meta Specification</a>. Errors:<br/>• Required field /provides/widget/version: missing [Spec v1.0.0]',
     'And it should localize properly';
 
 # Make sure that the "provides" versions are validated.
@@ -368,10 +368,10 @@ ok !$dist->normalize, 'Normalization should fail';
 is_deeply scalar $dist->error, [
     'The [_1] file does not adhere to the <a href="http://pgxn.org/spec/">PGXN Meta Specification</a>. Errors:<br/>[_2]',
     'widget-0.2.5/META.json',
-    "• '1.095' for 'version' is not a valid version. (provides -> widget -> version) [Validation: 1.0.0]",
+    '• Field /provides/widget/version: "1.095" is not a valid semantic version [Spec v1.0.0]',
 ], 'The error message should be set';
 is $dist->localized_error,
-    q{The widget-0.2.5/META.json file does not adhere to the <a href="http://pgxn.org/spec/">PGXN Meta Specification</a>. Errors:<br/>• '1.095' for 'version' is not a valid version. (provides -> widget -> version) [Validation: 1.0.0]},
+    'The widget-0.2.5/META.json file does not adhere to the <a href="http://pgxn.org/spec/">PGXN Meta Specification</a>. Errors:<br/>• Field /provides/widget/version: "1.095" is not a valid semantic version [Spec v1.0.0]',
     'And it should localize properly';
 
 ##############################################################################

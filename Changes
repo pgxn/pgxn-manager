@@ -10,6 +10,8 @@ Revision history for Perl extension PGXN::Manager
       - Added `Capfile` for capistrano deployment.
       - Added `eg/debian_init`, an example init script for Debian that runs
         PGXN::Manager on Starman.
+      - Now require PGXN::Meta::Validator v0.14.0, which has much nicer error
+        messages.
 
 0.13.1  2011-06-01T04:26:20
       - Replaced a leftover `ORDER BY semver USING <` with `ORDER BY semver

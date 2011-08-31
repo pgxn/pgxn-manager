@@ -64,31 +64,31 @@ SELECT volatility_is(   'setup_meta', ARRAY['label', 'text', 'text'], 'immutable
 -- Validate that missing required fields throw an exception.
 SELECT throws_like(
     $$ SELECT setup_meta('nobody', 'pshaw', '{"foo": "whatever"}') $$,
-    '%Missing mandatory field, ''name'' (name) [Validation: 1.0.0]%',
+    '%Required field /name: missing [Spec v1.0.0]%',
     'Should get error from setup_meta for missing name'
 );
 
 SELECT throws_like(
     $$ SELECT setup_meta('nobody', 'pshaw', '{"name": "pair"}') $$,
-    '%Missing mandatory field, ''version'' (version) [Validation: 1.0.0]%',
+    '%Required field /version: missing [Spec v1.0.0]%',
     'Should get error from setup_meta for missing version'
 );
 
 SELECT throws_like(
     $$ SELECT setup_meta('nobody', 'pshaw', '{"name": "pair", "version": "0.0.1"}') $$,
-    '%Missing mandatory field, ''license'' (license) [Validation: 1.0.0]%',
+    '%Required field /license: missing [Spec v1.0.0]%',
     'Should get error from setup_meta for missing license'
 );
 
 SELECT throws_like(
     $$ SELECT setup_meta('nobody', 'pshaw', '{"name": "pair", "version": "0.0.1", "license": "postgresql"}') $$,
-    '%Missing mandatory field, ''maintainer'' (maintainer) [Validation: 1.0.0]%',
+    '%Required field /maintainer: missing [Spec v1.0.0]%',
     'Should get error from setup_meta for missing maintainer'
 );
 
 SELECT throws_like(
     $$ SELECT setup_meta('nobody', 'pshaw', '{"name": "pair", "version": "0.0.1", "license": "postgresql", "maintainer": "theory"}') $$,
-    '%Missing mandatory field, ''abstract'' (abstract) [Validation: 1.0.0]%',
+    '%Required field /abstract: missing [Spec v1.0.0]%',
     'Should get error from setup_meta for missing abstract'
 );
 
@@ -405,7 +405,7 @@ SELECT throws_like(
         "maintainer":  "theory",
         "abstract":    "whatever"
     }$$) $_$,
-    '%Missing mandatory field, ''version'' (meta-spec -> version) [Validation: 1.0.0]%',
+    '%Field /version: "" is not a valid semantic version [Spec v1.0.0]%',
     'Should get an exception for blank version string'
 );
 
@@ -424,7 +424,7 @@ SELECT throws_like(
             "pair": { "file": "pair.sql.in", "version": "" }
         }
     }$$) $_$,
-    '%'''' for ''version'' is not a valid version. (provides -> pair -> version) [Validation: 1.0.0]%',
+    '%Field /provides/pair/version: "" is not a valid semantic version [Spec v1.0.0]%',
     'Should get an exception for blank "provides" version string'
 );
 
