@@ -218,7 +218,7 @@ is $updated, 0, 'And _update_meta() should not have been called';
 # Let's test _update_meta() while we're here.
 $mock->unmock('_update_meta');
 ok $dist->_update_meta, 'Update the metadata';
-$distmeta->{generated_by} = 'PGXN::Manager ' . PGXN::Manager->VERSION;
+$distmeta->{generated_by} = 'PGXN::Manager ' . PGXN::Manager->version_string;
 use Encode;
 is_deeply decode_json scalar encode_utf8 $dist->metamemb->contents, $distmeta,
     'The distmeta should be complete';

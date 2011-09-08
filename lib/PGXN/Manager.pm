@@ -50,6 +50,20 @@ configuration data and the database connection from anywhere in the app.
 Returns the singleton instance of PGXN::Manager. This is the recommended way
 to get the PGXN::Manager object.
 
+=head2 Class Method
+
+=head3 C<version_string>
+
+  say 'PGXN::Manager ', PGXN::Manager->version_string;
+
+Returns a string representation of the PGXN::Manager version.
+
+=cut
+
+sub version_string {
+    sprintf 'v%vd', $VERSION;
+}
+
 =head2 Attributes
 
 =head3 C<config>

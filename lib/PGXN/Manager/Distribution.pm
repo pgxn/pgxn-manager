@@ -18,6 +18,8 @@ use Digest::SHA1;
 use PGXN::Meta::Validator v0.12.0;
 use namespace::autoclean;
 
+our $VERSION = v0.14.0;
+
 my $TMPDIR = PGXN::Manager->new->config->{tmpdir}
           || File::Spec->catdir(File::Spec->tmpdir, 'pgxn');
 my $EXT_RE = do {
@@ -187,7 +189,7 @@ sub _update_meta {
     my $self = shift;
     my $mem  = $self->metamemb;
     my $meta = $self->distmeta;
-    $meta->{generated_by} = 'PGXN::Manager ' . PGXN::Manager->VERSION;
+    $meta->{generated_by} = 'PGXN::Manager ' . PGXN::Manager->version_string;
     my $encoder = JSON::XS->new->space_after->allow_nonref->indent->canonical;
     $mem->contents( "{\n   " . join(",\n   ", map {
         $encoder->indent( $_ ne 'tags');

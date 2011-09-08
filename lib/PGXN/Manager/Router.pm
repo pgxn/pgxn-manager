@@ -9,6 +9,8 @@ use Plack::Session::Store::File;
 use PGXN::Manager::Controller;
 use PGXN::Manager;
 
+our $VERSION = v0.14.0;
+
 sub app {
     builder {
         my $controller = PGXN::Manager::Controller->new;

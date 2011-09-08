@@ -9,6 +9,7 @@ use File::Basename qw(dirname basename);
 use Carp;
 use namespace::autoclean;
 
+our $VERSION = v0.14.0;
 
 has verbosity => (is => 'rw', required => 1, isa => 'Int', default => 0);
 has workdir  => (is => 'rw', required => 0, isa => 'Str', lazy => 1, default => sub {
@@ -212,8 +213,10 @@ sub _config {
     # Handle version request.
     if ($opts{version}) {
         require File::Basename;
+        require version;
+        no strict 'refs';
         print File::Basename::basename($0), ' (', __PACKAGE__, ') ',
-            __PACKAGE__->VERSION, $/;
+            sprintf('v%vd', $VERSION), $/;
         exit;
     }
 

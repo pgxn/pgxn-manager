@@ -12,6 +12,9 @@ Revision history for Perl extension PGXN::Manager
         PGXN::Manager on Starman.
       - Now require PGXN::Meta::Validator v0.14.0, which has much nicer error
         messages.
+      - Fixed version issues. All classes now have a version and the
+        `version_string` class method of PGXN::Manager shnould be used for
+        displaying the version.
 
 0.13.1  2011-06-01T04:26:20
       - Replaced a leftover `ORDER BY semver USING <` with `ORDER BY semver

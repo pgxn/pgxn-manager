@@ -10,6 +10,8 @@ use HTTP::Body '1.08'; # required for proper upload mime type detection.
 use namespace::autoclean;
 use Encode;
 
+our $VERSION = v0.14.0;
+
 my $CHECK = Encode::FB_CROAK | Encode::LEAVE_SRC;
 my $script_name_header = PGXN::Manager->config->{uri_script_name_key} || 'SCRIPT_NAME';
 

@@ -38,7 +38,7 @@ sub test_basics {
 
         $_->is(
             './meta[@name="generator"]/@content',
-            'PGXN::Manager ' . PGXN::Manager->VERSION,
+            'PGXN::Manager ' . PGXN::Manager->version_string,
             'Should have generator'
         );
 

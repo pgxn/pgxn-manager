@@ -7,6 +7,8 @@ use Template::Declare::Tags;
 use PGXN::Manager;
 use PGXN::Manager::Locale;
 
+our $VERSION = v0.14.0;
+
 my $l = PGXN::Manager::Locale->get_handle('en');
 sub T {
     $l->maketext(@_);
@@ -36,7 +38,7 @@ BEGIN { create_wrapper wrapper => sub {
             title { $title };
             meta {
                 name is 'generator';
-                content is 'PGXN::Manager ' . PGXN::Manager->VERSION;
+                content is 'PGXN::Manager ' . PGXN::Manager->version_string;
             };
             meta {
                 name is 'description';
@@ -184,7 +186,7 @@ BEGIN { create_wrapper wrapper => sub {
             div {
                 id is 'footer';
                 p {
-                    outs 'PGXN::Manager ' . PGXN::Manager->VERSION;
+                    outs 'PGXN::Manager ' . PGXN::Manager->version_string;
                     outs_raw '. <a href="http://github.com/pgxn/pgxn-manager">Distributed</a> under the <a href="http://www.opensource.org/licenses/postgresql">PostgreSQL License</a>.';
                 };
             };
