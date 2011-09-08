@@ -13,7 +13,7 @@ Revision history for Perl extension PGXN::Manager
       - Now require PGXN::Meta::Validator v0.14.0, which has much nicer error
         messages.
       - Fixed version issues. All classes now have a version and the
-        `version_string` class method of PGXN::Manager shnould be used for
+        `version_string` class method of PGXN::Manager should be used for
         displaying the version.
 
 0.13.1  2011-06-01T04:26:20
