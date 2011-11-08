@@ -48,6 +48,7 @@ namespace :deploy do
       rm -f conf/prod.json;
       ln -s #{ conf_file } conf/prod.json || exit $?;
       perl Build.PL --context prod || exit $?;
+      ./Build installdeps || exit $?;
       ./Build || exit $?;
     CMD
   end
