@@ -15,6 +15,9 @@ Revision history for Perl extension PGXN::Manager
       - Fixed version issues. All classes now have a version and the
         `version_string` class method of PGXN::Manager should be used for
         displaying the version.
+      - Commented out the `MODULES` line in the example `Makefile` in the
+        How-To, as it turns out that it's not as harmless as I thought for
+        extensions with no C code. Reported by Daniele Varrazzo.
 
 0.13.1  2011-06-01T04:26:20
       - Replaced a leftover `ORDER BY semver USING <` with `ORDER BY semver

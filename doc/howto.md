@@ -129,7 +129,7 @@ The [`pair`](http://github.com/theory/kv-pair/) and [`semver`](http://github.com
     REGRESS      = $(patsubst test/sql/%.sql,%,$(TESTS))
     REGRESS_OPTS = --inputdir=test
     DOCS         = $(wildcard doc/*.md)
-    MODULES      = $(patsubst %.c,%,$(wildcard src/*.c))
+    # MODULES      = $(patsubst %.c,%,$(wildcard src/*.c))
     PG_CONFIG    = pg_config
     PG91         = $(shell $(PG_CONFIG) --version | grep -qE " 8\.| 9\.0" && echo no || echo yes)
 
@@ -150,7 +150,7 @@ The `EXTENSION` variable identifies the extension you're distributing. `EXTVERSI
 
 The `DATA` variable identifies the SQL files containing the extension, while `TESTS` loads a list test files, which are in the `test/sql` directory. Note that the `pair` distribution uses `pg_regress` for tests, and `pg_reqress` expects that test files will have corresponding "expected" files to compare against. With the `REGRESS_OPTS = --inputdir=test` line, The distribution tells `pg_regess` to find the test files in [`test/sql`](http://github.com/theory/kv-pair/tree/master/test/sql/) and the expected output files in [`test/expected`](http://github.com/theory/kv-pair/tree/master/test/expected/). And finally, the `DOCS` variable finds all the files ending in `.md` in the [`doc` directory](http://github.com/theory/kv-pair/tree/master/doc/).
 
-The `MODULES` variable finds `.c` files in the `src` directory. The `pair` data type has no C code, but the line is harmless here and will just start to work if C support is added later.
+The `MODULES` variable finds `.c` files in the `src` directory. The `pair` data type has no C code, so it's commented-out. You'll want to uncomment it if you have C code or add C code later.
 
 Next we have the `PG_CONFIG` variable. This points to the [`pg_config`](http://www.postgresql.org/docs/9.0/static/app-pgconfig.html) utility, which is required to find `PGXS` and build the extension. If a user has it in her path, it will just work. Otherwise, she can point to an alternate one when building:
 
