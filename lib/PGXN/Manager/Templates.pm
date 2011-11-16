@@ -311,22 +311,19 @@ template about => sub {
                     };
                     outs ', ';
                     a {
-                        href is 'http://jasoncole.ca';
-                        'Jason Cole';
-                    };
-                    outs ', and ';
-                    a {
                         href is 'http://veerle.duoh.com/';
                         'Veerle Pieters';
                     };
-                };
-                dt { T 'Icons' };
-                dd {
+                    outs_raw ' (<a href="http://veerle-v2.duoh.com/blog/comments/a_css_styled_table/">tables</a>), ';
                     a {
-                        href is 'http://www.fatcow.com/fatcow-icons/';
-                        'FatCow Hosting';
+                        href is 'http://itweek.deviantart.com/';
+                        'Miles Ponson';
                     };
-                    '(CC BY 3.0)';
+                    outs_raw ' (<a href="http://itweek.deviantart.com/art/Knob-Buttons-Toolbar-icons-73463960">icons</a>), and ';
+                    a {
+                        href is 'http://justatheory.com/';
+                        'David E. Wheeler';
+                    };
                 };
                 dt { T 'Funding' };
                 dd {
