@@ -18,6 +18,8 @@ Revision history for Perl extension PGXN::Manager
       - Commented out the `MODULES` line in the example `Makefile` in the
         How-To, as it turns out that it's not as harmless as I thought for
         extensions with no C code. Reported by Daniele Varrazzo.
+      - Added credit to Veerle Pieters for table design and to FatCow Hosting
+        for icons to the About page.
 
 0.13.1  2011-06-01T04:26:20
       - Replaced a leftover `ORDER BY semver USING <` with `ORDER BY semver

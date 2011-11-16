@@ -309,17 +309,30 @@ template about => sub {
                         href is 'http://jasoncole.ca';
                         'Jason Cole';
                     };
+                    outs ', ';
+                    a {
+                        href is 'http://jasoncole.ca';
+                        'Jason Cole';
+                    };
                     outs ', and ';
                     a {
-                        href is 'http://justatheory.com/';
-                        'David E. Wheeler';
+                        href is 'http://veerle.duoh.com/';
+                        'Veerle Pieters';
                     };
+                };
+                dt { T 'Icons' };
+                dd {
+                    a {
+                        href is 'http://www.fatcow.com/fatcow-icons/';
+                        'FatCow Hosting';
+                    };
+                    '(CC BY 3.0)';
                 };
                 dt { T 'Funding' };
                 dd {
                     a {
-                        href is 'http://pgxn.org/contributors.html';
-                        T 'Our generous sponsors';
+                        href is 'http://pgxn.org/donors/';
+                        T 'Our generous donors';
                     };
                 };
             };
