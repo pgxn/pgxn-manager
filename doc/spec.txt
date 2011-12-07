@@ -6,7 +6,7 @@ PGXN Meta Spec - The PGXN distribution metadata specification
 Version
 =======
 
-1.0.0dev6
+1.0.0
 
 Synopsis
 ========
@@ -76,7 +76,7 @@ Synopsis
 Description
 ===========
 
-This document describes version 1.0.0dev6 of the PGXN distribution metadata
+This document describes version 1.0.0 of the PGXN distribution metadata
 specification, also known as the “PGXN Meta Spec.” It is formatted using the
 [MultiMarkdown](http://fletcherpenney.net/multimarkdown/) variant of
 [Markdown](http://daringfireball.net/projects/markdown/), and the canonical
@@ -85,9 +85,8 @@ copy may always be found at
 generated HTML-formatted copy found at [pgxn.org/spec/](http://pgxn.org/spec/)
 may also be considered canonical.
 
-This document is in development, and may change before version 1.0.0. At that
-time, it will be considered stable, and any revisions to this specification
-for typo corrections and prose clarifications may be issued as “PGXN Meta Spec
+This document is stable. Any revisions to this specification for typo
+corrections and prose clarifications may be issued as “PGXN Meta Spec
 1.0.*x*”. These revisions will never change semantics or add or remove
 specified behavior.
 
@@ -844,7 +843,7 @@ See Also
 * [CPAN Meta Spec](http://search.cpan.org/perldoc?CPAN::Meta::Spec)
 * [PGXN](http://www.pgxn.org/)
 * [JSON](http://json.org/)
-* [Semantic Verrsioning](http://semver.org/)
+* [Semantic Versioning](http://semver.org/)
 
 Contributors
 ============
