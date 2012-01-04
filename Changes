@@ -21,6 +21,9 @@ Revision history for Perl extension PGXN::Manager
       - Added credit to Veerle Pieters for table design and to Miles Ponson
         for icons to the About page.
       - Updated the metadata spec to 1.0.0.
+      - Allow Build.PL to execute when Module::Build::DB is not installed.
+        This makes it easier to run once to determine what dependencies are
+        required, including Module::Build::DB.
 
 0.13.1  2011-06-01T04:26:20
       - Replaced a leftover `ORDER BY semver USING <` with `ORDER BY semver

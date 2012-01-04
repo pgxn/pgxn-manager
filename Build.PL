@@ -1,8 +1,11 @@
 use strict;
 use warnings;
-use Module::Build::DB;
+use Module::Build;
 
-my $class = Module::Build::DB->subclass(
+my $build_pkg = eval { require Module::Build::DBB }
+  ? 'Module::Build::DB' : 'Module::Build';
+
+my $class = $build_pkg->subclass(
     class => 'PGXN::Build',
     code => q{
         sub valid_licenses { { postgresql => 'PostgreSQL' } }
