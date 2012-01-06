@@ -8,17 +8,17 @@ DO LANGUAGE plpgsql $$
 BEGIN
     IF EXISTS (SELECT TRUE FROM pg_catalog.pg_class WHERE relname = 'pg_extension') THEN
         EXECUTE $_$
-            CREATE EXTENSION semver;
-            CREATE EXTENSION citext;
+            CREATE EXTENSION IF NOT EXISTS semver;
+            CREATE EXTENSION IF NOT EXISTS citext;
             -- Silence "=> is deprecated as an operator name" warning
             SET client_min_messages = error;            
-            CREATE EXTENSION hstore;
+            CREATE EXTENSION IF NOT EXISTS hstore;
             RESET client_min_messages;
-            CREATE EXTENSION plperl;
-            CREATE EXTENSION pgcrypto;
+            CREATE EXTENSION IF NOT EXISTS plperl;
+            CREATE EXTENSION IF NOT EXISTS pgcrypto;
         $_$;
         IF current_database() = 'pgxn_manager_test' THEN
-            EXECUTE 'CREATE EXTENSION pgtap;';
+            EXECUTE 'CREATE EXTENSION IF NOT EXISTS pgtap;';
         END IF;
     END IF;
 END;
