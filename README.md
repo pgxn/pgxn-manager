@@ -111,7 +111,7 @@ Installation
 
         perl Build.PL --db_super_user postgres \
                       --db_client /path/to/pgsql/bin/psql \
-                      --context prod
+                      --context local
         ./Build
         ./Build db
 
