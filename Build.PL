@@ -2,7 +2,7 @@ use strict;
 use warnings;
 use Module::Build;
 
-my $build_pkg = eval { require Module::Build::DBB }
+my $build_pkg = eval { require Module::Build::DB }
   ? 'Module::Build::DB' : 'Module::Build';
 
 my $class = $build_pkg->subclass(
