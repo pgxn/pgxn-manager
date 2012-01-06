@@ -33,6 +33,11 @@ Installation
         plperl.use_strict = on
         plperl.on_init='use 5.12.0; use JSON::XS; use Email::Valid; use Data::Validate::URI; use SemVer; use PGXN::Meta::Validator;'
 
+  If you would also like those modules to load in the parent PostgreSQL process,
+  rather than for each connection, add:
+
+       shared_preload_libraries = '$libdir/plperl'
+
 * Install these PostgreSQL core
   [extensions](http://www.postgresql.org/docs/current/static/contrib.html):
 
