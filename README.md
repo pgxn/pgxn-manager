@@ -22,6 +22,10 @@ Installation
 
         perl Build.PL
 
+  To install them, run
+  
+        ./Build installdeps
+
 * Configure the PostgreSQL server to preload modules used by PL/Perl
   functions. Just add these lines to the end of your `postgresql.conf` file:
 
