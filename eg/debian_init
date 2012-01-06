@@ -28,7 +28,7 @@ PLACK_SERVER=Starman
 PLACK_SERVER_OPTS="-E prod --workers 5 --preload-app --max-requests 100"
 SOCKET=127.0.0.1:7496
 # Leave these unset and we won't try to setuid/setgid.
-USER=pgxn
+USER=pgxn_manager
 GROUP=
 # Set this if you have more than one instance of the app and you don't want
 # them to step on each other's pidfile.
