@@ -27,6 +27,7 @@ Revision history for Perl extension PGXN::Manager
       - A request to / no longer returns a redirect to /pub/, bur rather a
         "forbidden" response (403) explaining that you probably wanted /pub/
         or to run PGXN Manager behind a rerverse proxy server.
+      - Documented reverse proxy configuration with Nginx in the README.
 
 0.13.1  2011-06-01T04:26:20
       - Replaced a leftover `ORDER BY semver USING <` with `ORDER BY semver
