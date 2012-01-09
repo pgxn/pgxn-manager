@@ -120,7 +120,7 @@ Installation
 
         PGOPTIONS=--search_path=public,contrib ./Build db
 
-* Once the databas has been built, if you're running PostgreSQL 9.1, you can
+* Once the database has been built, if you're running PostgreSQL 9.1, you can
   drop the "contrib" schema from the template database:
 
         psql -U postgres -d template1 -c 'DROP SCHEMA contrib CASCADE;'
