@@ -1,12 +1,18 @@
 # Steps to doing an initial deployment:
 #
-# Create system user "pgxn"
-# Create ~/.pgpass for user "postgres" (if necessary)
+# Create system users "pgxn" and "pgxn_manager"
+# Create ~/.pgpass for users "pgxn" and "pgxn_manager" (if necessary)
 # cap deploy:setup
-# Copy prod.json to /etc/pgxn-manager.json
-# cap deploy:cold -s branch=$tag -s db_super=$super -s pgoptions=--search_path=public,contrib 
+# Copy prod.json to ~pgxn/pgxn-manager/shared/conf/prod.json
+# cap deploy:cold -s branch=$tag -s db_super=$super
 # cap deploy -s branch=$tag
 # cap deploy:migrate -s db_super=$super
+#
+# -s options:
+# * user - Deployment user; default: "pgxn"
+# * db_super - Database user who owns the database; default: "postgres"
+# * pgxn_user - User to run the app; default: "pgxn_manager"
+# * pgoptions - Value to use for PGOPTIONS env var during migrations
 
 load 'deploy'
 
@@ -20,15 +26,16 @@ set :deploy_via,  :remote_cache
 set :use_sudo,    false
 set :branch,      "master"
 set :deploy_to,   "~/pgxn-manager"
-set :run_from,    "/var/www/#{application}.#{domain}"
-set :master,      "/var/www/master.#{domain}"
-set :pgxnuser,    "pgxn"
-set :conf_file,   "/etc/pgxn-manager.json"
+set :run_from,    "/var/virtuals/pgxn/#{application}.#{domain}"
+set :mirror_root, "/var/virtuals/pgxn/master.#{domain}"
+set :user,        "pgxn"
+set :pgxn_user,    "pgxn_manager"
+set :host,        "depesz.com"
 
 # Prevent creation of Rails-style shared directories.
-set :shared_children, %()
+set :shared_children, %w(log pids conf)
 
-role :app, 'xanthan.postgresql.org'
+role :app, host
 
 namespace :deploy do
   desc 'Confirm attempts to deploy master'
@@ -45,9 +52,10 @@ namespace :deploy do
     # Build it!
     run <<-CMD
       cd #{ latest_release };
-      rm -f conf/prod.json;
-      ln -s #{ conf_file } conf/prod.json || exit $?;
-      perl Build.PL --context prod || exit $?;
+      ln -fs #{shared_path}/conf/prod.json conf/prod.json || exit $?;
+      ln -fs #{shared_path}/log || exit $?;
+      ln -fs #{shared_path}/pids || exit $?;
+      perl Build.PL --context prod --db_super_user #{ exists?(:db_super) ? fetch(:db_super) : 'postgres' } || exit $?;
       ./Build installdeps || exit $?;
       ./Build || exit $?;
     CMD
@@ -58,37 +66,42 @@ namespace :deploy do
     run 'sudo mv /tmp/pgxn-manager /etc/init.d/ && sudo /usr/sbin/update-rc.d pgxn-manager defaults'
   end
 
-  task :setup_master do
-    run <<-CMD
-      sudo mkdir -p #{ master };
-      sudo chown -R #{ pgxnuser } #{ master };
-    CMD
+  task :setup_mirror_root do
+    run "mkdir -p #{ mirror_root }", :hosts => "#{ pgxn_user }@#{ host }"
   end
 
   task :symlink_production do
-    run "sudo ln -fs #{ latest_release } #{ run_from }"
+    run "ln -fs #{ latest_release } #{ run_from }"
   end
 
   task :migrate do
     default_environment['PGOPTIONS']  = pgoptions if exists?(:pgoptions)
-    run "cd #{ latest_release } && ./Build db --db_super_user #{ exists?(:db_super) ? fetch(:db_super) : 'postgres' }"
+    run "cd #{ latest_release } && ./Build db --context prod --db_super_user #{ exists?(:db_super) ? fetch(:db_super) : 'postgres' } || exit $? "
   end
 
   task :start do
-    run 'sudo /etc/init.d/pgxn-manager start'
+#    run 'sudo /etc/init.d/pgxn-manager start'
+    run "cd #{ run_from } && starman -E prod --workers 5 --preload-app --max-requests 100 --listen 127.0.0.1:7496 --daemonize --pid pids/pgxn_manager.pid --error-log log/pgxn_manager.log bin/pgxn_manager.psgi", :hosts => "#{ pgxn_user }@#{ host }"
   end
 
   task :restart do
-    run 'sudo /etc/init.d/pgxn-manager restart'
+#    run 'sudo /etc/init.d/pgxn-manager restart'
+    stop
+    start
   end
 
   task :stop do
-    run 'sudo /etc/init.d/pgxn-manager stop'
+#    run 'sudo /etc/init.d/pgxn-manager stop'
+    run <<-CMD, :hosts => "#{ pgxn_user }@#{ host }"
+        if [ -f "#{ run_from }/pids/pgxn_manager.pid" ]; then
+            kill `cat "#{ run_from }/pids/pgxn_manager.pid"`;
+        fi
+    CMD
   end
 
 end
 
-before 'deploy:cold',    'deploy:setup_master'
+before 'deploy:cold',    'deploy:setup_mirror_root'
 before 'deploy:update',  'deploy:check_branch'
-after  'deploy:update',  'deploy:start_script'
+#after  'deploy:update',  'deploy:start_script'
 after  'deploy:symlink', 'deploy:symlink_production'
