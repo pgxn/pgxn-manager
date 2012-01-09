@@ -232,17 +232,17 @@ way to separate these is to set up two reverse proxy servers: One to serve
           RequestHeader set X-Forwarded-Script-Name ""
         </VirtualHost>
 
-  Note that to do this, you need to have
-  [mod_proxy](http://httpd.apache.org/docs/2.2/mod/mod_proxy.html),
-  [mod_headers](http://httpd.apache.org/docs/2.2/mod/mod_headers.html), and
-  [mod_ssl](http://httpd.apache.org/docs/2.2/mod/mod_ssl.html) built and
-  installed in your Apache server (most distributions do). The value of
-  `X-Forwarded-Script-Name` should be the relative path to the app
-  from the proxy server. Here `ProxyPass` is set to `/`, so the value
-  should be the empty string.
+    Note that to do this, you need to have
+    [mod_proxy](http://httpd.apache.org/docs/2.2/mod/mod_proxy.html),
+    [mod_headers](http://httpd.apache.org/docs/2.2/mod/mod_headers.html), and
+    [mod_ssl](http://httpd.apache.org/docs/2.2/mod/mod_ssl.html) built and
+    installed in your Apache server (most distributions do). The value of
+    `X-Forwarded-Script-Name` should be the relative path to the app from the
+    proxy server. Here `ProxyPass` is set to `/`, so the value should be the
+    empty string.
 
-  Here's the equivalent configuration using
-  [Nginx HttpProxyModule](http://wiki.nginx.org/HttpProxyModule):
+    Here's the equivalent configuration using
+    [Nginx HttpProxyModule](http://wiki.nginx.org/HttpProxyModule):
 
         server {
             server_name manager.pgxn.org
