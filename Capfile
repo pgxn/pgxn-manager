@@ -9,8 +9,8 @@
 # cap deploy:migrate -s db_super=$super
 #
 # -s options:
-# * user - Deployment user; default: "pgxn"
-# * db_super - Database user who owns the database; default: "postgres"
+# * user      - Deployment user; default: "pgxn"
+# * db_super  - Database user who owns the database; default: "postgres"
 # * pgxn_user - User to run the app; default: "pgxn_manager"
 # * pgoptions - Value to use for PGOPTIONS env var during migrations
 
