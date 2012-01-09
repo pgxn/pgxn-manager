@@ -32,7 +32,7 @@ set :user,        "pgxn"
 set :pgxn_user,   "pgxn_manager"
 set :host,        "depesz.com"
 
-# Prevent creation of Rails-style shared directories.
+# Define the shared directories we need.
 set :shared_children, %w(log pids conf)
 
 role :app, host
