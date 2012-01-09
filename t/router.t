@@ -21,9 +21,9 @@ BEGIN {
 test_psgi +PGXN::Manager::Router->app => sub {
     my $cb = shift;
     ok my $res = $cb->(GET '/'), 'Fetch /';
-    ok $res->is_redirect, 'Should get a redirect response';
-    is $res->headers->header('location'), 'http://localhost/pub/',
-        'Should redirect to /pub/';
+    is $res->code, 403, 'Should get 403 response';
+    like $res->content, qr/Permission Denied/,
+        'The body should indicate that permission is denied';
 };
 
 # Test home page.

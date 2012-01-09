@@ -259,8 +259,9 @@ make installcheck PGDATABASE=postgres
 
 <p>And that&rsquo;s it! Not too bad, eh? Just please do be very careful cutting and pasting examples. Or better yet, give <a href="https://github.com/guedes/pgxn-utils/">pgxn-utils</a> a try. It will create a skeleton distribution for you and make it easy to add new stuff as you develop. It also puts all the files in the recommended places.</p>
 
-<p>Good hacking!</p>}
+<p>Good hacking!</p>},
 
+    'Sorry, but this URL is invalid. I think you either want <a href="$url">/pub/</a> or to run PGXN Manager behind a reverse proxy server. See <a href="https://github.com/pgxn/pgxn-manager/blob/master/README.md">the README</a> for details.' => 'Sorry, but this URL is invalid. I think you either want <a href="$url">/pub/</a> or to run PGXN Manager behind a reverse proxy server. See <a href="https://github.com/pgxn/pgxn-manager/blob/master/README.md">the README</a> for details.',
 );
 
 sub accept {

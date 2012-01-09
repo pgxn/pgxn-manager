@@ -122,7 +122,11 @@ sub respond_with {
 
 sub root {
     my $self = shift;
-    return $self->redirect('/pub/', Request->new(shift));
+    my $req = Request->new(shift);
+    my $url = $req->uri_for('/pub/');
+    $self->respond_with('forbidden', $req, [
+        qq{Sorry, but this URL is invalid. I think you either want <a href="$url">/pub/</a> or to run PGXN Manager behind a reverse proxy server. See <a href="https://github.com/pgxn/pgxn-manager/blob/master/README.md">the README</a> for details.}
+    ]);
 }
 
 sub home {

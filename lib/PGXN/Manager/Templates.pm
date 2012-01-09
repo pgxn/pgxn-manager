@@ -477,7 +477,9 @@ template forbidden => sub {
         h1 { T 'Permission Denied' };
         p {
             class is 'error';
-            T q{Sorry, you do not have permission to access this resource.};
+            my $msg = $args->{maketext}
+                || ['Sorry, you do not have permission to access this resource.'];
+            outs_raw T @{ $msg };
         };
     } $req, { page_title => q{Whoops! I don't think you belong here} };
 };

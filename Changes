@@ -24,6 +24,9 @@ Revision history for Perl extension PGXN::Manager
       - Allow Build.PL to execute when Module::Build::DB is not installed.
         This makes it easier to run once to determine what dependencies are
         required, including Module::Build::DB.
+      - A request to / no longer returns a redirect to /pub/, bur rather a
+        "forbidden" response (403) explaining that you probably wanted /pub/
+        or to run PGXN Manager behind a rerverse proxy server.
 
 0.13.1  2011-06-01T04:26:20
       - Replaced a leftover `ORDER BY semver USING <` with `ORDER BY semver
