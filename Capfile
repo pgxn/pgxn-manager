@@ -29,7 +29,7 @@ set :deploy_to,   "~/pgxn-manager"
 set :run_from,    "/var/virtuals/pgxn/#{application}.#{domain}"
 set :mirror_root, "/var/virtuals/pgxn/master.#{domain}"
 set :user,        "pgxn"
-set :pgxn_user,    "pgxn_manager"
+set :pgxn_user,   "pgxn_manager"
 set :host,        "depesz.com"
 
 # Prevent creation of Rails-style shared directories.
