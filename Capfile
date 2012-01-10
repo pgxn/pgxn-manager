@@ -52,9 +52,9 @@ namespace :deploy do
     # Build it!
     run <<-CMD
       cd #{ latest_release };
-      ln -fs #{shared_path}/conf/prod.json conf/prod.json || exit $?;
-      ln -fs #{shared_path}/log || exit $?;
-      ln -fs #{shared_path}/pids || exit $?;
+      ln -fsn #{shared_path}/conf/prod.json conf/prod.json || exit $?;
+      ln -fsn #{shared_path}/log || exit $?;
+      ln -fsn #{shared_path}/pids || exit $?;
       perl Build.PL --context prod --db_super_user #{ exists?(:db_super) ? fetch(:db_super) : 'postgres' } || exit $?;
       ./Build installdeps || exit $?;
       ./Build || exit $?;
@@ -71,7 +71,7 @@ namespace :deploy do
   end
 
   task :symlink_production do
-    run "ln -fs #{ latest_release } #{ run_from }"
+    run "ln -fsn #{ latest_release } #{ run_from }"
   end
 
   task :migrate do
