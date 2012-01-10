@@ -239,7 +239,11 @@ way to separate these is to set up two reverse proxy servers: One to serve
     installed in your Apache server (most distributions do). The value of
     `X-Forwarded-Script-Name` should be the relative path to the app from the
     proxy server. Here `ProxyPass` is set to `/`, so the value should be the
-    empty string.
+    empty string. The other headers need to be set to ensure that URLs are
+    properly rewritten by
+    [Plack::Middleware::ReverseProxy](http://search.cpan.org/perloc?Plack::Middleware::ReverseProxy)
+    and clients can't spoof the values to fool the server into thinking it's
+    running under HTTPS when it's not.
 
     Here's the equivalent configuration using
     [Nginx HttpProxyModule](http://wiki.nginx.org/HttpProxyModule):
@@ -250,7 +254,10 @@ way to separate these is to set up two reverse proxy servers: One to serve
             location / {
                 proxy_pass        http://127.0.0.1:7496/pub/;
                 proxy_redirect    off;
-                proxy_set_header  Host $host;
+                proxy_set_header  Host                    $host;
+                proxy_set_header  X-Forwarded-HTTPS       "";
+                proxy_set_header  X-Forwaded-Proto        http
+                proxy_set_header  X-Forwarded-Port        80
                 proxy_set_header  X-Forwarded-Script-Name ""
             }
         }
@@ -266,10 +273,16 @@ way to separate these is to set up two reverse proxy servers: One to serve
                 proxy_pass        http://127.0.0.1:7496/auth/;
                 proxy_redirect    off;
                 proxy_set_header  Host                    $host;
-                proxy_set_header  X-Forwarded-HTTPS       on;
+                proxy_set_header  X-Forwarded-HTTPS       ON;
+                proxy_set_header  X-Forwaded-Proto        https
+                proxy_set_header  X-Forwarded-Port        443
                 proxy_set_header  X-Forwarded-Script-Name ""
             }
         }
+
+    Again, it's important to get the headers rewritten properly in order for
+    the routing and writing of URLs is correct and so that clients can't spoof
+    them.
 
 * Install
   [Plack::Middleware::ReverseProxy](http://search.cpan.org/perloc?Plack::Middleware::ReverseProxy)
