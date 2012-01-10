@@ -232,11 +232,44 @@ way to separate these is to set up two reverse proxy servers: One to serve
           RequestHeader set X-Forwarded-Script-Name ""
         </VirtualHost>
 
-  Note that to do this, you need to have
-  [mod_proxy](http://httpd.apache.org/docs/2.2/mod/mod_proxy.html),
-  [mod_headers](http://httpd.apache.org/docs/2.2/mod/mod_headers.html), and
-  [mod_ssl](http://httpd.apache.org/docs/2.2/mod/mod_ssl.html) built and
-  installed in your Apache server (most distributions do).
+    Note that to do this, you need to have
+    [mod_proxy](http://httpd.apache.org/docs/2.2/mod/mod_proxy.html),
+    [mod_headers](http://httpd.apache.org/docs/2.2/mod/mod_headers.html), and
+    [mod_ssl](http://httpd.apache.org/docs/2.2/mod/mod_ssl.html) built and
+    installed in your Apache server (most distributions do). The value of
+    `X-Forwarded-Script-Name` should be the relative path to the app from the
+    proxy server. Here `ProxyPass` is set to `/`, so the value should be the
+    empty string.
+
+    Here's the equivalent configuration using
+    [Nginx HttpProxyModule](http://wiki.nginx.org/HttpProxyModule):
+
+        server {
+            server_name manager.pgxn.org
+            listen 80;
+            location / {
+                proxy_pass        http://127.0.0.1:7496/pub/;
+                proxy_redirect    off;
+                proxy_set_header  Host $host;
+                proxy_set_header  X-Forwarded-Script-Name ""
+            }
+        }
+
+        server {
+            server_name manager.pgxn.org
+            listen 443;
+            ssl on;
+            ssl_certificate /path/to/certs/manager.pgxn.org.crt;
+            ssl_certificate_key /path/to/certs/manager.pgxn.org.key;
+
+            location / {
+                proxy_pass        http://127.0.0.1:7496/auth/;
+                proxy_redirect    off;
+                proxy_set_header  Host                    $host;
+                proxy_set_header  X-Forwarded-HTTPS       on;
+                proxy_set_header  X-Forwarded-Script-Name ""
+            }
+        }
 
 * Install
   [Plack::Middleware::ReverseProxy](http://search.cpan.org/perloc?Plack::Middleware::ReverseProxy)
