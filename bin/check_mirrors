@@ -9,8 +9,9 @@ use LWP::UserAgent;
 use URI::Template;
 use File::Basename;
 use File::Spec;
-use File::Touch;
 use Getopt::Long;
+
+BEGIN { our $VERSION = v0.14.1 }
 
 Getopt::Long::Configure( qw(bundling) );
 
@@ -33,11 +34,13 @@ _pod2usage(
 ) if $opts{help} or $opts{man};
 
 # Handle version request.
-print File::Basename::basename($0), ' ', __PACKAGE__->VERSION, $/
-    if $opts{version};
+if ($opts{version}) {
+    print File::Basename::basename($0), ' ', __PACKAGE__->VERSION, $/;
+    exit;
+}
 
 # Make sure we have the index file.
-my $index_file = $opts{index} || shift or pod2usage(
+my $index_file = $opts{index} || shift or _pod2usage(
     '-message' => 'Missing required --index option'
 );
 
@@ -63,8 +66,8 @@ unless ($lag) {
     push @labels => '4 days';
 }
 
-say "Testing mirrors for lag of ", join ', ' => @labels
-    if $opts{verbose};
+my $label = join ', ' => @labels;
+say "Testing mirrors for lag of $label" if $opts{verbose};
 
 # Load the mirrors URI.
 my $mirrors_uri = do {
@@ -81,7 +84,7 @@ my $mirrors_file = File::Spec->catfile(
 );
 
 # Touch the file, so the other servers will update it.
-touch $mirrors_file;
+utime undef, undef, $mirrors_file or die "Cannot touch $mirrors_file: $!\n";
 
 # Parse it to get the list of mirrrors.
 my $mirrors = decode_json do {
@@ -96,20 +99,20 @@ my $ua = LWP::UserAgent->new;
 $ua->timeout(60);
 for my $mirror ( @{ $mirrors }) {
     $mirror->{uri} =~ s{/$}{};
-    my $url = URI->new($mirror->{uri} . $mirrors_uri->path);
-    my $res = $ua->get($url);
+    my $url   = URI->new($mirror->{uri} . $mirrors_uri->path);
+    my $res   = $ua->get($url);
+    my $email = join '@', reverse split /[|]/, $mirror->{email}, 2;
 
     say "Checking $url" if $opts{verbose};
     if ($res->is_success) {
         next if (time - $res->last_modified) <= $lag;
-        my $label = join ', ' => @labels;
-        my $email = join '@', reverse split /[|]/, $mirror->{email}, 2;
         say STDERR "  $url is more than $label behind\n",
                  qq{  Contact: "$mirror->{organization}" <$email>};
     } else {
         # XXX Do something here to record this and only complain if it has
-        # been a while.
-        say STDERR "  Error retrieving $url -- " . $res->status_line;
+        # been a down more than $lag?
+        say STDERR "  Error retrieving $url -- ", $res->status_line,
+               qq{\n  Contact: "$mirror->{organization}" <$email>};
         next;
     }
 }
@@ -124,3 +127,176 @@ sub _pod2usage {
         @_
     );
 }
+
+1
+__END__
+
+=head1 Name
+
+check_mirrors - Check that mirrors are available and active
+
+=head1 Usage
+
+  check_mirrors --days 4 --index /path/to/mirror/index.json
+
+=head1 Description
+
+This program reads the URI templates from a PGXN mirror root directory, uses
+it to find the F<mirrors.json> file, C<touch>es it, and then iterates over the
+list of mirrors to report any that are down or have fallen behind. The idea is
+to run C<check_mirrors> in a cron job on the master mirror server, perhaps
+daily, and report when mirrors have not been updated. There are options to
+specify how far mirrors may fall behind before they're reported as lagging.
+For such reports, the output includes contact information for the mirror
+owners.
+
+A mirror is considered to be behind when timestamp of the F<mirrors.json>
+file, which is C<touch>ed each time C<check_mirrors> runs, is older than the
+specified lag. So if you run C<check_mirrors> once a day, you might reasonably
+expect mirrors to be no more than 25 hours behind. If you want to be a little
+more lax, you might give them two or four days. If you want to be more
+rigorous, run the cron job more often and reduce the allowed lag.
+
+Specify lag via the sum of the C<--days>, C<--hours>, and C<--minutes>
+options. If you wanted to allow mirrors up to 36 hours of lag, you might
+specify it as
+
+  --hours 36
+
+Or, equivalently:
+
+  --days 1 --hours 12
+
+If no lag is specified, C<check_mirrors> defaults to 4 days, which should be
+plenty of rope for most mirrors, but allow you as the admin to detect defunct
+mirrors and remove them from the system before they go on missing for too
+long.
+
+Mirrors are checked via an HTTP request for the F<mirrors.json> file. Those
+that fail to return the file will be reported immediately. (This may change in
+a future version to allow lag for downtime, too.)
+
+=head1 Options
+
+  -i --index   PATH     Path to mirror F<index.json> file.
+  -d --days    DAYS     Number of days mirrors may lag.
+  -h --hours   HOURS    Number of hours mirrors may lag.
+  -m --minutes MINUTES  Number of minutes mirrors may lag.
+  -v --verbose          Incremental verbose mode.
+  -H --help             Print a usage statement and exit.
+  -M --man              Print the complete documentation and exit.
+  -V --version          Print the version number and exit.
+
+=head1 Options Details
+
+=over
+
+=item C<-d>
+
+=item C<--days>
+
+  check_mirrors --days 2
+  check_mirrors -d 1
+
+The number of days a mirror may lag behind before it is reported. Defaults to 4.
+If C<--hours> or C<--minutes> are also specified, the total time will be summed.
+
+=item C<-h>
+
+=item C<--hours>
+
+  check_mirrors --hours 36
+  check_mirrors -h 12
+
+The number of hours a mirror may lag behind before it is reported. Defaults to
+0. If C<--days> or C<--minutes> are also specified, the total time will be
+summed.
+
+=item C<-m>
+
+=item C<--minutes>
+
+  check_mirrors --minutes 30
+  check_mirrors -m 45
+
+The number of minutes a mirror may lag behind before it is reported. Defaults
+to 0. If C<--days> or C<--hours> are also specified, the total time will be
+summed.
+
+=item C<-v>
+
+=item C<--verbose>
+
+  check_mirrors --verbose
+  check_mirrors -vvv
+
+Output status messages to C<STDOUT> as the program runs. Specify multiple
+times, up to three times, to increase verbosity.
+
+=item C<-H>
+
+=item C<--help>
+
+  check_mirrors --help
+  check_mirrors -H
+
+Outputs a brief description of the options supported by C<check_mirrors> and exits.
+
+=item C<-M>
+
+=item C<--man>
+
+  check_mirrors --man
+  check_mirrors -M
+
+Outputs this documentation and exits.
+
+=item C<-V>
+
+=item C<--version>
+
+  check_mirrors --version
+  check_mirrors -V
+
+Outputs the program name and version and exits.
+
+=back
+
+=head1 To Do
+
+=over
+
+=item *
+
+Allow mirrors to be down for lag period of time before reporting them?
+
+=back
+
+=head1 Author
+
+David E. Wheeler <david.wheeler@pgexperts.com>
+
+=head1 Copyright and License
+
+Copyright (c) 2010-2011 David E. Wheeler.
+
+This module is free software; you can redistribute it and/or modify it under
+the L<PostgreSQL License|http://www.opensource.org/licenses/postgresql>.
+
+Permission to use, copy, modify, and distribute this software and its
+documentation for any purpose, without fee, and without a written agreement is
+hereby granted, provided that the above copyright notice and this paragraph
+and the following two paragraphs appear in all copies.
+
+In no event shall David E. Wheeler be liable to any party for direct,
+indirect, special, incidental, or consequential damages, including lost
+profits, arising out of the use of this software and its documentation, even
+if David E. Wheeler has been advised of the possibility of such damage.
+
+David E. Wheeler specifically disclaims any warranties, including, but not
+limited to, the implied warranties of merchantability and fitness for a
+particular purpose. The software provided hereunder is on an "as is" basis,
+and David E. Wheeler has no obligations to provide maintenance, support,
+updates, enhancements, or modifications.
+
+=cut
