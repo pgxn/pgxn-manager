@@ -11,7 +11,7 @@ use File::Basename;
 use File::Spec;
 use Getopt::Long;
 
-BEGIN { our $VERSION = v0.14.1 }
+BEGIN { our $VERSION = v0.14.2 }
 
 Getopt::Long::Configure( qw(bundling) );
 

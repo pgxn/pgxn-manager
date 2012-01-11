@@ -1,5 +1,7 @@
 Revision history for Perl extension PGXN::Manager
 
+0.14.2
+
 0.14.1  2012-01-11T18:29:26Z
       - Greatly improved the `check_mirrors` utility, making it work with the
         `mirrors` file, rather than a special, undocumented "timestamp" file.

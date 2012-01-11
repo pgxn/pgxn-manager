@@ -16,7 +16,7 @@ use Data::Validate::URI 'is_uri';
 use Try::Tiny;
 use namespace::autoclean;
 
-our $VERSION = v0.14.1;
+our $VERSION = v0.14.2;
 
 Template::Declare->init( dispatch_to => ['PGXN::Manager::Templates'] );
 
