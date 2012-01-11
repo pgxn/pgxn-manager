@@ -61,6 +61,7 @@ $class->new(
         'File::Path'                        => '2.08',
         'File::Spec'                        => '3.33',
         'File::Temp'                        => '0.22',
+        'File::Touch'                       => 0,
         'Getopt::Long'                      => '2.34',
         'HTTP::Body'                        => '1.08',
         'HTML::Entities'                    => '3.68',

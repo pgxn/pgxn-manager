@@ -1,31 +1,56 @@
-#!/usr/local/bin/perl
+#!/usr/bin/env perl
 
 use 5.10.0;
 
 use JSON;
 use LWP::UserAgent;
+use URI::Template;
+use File::Basename;
+use File::Spec;
+use File::Touch;
+
 my $days    = 4;
 my $timeout = 86400 * $days; # four days.
 
-my $file = shift or die "Usage $@ /path/to/mirrors.json\n";
+my $index_file = shift or die "Usage: $@ /path/to/index.json\n";
 
+# Load the mirrors URL template.
+my $tmpl = do {
+    open my $fh, '<:raw', $index_file or die "Cannot open $index_file: $!\n";
+    local $/;
+    my $tmpls = JSON::XS->new->decode(<$fh>);
+    URI::Template->new($tmpls->{mirrors});
+};
+
+# We're going to use the mirrors file.
+my $mirrors_file = File::Spec->catfile(
+    dirname($index_file),
+    $tmpl->process->path_segments,
+);
+
+# Touch the file, so the other servers will update it.
+touch $mirrors_file;
+
+# Parse it to get the list of mirrrors.
 my $mirrors = decode_json do {
-    open my $fh, '<:raw', $file or die "Cannot open $file: $!\n";
+    open my $fh, '<:raw', $mirrors_file
+        or die "Cannot open $mirrors_file: $!\n";
     local $/;
     <$fh>;
 };
 
+# Check its timestamp on each mirror.
 my $ua = LWP::UserAgent->new;
 $ua->timeout(60);
 for my $mirror ( @{ $mirrors }) {
     (my $url = $mirror->{uri}) =~ s{/$}{};
-    $url .= '/meta/timestamp';
+    $url .= '/index.html';
     my $res = $ua->get($url);
 
     if ($res->is_success) {
-        my ($time) = $res->decoded_content =~ /\A(\d+)/;
+        say $res->last_modified, " - $url";
         say STDERR "$url is more than $days days behind"
-            if time - $time > $timeout;
+            if time - $res->last_modified > $timeout;
     } else {
         # XXX Do something here to record this and only complain if it has
         # been a while.
@@ -33,4 +58,3 @@ for my $mirror ( @{ $mirrors }) {
         next;
     }
 }
-
