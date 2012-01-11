@@ -1,6 +1,8 @@
 Revision history for Perl extension PGXN::Manager
 
 0.14.1
+      - Greatly improed the `check_mirrors` utility, making it work with the
+        `mirrors` file, rather than a special "timestamp" file.
 
 0.14.0  2012-01-10T04:10:22Z
       - Changed the `utc_date()` function from IMMUTABLE to STABLE, because

@@ -2,30 +2,82 @@
 
 use 5.10.0;
 
+use strict;
+use warnings;
 use JSON;
 use LWP::UserAgent;
 use URI::Template;
 use File::Basename;
 use File::Spec;
 use File::Touch;
+use Getopt::Long;
 
-my $days    = 4;
-my $timeout = 86400 * $days; # four days.
+Getopt::Long::Configure( qw(bundling) );
 
-my $index_file = shift or die "Usage: $@ /path/to/index.json\n";
+my %opts;
+Getopt::Long::GetOptions(
+    'index|i'      => \$opts{index},
+    'days|d=i'     => \$opts{days},
+    'hours|h=i'    => \$opts{hours},
+    'minutes|m=i'  => \$opts{minutes},
+    'verbose|v+'   => \$opts{verbose},
+    'help|H'       => \$opts{help},
+    'man|M'        => \$opts{man},
+    'version|V'    => \$opts{version},
+) or _pod2usage();
 
-# Load the mirrors URL template.
-my $tmpl = do {
+# Handle documentation requests.
+_pod2usage(
+    ( $opts{man} ? ( '-sections' => '.+' ) : ()),
+    '-exitval' => 0,
+) if $opts{help} or $opts{man};
+
+# Handle version request.
+print File::Basename::basename($0), ' ', __PACKAGE__->VERSION, $/
+    if $opts{version};
+
+# Make sure we have the index file.
+my $index_file = $opts{index} || shift or pod2usage(
+    '-message' => 'Missing required --index option'
+);
+
+# Calculate the allowed lag in terms of days, hours, and minutes.
+my $lag = 0;
+my @labels;
+if (my $d = $opts{days}) {
+    $lag += $d * 86400;
+    push @labels => "$d day" . ($d > 1 ? 's' : '');
+}
+if (my $h = $opts{hours}) {
+    $lag += $h * 3600;
+    push @labels => "$h hour" . ($h > 1 ? 's' : '');
+}
+if (my $m = $opts{minutes}) {
+    $lag += $m * 3600;
+    push @labels => "$m minute" . ($m > 1 ? 's' : '');
+}
+
+# Default to four days.
+unless ($lag) {
+    $lag ||= 86400 * 4;
+    push @labels => '4 days';
+}
+
+say "Testing mirrors for lag of ", join ', ' => @labels
+    if $opts{verbose};
+
+# Load the mirrors URI.
+my $mirrors_uri = do {
     open my $fh, '<:raw', $index_file or die "Cannot open $index_file: $!\n";
     local $/;
     my $tmpls = JSON::XS->new->decode(<$fh>);
-    URI::Template->new($tmpls->{mirrors});
+    URI::Template->new($tmpls->{mirrors})->process;
 };
 
 # We're going to use the mirrors file.
 my $mirrors_file = File::Spec->catfile(
     dirname($index_file),
-    $tmpl->process->path_segments,
+    $mirrors_uri->path_segments,
 );
 
 # Touch the file, so the other servers will update it.
@@ -43,18 +95,32 @@ my $mirrors = decode_json do {
 my $ua = LWP::UserAgent->new;
 $ua->timeout(60);
 for my $mirror ( @{ $mirrors }) {
-    (my $url = $mirror->{uri}) =~ s{/$}{};
-    $url .= '/index.html';
+    $mirror->{uri} =~ s{/$}{};
+    my $url = URI->new($mirror->{uri} . $mirrors_uri->path);
     my $res = $ua->get($url);
 
+    say "Checking $url" if $opts{verbose};
     if ($res->is_success) {
-        say $res->last_modified, " - $url";
-        say STDERR "$url is more than $days days behind"
-            if time - $res->last_modified > $timeout;
+        next if (time - $res->last_modified) <= $lag;
+        my $label = join ', ' => @labels;
+        my $email = join '@', reverse split /[|]/, $mirror->{email}, 2;
+        say STDERR "  $url is more than $label behind\n",
+                 qq{  Contact: "$mirror->{organization}" <$email>};
     } else {
         # XXX Do something here to record this and only complain if it has
         # been a while.
-        say STDERR "Error retrieving $url -- " . $res->status_line;
+        say STDERR "  Error retrieving $url -- " . $res->status_line;
         next;
     }
+}
+
+sub _pod2usage {
+    require Pod::Usage;
+    Pod::Usage::pod2usage(
+        '-verbose'  => 99,
+        '-sections' => '(?i:(Usage|Options))',
+        '-exitval'  => 1,
+        '-input'    => __FILE__,
+        @_
+    );
 }

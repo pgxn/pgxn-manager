@@ -323,6 +323,17 @@ way to separate these is to set up two reverse proxy servers: One to serve
   be able to hit the public site at the root of your domain on port 80, and at
   the authenticated site at the root of your domain on port 443.
 
+Monitoring Mirrors
+------------------
+
+Once you have mirrors syncing from the master mirror directory (via rsync or
+however else), you might want to use the `check_mirrors` utility in a cron
+job. It simply iterates over teh list of mirrors maintained by PGXN::Manager
+and reports of any of them appear to be more than a specified number of days,
+hours, or minutes behind. This will allow you to determine when a mirror may
+no longer be available, so that you can contact the owner or remove the mirror
+from the system.
+
 Copyright and License
 ---------------------
 
