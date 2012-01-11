@@ -13,7 +13,8 @@ Installation
 
 * First, you need to satisfy the dependencies. These include:
 
-  + [Perl](http://www.perl.org/) 5.12.0 or higher.
+  + [Perl](http://www.perl.org/) 5.10.0 or higher (5.12 or higher strongly
+    recommended)
   + [PostgreSQL](http://www.postgresql.org/) 9.0.0 or higher with support for
     PL/Perl included.
 
