@@ -282,7 +282,10 @@ sub send_tweet {
     );
 
     try {
-        my $nt = Net::Twitter::Lite->new(%$tok);
+        my $nt = Net::Twitter::Lite->new(
+            legacy_lists_api => 0,
+            %{ $tok }
+        );
         $nt->update($p->{body});
     } catch {
         $self->send_email({

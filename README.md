@@ -91,7 +91,7 @@ Installation
 * If you're using PostgreSQL 9.0, you'll need to load the extensions into the
   template database so that they'll be included in the PGXN database when it's
   created. (This isn't necessary for PostgreSQL 9.1, as the installer will
-  load the extenions for you). The simplest way to do so is to create a
+  load the extensions for you). The simplest way to do so is to create a
   "contrib" schema and put them there. You'll also need to create the "pgxn"
   user and give it access to the schema.
 

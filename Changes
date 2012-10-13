@@ -1,6 +1,8 @@
 Revision history for Perl extension PGXN::Manager
 
 0.14.2
+       - Silenced Net::Twitter::Lite warnings by disabling the legacy lists
+         API (which we don't use anyway).
 
 0.14.1  2012-01-11T18:29:26Z
       - Greatly improved the `check_mirrors` utility, making it work with the
