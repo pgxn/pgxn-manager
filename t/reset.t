@@ -119,7 +119,7 @@ test_psgi $app => sub {
         );
     });
 
-    is @{ Email::Sender::Simple->default_transport->deliveries },
+    is +Email::Sender::Simple->default_transport->deliveries,
         0, 'No email should have been sent'
 };
 
@@ -139,7 +139,7 @@ test_psgi $app => sub {
     is $res->content, $mt->maketext('Bad request: no who parameter.'),
         'And the content should say so';
 
-    is @{ Email::Sender::Simple->default_transport->deliveries },
+    is +Email::Sender::Simple->default_transport->deliveries,
         0, 'No email should have been sent'
 };
 
@@ -164,7 +164,7 @@ test_psgi $app => sub {
     ok $sess->{reset_sent},
         'The "reset_sent" key should have been set in the session';
 
-    is @{ Email::Sender::Simple->default_transport->deliveries },
+    is +Email::Sender::Simple->default_transport->deliveries,
         0, 'But no email should have been sent'
 };
 
@@ -190,12 +190,12 @@ test_psgi $app => sub {
     ok $sess->{reset_sent},
         'The "reset_sent" key should have been set in the session';
 
-    ok my $deliveries = Email::Sender::Simple->default_transport->deliveries,
+    ok my @deliveries = Email::Sender::Simple->default_transport->deliveries,
         'Should have email deliveries.';
-    is @{ $deliveries }, 1, 'Should have one message';
-    is @{ $deliveries->[0]{successes} }, 1, 'Should have been successfully delivered';
+    is @deliveries, 1, 'Should have one message';
+    is @{ $deliveries[0]{successes} }, 1, 'Should have been successfully delivered';
 
-    my $email = $deliveries->[0]{email};
+    my $email = $deliveries[0]{email};
     is $email->get_header('Subject'), 'Reset Your Password',
         'The subject should be set';
     is $email->get_header('From'), PGXN::Manager->config->{admin_email},
@@ -229,12 +229,12 @@ test_psgi +PGXN::Manager::Router->app => sub {
     is $res->content, $mt->maketext('Success'),
         'And the content should say so';
 
-    ok my $deliveries = Email::Sender::Simple->default_transport->deliveries,
+    ok my @deliveries = Email::Sender::Simple->default_transport->deliveries,
         'Should have email deliveries.';
-    is @{ $deliveries }, 1, 'Should have one message';
-    is @{ $deliveries->[0]{successes} }, 1, 'Should have been successfully delivered';
+    is @deliveries, 1, 'Should have one message';
+    is @{ $deliveries[0]{successes} }, 1, 'Should have been successfully delivered';
 
-    my $email = $deliveries->[0]{email};
+    my $email = $deliveries[0]{email};
     is $email->get_header('Subject'), 'Reset Your Password',
         'The subject should be set';
     is $email->get_header('From'), PGXN::Manager->config->{admin_email},

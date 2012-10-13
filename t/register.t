@@ -204,12 +204,12 @@ test_psgi $app => sub {
     });
 
     # And an email should have been sent.
-    ok my $deliveries = Email::Sender::Simple->default_transport->deliveries,
+    ok my @deliveries = Email::Sender::Simple->default_transport->deliveries,
         'Should have email deliveries.';
-    is @{ $deliveries }, 1, 'Should have one message';
-    is @{ $deliveries->[0]{successes} }, 1, 'Should have been successfully delivered';
+    is @deliveries, 1, 'Should have one message';
+    is @{ $deliveries[0]{successes} }, 1, 'Should have been successfully delivered';
 
-    my $email = $deliveries->[0]{email};
+    my $email = $deliveries[0]{email};
     is $email->get_header('Subject'), 'New User Request for tgl',
         'The subject should be set';
     is $email->get_header('From'), PGXN::Manager->config->{admin_email},
@@ -243,7 +243,7 @@ test_psgi $app => sub {
     ok !$res->is_redirect, 'It should not be a redirect response';
     is $res->code, 409, 'Should have 409 status code';
 
-    is @{ Email::Sender::Simple->default_transport->deliveries },
+    is +Email::Sender::Simple->default_transport->deliveries,
         0, 'No email should have been sent';
 
     # So check the content.
@@ -311,7 +311,7 @@ test_psgi $app => sub {
             'TGL should exist';
     });
 
-    is @{ Email::Sender::Simple->default_transport->deliveries },
+    is +Email::Sender::Simple->default_transport->deliveries,
         1, 'And an admin email should have been sent';
     Email::Sender::Simple->default_transport->clear_deliveries;
 };
@@ -403,7 +403,7 @@ test_psgi $app => sub {
         }, undef, 'tgl'), ['Tom Lane', 'tgl@pgxn.org', '', 'new'], 'TGL should exist';
     });
 
-    is @{ Email::Sender::Simple->default_transport->deliveries },
+    is +Email::Sender::Simple->default_transport->deliveries,
        1, 'And an admin email should have been sent';
     Email::Sender::Simple->default_transport->clear_deliveries;
 };

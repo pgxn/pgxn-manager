@@ -613,11 +613,11 @@ test_psgi +PGXN::Manager::Router->app => sub {
 ', 'And it should have the proper json';
 
     # Did we send him email?
-    ok my $deliveries = Email::Sender::Simple->default_transport->deliveries,
+    ok my @deliveries = Email::Sender::Simple->default_transport->deliveries,
         'Should have email deliveries.';
-    is @{ $deliveries }, 1, 'Should have one message';
-    is @{ $deliveries->[0]{successes} }, 1, 'Should have been successfully delivered';
-    my $email = $deliveries->[0]{email};
+    is @deliveries, 1, 'Should have one message';
+    is @{ $deliveries[0]{successes} }, 1, 'Should have been successfully delivered';
+    my $email = $deliveries[0]{email};
     is $email->get_header('Subject'), 'Welcome to PGXN!',
         'The subject should be set';
     is $email->get_header('From'), PGXN::Manager->config->{admin_email},
@@ -667,11 +667,11 @@ test_psgi +PGXN::Manager::Router->app => sub {
         'And the content should say so';
 
     # Did we send him email?
-    ok my $deliveries = Email::Sender::Simple->default_transport->deliveries,
+    ok my @deliveries = Email::Sender::Simple->default_transport->deliveries,
         'Should have email deliveries.';
-    is @{ $deliveries }, 1, 'Should have one message';
-    is @{ $deliveries->[0]{successes} }, 1, 'Should have been successfully delivered';
-    my $email = $deliveries->[0]{email};
+    is @deliveries, 1, 'Should have one message';
+    is @{ $deliveries[0]{successes} }, 1, 'Should have been successfully delivered';
+    my $email = $deliveries[0]{email};
     is $email->get_header('Subject'), 'Account Request Rejected',
         'The subject should be set';
     is $email->get_header('From'), PGXN::Manager->config->{admin_email},
