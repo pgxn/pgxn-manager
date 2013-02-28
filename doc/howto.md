@@ -45,7 +45,7 @@ To really take advantage of PGXN, you'll want your extension to show up prominen
 * [`provides`](http://pgxn.org/spec/#provides): A list of included extensions. Useful if you have more than one in a single distribution. It also will assign ownership of the specified extension names to you -- if they haven't been claimed by any previous distribution. Strongly recommended.
 * [`tags`](http://pgxn.org/spec/#tags): An array of tags to associate with a distribution. Will help with searching.
 * [`prereqs`](http://pgxn.org/spec/#prereqs): A list of prerequisite extensions or PostgreSQL contrib modules (or PostgreSQL itself).
-* [`release_status`](http://pgxn.org/spec/#release_status): To label a distribution as "stable," "unstable," or "testing." The latter two are useful for distributing extensions for testing but that should not be installed by automated clients.
+* [`release_status`](http://pgxn.org/spec/#release_status): To label a distribution as "stable," "unstable," or "testing." The latter two are useful for distributing extensions for testing but that should not be installed by automated clients or visible in the full-text search provided by the API server.
 * [`resources`](http://pgxn.org/spec/#resources): A list of related links, such as to an SCM repository or bug tracker. The search site displays these links on the home page for the distribution.
 
 So here's a more extended example from the `pair` data type:
