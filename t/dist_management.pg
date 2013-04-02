@@ -38,16 +38,12 @@ SELECT ok(
 -- Mock NOW().
 CREATE SCHEMA mock;
 
-CREATE FUNCTION set_now(timestamptz) RETURNS SETOF boolean LANGUAGE plperl AS $$
-    $_SHARED{now} = shift;
-    return;
-$$;
+CREATE TEMPORARY TABLE ts (ts timestamptz);
+INSERT INTO ts VALUES ( pg_catalog.now() );
 
 -- Won't be used by table defaults, which seem to be linked to
 -- pg_catalog.now() at creation time.
-CREATE FUNCTION mock.now() RETURNS timestamptz LANGUAGE plperl AS '$_SHARED{now}';
-
-SELECT set_now(pg_catalog.now());
+CREATE FUNCTION mock.now() RETURNS timestamptz LANGUAGE SQL AS 'SELECT ts FROM ts';
 
 DO LANGUAGE plpgsql $$
 BEGIN
@@ -1336,7 +1332,7 @@ SELECT throws_ok(
 );
 
 -- Mock the time; the date should *not* be this time.
-SELECT set_now(pg_catalog.now() + '1 day'::interval);
+UPDATE ts SET ts = pg_catalog.now() + '1 day'::interval;
 
 /****************************************************************************/
 -- Okay, now re-index Strongrrl's release with different metadata.
@@ -1680,7 +1676,7 @@ SELECT row_eq(
 
 /****************************************************************************/
 -- Make sure we get the same data from get_distribution().
-SELECT set_now(pg_catalog.now());
+UPDATE ts SET ts = pg_catalog.now();
 SELECT function_returns('get_distribution', ARRAY['term', 'semver'], 'setof record' );
 SELECT function_lang_is('get_distribution', ARRAY['term', 'semver'], 'plpgsql' );
 SELECT volatility_is(   'get_distribution', ARRAY['term', 'semver'], 'stable' );

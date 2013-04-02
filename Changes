@@ -5,6 +5,12 @@ Revision history for Perl extension PGXN::Manager
          API (which we don't use anyway).
        - Fixed test failures due to changes in behavior in
          Email::Sender::Simple v0.120000.
+       - Requiring SemVer v0.4.0 and pg-semver 0.3.0. These releases support a
+         dash before the prerelease version, as required by the final semver
+         1.0.0 spec.
+       - Fixed a test failure due to the recently introduced restriction where
+         different users cannot access the same `%_SHARED` hash in PL/Perl
+         functions. Fixed by switching to a temporary table.
 
 0.14.1  2012-01-11T18:29:26Z
       - Greatly improved the `check_mirrors` utility, making it work with the
