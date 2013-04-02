@@ -141,6 +141,8 @@ is $email->body, 'How you doin?', 'The body should be correct';
 ##############################################################################
 # Test send_tweet().
 my $twitter_mock = Test::MockModule->new('Net::Twitter::Lite::WithAPIv1_1');
+# Force the class to load.
+Net::Twitter::Lite::WithAPIv1_1->new;
 my $tweet = 'Hey man';
 my $config = $pgxn->config;
 $twitter_mock->mock(update => sub {
