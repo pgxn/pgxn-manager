@@ -796,16 +796,16 @@ SELECT bag_eq(
    }
 }
 '), ('tag', 'foo', '{
-   "tag": "foo",
+   "tag": "Foo",
    "releases": {
-      "Pair": {
-         "testing": [
-            {"version": "0.0.1", "date": "' || utc_date(NOW()) || '"}
-         ]
-      },
       "foo": {
          "stable": [
             {"version": "0.0.2", "date": "' || utc_date(NOW()) || '"}
+         ]
+      },
+      "Pair": {
+         "testing": [
+            {"version": "0.0.1", "date": "' || utc_date(NOW()) || '"}
          ]
       }
    }
