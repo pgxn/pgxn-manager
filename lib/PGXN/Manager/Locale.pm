@@ -296,6 +296,8 @@ sub qlist {
 
 1;
 
+=encoding utf8
+
 =head1 Name
 
 PGXN::Manager::Locale - Localization for PGXN::Manager
