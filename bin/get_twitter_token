@@ -2,7 +2,7 @@
 
 use 5.10.0;
 
-use Net::Twitter::Lite;
+use Net::Twitter::Lite::WithAPIv1_1;
 use Getopt::Long;
 
 my %tok;
@@ -33,7 +33,7 @@ For complete details, run
 
 } unless $tok{consumer_key} && $tok{consumer_secret};
 
-my $nt = Net::Twitter::Lite->new(%tok);
+my $nt = Net::Twitter::Lite::WithAPIv1_1->new(%tok);
 
 my $auth_url = $nt->get_authorization_url;
 print qq{

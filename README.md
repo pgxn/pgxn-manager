@@ -138,8 +138,8 @@ Installation
         gmake
         gmake install
 
-  Then repeat the steps aboe but use the "test" context, specified by the call
-  to `Build.PL` like so:
+  Then repeat the steps above but use the "test" context, specified by the
+  call to `Build.PL` like so:
 
         perl Build.PL --db_super_user postgres \
                       --db_client /path/to/pgsql/bin/psql \

@@ -61,6 +61,7 @@ sub _process {
     # 4. Zip it up.
     return $self->zipit;
 }
+
 sub process {
     my $self = shift;
     $self->_process or return;
@@ -281,7 +282,7 @@ sub _indexit {
                     @vars,
                     $template_name || 'dist' => $subject
                 );
-                my $fn  = File::Spec->catfile($destdir, $uri->path_segments);
+                my $fn = File::Spec->catfile($destdir, $uri->path_segments);
 
                 make_path dirname $fn;
                 open my $fh, '>:utf8', $fn or die "Cannot open $fn: $!\n";

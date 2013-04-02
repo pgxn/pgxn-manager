@@ -72,7 +72,7 @@ $class->new(
         'MooseX::Singleton'                 => '0.25',
         'Moose::Util::TypeConstraints'      => '1.15',
         'namespace::autoclean'              => '0.11',
-        'Net::Twitter::Lite'                => '0.10003',
+        'Net::Twitter::Lite::WithAPIv1_1'   => '0.12000',
         'parent'                            => '0.223',
         'perl'                              => 5.010,
         'PGXN::Meta::Validator'             => '0.14.0',

@@ -14,7 +14,7 @@ use File::Path qw(make_path remove_tree);
 use File::Basename qw(dirname);
 use Email::MIME::Creator;
 use Try::Tiny;
-use Net::Twitter::Lite;
+use Net::Twitter::Lite::WithAPIv1_1;
 use Email::Sender::Simple;
 use namespace::autoclean;
 
@@ -282,7 +282,7 @@ sub send_tweet {
     );
 
     try {
-        my $nt = Net::Twitter::Lite->new(
+        my $nt = Net::Twitter::Lite::WithAPIv1_1->new(
             legacy_lists_api => 0,
             %{ $tok }
         );
