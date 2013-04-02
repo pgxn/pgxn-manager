@@ -245,7 +245,7 @@ SELECT results_eq(
 SELECT lives_ok(
      $$ SELECT * FROM add_distribution('theory', 'pshaw', '{
         "name": "pair",
-        "version": "0.0.2a1",
+        "version": "0.0.2-a1",
         "license": "postgresql",
         "maintainer": "theory",
         "abstract": "Ordered pair",
@@ -263,16 +263,16 @@ SELECT lives_ok(
 );
 
 SELECT results_eq(
-    $$ SELECT * FROM extension_json('pair', '0.0.2a1') $$,
+    $$ SELECT * FROM extension_json('pair', '0.0.2-a1') $$,
     $$ VALUES
         ('pair'::term, '{
    "extension": "pair",
    "latest": "unstable",
    "testing": { "dist": "pair", "version": "0.0.1", "sha1": "pshaw" },
-   "unstable": { "dist": "pair", "version": "0.0.2a1", "sha1": "pshaw" },
+   "unstable": { "dist": "pair", "version": "0.0.2-a1", "sha1": "pshaw" },
    "versions": {
       "0.2.3": [
-         { "dist": "pair", "version": "0.0.2a1", "status": "unstable" }
+         { "dist": "pair", "version": "0.0.2-a1", "status": "unstable" }
       ],
       "0.2.2": [
          { "dist": "pair", "version": "0.0.1", "status": "testing" }
@@ -284,10 +284,10 @@ SELECT results_eq(
    "extension": "trip",
    "latest": "unstable",
    "testing": { "dist": "pair", "version": "0.0.1", "sha1": "pshaw" },
-   "unstable": { "dist": "pair", "version": "0.0.2a1", "sha1": "pshaw" },
+   "unstable": { "dist": "pair", "version": "0.0.2-a1", "sha1": "pshaw" },
    "versions": {
       "0.2.2": [
-         { "dist": "pair", "version": "0.0.2a1", "status": "unstable" }
+         { "dist": "pair", "version": "0.0.2-a1", "status": "unstable" }
       ],
       "0.2.1": [
          { "dist": "pair", "version": "0.0.1", "status": "testing" }
@@ -327,13 +327,13 @@ SELECT results_eq(
    "latest": "stable",
    "stable": { "dist": "pair", "version": "0.0.2", "sha1": "pshaw" },
    "testing": { "dist": "pair", "version": "0.0.1", "sha1": "pshaw" },
-   "unstable": { "dist": "pair", "version": "0.0.2a1", "sha1": "pshaw" },
+   "unstable": { "dist": "pair", "version": "0.0.2-a1", "sha1": "pshaw" },
    "versions": {
       "0.2.4": [
          { "dist": "pair", "version": "0.0.2" }
       ],
       "0.2.3": [
-         { "dist": "pair", "version": "0.0.2a1", "status": "unstable" }
+         { "dist": "pair", "version": "0.0.2-a1", "status": "unstable" }
       ],
       "0.2.2": [
          { "dist": "pair", "version": "0.0.1", "status": "testing" }
@@ -346,13 +346,13 @@ SELECT results_eq(
    "latest": "stable",
    "stable": { "dist": "pair", "version": "0.0.2", "sha1": "pshaw" },
    "testing": { "dist": "pair", "version": "0.0.1", "sha1": "pshaw" },
-   "unstable": { "dist": "pair", "version": "0.0.2a1", "sha1": "pshaw" },
+   "unstable": { "dist": "pair", "version": "0.0.2-a1", "sha1": "pshaw" },
    "versions": {
       "0.2.3": [
          { "dist": "pair", "version": "0.0.2" }
       ],
       "0.2.2": [
-         { "dist": "pair", "version": "0.0.2a1", "status": "unstable" }
+         { "dist": "pair", "version": "0.0.2-a1", "status": "unstable" }
       ],
       "0.2.1": [
          { "dist": "pair", "version": "0.0.1", "status": "testing" }
@@ -400,7 +400,7 @@ SELECT results_eq(
    "latest": "stable",
    "stable": { "dist": "trip", "version": "0.2.5", "sha1": "pshaw" },
    "testing": { "dist": "pair", "version": "0.0.1", "sha1": "pshaw" },
-   "unstable": { "dist": "pair", "version": "0.0.2a1", "sha1": "pshaw" },
+   "unstable": { "dist": "pair", "version": "0.0.2-a1", "sha1": "pshaw" },
    "versions": {
       "0.2.5": [
          { "dist": "trip", "version": "0.2.5" }
@@ -409,7 +409,7 @@ SELECT results_eq(
          { "dist": "pair", "version": "0.0.2" }
       ],
       "0.2.2": [
-         { "dist": "pair", "version": "0.0.2a1", "status": "unstable" }
+         { "dist": "pair", "version": "0.0.2-a1", "status": "unstable" }
       ],
       "0.2.1": [
          { "dist": "pair", "version": "0.0.1", "status": "testing" }
@@ -454,14 +454,14 @@ SELECT results_eq(
    "latest": "stable",
    "stable": { "dist": "pair", "version": "0.0.3", "sha1": "rickshaw" },
    "testing": { "dist": "pair", "version": "0.0.1", "sha1": "pshaw" },
-   "unstable": { "dist": "pair", "version": "0.0.2a1", "sha1": "pshaw" },
+   "unstable": { "dist": "pair", "version": "0.0.2-a1", "sha1": "pshaw" },
    "versions": {
       "0.2.4": [
          { "dist": "pair", "version": "0.0.3" },
          { "dist": "pair", "version": "0.0.2" }
       ],
       "0.2.3": [
-         { "dist": "pair", "version": "0.0.2a1", "status": "unstable" }
+         { "dist": "pair", "version": "0.0.2-a1", "status": "unstable" }
       ],
       "0.2.2": [
          { "dist": "pair", "version": "0.0.1", "status": "testing" }
@@ -474,7 +474,7 @@ SELECT results_eq(
    "latest": "stable",
    "stable": { "dist": "pair", "version": "0.0.3", "sha1": "rickshaw" },
    "testing": { "dist": "pair", "version": "0.0.1", "sha1": "pshaw" },
-   "unstable": { "dist": "pair", "version": "0.0.2a1", "sha1": "pshaw" },
+   "unstable": { "dist": "pair", "version": "0.0.2-a1", "sha1": "pshaw" },
    "versions": {
       "0.2.5": [
          { "dist": "pair", "version": "0.0.3" },
@@ -484,7 +484,7 @@ SELECT results_eq(
          { "dist": "pair", "version": "0.0.2" }
       ],
       "0.2.2": [
-         { "dist": "pair", "version": "0.0.2a1", "status": "unstable" }
+         { "dist": "pair", "version": "0.0.2-a1", "status": "unstable" }
       ],
       "0.2.1": [
          { "dist": "pair", "version": "0.0.1", "status": "testing" }
@@ -533,7 +533,7 @@ UPDATE distributions
  WHERE name = 'pair' AND version = '0.0.1';
 UPDATE distributions
    SET created_at = '2011-02-15T18:31:57'
- WHERE name = 'pair' AND version = '0.0.2a1';
+ WHERE name = 'pair' AND version = '0.0.2-a1';
 
 SELECT is(
     dist_json('pair'), '{
@@ -547,7 +547,7 @@ SELECT is(
          {"version": "0.0.1", "date": "2011-02-10T18:31:57Z"}
       ],
       "unstable": [
-         {"version": "0.0.2a1", "date": "2011-02-15T18:31:57Z"}
+         {"version": "0.0.2-a1", "date": "2011-02-15T18:31:57Z"}
       ]
    }
 }
@@ -592,7 +592,7 @@ SELECT is(
          {"version": "0.0.1", "date": "2011-02-10T18:31:57Z"}
       ],
       "unstable": [
-         {"version": "0.0.2a1", "date": "2011-02-15T18:31:57Z"}
+         {"version": "0.0.2-a1", "date": "2011-02-15T18:31:57Z"}
       ]
    }
 }
@@ -642,7 +642,7 @@ INSERT INTO distribution_tags
 VALUES
        -- foo for all.
        ('pair', '0.0.1',   'foo'),
-       ('pair', '0.0.2a1', 'foo'),
+       ('pair', '0.0.2-a1', 'foo'),
        ('pair', '0.0.2',   'foo'),
        ('trip', '0.2.5',   'foo'),
        ('pair', '0.0.10',  'foo'),
@@ -672,7 +672,7 @@ SELECT results_eq(
             {"version": "0.0.1", "date": "2011-02-10T18:31:57Z"}
          ],
          "unstable": [
-            {"version": "0.0.2a1", "date": "2011-02-15T18:31:57Z"}
+            {"version": "0.0.2-a1", "date": "2011-02-15T18:31:57Z"}
          ]
       },
       "trip": {
@@ -710,7 +710,7 @@ SELECT results_eq(
             {"version": "0.0.1", "date": "2011-02-10T18:31:57Z"}
          ],
          "unstable": [
-            {"version": "0.0.2a1", "date": "2011-02-15T18:31:57Z"}
+            {"version": "0.0.2-a1", "date": "2011-02-15T18:31:57Z"}
          ]
       },
       "trip": {
@@ -745,7 +745,7 @@ SELECT results_eq(
             {"version": "0.0.1", "date": "2011-02-10T18:31:57Z"}
          ],
          "unstable": [
-            {"version": "0.0.2a1", "date": "2011-02-15T18:31:57Z"}
+            {"version": "0.0.2-a1", "date": "2011-02-15T18:31:57Z"}
          ]
       },
       "trip": {
@@ -782,7 +782,7 @@ SELECT results_eq(
             {"version": "0.0.1", "date": "2011-02-10T18:31:57Z"}
          ],
          "unstable": [
-            {"version": "0.0.2a1", "date": "2011-02-15T18:31:57Z"}
+            {"version": "0.0.2-a1", "date": "2011-02-15T18:31:57Z"}
          ]
       },
       "trip": {
@@ -913,7 +913,7 @@ SELECT is(
             {"version": "0.0.1", "date": "2011-02-10T18:31:57Z"}
          ],
          "unstable": [
-            {"version": "0.0.2a1", "date": "2011-02-15T18:31:57Z"}
+            {"version": "0.0.2-a1", "date": "2011-02-15T18:31:57Z"}
          ]
       }
    }
@@ -1087,7 +1087,7 @@ SELECT is(
          "abstract": "",
          "ext_version": "0.2.3",
          "dist": "pair",
-         "version": "0.0.2a1",
+         "version": "0.0.2-a1",
          "date": "2011-02-15T18:31:57Z",
          "user": "theory",
          "user_name": ""
@@ -1097,7 +1097,7 @@ SELECT is(
          "abstract": "",
          "ext_version": "0.2.2",
          "dist": "pair",
-         "version": "0.0.2a1",
+         "version": "0.0.2-a1",
          "date": "2011-02-15T18:31:57Z",
          "user": "theory",
          "user_name": ""
@@ -1234,7 +1234,7 @@ SELECT is(
       },
       {
          "dist": "pair",
-         "version": "0.0.2a1",
+         "version": "0.0.2-a1",
          "abstract": "Ordered pair",
          "date": "2011-02-15T18:31:57Z",
          "user": "theory",
@@ -1378,7 +1378,7 @@ SELECT bag_eq(
       },
       {
          "dist": "pair",
-         "version": "0.0.2a1",
+         "version": "0.0.2-a1",
          "abstract": "Ordered pair",
          "date": "2011-02-15T18:31:57Z",
          "user": "theory",
@@ -1478,7 +1478,7 @@ SELECT bag_eq(
          "abstract": "",
          "ext_version": "0.2.3",
          "dist": "pair",
-         "version": "0.0.2a1",
+         "version": "0.0.2-a1",
          "date": "2011-02-15T18:31:57Z",
          "user": "theory",
          "user_name": ""
@@ -1488,7 +1488,7 @@ SELECT bag_eq(
          "abstract": "",
          "ext_version": "0.2.2",
          "dist": "pair",
-         "version": "0.0.2a1",
+         "version": "0.0.2-a1",
          "date": "2011-02-15T18:31:57Z",
          "user": "theory",
          "user_name": ""
