@@ -11,6 +11,8 @@ Revision history for Perl extension PGXN::Manager
        - Fixed a test failure due to the recently introduced restriction where
          different users cannot access the same `%_SHARED` hash in PL/Perl
          functions. Fixed by switching to a temporary table.
+       - Removed superfluous commas from a JSON exmple in the PGXN spec
+         document. Thanks to Jörg Beyer for the spot!
 
 0.14.1  2012-01-11T18:29:26Z
       - Greatly improved the `check_mirrors` utility, making it work with the

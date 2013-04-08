@@ -531,17 +531,17 @@ Example:
         },
         "suggests": {
           "sha1": 0
-        },
+        }
       },
       "build": {
         "requires": {
           "prefix": 0
-        },
+        }
       },
       "test": {
         "recommends": {
           "pgTAP": 0
-        },
+        }
       }
     }
 
