@@ -14,6 +14,7 @@ Revision history for Perl extension PGXN::Manager
        - Removed superfluous commas from a JSON exmple in the PGXN spec
          document. Thanks to Jörg Beyer for the spot!
        - Eliminated smartmatch deprecation warnings on Perl 5.18.0.
+       - Fixed test failures on Perl 5.18 due to hash randomization.
 
 0.14.1  2012-01-11T18:29:26Z
       - Greatly improved the `check_mirrors` utility, making it work with the

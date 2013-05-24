@@ -203,6 +203,12 @@ my $updated = 0;
 my $updater = sub { $updated++ };
 $mock->mock(_update_meta => $updater);
 
+# Mock errors so they are returned in a deterministic order.
+my $vmock = Test::MockModule->new('PGXN::Meta::Validator');
+my $errmeth;
+$vmock->mock(errors => sub {  @err = sort $errmeth->(@_); @err });
+$errmeth = $vmock->original('errors');
+
 ok $dist = new_dist($distzip), 'Create a distribution with a zip archive again';
 ok $dist->extract, 'Extract it';
 ok $dist->read_meta, 'Read its meta data';
@@ -273,10 +279,10 @@ for my $name (
     is_deeply scalar $dist->error, [
         'The [_1] file does not adhere to the <a href="http://pgxn.org/spec/">PGXN Meta Specification</a>. Errors:<br/>[_2]',
         'widget-0.2.5/META.json',
-        qq{• Required field /meta-spec: missing [Spec v1.0.0]<br/>• Required field /provides/foo/file: missing [Spec v1.0.0]<br/>• Field /name: $msg [Spec v1.0.0]},
+        qq{• Field /name: $msg [Spec v1.0.0]<br/>• Required field /meta-spec: missing [Spec v1.0.0]<br/>• Required field /provides/foo/file: missing [Spec v1.0.0]},
     ], '... Sould get invalid name error';
     is $dist->localized_error,
-        qq{The widget-0.2.5/META.json file does not adhere to the <a href="http://pgxn.org/spec/">PGXN Meta Specification</a>. Errors:<br/>• Required field /meta-spec: missing [Spec v1.0.0]<br/>• Required field /provides/foo/file: missing [Spec v1.0.0]<br/>• Field /name: $msg [Spec v1.0.0]},
+        qq{The widget-0.2.5/META.json file does not adhere to the <a href="http://pgxn.org/spec/">PGXN Meta Specification</a>. Errors:<br/>• Field /name: $msg [Spec v1.0.0]<br/>• Required field /meta-spec: missing [Spec v1.0.0]<br/>• Required field /provides/foo/file: missing [Spec v1.0.0]},
             '... Should get the localized invalid name message';
 }
 
@@ -293,10 +299,10 @@ ok !$dist->normalize, 'Should get false from normalize()';
 is_deeply scalar $dist->error, [
     'The [_1] file does not adhere to the <a href="http://pgxn.org/spec/">PGXN Meta Specification</a>. Errors:<br/>[_2]',
     'widget-0.2.5/META.json',
-    '• Required field /maintainer: missing [Spec v1.0.0]<br/>• Required field /meta-spec: missing [Spec v1.0.0]<br/>• Required field /license: missing [Spec v1.0.0]<br/>• Required field /provides: missing [Spec v1.0.0]<br/>• Required field /abstract: missing [Spec v1.0.0]',
+    '• Required field /abstract: missing [Spec v1.0.0]<br/>• Required field /license: missing [Spec v1.0.0]<br/>• Required field /maintainer: missing [Spec v1.0.0]<br/>• Required field /meta-spec: missing [Spec v1.0.0]<br/>• Required field /provides: missing [Spec v1.0.0]',
 ], 'Sould get missing keys error';
 is $dist->localized_error,
-    q{The widget-0.2.5/META.json file does not adhere to the <a href="http://pgxn.org/spec/">PGXN Meta Specification</a>. Errors:<br/>• Required field /maintainer: missing [Spec v1.0.0]<br/>• Required field /meta-spec: missing [Spec v1.0.0]<br/>• Required field /license: missing [Spec v1.0.0]<br/>• Required field /provides: missing [Spec v1.0.0]<br/>• Required field /abstract: missing [Spec v1.0.0]},
+    q{The widget-0.2.5/META.json file does not adhere to the <a href="http://pgxn.org/spec/">PGXN Meta Specification</a>. Errors:<br/>• Required field /abstract: missing [Spec v1.0.0]<br/>• Required field /license: missing [Spec v1.0.0]<br/>• Required field /maintainer: missing [Spec v1.0.0]<br/>• Required field /meta-spec: missing [Spec v1.0.0]<br/>• Required field /provides: missing [Spec v1.0.0]},
     'Should get localized missing keys error';
 
 # Try with metdata that's got some non-semantic versions.
