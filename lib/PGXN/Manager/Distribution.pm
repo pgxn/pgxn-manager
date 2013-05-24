@@ -356,11 +356,11 @@ sub DEMOLISH {
 }
 
 sub _zip_error_handler {
-    given (shift) {
-        when (/format error: can't find EOCD signature/) {
+    for (shift) {
+        if (/format error: can't find EOCD signature/) {
             die ['“[_1]” doesn’t look like a distribution archive'];
         }
-        default { die [$_] }
+        die [$_];
     }
 }
 

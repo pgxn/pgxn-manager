@@ -94,6 +94,7 @@ sub respond_with {
     };
 
     my $type;
+    no if $] >= 5.017011, warnings => 'experimental::smartmatch';
     given (scalar $req->respond_with) {
         when ('html') {
             $msg = '<p class="error">' . encode_utf8 encode_entities($msg) . '</p>';
@@ -257,6 +258,7 @@ sub register {
         # Failure!
         my $err = shift;
         my ($msg, $highlight);
+        no if $] >= 5.017011, warnings => 'experimental::smartmatch';
         given ($err->state) {
             when ('23505') {
                 # Unique constraint violation.
@@ -687,6 +689,7 @@ sub update_account {
         # Failure!
         my $err = shift;
         my ($msg, $highlight);
+        no if $] >= 5.017011, warnings => 'experimental::smartmatch';
         given ($err->state) {
             when ('23505') {
                 # Unique constraint violation.
@@ -936,6 +939,7 @@ sub _do_mirror {
         # Failure!
         my $err = shift;
         my ($msg, $highlight);
+        no if $] >= 5.017011, warnings => 'experimental::smartmatch';
         given (eval { $err->state }) {
             when ('23505') {
                 # Unique constraint violation.
