@@ -9,6 +9,14 @@ my $class = $build_pkg->subclass(
     class => 'PGXN::Build',
     code => q{
         sub valid_licenses { { postgresql => 'PostgreSQL' } }
+        sub new {
+            my $self = shift->SUPER::new(@_);
+            if (my $meth = $self->can('db_super_user')) {
+                $self->tap_harness_args->{sources}{pgTAP}{username}
+                    ||= $self->$meth
+            }
+            return $self;
+        }
     },
 );
 
@@ -20,6 +28,7 @@ $class->new(
     db_config_key      => 'dbi',
     replace_config     => 'conf/test.json',
     db_client          => 'psql',
+    db_super_user      => 'postgres',
     configure_requires => { 'Module::Build::DB' => '0.10', },
     build_requires     => {
         'Archive::Tar'                      => '1.68',
@@ -103,7 +112,6 @@ $class->new(
             Perl  => undef,
             pgTAP => {
                 dbname   => 'pgxn_manager_test',
-                username => 'postgres',
                 suffix   => '.pg',
             },
         },
