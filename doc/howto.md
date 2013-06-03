@@ -147,6 +147,9 @@ The [`pair`](http://github.com/theory/kv-pair/) and [`semver`](http://github.com
     sql/$(EXTENSION)--$(EXTVERSION).sql: sql/$(EXTENSION).sql
     	cp $< $@
     endif
+    dist:
+    	git archive --format zip --prefix=$(EXTENSION)-$(EXTVERSION)/ \
+    	--output $(EXTENSION)-$(EXTVERSION).zip HEAD
 
 The `EXTENSION` variable identifies the extension you're distributing. `EXTVERSION` identifies its version, which is here read from the control file, so you only have to edit it there (and in the `META.json` file).
 
@@ -195,14 +198,13 @@ To sum up, for maximum PGXN coverage, the only rules for documentation files are
 
 ### Zip Me Up ###
 
-Once you've got your extension developed and well-tested, and your distribution just right -- with the `META.json` file all proof-read and solid a nice `README` and comprehensive docs -- it's time to wake up, and release it! What you want to do is to zip it up to create a distribution archive. Here's how the `pair` distribution -- which is maintained in Git -- was prepared:
+Once you've got your extension developed and well-tested, and your distribution just right -- with the `META.json` file all proof-read and solid a nice `README` and comprehensive docs -- it's time to wake up, and release it! What you want to do is to zip it up to create a distribution archive. If you're using Git, you can use the `dist` target included in the `Makefile` template above, like so:
 
-    git archive --format zip --prefix=pair-0.1.2/ \
-    --output ~/Desktop/pair-0.1.2.zip master
+    make dist
 
-Then the `pair-0.1.0.zip` file was ready to release. Simple, eh?
+The resulting `.zip` file is ready to release. Simple, eh?
 
-Now, one can upload any kind of archive file to PGXN, including a tarball, or bzip2…um…ball? Basically, any kind of archive format recognized by [Archive::Extract](http://search.cpan.org/perldoc?Archive::Extract). A zip file is best because then PGXN::Manager won't have to rewrite it. It's also preferable that everything be packed into a directory with the name `$distribution-$version`, as in the `pair-0.1.2` example above. If not, PGXN will rewrite it that way. But it saves the server some effort if all it has to do is move a `.zip` file that's properly formatted, so it would be appreciated if you would upload stuff that's already nicely formatted for distribution in a zip archive.
+Now, one can upload any kind of archive file to PGXN, including a tarball, or bzip2…um…ball? Basically, any kind of archive format recognized by [Archive::Extract](http://search.cpan.org/perldoc?Archive::Extract). A zip file is best because then PGXN::Manager won't have to rewrite it. It's also preferable that everything be packed into a directory with the name `$distribution-$version`, as the Git-using `make dist` target above does. If the files are not packed into `$distribution-$version`, PGXN will rewrite it that way. But it saves the server some effort if all it has to do is move a `.zip` file that's properly formatted, so it would be appreciated if you would upload stuff that's already nicely formatted for distribution in a zip archive.
 
 ### Release It! ###
 
