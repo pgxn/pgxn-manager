@@ -134,17 +134,19 @@ The [`pair`](http://github.com/theory/kv-pair/) and [`semver`](http://github.com
     PG91         = $(shell $(PG_CONFIG) --version | grep -qE " 8\.| 9\.0" && echo no || echo yes)
 
     ifeq ($(PG91),yes)
-    all: sql/$(EXTENSION)--$(EXTVERSION).sql
-
-    sql/$(EXTENSION)--$(EXTVERSION).sql: sql/$(EXTENSION).sql
-    	cp $< $@
-
     DATA = $(wildcard sql/*--*.sql) sql/$(EXTENSION)--$(EXTVERSION).sql
     EXTRA_CLEAN = sql/$(EXTENSION)--$(EXTVERSION).sql
     endif
 
     PGXS := $(shell $(PG_CONFIG) --pgxs)
     include $(PGXS)
+
+    ifeq ($(PG91),yes)
+    all: sql/$(EXTENSION)--$(EXTVERSION).sql
+
+    sql/$(EXTENSION)--$(EXTVERSION).sql: sql/$(EXTENSION).sql
+    	cp $< $@
+    endif
 
 The `EXTENSION` variable identifies the extension you're distributing. `EXTVERSION` identifies its version, which is here read from the control file, so you only have to edit it there (and in the `META.json` file).
 
