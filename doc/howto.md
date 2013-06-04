@@ -146,7 +146,7 @@ The [`pair`](http://github.com/theory/kv-pair/) and [`semver`](http://github.com
     REGRESS_OPTS = --inputdir=test
     DOCS         = $(wildcard doc/*.md)
     # MODULES    = $(patsubst %.c,%,$(wildcard src/*.c))
-    PG_CONFIG    = pg_config
+    PG_CONFIG   ?= pg_config
     PG91         = $(shell $(PG_CONFIG) --version | grep -qE " 8\.| 9\.0" && echo no || echo yes)
     
     ifeq ($(PG91),yes)
@@ -177,6 +177,10 @@ The `MODULES` variable finds `.c` files in the `src` directory. The `pair` data 
 Next we have the `PG_CONFIG` variable. This points to the [`pg_config`](http://www.postgresql.org/docs/9.0/static/app-pgconfig.html) utility, which is required to find `PGXS` and build the extension. If a user has it in her path, it will just work. Otherwise, she can point to an alternate one when building:
 
     make PG_CONFIG=/path/to/pg_config
+
+Thanks to the `?=` operator, it can also be set as an environment variable, which is useful for executing multiple `make` commands in a one-liner:
+
+    env PG_CONFIG=/path/to/pg_config make && make installcheck && make install
 
 The `Makefile` next uses `pg_config` to determine whether the extension is being built against PostgreSQL 9.1 or higher. Based on what it finds, extra steps are taken in the following section. That is, if this line returns true:
 
