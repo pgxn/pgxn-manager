@@ -135,9 +135,10 @@ We strongly encourage that the files in distributions be organized into subdirec
 
 The [`pair`](http://github.com/theory/kv-pair/) and [`semver`](http://github.com/theory/pg-semver/) distributions serve as examples of this. To make it all work, their `Makefile`s are written like so:
 
-    EXTENSION    = pair
-    EXTVERSION   = $(shell grep default_version $(EXTENSION).control | \
-                   sed -e "s/default_version[[:space:]]*=[[:space:]]*'\([^']*\)'/\1/")
+    EXTENSION    = $(shell grep -m 1 '"name":' META.json | \
+                   sed -e 's/[[:space:]]*"name":[[:space:]]*"\([^"]*\)",/\1/')
+    EXTVERSION   = $(shell grep -m 1 '"version":' META.json | \
+                   sed -e 's/[[:space:]]*"version":[[:space:]]*"\([^"]*\)",/\1/')
     
     DATA         = $(filter-out $(wildcard sql/*--*.sql),$(wildcard sql/*.sql))
     TESTS        = $(wildcard test/sql/*.sql)
@@ -145,7 +146,7 @@ The [`pair`](http://github.com/theory/kv-pair/) and [`semver`](http://github.com
     REGRESS_OPTS = --inputdir=test
     DOCS         = $(wildcard doc/*.md)
     # MODULES    = $(patsubst %.c,%,$(wildcard src/*.c))
-    PG_CONFIG   ?= pg_config
+    PG_CONFIG    = pg_config
     PG91         = $(shell $(PG_CONFIG) --version | grep -qE " 8\.| 9\.0" && echo no || echo yes)
     
     ifeq ($(PG91),yes)
@@ -167,13 +168,13 @@ The [`pair`](http://github.com/theory/kv-pair/) and [`semver`](http://github.com
     	git archive --format zip --prefix=$(EXTENSION)-$(EXTVERSION)/ \
     	--output $(EXTENSION)-$(EXTVERSION).zip HEAD
 
-The `EXTENSION` variable identifies the extension you're distributing. `EXTVERSION` identifies its version, which is here read from the control file, so you only have to edit it there (and in the `META.json` file).
+The `EXTENSION` variable is read in from `META.json` to identify the extension you're distributing. `EXTVERSION`, also read from `META.json`, identifies its version, so you only have to edit it there (and in the control file).
 
 The `DATA` variable identifies the SQL files containing the extensionor extensions, while `TESTS` loads a list test files, which are in the `test/sql` directory. Note that the `pair` distribution uses `pg_regress` for tests, and `pg_reqress` expects that test files will have corresponding "expected" files to compare against. Thanks to the `REGRESS_OPTS = --inputdir=test` line, `pg_regess` will find the test files in [`test/sql`](http://github.com/theory/kv-pair/tree/master/test/sql/) and the expected output files in [`test/expected`](http://github.com/theory/kv-pair/tree/master/test/expected/). And finally, the `DOCS` variable finds all the files ending in `.md` in the [`doc` directory](http://github.com/theory/kv-pair/tree/master/doc/).
 
 The `MODULES` variable finds `.c` files in the `src` directory. The `pair` data type has no C code, so it's commented-out. You'll want to uncomment it if you have C code or add C code later.
 
-Next we have the `PG_CONFIG` variable. This points to the [`pg_config`](http://www.postgresql.org/docs/9.0/static/app-pgconfig.html) utility, which is required to find `PGXS` and build the extension. If a user has it in her path, it will just work. Otherwise, thanks to the `?=` operator, she can point to an alternate one when building:
+Next we have the `PG_CONFIG` variable. This points to the [`pg_config`](http://www.postgresql.org/docs/9.0/static/app-pgconfig.html) utility, which is required to find `PGXS` and build the extension. If a user has it in her path, it will just work. Otherwise, she can point to an alternate one when building:
 
     make PG_CONFIG=/path/to/pg_config
 
