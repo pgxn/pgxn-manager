@@ -4,7 +4,11 @@ This document explains how. There's some background information, too, but the go
 
 ### OMG Distribution WTF? ###
 
-First of all, what is a "distribution" in the PGXN sense? Basically, it's a collection of one or more [PostgreSQL](http://www.postgresql.org/) extensions. That's it.
+First of all, what is a "distribution" in the PGXN sense? Basically, it's a collection of one or more [PostgreSQL](http://www.postgresql.org/) extensions. That's it.  The PostgreSQL [contributed modules](http://www.postgresql.org/docs/current/static/contrib.html) provide excellent examples. On PGXN some examples are:
+
+* [pair](http://pgxn.org/dist/pair/): a pure SQL data type
+* [semver](http://pgxn.org/dist/semver/): a data type implemented in C
+* [italian_fts](http://pgxn.org/dist/italian_fts/): An italian full-text search ditctionary
 
 Traditionally, a PostgreSQL extension was any code that could be built by [PGXS](http://www.postgresql.org/docs/current/static/xfunc-c.html#XFUNC-C-PGXS) and installed into the database. As of PostgreSQL 9.1, extensions have been integrated more deeply into the core. With just a bit more work, users who have installed an extension will be able to load it into the database with a simple command:
 
