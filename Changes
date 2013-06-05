@@ -24,6 +24,8 @@ Revision history for Perl extension PGXN::Manager
          the forwarded host name and address, if present. This should allow
          the proper host information to be included in the registration admin
          email (issue #38).
+       - Tweaked the hint for the nickname field in the registration form to
+         indicate that it will be the user's PGXN user name.
 
 0.14.1  2012-01-11T18:29:26Z
       - Greatly improved the `check_mirrors` utility, making it work with the

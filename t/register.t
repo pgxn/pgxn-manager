@@ -100,7 +100,7 @@ test_psgi $app => sub {
                 },
                 {
                     id    => 'nickname',
-                    title => $mt->maketext('By what name would you like to be known? ASCII letters, numbers, and dashes only, please.'),
+                    title => $mt->maketext('By what user name would you like to be known? ASCII letters, numbers, and dashes only, please.'),
                     label => $mt->maketext('Nickname'),
                     type  => 'text',
                     phold => 'bobama',
