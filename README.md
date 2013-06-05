@@ -255,7 +255,8 @@ way to separate these is to set up two reverse proxy servers: One to serve
             location / {
                 proxy_pass        http://127.0.0.1:7496/pub/;
                 proxy_redirect    off;
-                proxy_set_header  Host                    $host;
+                proxy_set_header  X-Forwarded-Host        $host;
+                proxy_set_header  X-Forwarded-For         $proxy_add_x_forwarded_for;
                 proxy_set_header  X-Forwarded-HTTPS       "";
                 proxy_set_header  X-Forwaded-Proto        http;
                 proxy_set_header  X-Forwarded-Port        80;
@@ -273,7 +274,8 @@ way to separate these is to set up two reverse proxy servers: One to serve
             location / {
                 proxy_pass        http://127.0.0.1:7496/auth/;
                 proxy_redirect    off;
-                proxy_set_header  Host                    $host;
+                proxy_set_header  X-Forwarded-Host        $host;
+                proxy_set_header  X-Forwarded-For         $proxy_add_x_forwarded_for;
                 proxy_set_header  X-Forwarded-HTTPS       ON;
                 proxy_set_header  X-Forwaded-Proto        https;
                 proxy_set_header  X-Forwarded-Port        443;

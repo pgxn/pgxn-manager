@@ -20,6 +20,10 @@ Revision history for Perl extension PGXN::Manager
          properly.
        - Updated the HOWTO to properly order things in the `Makefile` and to
          include a `dist` target.
+       - Added `remote_host()` and `address()` to PGXN::API::Request to return
+         the forwarded host name and address, if present. This should allow
+         the proper host information to be included in the registration admin
+         email (issue #38).
 
 0.14.1  2012-01-11T18:29:26Z
       - Greatly improved the `check_mirrors` utility, making it work with the

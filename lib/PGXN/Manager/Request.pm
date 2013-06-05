@@ -85,6 +85,16 @@ sub is_xhr {
     shift->env->{HTTP_X_REQUESTED_WITH} eq 'XMLHttpRequest';
 }
 
+sub address     {
+    my $env = $_[0]->env;
+    return $env->{X_FORWARDED_FOR} || $env->{REMOTE_ADDR};
+}
+
+sub remote_host {
+    my $env = $_[0]->env;
+    return $env->{X_FORWARDED_HOST} || $env->{REMOTE_HOST};
+}
+
 # Eliminates use of env->{'plack.request.query'}?
 sub query_parameters {
     my $self = shift;
@@ -208,6 +218,17 @@ Otherwise returns false.
 Returns true if the request is an C<XMLHttpRequest> request and false if not.
 This is specific to L<jQuery|http://jquery.org> sending the
 C<X-Requested-With> header.
+
+=head3 C<address>
+
+Returns the (possibly forwarded) IP address of the client (C<X_FORWARDED_FOR>
+or C<REMOTE_ADDR>).
+
+=head3 C<remote_host>
+
+Returns the (possibly forwarded) remote host (C<X_FORWARDED_HOST> or
+C<REMOTE_HOST>) of the client. It may be empty, in which case you have to get
+the IP address using C<address> method and resolve on your own.
 
 =head3 C<query_parameters>
 
