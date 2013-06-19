@@ -4,7 +4,7 @@ use 5.10.0;
 use utf8;
 use parent 'PGXN::Manager::Locale';
 
-our $VERSION = v0.15.0;
+our $VERSION = v0.15.1;
 
 our %Lexicon = (
     listcomma => ',',

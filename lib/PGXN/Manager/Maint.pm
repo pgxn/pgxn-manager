@@ -9,7 +9,7 @@ use File::Basename qw(dirname basename);
 use Carp;
 use namespace::autoclean;
 
-our $VERSION = v0.15.0;
+our $VERSION = v0.15.1;
 
 has verbosity => (is => 'rw', required => 1, isa => 'Int', default => 0);
 has workdir  => (is => 'rw', required => 0, isa => 'Str', lazy => 1, default => sub {
