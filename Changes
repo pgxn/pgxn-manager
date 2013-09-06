@@ -1,6 +1,9 @@
 Revision history for Perl extension PGXN::Manager
 
 0.15.1
+       - Updated the `Makefile` example in the HOWTO to extract the extension
+         version from the `META.json` file, rather than the distribution
+         version.
 
 0.15.0  2013-06-19T06:18:45Z
        - Silenced Net::Twitter::Lite warnings by disabling the legacy lists

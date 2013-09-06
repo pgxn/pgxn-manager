@@ -137,8 +137,8 @@ The [`pair`](http://github.com/theory/kv-pair/) and [`semver`](http://github.com
 
     EXTENSION    = $(shell grep -m 1 '"name":' META.json | \
                    sed -e 's/[[:space:]]*"name":[[:space:]]*"\([^"]*\)",/\1/')
-    EXTVERSION   = $(shell grep -m 1 '"version":' META.json | \
-                   sed -e 's/[[:space:]]*"version":[[:space:]]*"\([^"]*\)",/\1/')
+    EXTVERSION   = $(shell grep -m 1 '[[:space:]]\{8\}"version":' META.json | \
+                   sed -e 's/[[:space:]]*"version":[[:space:]]*"\([^"]*\)",\{0,1\}/\1/')
     
     DATA         = $(filter-out $(wildcard sql/*--*.sql),$(wildcard sql/*.sql))
     TESTS        = $(wildcard test/sql/*.sql)
@@ -168,7 +168,7 @@ The [`pair`](http://github.com/theory/kv-pair/) and [`semver`](http://github.com
     	git archive --format zip --prefix=$(EXTENSION)-$(EXTVERSION)/ \
     	--output $(EXTENSION)-$(EXTVERSION).zip HEAD
 
-The `EXTENSION` variable is read in from `META.json` to identify the extension you're distributing. `EXTVERSION`, also read from `META.json`, identifies its version, so you only have to edit it there (and in the control file).
+The `EXTENSION` variable is read in from `META.json` to identify the extension you're distributing. `EXTVERSION`, also read from `META.json`, identifies the extension version (that is, the one from the `provides` section), so you only have to edit it there (and in the control file).
 
 The `DATA` variable identifies the SQL files containing the extensionor extensions, while `TESTS` loads a list test files, which are in the `test/sql` directory. Note that the `pair` distribution uses `pg_regress` for tests, and `pg_reqress` expects that test files will have corresponding "expected" files to compare against. Thanks to the `REGRESS_OPTS = --inputdir=test` line, `pg_regess` will find the test files in [`test/sql`](http://github.com/theory/kv-pair/tree/master/test/sql/) and the expected output files in [`test/expected`](http://github.com/theory/kv-pair/tree/master/test/expected/). And finally, the `DOCS` variable finds all the files ending in `.md` in the [`doc` directory](http://github.com/theory/kv-pair/tree/master/doc/).
 
