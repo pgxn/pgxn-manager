@@ -120,7 +120,7 @@ $class->new(
         resources => {
             homepage   => 'http://manager.pgxn.org/',
             bugtracker => 'http://github.com/pgxn/pgxn-manager/issues/',
-            repository => 'http://github.com/pgxn/pgxn-manager/tree/',
+            repository => 'http://github.com/pgxn/pgxn-manager/',
         }
     },
 )->create_build_script;
