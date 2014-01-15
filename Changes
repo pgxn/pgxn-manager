@@ -7,6 +7,7 @@ Revision history for Perl extension PGXN::Manager
        - Updated the `Makefile` example in the HOWTO to avoid trying to
          install the extension file twice, which causes an error on
          PostgtreSQL 9.3.2.
+       - Twitter posts now sent over SSL.
 
 0.15.0  2013-06-19T06:18:45Z
        - Silenced Net::Twitter::Lite warnings by disabling the legacy lists

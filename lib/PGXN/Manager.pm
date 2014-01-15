@@ -283,6 +283,7 @@ sub send_tweet {
 
     try {
         my $nt = Net::Twitter::Lite::WithAPIv1_1->new(
+            ssl              => 1,
             legacy_lists_api => 0,
             %{ $tok }
         );
