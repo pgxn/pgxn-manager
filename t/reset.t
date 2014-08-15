@@ -13,6 +13,7 @@ use PGXN::Manager::Router;
 use HTTP::Message::PSGI;
 use Test::XML;
 use Test::XPath;
+use Encode;
 use MIME::Base64;
 use lib 't/lib';
 use TxnTest;
@@ -468,8 +469,8 @@ test_psgi $app => sub {
 test_psgi +PGXN::Manager::Router->app => sub {
     my $cb   = shift;
     my $user = TxnTest->user;
-    no utf8;
-    my $req  = GET '/auth/', Authorization => 'Basic ' . encode_base64("$user:fünkmusic");
+    my $req  = GET '/auth/', Authorization => 'Basic '
+             . encode_base64(encode 'UTF-8', "$user:fünkmusic");
     ok my $res = $cb->($req), "Get with auth token";
     ok $res->is_success, 'Response should be success';
 };

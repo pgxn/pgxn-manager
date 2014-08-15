@@ -49,7 +49,7 @@ sub render {
     my ($self, $template, $p) = @_;
     my $req = $p->{req} ||= Request->new($p->{env});
     my $res = $req->new_response($p->{code} || 200);
-    my $body = encode_utf8 +Template::Declare->show($template, $p->{req}, $p->{vars});
+    my $body = encode 'UTF-8', Template::Declare->show($template, $p->{req}, $p->{vars});
     $res->body($body);
     $res->content_length(length $body);
     $res->content_type($p->{type} || 'text/html; charset=UTF-8');
@@ -97,7 +97,7 @@ sub respond_with {
     no if $] >= 5.017011, warnings => 'experimental::smartmatch';
     given (scalar $req->respond_with) {
         when ('html') {
-            $msg = '<p class="error">' . encode_utf8 encode_entities($msg) . '</p>';
+            $msg = '<p class="error">' . encode('UTF-8', encode_entities($msg)) . '</p>';
             $type = 'text/html; charset=UTF-8';
         } when ('json') {
             $msg = encode_json { message => $msg };
@@ -106,12 +106,12 @@ sub respond_with {
         when ('atom') {
             # XXX WTF to do here?
             $type = 'text/plain; charset=UTF-8';
-            $msg = encode_utf8 $msg;
+            $msg = encode 'UTF-8', $msg;
         }
         default {
             # Text is just text.
             $type = 'text/plain';
-            $msg = encode_utf8 $msg;
+            $msg = encode 'UTF-8', $msg;
         }
     }
     return [
@@ -613,7 +613,6 @@ sub distribution {
     }) or return $self->respond_with('notfound', $req);
 
     return $self->respond_with('forbidden', $req) unless $dist->{is_owner};
-
     $self->render('/distribution', { req => $req, vars => { dist => $dist }});
 }
 

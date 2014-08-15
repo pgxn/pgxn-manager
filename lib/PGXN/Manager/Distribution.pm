@@ -12,6 +12,7 @@ use File::Spec;
 use Try::Tiny;
 use File::Path qw(make_path remove_tree);
 use Cwd;
+use Encode;
 use JSON::XS;
 use SemVer;
 use Digest::SHA1;
@@ -66,14 +67,14 @@ sub process {
     my $self = shift;
     $self->_process or return;
      # 5. Send JSON + SHA1 to server and index it.
-    return $self->indexit  or return;
+    return $self->indexit;
 }
 
 sub reindex {
     my $self = shift;
     $self->_process or return;
     # 5. Send JSON + SHA1 to server and reindex it.
-    return $self->reindexit or return;
+    return $self->reindexit;
 }
 
 sub extract {
@@ -270,7 +271,7 @@ sub _indexit {
             $sth->execute(
                 $self->creator,
                 $self->sha1,
-                scalar $self->metamemb->contents,
+                decode('UTF-8', scalar $self->metamemb->contents),
             );
             $sth->bind_columns(\my ($template_name, $subject, $json));
 

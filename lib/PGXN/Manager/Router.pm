@@ -8,6 +8,7 @@ use Plack::App::File;
 use Plack::Session::Store::File;
 use PGXN::Manager::Controller;
 use PGXN::Manager;
+use Encode;
 
 our $VERSION = v0.15.1;
 
@@ -169,7 +170,7 @@ sub app {
                 enable_if {
                     shift->{PATH_INFO} !~ m{^/account/(?:reset/|changed)}
                 } 'Auth::Basic', realm => 'PGXN Users Only', authenticator => sub {
-                    my ($username, $password) = @_;
+                    my ($username, $password) = map { decode 'UTF-8', $_ } @_;
                     PGXN::Manager->conn->run(sub {
                         return ($_->selectrow_array(
                             'SELECT authenticate_user(?, ?)',
