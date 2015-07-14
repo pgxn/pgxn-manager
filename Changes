@@ -10,6 +10,9 @@ Revision history for Perl extension PGXN::Manager
        - Twitter posts now sent over SSL.
        - Fixed warnings on Perl 5.20.
        - Fixed encoding issues with Perl 5.20 and DBD::Pg 3.0.
+       - Fixed pgxn_maint so that reindexing failures are reported on the
+         command- line and the exit value set to the number of failures.
+         Previously it would fail silently.
 
 0.15.0  2013-06-19T06:18:45Z
        - Silenced Net::Twitter::Lite warnings by disabling the legacy lists

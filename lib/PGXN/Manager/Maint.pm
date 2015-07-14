@@ -12,7 +12,8 @@ use namespace::autoclean;
 our $VERSION = v0.15.1;
 
 has verbosity => (is => 'rw', required => 1, isa => 'Int', default => 0);
-has workdir  => (is => 'rw', required => 0, isa => 'Str', lazy => 1, default => sub {
+has exitval   => (is => 'rw', required => 0, isa => 'Int', default => 0);
+has workdir   => (is => 'rw', required => 0, isa => 'Str', lazy => 1, default => sub {
     require PGXN::Manager;
     my $tmpdir = PGXN::Manager->new->config->{tmpdir}
         || File::Spec->catdir(File::Spec->tmpdir, 'pgxn');
@@ -22,7 +23,7 @@ has workdir  => (is => 'rw', required => 0, isa => 'Str', lazy => 1, default => 
 
 sub go {
     my $class = shift;
-    $class->new( $class->_config )->run(@ARGV);
+    $class->new( $class->_config )->run(@ARGV)->exitval;
 }
 
 sub run {
@@ -113,6 +114,7 @@ sub reindex {
             my ($user) = $dbh->selectrow_array($sth, undef, $name, $version);
             unless ($user) {
                 warn "$name $version is not a known release\n";
+                $self->exitval( $self->exitval + 1 );
                 next;
             }
 
@@ -123,7 +125,10 @@ sub reindex {
                 basename => basename($fn),
                 creator  => $user,
             );
-            $dist->reindex;
+            unless ($dist->reindex) {
+                warn $dist->error;
+                $self->exitval( $self->exitval + 1 );
+            }
         }
     });
     return $self;
@@ -153,7 +158,10 @@ sub reindex_all {
                 basename => basename($fn),
                 creator  => $user,
             );
-            $dist->reindex;
+            unless ($dist->reindex) {
+                warn $dist->error;
+                $self->exitval( $self->exitval + 1 );
+            }
         }
     });
     return $self;

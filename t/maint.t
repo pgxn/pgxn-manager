@@ -2,7 +2,7 @@
 
 use 5.10.0;
 use utf8;
-use Test::More tests => 87;
+use Test::More tests => 103;
 #use Test::More 'no_plan';
 use Test::File;
 use File::Path qw(remove_tree);
@@ -97,17 +97,21 @@ RUN: {
 GO: {
     my $mocker = Test::MockModule->new($CLASS);
     my $params;
-    $mocker->mock(run => sub { shift; $params = \@_ });
+    $mocker->mock(run => sub { my $s = shift; $params = \@_; $s });
     local @ARGV = qw(--verbose update_stats now);
-    ok $maint->go, 'Go!';
+    is $maint->go, 0, 'Go!';
     is_deeply $params, [qw(update_stats now)],
         'Should have called run with command and args';
 
     # Try with a dashed task.
     @ARGV = qw(--verbose update-stats now);
-    ok $maint->go, 'Go!';
+    is $maint->go, 0, 'Go!';
     is_deeply $params, [qw(update-stats now)],
         'Should have called run with command and args';
+
+    # Try with an error code.
+    $mocker->mock(run => sub { $_[0]->exitval(42); $_[0] });
+    is $maint->go, 42, 'Go should return exitval!';
 };
 
 ##############################################################################
@@ -233,6 +237,7 @@ REINDEX: {
     });
 
     ok $maint->reindex('pair', '0.0.1'), 'Reindex pair 0.0.1';
+    is $maint->exitval, 0, 'Exit val should be 0';
 
     # Reindex two different distributions.
     my $zip2 = File::Spec->catfile($root, qw(dist foo 0.0.2 foo-0.0.2.zip));
@@ -251,6 +256,7 @@ REINDEX: {
 
     ok $maint->reindex( pair => '0.0.1', foo => '0.0.2' ),
         'Reindex pair 0.0.1 and foo 0.0.2';
+    is $maint->exitval, 0, 'Exit val should again be 0';
 
     # Make sure we warn for an unknown release.
     local $SIG{__WARN__} = sub {
@@ -258,6 +264,22 @@ REINDEX: {
             'Should get warning for non-existant distribution';
     };
     ok $maint->reindex(nonexistent => '0.0.1'), 'Reindex nonexistent release';
+    is $maint->exitval, 1, 'Exit val should be 1';
+    $maint->exitval(0);
+
+    # Make sure we emit a message and set exitval for a failed reindex.
+    $mocker->mock(reindex => sub {
+        shift->error(['This is an error: ', 'ha']);
+        return 0;
+    });
+    local $SIG{__WARN__} = sub {
+        like shift, qr/This is an error: ha/,
+            'Should get warning for reindex failure';
+    };
+    ok $maint->reindex( pair => '0.0.1', foo => '0.0.2' ),
+        'Fail to Reindex pair 0.0.1 and foo 0.0.2';
+    is $maint->exitval, 2, 'Exitval should reflect number of failures';
+    $maint->exitval(0);
 }
 
 ##############################################################################
@@ -283,14 +305,31 @@ REINDEX: {
     });
 
     ok $maint->reindex_all, 'Reindex everything';
+    is $maint->exitval, 0, 'Exit val should be 0';
 
     # Just reindex all pair distributions.
     @exp = ($zip3, $zip4);
     ok $maint->reindex_all('pair'), 'Reindex all pairs';
+    is $maint->exitval, 0, 'Exit val should again be 0';
 
     # Reindex named distros.
     @exp = ($zip2, $zip3, $zip4);
     ok $maint->reindex_all('pair', 'foo'), 'Reindex all pairs and foos';
+    is $maint->exitval, 0, 'Exit val should still be 0';
+
+    # Make sure we emit a message and set exitval for a failed reindex.
+    $mocker->mock(reindex => sub {
+        shift->error(['This is an error: ', 'ha']);
+        return 0;
+    });
+    local $SIG{__WARN__} = sub {
+        like shift, qr/This is an error: ha/,
+            'Should get warning for reindex failure';
+    };
+    ok $maint->reindex_all( 'pair', 'foo' ),
+        'Fail to Reindex pair 0.0.1 and foo 0.0.2';
+    is $maint->exitval, 3, 'Exitval should reflect number of failures';
+    $maint->exitval(0);
 }
 
 ##############################################################################

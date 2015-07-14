@@ -5,7 +5,7 @@ use utf8;
 
 use lib 'lib';
 use PGXN::Manager::Maint;
-PGXN::Manager::Maint->go;
+exit PGXN::Manager::Maint->go;
 
 =head1 Name
 
