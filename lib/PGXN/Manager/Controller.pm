@@ -463,7 +463,6 @@ sub set_status {
         });
 
         # Update the user JSON.
-
         my $uri = $req->auth_uri_for("/account/reset/$token->[0]");
         $to   = $token->[1];
         $subj = 'Welcome to PGXN!';
@@ -484,7 +483,7 @@ sub set_status {
         $subj = 'Account Request Rejected';
         $body = "I'm sorry to report that your request for a PGXN account has been\n"
               . "rejected. If you think there has been an error, please reply to this\n"
-              . "message\n\n"
+              . "message.\n\n"
               . "Best,\n\n"
               . "PGXN Management\n";
     }
@@ -1007,7 +1006,7 @@ sub update_mirror {
 sub delete_mirror {
     my $self = shift;
     my $req  = Request->new(shift);
-    my $uri = shift->{splat}[0];
+    my $uri  = shift->{splat}[0];
 
     return $self->respond_with('forbidden', $req) unless $req->user_is_admin;
 
