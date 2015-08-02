@@ -287,7 +287,8 @@ way to separate these is to set up two reverse proxy servers: One to serve
 
     Again, it's important to get the headers rewritten properly in order for
     the routing and writing of URLs is correct and so that clients can't spoof
-    them.
+    them. Also, be sure to disable `merge_slashes` or else the mirror
+    management interface will not work.
 
 * Install
   [Plack::Middleware::ReverseProxy](http://search.cpan.org/perloc?Plack::Middleware::ReverseProxy)
