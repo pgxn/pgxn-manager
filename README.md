@@ -247,11 +247,12 @@ way to separate these is to set up two reverse proxy servers: One to serve
     running under HTTPS when it's not.
 
     Here's the equivalent configuration using
-    [Nginx HttpProxyModule](http://wiki.nginx.org/HttpProxyModule):
+    [NGINX ngx_http_proxy_module](http://nginx.org/en/docs/http/ngx_http_proxy_module.html):
 
         server {
             server_name manager.pgxn.org
             listen 80;
+            merge_slashes: off;
             location / {
                 proxy_pass        http://127.0.0.1:7496/pub/;
                 proxy_redirect    off;
@@ -267,6 +268,7 @@ way to separate these is to set up two reverse proxy servers: One to serve
         server {
             server_name manager.pgxn.org
             listen 443;
+            merge_slashes: off;
             ssl on;
             ssl_certificate /path/to/certs/manager.pgxn.org.crt;
             ssl_certificate_key /path/to/certs/manager.pgxn.org.key;
