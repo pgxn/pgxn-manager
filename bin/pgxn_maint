@@ -64,12 +64,13 @@ configuration file.
 =head3 C<reindex>
 
   pgxn_maint reindex pair 0.1.1
+  pgxn_maint reindex /tmp/pair-0.1.1.zip
 
-Reindexes one or more releases of distributions. Specify distribution name and
-version pairs. Most useful if you need to reindex a specific version of a
-distribution or three, like so:
+Reindexes one or more releases of distributions. Specify paths to archive
+files or distribution name and version pairs. Most useful if you need to
+reindex a specific version of a distribution or three, like so:
 
-  pgxn_maint reindex pair 0.1.1 pair 0.1.2 pgTAP 0.25.0
+  pgxn_maint reindex pair 0.1.1 pair 0.1.2 /tmp/pgTAP-0.25.0.zip
 
 If you need to reindex all versions of a given distribution, or all
 distributions (yikes!), use C<reindex-all>, instead.

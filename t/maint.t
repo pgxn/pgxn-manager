@@ -2,7 +2,7 @@
 
 use 5.10.0;
 use utf8;
-use Test::More tests => 103;
+use Test::More tests => 113;
 #use Test::More 'no_plan';
 use Test::File;
 use File::Path qw(remove_tree);
@@ -10,6 +10,7 @@ use File::Basename qw(basename);
 use Test::MockModule;
 use Test::File::Contents;
 use JSON::XS;
+use Archive::Zip qw(:ERROR_CODES);
 use lib 't/lib';
 use TxnTest;
 
@@ -36,10 +37,18 @@ can_ok $CLASS => qw(
     _config
 );
 
-my $tmpdir = File::Spec->catdir(File::Spec->tmpdir, 'pgxn');
-my $root   = PGXN::Manager->new->config->{mirror_root};
+my $tmpdir  = File::Spec->catdir(File::Spec->tmpdir, 'pgxn');
+my $root    = PGXN::Manager->new->config->{mirror_root};
+my $distdir = File::Spec->catdir(qw(t dist widget));
+my $distzip = File::Spec->catdir(qw(t dist widget-0.2.5.zip));
+
+# Create a distribution.
+my $dzip = Archive::Zip->new;
+$dzip->addTree($distdir, 'widget-0.2.5') == AZ_OK or die 'tree error';
+$dzip->writeToFileNamed($distzip) == AZ_OK or die 'write error';
 
 END {
+    unlink $distzip;
     remove_tree $tmpdir, $root;
 }
 
@@ -206,6 +215,23 @@ PGXN::Manager->instance->conn->run(sub {
         "provides": { "bar": { "version": "0.3.2", "abstract": "whatever", "file": "bar.sql" } }
     }'
     );
+
+    $dbh->do(
+        'SELECT * FROM add_distribution(?, ?, ?)',
+        undef, $user, 'widget',
+        '{
+        "name":        "widget",
+        "version":     "0.2.5",
+        "license":     "postgresql",
+        "maintainer":  "freddy",
+        "abstract":    "widgets and sprockets",
+        "meta-spec": {
+           "version": "1.0.0",
+           "url": "http://pgxn.org/meta/spec.txt"
+        },
+        "provides": { "widget": { "version": "0.2.5", "abstract": "widgety", "file": "widget.sql" } }
+    }'
+    );
 });
 
 ##############################################################################
@@ -237,6 +263,17 @@ REINDEX: {
     });
 
     ok $maint->reindex('pair', '0.0.1'), 'Reindex pair 0.0.1';
+    is $maint->exitval, 0, 'Exit val should be 0';
+
+    # Try indexing with file.
+    $mocker->mock(reindex => sub {
+        my $dist = shift;
+        pass 'Distribution->reindex should be called again';
+        is $dist->archive, $distzip, 'Dist should have specified archive';
+        is $dist->basename, 'widget-0.2.5.zip', 'Dist basename should be "widget-0.2.5"';
+        is $dist->creator, $user, 'Dist should have user as creator';
+    });
+    ok $maint->reindex($distzip), 'Reindex widget 0.2.5';
     is $maint->exitval, 0, 'Exit val should be 0';
 
     # Reindex two different distributions.
@@ -290,10 +327,11 @@ REINDEX: {
     my $zip2 = File::Spec->catfile($root, qw(dist foo 0.0.2 foo-0.0.2.zip));
     my $zip3 = File::Spec->catfile($root, qw(dist pair 0.0.2 pair-0.0.2.zip));
     my $zip4 = File::Spec->catfile($root, qw(dist pair 0.0.1 pair-0.0.1.zip));
+    my $zip5 = File::Spec->catfile($root, qw(dist widget 0.2.5 widget-0.2.5.zip));
 
     # Reindex *everything*.
     my $mocker = Test::MockModule->new('PGXN::Manager::Distribution');
-    my @exp = ($zip1, $zip2, $zip3, $zip4);
+    my @exp = ($zip1, $zip2, $zip3, $zip4, $zip5);
     $mocker->mock(reindex => sub {
         my $dist = shift;
         pass 'Distribution->reindex should be called';

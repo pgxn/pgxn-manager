@@ -35,7 +35,7 @@ Archive::Zip::setErrorHandler(\&_zip_error_handler);
 
 has archive  => (is => 'ro', required => 1, isa => 'Str');
 has basename => (is => 'ro', required => 1, isa => 'Str');
-has creator  => (is => 'ro', required => 1, isa => 'Str');
+has creator  => (is => 'rw', required => 1, isa => 'Str');
 has error    => (is => 'rw', required => 0, isa => 'ArrayRef', auto_deref => 1);
 has zip      => (is => 'rw', required => 0, isa => 'Archive::Zip');
 has metamemb => (is => 'rw', required => 0, isa => 'Archive::Zip::FileMember');
@@ -77,8 +77,19 @@ sub reindex {
     return $self->reindexit;
 }
 
+sub extract_meta {
+    my $self = shift;
+
+    # 1. Unpack distro.
+    $self->extract or return;
+
+    # 2. Process its META.json.
+    return $self->read_meta;
+}
+
 sub extract {
-    my $self   = shift;
+    my $self = shift;
+    return $self if $self->zip;
 
     # Set up the working directory.
     my $workdir = $self->workdir;
@@ -122,8 +133,10 @@ sub extract {
 }
 
 sub read_meta {
-    my $self    = shift;
-    my $zip     = $self->zip;
+    my $self = shift;
+    return $self if $self->distmeta;
+
+    my $zip  = $self->zip;
 
     my ($member) = $zip->membersMatching($META_RE);
     unless ($member) {
@@ -518,6 +531,17 @@ returns false.
 Loads and parses the archive's C<META.json> file. If the file does not exist
 or cannot be parsed, C<read_meta> stores an error message in C<erro> and
 returns false.
+
+=head3 C<extract_meta>
+
+Extract the archive and reads its C<META.json> file. Basically just a
+convenience method for:
+
+  $dist->extract;
+  $dist->read_meta;
+
+In the event of an error, C<extract_meta> stores the error message in C<error>
+and returns false.
 
 =head3 C<normalize>
 

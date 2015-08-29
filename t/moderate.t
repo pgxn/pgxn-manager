@@ -680,7 +680,7 @@ test_psgi +PGXN::Manager::Router->app => sub {
         'To header should be set';
     is $email->get_body, q{I'm sorry to report that your request for a PGXN account has been
 rejected. If you think there has been an error, please reply to this
-message
+message.
 
 Best,
 

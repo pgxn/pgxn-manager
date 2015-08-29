@@ -110,7 +110,37 @@ sub reindex {
             'SELECT creator FROM distributions WHERE name = ? AND version = ?'
         );
         while (@args) {
-            my ($name, $version) = (lc shift @args, lc shift @args);
+            my ($dist, $fn, $name, $version);
+            if (-e $args[0]) {
+                # It's likely a file name. Parse for dist name and version.
+                $fn = shift @args;
+                $dist = PGXN::Manager::Distribution->new(
+                    archive  => $fn,
+                    basename => basename($fn),
+                    creator  => '',
+                );
+                unless ($dist->extract_meta) {
+                    warn $dist->error;
+                    $self->exitval( $self->exitval + 1 );
+                    next;
+                }
+
+                my $meta = $dist->distmeta;
+                $name    = $meta->{name};
+                $version = $meta->{version};
+            } else {
+                # Mostly likely name and version.
+                ($name, $version) = (lc shift @args, lc shift @args);
+                my $uri = $tmpl->process( dist => $name, version => $version );
+                $fn = File::Spec->catfile($root, $uri->path_segments);
+                $dist = PGXN::Manager::Distribution->new(
+                    archive  => $fn,
+                    basename => basename($fn),
+                    creator  => '',
+                );
+            }
+
+            # Find the user who uploaded it.
             my ($user) = $dbh->selectrow_array($sth, undef, $name, $version);
             unless ($user) {
                 warn "$name $version is not a known release\n";
@@ -118,13 +148,8 @@ sub reindex {
                 next;
             }
 
-            my $uri = $tmpl->process( dist => $name, version => $version );
-            my $fn  = File::Spec->catfile($root, $uri->path_segments);
-            my $dist = PGXN::Manager::Distribution->new(
-                archive  => $fn,
-                basename => basename($fn),
-                creator  => $user,
-            );
+            # Do the work.
+            $dist->creator($user);
             unless ($dist->reindex) {
                 warn $dist->error;
                 $self->exitval( $self->exitval + 1 );
@@ -332,12 +357,13 @@ configuration file.
 =head3 C<reindex>
 
   $maint->reindex(@dists_and_versions)
+  $maint->reindex(@archives)
 
 Reindexes one or more releases of distributions. Pass in distribution name and
-version pairs. Most useful if you need to reindex a specific version of a
-distribution or three, like so:
+version pairs or paths to archives. Most useful if you need to reindex a
+specific version of a distribution or three, like so:
 
-  $maint->reindex(pair => '0.1.1', pair => '0.1.2', pgTAP => '0.25.0');
+  $maint->reindex(pair => '0.1.1', pair => '0.1.2', '/tmp/pgTAP-0.25.0.zip');
 
 If you need to reindex all versions of a given distribution, or all
 distributions (yikes!), use C<reindex_all>, instead.

@@ -13,6 +13,12 @@ Revision history for Perl extension PGXN::Manager
        - Fixed pgxn_maint so that reindexing failures are reported on the
          command- line and the exit value set to the number of failures.
          Previously it would fail silently.
+       - Added the ability to pass the path to a zip archive to `pgxn_maint
+         index`. Previously, you had to pass a distribution name and release
+         version (and you still can), but that required that one manually
+         place the archive where the existing one is, first. This is cleaner,
+         as now `pgxn_maint` will process the file from wherever you have it
+         and put it where it belongs.
 
 0.15.0  2013-06-19T06:18:45Z
        - Silenced Net::Twitter::Lite warnings by disabling the legacy lists
