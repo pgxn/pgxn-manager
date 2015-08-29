@@ -1,3 +1,42 @@
+CREATE OR REPLACE FUNCTION check_versions(
+    dist     TERM,
+    version  SEMVER,
+    provided TEXT[][]
+) RETURNS VOID LANGUAGE plpgsql STRICT SECURITY DEFINER AS $$
+DECLARE
+    -- Parse and normalize the metadata.
+    prev_version SEMVER;
+    versions     TEXT[];
+BEGIN
+    -- Make sure the version is earlier than previous releases.
+    SELECT MAX(distributions.version) INTO prev_version
+      FROM distributions
+     WHERE name = dist;
+    IF version < prev_version THEN
+       RAISE EXCEPTION 'Version % is less than previous version %', version, prev_version;
+    END IF;
+
+    -- Same goes for extensions.
+    versions := ARRAY(
+        SELECT de.extension || ' v' || provided[i][2]
+               || ' < v' || MAX(de.ext_version)
+          FROM distribution_extensions de
+          JOIN generate_subscripts(provided, 1) i
+            ON de.extension = provided[i][1]
+           AND de.ext_version > provided[i][2]::semver
+         GROUP BY de.extension, provided[i][2]
+    );
+    IF array_length(versions, 1) > 0 THEN
+       RAISE EXCEPTION E'One or more extension versions are less than previous versions:\n  %', array_to_string(versions, E'\n  ');
+    END IF;
+
+    RETURN;
+END;
+$$;
+
+-- Disallow end-user from using this function.
+REVOKE ALL ON FUNCTION check_versions(TERM, SEMVER, TEXT[][]) FROM PUBLIC;
+
 CREATE OR REPLACE FUNCTION add_distribution(
     nick LABEL,
     sha1 TEXT,
@@ -272,10 +311,8 @@ json
 DECLARE
     -- Parse and normalize the metadata.
     distmeta     RECORD;
-    prev_version SEMVER;
-    versions     TEXT[];
 BEGIN
-    distmeta  := setup_meta(nick, sha1, meta);
+    distmeta := setup_meta(nick, sha1, meta);
 
     -- Check permissions for provided extensions.
     IF NOT record_ownership(nick, ARRAY(
@@ -284,27 +321,8 @@ BEGIN
         RAISE EXCEPTION 'User “%” does not own all provided extensions', nick;
     END IF;
 
-    -- Make sure the version is earlier than previous releases.
-    SELECT MAX(version) INTO prev_version
-      FROM distributions
-     WHERE name = distmeta.name;
-    IF distmeta.version < prev_version THEN
-       RAISE EXCEPTION 'Version % is less than previous version %', distmeta.version, prev_version;
-    END IF;
-
-    -- Same goes for extensions.
-    versions := ARRAY(
-        SELECT de.extension || ' v' || distmeta.provided[i][2]
-               || ' < v' || MAX(de.ext_version)
-          FROM distribution_extensions de
-          JOIN generate_subscripts(distmeta.provided, 1) i
-            ON de.extension = distmeta.provided[i][1]
-           AND de.ext_version > distmeta.provided[i][2]::semver
-         GROUP BY de.extension, distmeta.provided[i][2]
-    );
-    IF array_length(versions, 1) > 0 THEN
-       RAISE EXCEPTION E'One or more extension versions are less than previous versions:\n  %', array_to_string(versions, E'\n  ');
-    END IF;
+    -- Make sure the versions are okay.
+    perform check_versions(distmeta.name, distmeta.version, distmeta.provided);
 
     -- Create the distribution.
     BEGIN
