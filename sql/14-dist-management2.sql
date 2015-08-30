@@ -1,22 +1,32 @@
-CREATE OR REPLACE FUNCTION check_versions(
+CREATE OR REPLACE FUNCTION check_dist_version (
+    dist     TERM,
+    version  SEMVER
+) RETURNS VOID LANGUAGE plpgsql STRICT SECURITY DEFINER AS $$
+DECLARE
+    prev_version SEMVER;
+BEGIN
+    -- Make sure the version is greater than previous release versions.
+    SELECT MAX(d.version) INTO prev_version
+      FROM distributions d
+     WHERE d.name = dist;
+    IF version < prev_version THEN
+       RAISE EXCEPTION 'Version % is less than previous version %', version, prev_version;
+    END IF;
+END;
+$$;
+
+-- Disallow end-user from using this function.
+REVOKE ALL ON FUNCTION check_dist_version(TERM, SEMVER) FROM PUBLIC;
+
+CREATE OR REPLACE FUNCTION check_extension_versions(
     dist     TERM,
     version  SEMVER,
     provided TEXT[][]
 ) RETURNS VOID LANGUAGE plpgsql STRICT SECURITY DEFINER AS $$
 DECLARE
-    -- Parse and normalize the metadata.
-    prev_version SEMVER;
     versions     TEXT[];
 BEGIN
-    -- Make sure the version is earlier than previous releases.
-    SELECT MAX(distributions.version) INTO prev_version
-      FROM distributions
-     WHERE name = dist;
-    IF version < prev_version THEN
-       RAISE EXCEPTION 'Version % is less than previous version %', version, prev_version;
-    END IF;
-
-    -- Same goes for extensions.
+    -- Make sure exteions versions are >= than in previous releases.
     versions := ARRAY(
         SELECT de.extension || ' v' || provided[i][2]
                || ' < v' || MAX(de.ext_version)
@@ -24,6 +34,8 @@ BEGIN
           JOIN generate_subscripts(provided, 1) i
             ON de.extension = provided[i][1]
            AND de.ext_version > provided[i][2]::semver
+         WHERE dist_version < version
+            OR distribution <> dist
          GROUP BY de.extension, provided[i][2]
     );
     IF array_length(versions, 1) > 0 THEN
@@ -35,7 +47,7 @@ END;
 $$;
 
 -- Disallow end-user from using this function.
-REVOKE ALL ON FUNCTION check_versions(TERM, SEMVER, TEXT[][]) FROM PUBLIC;
+REVOKE ALL ON FUNCTION check_extension_versions(TERM, SEMVER, TEXT[][]) FROM PUBLIC;
 
 CREATE OR REPLACE FUNCTION add_distribution(
     nick LABEL,
@@ -322,7 +334,8 @@ BEGIN
     END IF;
 
     -- Make sure the versions are okay.
-    perform check_versions(distmeta.name, distmeta.version, distmeta.provided);
+    PERFORM check_dist_version(distmeta.name, distmeta.version);
+    PERFORM check_extension_versions(distmeta.name, distmeta.version, distmeta.provided);
 
     -- Create the distribution.
     BEGIN
@@ -359,3 +372,141 @@ BEGIN
 END;
 $$;
 
+CREATE OR REPLACE FUNCTION update_distribution(
+    nick LABEL,
+    sha1 TEXT,
+    meta TEXT
+) RETURNS TABLE (
+    template TEXT,
+    subject  TEXT,
+    json     TEXT
+) LANGUAGE plpgsql STRICT SECURITY DEFINER AS $$
+/*
+
+Exactly like `add_distribution()`, with the same arguments and rules, but
+updates an existing distribution, rather than creating a new one. This may be
+useful of the format of the generated `META.json` file changes: just call this
+method for all existing distributions to have then reindexed with the new
+format.
+
+Note that, for all included extensions, `nick` must have ownership or no one
+must, in which case the user will be given ownership. This might be an issue
+when re-indexing a distribution containing extensions that the user owned at
+the time the distribution was released, but no longer does. In that case,
+you'll probably need to grant the user temporary co-ownership of all
+extensions, re-index, and then revoke.
+
+*/
+DECLARE
+    distmeta record;
+BEGIN
+    -- Parse and normalize the metadata.
+    distmeta := setup_meta(nick, sha1, meta);
+
+    -- Check permissions for provided extensions.
+    IF NOT record_ownership(nick, ARRAY(
+        SELECT distmeta.provided[i][1] FROM generate_subscripts(distmeta.provided, 1) AS i
+    )) THEN
+        RAISE EXCEPTION 'User “%” does not own all provided extensions', nick;
+    END IF;
+
+    -- Make sure the extension versions are okay.
+    PERFORM check_extension_versions(distmeta.name, distmeta.version, distmeta.provided);
+
+    -- Update the distribution.
+    UPDATE distributions
+       SET relstatus   = COALESCE(distmeta.relstatus, 'stable'),
+           abstract    = distmeta.abstract,
+           description = COALESCE(distmeta.description, ''),
+           sha1        = update_distribution.sha1,
+           creator     = nick,
+           meta        = distmeta.json
+     WHERE name        = distmeta.name
+       AND version     = distmeta.version;
+
+    IF NOT FOUND THEN
+       RAISE EXCEPTION 'Distribution “% %” does not exist', distmeta.name, distmeta.version;
+    END IF;
+
+    -- Update the extensions in this distribution.
+    UPDATE distribution_extensions de
+       SET abstract     = distmeta.provided[i][3]
+      FROM generate_subscripts(distmeta.provided, 1) AS i
+     WHERE de.extension    = distmeta.provided[i][1]
+       AND de.ext_version  = distmeta.provided[i][2]::semver
+       AND de.distribution = distmeta.name
+       AND de.dist_version = distmeta.version;
+
+    -- Insert missing extensions.
+    INSERT INTO distribution_extensions (
+           extension,
+           ext_version,
+           abstract,
+           distribution,
+           dist_version
+    )
+    SELECT distmeta.provided[i][1],
+           distmeta.provided[i][2]::semver,
+           distmeta.provided[i][3],
+           distmeta.name,
+           distmeta.version
+      FROM generate_subscripts(distmeta.provided, 1) AS i
+      LEFT JOIN distribution_extensions de
+        ON de.extension    = distmeta.provided[i][1]
+       AND de.ext_version  = distmeta.provided[i][2]::semver
+       AND de.distribution = distmeta.name
+       AND de.dist_version = distmeta.version
+     WHERE de.extension    IS NULL;
+
+    -- Delete unwanted extensions.
+    DELETE FROM distribution_extensions
+     USING distribution_extensions de
+      LEFT JOIN generate_subscripts(distmeta.provided, 1) AS i
+        ON de.extension                         = distmeta.provided[i][1]
+       AND de.extension                         = distmeta.provided[i][1]
+       AND de.ext_version                       = distmeta.provided[i][2]::semver
+     WHERE de.distribution                      = distmeta.name
+       AND de.dist_version                      = distmeta.version
+       AND distribution_extensions.extension    = de.extension
+       AND distribution_extensions.ext_version  = de.ext_version
+       AND distribution_extensions.distribution = de.distribution
+       AND distribution_extensions.dist_version = de.dist_version
+       AND distmeta.provided[i][1] IS NULL;
+
+    -- Insert missing tags.
+    INSERT INTO distribution_tags (distribution, version, tag)
+    SELECT DISTINCT distmeta.name, distmeta.version, tags.tag
+      FROM unnest(distmeta.tags) AS tags(tag)
+      LEFT JOIN distribution_tags dt
+        ON dt.distribution = distmeta.name
+       AND dt.version      = distmeta.version
+       AND dt.tag          = tags.tag
+     WHERE dt.tag          IS NULL;
+
+    -- Remove unwanted tags.
+    DELETE FROM distribution_tags
+     USING distribution_tags dt
+      LEFT JOIN unnest(distmeta.tags) AS tags(tag)
+        ON dt.tag                         = tags.tag
+     WHERE dt.distribution                = distmeta.name
+       AND dt.version                     = distmeta.version
+       AND tags.tag                       IS NULL
+       AND distribution_tags.distribution = dt.distribution
+       AND distribution_tags.version      = dt.version
+       AND distribution_tags.tag          = dt.tag;
+
+    RETURN QUERY
+        SELECT 'meta'::TEXT, LOWER(distmeta.name::TEXT), distmeta.json
+    UNION
+        SELECT 'dist', LOWER(distmeta.name::TEXT), dist_json(distmeta.name)
+    UNION
+        SELECT 'extension', * FROM extension_json(distmeta.name, distmeta.version)
+    UNION
+        SELECT 'user', LOWER(nick), user_json(nick)
+    UNION
+        SELECT 'tag', * FROM tag_json(distmeta.name, distmeta.version)
+    UNION
+        SELECT 'stats', * FROM all_stats_json()
+    ;
+END;
+$$;
