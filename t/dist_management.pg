@@ -1,5 +1,5 @@
 BEGIN;
-SELECT plan(122);
+SELECT plan(126);
 --SELECT * FROM no_plan();
 
 -- Check that we have the functions we think we have.
@@ -1287,6 +1287,54 @@ SELECT bag_eq(
     'We should have the expected distribution extensions'
 );
 
+SELECT throws_ok(
+    $$ SELECT * FROM add_distribution('strongrrl', 'howdy', '{
+        "name":        "pair",
+        "version":     "0.0.2",
+        "license":     "postgresql",
+        "maintainer":  "theory",
+        "abstract":    "whatever",
+        "provides": {
+           "pair": {
+              "abstract": "whatever",
+              "file": "pair.sql",
+              "version": "0.2.3"
+           }
+        },
+        "meta-spec": {
+           "version": "1.0.0",
+           "url": "http://pgxn.org/meta/spec.txt"
+        }
+    }')$$,
+    'P0001',
+    'Version 0.0.2 is less than previous version 0.0.3',
+    'Should get error adding lower distribution version'
+);
+
+SELECT throws_ok(
+    $$ SELECT * FROM add_distribution('strongrrl', 'howdy', '{
+        "name":        "pair",
+        "version":     "0.0.4",
+        "license":     "postgresql",
+        "maintainer":  "theory",
+        "abstract":    "whatever",
+        "provides": {
+           "pair": {
+              "abstract": "whatever",
+              "file": "pair.sql",
+              "version": "0.2.1"
+           }
+        },
+        "meta-spec": {
+           "version": "1.0.0",
+           "url": "http://pgxn.org/meta/spec.txt"
+        }
+    }')$$,
+    'P0001',
+    E'One or more extension versions are less than previous versions:\n  pair 0.2.1 < 0.2.3',
+    'Should get error adding lower extension version'
+);
+
 /****************************************************************************/
 -- Test update_distribution().
 SELECT function_returns('update_distribution', ARRAY['label', 'text', 'text'], 'setof record' );
@@ -1673,6 +1721,67 @@ SELECT row_eq(
    ARRAY['bar', 'baz', 'foo'])::distribution_details,
    'Should get proper dist details for pair 0.0.1'
 );
+
+-- Make sure we get errors for invalid versions.
+UPDATE distributions
+   SET created_at = pg_catalog.NOW() - '1 day'::interval
+ WHERE name = 'Pair'
+   AND version = '0.0.1';
+
+SELECT throws_ok(
+    $$ SELECT * FROM update_distribution('strongrrl', 'oops', '{
+        "name":        "Pair",
+        "version":     "0.0.1",
+        "license":     "mit",
+        "maintainer":  "theory",
+        "abstract":    "howdy",
+        "meta-spec": {
+           "version": "1.0.0",
+           "url": "http://pgxn.org/meta/spec.txt"
+        },
+        "provides": {
+            "pair": { "file": "pair.sql.in", "version": "0.2.5" }
+        }
+    }')$$,
+    'P0001',
+    E'One or more extension versions are greater than later versions:\n  pair 0.2.5 > 0.2.3',
+    'Should get error for higher extension version'
+);
+
+UPDATE distributions
+   SET created_at = pg_catalog.NOW()
+ WHERE name = 'Pair'
+   AND version = '0.0.1';
+
+UPDATE distributions
+   SET created_at = pg_catalog.NOW() + '1 day'::interval
+ WHERE name = 'pair'
+   AND version = '0.0.3';
+
+SELECT throws_ok(
+    $$ SELECT * FROM update_distribution('strongrrl', 'oops', '{
+        "name":        "pair",
+        "version":     "0.0.3",
+        "license":     "mit",
+        "maintainer":  "theory",
+        "abstract":    "howdy",
+        "meta-spec": {
+           "version": "1.0.0",
+           "url": "http://pgxn.org/meta/spec.txt"
+        },
+        "provides": {
+            "pair": { "file": "pair.sql.in", "version": "0.2.0" }
+        }
+    }')$$,
+    'P0001',
+    E'One or more extension versions are less than previous versions:\n  pair 0.2.0 < 0.2.2',
+    'Should get error for lower extension version'
+);
+
+UPDATE distributions
+   SET created_at = pg_catalog.NOW()
+ WHERE name = 'pair'
+   AND version = '0.0.3';
 
 /****************************************************************************/
 -- Make sure we get the same data from get_distribution().
