@@ -19,6 +19,11 @@ Revision history for Perl extension PGXN::Manager
          place the archive where the existing one is, first. This is cleaner,
          as now `pgxn_maint` will process the file from wherever you have it
          and put it where it belongs.
+       - Distribution versions are now forced to be greater than in previous
+         releases.
+       - Extension versions are now required to be greater than or equal to
+         versions in previous releases. When re-indexing, they are also
+         required to be less than or equal to versions in subsequent releases.
 
 0.15.0  2013-06-19T06:18:45Z
        - Silenced Net::Twitter::Lite warnings by disabling the legacy lists
