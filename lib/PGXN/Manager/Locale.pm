@@ -262,6 +262,8 @@ make installcheck PGDATABASE=postgres
 <p>Good hacking!</p>},
 
     'Sorry, but this URL is invalid. I think you either want <a href="$url">/pub/</a> or to run PGXN Manager behind a reverse proxy server. See <a href="https://github.com/pgxn/pgxn-manager/blob/master/README.md">the README</a> for details.' => 'Sorry, but this URL is invalid. I think you either want <a href="$url">/pub/</a> or to run PGXN Manager behind a reverse proxy server. See <a href="https://github.com/pgxn/pgxn-manager/blob/master/README.md">the README</a> for details.',
+
+    '“[_1] [_2]” is not a known release' => '“[_1] [_2]” is not a known release',
 );
 
 sub accept {

@@ -6,6 +6,7 @@ use Moose;
 use File::Spec;
 use File::Path qw(make_path remove_tree);
 use File::Basename qw(dirname basename);
+use Encode qw(encode_utf8);
 use Carp;
 use namespace::autoclean;
 
@@ -96,6 +97,15 @@ sub update_users {
     return $self;
 }
 
+sub _handle_error {
+    my $self = shift;
+    my $l = PGXN::Manager::Locale->get_handle;
+    my $err = $l->maketext(@_);
+    $err =~ s{<br />}{}g;
+    warn encode_utf8 $err, "\n";
+    $self->exitval( $self->exitval + 1 );
+}
+
 sub reindex {
     my ($self, @args) = @_;
     my $pgxn = PGXN::Manager->instance;
@@ -120,8 +130,7 @@ sub reindex {
                     creator  => '',
                 );
                 unless ($dist->extract_meta) {
-                    warn $dist->error;
-                    $self->exitval( $self->exitval + 1 );
+                    $self->_handle_error($dist->error);
                     next;
                 }
 
@@ -143,16 +152,17 @@ sub reindex {
             # Find the user who uploaded it.
             my ($user) = $dbh->selectrow_array($sth, undef, $name, $version);
             unless ($user) {
-                warn "$name $version is not a known release\n";
-                $self->exitval( $self->exitval + 1 );
+                $self->_handle_error(
+                    '“[_1] [_2]” is not a known release',
+                    $name, $version
+                );
                 next;
             }
 
             # Do the work.
             $dist->creator($user);
             unless ($dist->reindex) {
-                warn $dist->error;
-                $self->exitval( $self->exitval + 1 );
+                $self->_handle_error($dist->error);
             }
         }
     });
@@ -184,8 +194,7 @@ sub reindex_all {
                 creator  => $user,
             );
             unless ($dist->reindex) {
-                warn $dist->error;
-                $self->exitval( $self->exitval + 1 );
+                $self->_handle_error($dist->error);
             }
         }
     });

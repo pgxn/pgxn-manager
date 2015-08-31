@@ -297,7 +297,8 @@ REINDEX: {
 
     # Make sure we warn for an unknown release.
     local $SIG{__WARN__} = sub {
-        is shift, "nonexistent 0.0.1 is not a known release\n",
+        no utf8;
+        is shift, "“nonexistent 0.0.1” is not a known release\n",
             'Should get warning for non-existant distribution';
     };
     ok $maint->reindex(nonexistent => '0.0.1'), 'Reindex nonexistent release';
@@ -306,7 +307,7 @@ REINDEX: {
 
     # Make sure we emit a message and set exitval for a failed reindex.
     $mocker->mock(reindex => sub {
-        shift->error(['This is an error: ', 'ha']);
+        shift->error(['This is an error: [_1]', 'ha']);
         return 0;
     });
     local $SIG{__WARN__} = sub {
@@ -357,7 +358,7 @@ REINDEX: {
 
     # Make sure we emit a message and set exitval for a failed reindex.
     $mocker->mock(reindex => sub {
-        shift->error(['This is an error: ', 'ha']);
+        shift->error(['This is an error: [_1]', 'ha']);
         return 0;
     });
     local $SIG{__WARN__} = sub {
