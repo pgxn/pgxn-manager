@@ -1,7 +1,7 @@
 CREATE OR REPLACE FUNCTION check_dist_version (
     dist     TERM,
     version  SEMVER
-) RETURNS VOID LANGUAGE plpgsql STRICT SECURITY DEFINER AS $$
+) RETURNS VOID LANGUAGE plpgsql STABLE SECURITY DEFINER AS $$
 DECLARE
     prev_version SEMVER;
 BEGIN
@@ -18,26 +18,39 @@ $$;
 -- Disallow end-user from using this function.
 REVOKE ALL ON FUNCTION check_dist_version(TERM, SEMVER) FROM PUBLIC;
 
-CREATE OR REPLACE FUNCTION check_extension_versions(
-    dist     TERM,
-    version  SEMVER,
-    provided TEXT[][]
-) RETURNS VOID LANGUAGE plpgsql STRICT SECURITY DEFINER AS $$
+CREATE OR REPLACE FUNCTION check_prev_versions(
+    provided TEXT[][],
+    as_of    TIMESTAMPTZ = NULL
+) RETURNS VOID LANGUAGE plpgsql STABLE SECURITY DEFINER AS $$
 DECLARE
-    versions     TEXT[];
+    versions TEXT[];
 BEGIN
-    -- Make sure exteions versions are >= than in previous releases.
-    versions := ARRAY(
-        SELECT de.extension || ' v' || provided[i][2]
-               || ' < v' || MAX(de.ext_version)
-          FROM distribution_extensions de
-          JOIN generate_subscripts(provided, 1) i
-            ON de.extension = provided[i][1]
-           AND de.ext_version > provided[i][2]::semver
-         WHERE dist_version < version
-            OR distribution <> dist
-         GROUP BY de.extension, provided[i][2]
-    );
+    IF as_of IS NULL THEN
+        versions := ARRAY(
+            SELECT de.extension || ' ' || provided[i][2] || ' < ' || MAX(de.ext_version)
+              FROM distribution_extensions de
+              JOIN generate_subscripts(provided, 1) i
+                ON provided[i][1] = de.extension
+               AND provided[i][2]::semver < de.ext_version
+             GROUP BY de.extension, provided[i][2]
+             ORDER BY de.extension
+        );
+    ELSE
+        -- Make sure extension versions are >= than in previous releases
+        versions := ARRAY(
+            SELECT de.extension || ' ' || provided[i][2] || ' < ' || MAX(de.ext_version)
+              FROM distribution_extensions de
+              JOIN generate_subscripts(provided, 1) i
+                ON provided[i][1] = de.extension
+               AND provided[i][2]::semver < de.ext_version
+              JOIN distributions d
+                ON de.distribution = d.name
+               AND de.dist_version = d.version
+               AND d.created_at < as_of
+             GROUP BY de.extension, provided[i][2]
+             ORDER BY de.extension
+        );
+    END IF;
     IF array_length(versions, 1) > 0 THEN
        RAISE EXCEPTION E'One or more extension versions are less than previous versions:\n  %', array_to_string(versions, E'\n  ');
     END IF;
@@ -47,7 +60,39 @@ END;
 $$;
 
 -- Disallow end-user from using this function.
-REVOKE ALL ON FUNCTION check_extension_versions(TERM, SEMVER, TEXT[][]) FROM PUBLIC;
+REVOKE ALL ON FUNCTION check_prev_versions(TEXT[][], TIMESTAMPTZ) FROM PUBLIC;
+
+CREATE OR REPLACE FUNCTION check_later_versions(
+    provided TEXT[][],
+    as_of    TIMESTAMPTZ
+) RETURNS VOID LANGUAGE plpgsql STABLE SECURITY DEFINER AS $$
+DECLARE
+    versions TEXT[];
+BEGIN
+    -- Make sure extension versions are >= than in later releases
+    versions := ARRAY(
+        SELECT de.extension || ' ' || provided[i][2] || ' > ' || MIN(de.ext_version)
+          FROM distribution_extensions de
+          JOIN generate_subscripts(provided, 1) i
+            ON provided[i][1] = de.extension
+           AND provided[i][2]::semver > de.ext_version
+          JOIN distributions d
+            ON de.distribution = d.name
+           AND de.dist_version = d.version
+           AND d.created_at > as_of
+         GROUP BY de.extension, provided[i][2]
+         ORDER BY de.extension
+    );
+    IF array_length(versions, 1) > 0 THEN
+       RAISE EXCEPTION E'One or more extension versions are greater than later versions:\n  %', array_to_string(versions, E'\n  ');
+    END IF;
+
+    RETURN;
+END;
+$$;
+
+-- Disallow end-user from using this function.
+REVOKE ALL ON FUNCTION check_later_versions(TEXT[][], TIMESTAMPTZ) FROM PUBLIC;
 
 CREATE OR REPLACE FUNCTION add_distribution(
     nick LABEL,
@@ -335,7 +380,7 @@ BEGIN
 
     -- Make sure the versions are okay.
     PERFORM check_dist_version(distmeta.name, distmeta.version);
-    PERFORM check_extension_versions(distmeta.name, distmeta.version, distmeta.provided);
+    PERFORM check_prev_versions(distmeta.provided);
 
     -- Create the distribution.
     BEGIN
@@ -411,7 +456,11 @@ BEGIN
     END IF;
 
     -- Make sure the extension versions are okay.
-    PERFORM check_extension_versions(distmeta.name, distmeta.version, distmeta.provided);
+    PERFORM check_prev_versions(distmeta.provided, created_at),
+            check_later_versions(distmeta.provided, created_at)
+       FROM distributions
+      WHERE name        = distmeta.name
+        AND version     = distmeta.version;
 
     -- Update the distribution.
     UPDATE distributions
