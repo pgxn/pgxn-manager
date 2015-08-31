@@ -10,7 +10,8 @@ BEGIN
       FROM distributions d
      WHERE d.name = dist;
     IF version < prev_version THEN
-       RAISE EXCEPTION 'Version % is less than previous version %', version, prev_version;
+       RAISE EXCEPTION 'Distribution “% %” version less than in previous release “% %”',
+             dist, version, dist, prev_version;
     END IF;
 END;
 $$;
@@ -27,7 +28,7 @@ DECLARE
 BEGIN
     IF as_of IS NULL THEN
         versions := ARRAY(
-            SELECT de.extension || ' ' || provided[i][2] || ' < ' || MAX(de.ext_version)
+            SELECT format('“%s %s” < “%s %s”', de.extension, provided[i][2], de.extension, MAX(de.ext_version))
               FROM distribution_extensions de
               JOIN generate_subscripts(provided, 1) i
                 ON provided[i][1] = de.extension
@@ -38,7 +39,7 @@ BEGIN
     ELSE
         -- Make sure extension versions are >= than in previous releases
         versions := ARRAY(
-            SELECT de.extension || ' ' || provided[i][2] || ' < ' || MAX(de.ext_version)
+            SELECT format('“%s %s” < “%s %s”', de.extension, provided[i][2], de.extension, MAX(de.ext_version))
               FROM distribution_extensions de
               JOIN generate_subscripts(provided, 1) i
                 ON provided[i][1] = de.extension
@@ -52,7 +53,7 @@ BEGIN
         );
     END IF;
     IF array_length(versions, 1) > 0 THEN
-       RAISE EXCEPTION E'One or more extension versions are less than previous versions:\n  %', array_to_string(versions, E'\n  ');
+       RAISE EXCEPTION E'One or more extension versions are less than previous versions:\n  * %', array_to_string(versions, E'\n  * ');
     END IF;
 
     RETURN;
@@ -71,7 +72,7 @@ DECLARE
 BEGIN
     -- Make sure extension versions are >= than in later releases
     versions := ARRAY(
-        SELECT de.extension || ' ' || provided[i][2] || ' > ' || MIN(de.ext_version)
+        SELECT format('“%s %s” > “%s %s”', de.extension, provided[i][2], de.extension, MIN(de.ext_version))
           FROM distribution_extensions de
           JOIN generate_subscripts(provided, 1) i
             ON provided[i][1] = de.extension
@@ -84,7 +85,7 @@ BEGIN
          ORDER BY de.extension
     );
     IF array_length(versions, 1) > 0 THEN
-       RAISE EXCEPTION E'One or more extension versions are greater than later versions:\n  %', array_to_string(versions, E'\n  ');
+       RAISE EXCEPTION E'One or more extension versions are greater than later versions:\n  * %', array_to_string(versions, E'\n  * ');
     END IF;
 
     RETURN;

@@ -323,6 +323,7 @@ sub _indexit {
                 push @params => $1;
                 '“[_' . ++$i . ']”';
             }gesm;
+            $err =~ s{\n}{<br />\n}g;
         }
         $self->error([$err, @params]);
         return;
