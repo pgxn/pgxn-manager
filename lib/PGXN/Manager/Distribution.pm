@@ -311,7 +311,7 @@ sub _indexit {
     } catch {
         die $_ if $_->state ne 'P0001' && $_->state ne 'XX000';
         (my $err = $_->errstr) =~ s/^[[:upper:]]+:\s+//;
-        $err =~ s/(?:at line \d+\.)\s+CONTEXT:.+//ms;
+        $err =~ s/(?:at line \d+\.)?\s+CONTEXT:.+//ms;
         my @params;
         if ($err =~ /Metadata is not valid; errors:/) {
             ($err, @params) = split /\n/ => $err, 2;
