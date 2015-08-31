@@ -1,5 +1,7 @@
 Revision history for Perl extension PGXN::Manager
 
+0.16.1
+
 0.16.0  2015-08-31T18:25:24Z
        - Updated the `Makefile` example in the HOWTO to extract the extension
          version from the `META.json` file, rather than the distribution
