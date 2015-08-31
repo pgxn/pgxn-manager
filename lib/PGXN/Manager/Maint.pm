@@ -10,7 +10,7 @@ use Encode qw(encode_utf8);
 use Carp;
 use namespace::autoclean;
 
-our $VERSION = v0.15.1;
+our $VERSION = v0.16.0;
 
 has verbosity => (is => 'rw', required => 1, isa => 'Int', default => 0);
 has exitval   => (is => 'rw', required => 0, isa => 'Int', default => 0);
