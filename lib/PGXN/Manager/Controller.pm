@@ -259,7 +259,7 @@ sub register {
         my $err = shift;
         my ($msg, $highlight);
         no if $] >= 5.017011, warnings => 'experimental::smartmatch';
-        given ($err->state) {
+        given (try { $err->state }) {
             when ('23505') {
                 # Unique constraint violation.
                 if ($err->errstr =~ /\busers_pkey\b/) {
