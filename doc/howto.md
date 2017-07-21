@@ -10,11 +10,11 @@ First of all, what is a "distribution" in the PGXN sense? Basically, it's a coll
 * [semver](http://pgxn.org/dist/semver/): a data type implemented in C
 * [italian_fts](http://pgxn.org/dist/italian_fts/): An italian full-text search ditctionary
 
-Traditionally, a PostgreSQL extension was any code that could be built by [PGXS](http://www.postgresql.org/docs/current/static/xfunc-c.html#XFUNC-C-PGXS) and installed into the database. As of PostgreSQL 9.1, extensions have been integrated more deeply into the core. With just a bit more work, users who have installed an extension will be able to load it into the database with a simple command:
+Traditionally, a PostgreSQL extension was any code that could be built by [PGXS](http://www.postgresql.org/docs/current/static/extend-pgxs.html) and installed into the database. As of PostgreSQL 9.1, extensions have been integrated more deeply into the core. With just a bit more work, users who have installed an extension will be able to load it into the database with a simple command:
 
     CREATE EXTENSION pair;
 
-No more need to run SQL scripts through `psql` or to maintain separate schemas to properly keep them packaged up. The documentation [has the details](http://www.postgresql.org/docs/current/static/extend-extensions.html "PostgreSQL Documentation: “Packaging Related Objects into an Extension”"). The build infrastructure remains unchanged, however. As a PostgreSQL extension developer, you're still going to use [PGXS](http://www.postgresql.org/docs/current/static/xfunc-c.html#XFUNC-C-PGXS) to configure and build your extension.
+No more need to run SQL scripts through `psql` or to maintain separate schemas to properly keep them packaged up. The documentation [has the details](http://www.postgresql.org/docs/current/static/extend-extensions.html "PostgreSQL Documentation: “Packaging Related Objects into an Extension”"). The build infrastructure remains unchanged, however. As a PostgreSQL extension developer, you're still going to use [PGXS](http://www.postgresql.org/docs/current/static/extend-pgxs.html) to configure and build your extension.
 
 All this is not to say that PGXN extensions must be PostgreSQL extensions, except in the sense that they should add something to PostgreSQL. For example, you might want to distribute a command-line utility like [pg_top](http://pgxn.org/dist/pg_top/). That's cool. Just be creative and make PostgreSQL better and you'll be on the right track.
 
@@ -124,7 +124,7 @@ For database objects, you are *strongly encouraged* to include a control file an
 
 ### New Order ###
 
-PGXN doesn't really care how distributions are structured, or if they use [PGXS](http://www.postgresql.org/docs/current/static/xfunc-c.html#XFUNC-C-PGXS). That said, the [pgxn client](http://github.com/dvarrazzo/pgxnclient/) currently supports only `./configure` and `make`, so PGXS is probably the best choice.
+PGXN doesn't really care how distributions are structured, or if they use [PGXS](http://www.postgresql.org/docs/current/static/extend-pgxs.html). That said, the [pgxn client](http://github.com/dvarrazzo/pgxnclient/) currently supports only `./configure` and `make`, so PGXS is probably the best choice.
 
 We strongly encourage that the files in distributions be organized into subdirectories:
 
@@ -200,7 +200,7 @@ So now, building and installing the extension should be as simple as:
     make install
     make installcheck PGDATABASE=postgres
 
-For more on PostgreSQL extension building support, please consult [the documentation](http://www.postgresql.org/docs/9/static/xfunc-c.html#XFUNC-C-PGXS).
+For more on PostgreSQL extension building support, please consult [the documentation](http://www.postgresql.org/docs/current/static/extend-pgxs.html).
 
 ### What's up, Doc? ###
 
