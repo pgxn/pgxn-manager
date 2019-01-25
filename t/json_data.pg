@@ -1561,7 +1561,7 @@ SELECT bag_eq(
 ') $$,
     'Should get all stats from all_stats_json()'
 );
-    
+
 SELECT bag_eq(
     'SELECT * FROM all_stats_json(2)',
     $$VALUES

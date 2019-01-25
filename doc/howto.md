@@ -43,7 +43,7 @@ If you have only one `.sql` file for your extension and it's the same name as th
           "url": "http://pgxn.org/meta/spec.txt"
        },
     }
-    
+
 That's it. One thing that may not be obvious from this example is that all version numbers in a `META.json` *must* be [semantic versions](http://semver.org/spec/v1.0.0.html), including for core dependencies like plperl or PostgreSQL itself. If they're not, PGXN not index your distribution. If you don't want to read rhough the [Semantic Versioning 1.0.0 spec](http://semver.org/spec/v1.0.0.htm), just use thee-part dotted integers (such as "1.2.0") and don't worry about it.
 
 The other thing that might be confusing here is the redundant information in the `provides` section. While the `name`, `abstract`, and `version` keys at the top level of the JSON describe the distribution itself, the `provides` section contains a list of all the extensions provided by the distribution. There is only one extension in this distrbibution, but hence the duplication. But in some cases, such as [pgTAP](http://pgxn.org/dist/pgtap/), there will be multiple extensions, each with its own information. PGXN also uses this information to assign ownership of the specified extension names to you -- if they haven't been claimed by any previous distribution.
@@ -110,7 +110,7 @@ Thanks to all that metadata, the extension gets a [very nice page](http://pgxn.o
 
 ### We Have Assumed Control ###
 
-A second file you should consider including in your distribution is a "control file". This file is required by the PostgreSQL 9.1 [extension support](http://www.postgresql.org/docs/current/static/extend-extensions.html "PostgreSQL Documentation: “Packaging Related Objects into an Extension”"). Like `META.json` it describes your extension, but it's actually much shorter. Really all it needs is a few keys. Here's an example from the [semver distribution](http://pgxn.org/dist/semver/) named `semver.control`:
+A second file you should consider include in your distribution is a "control file". This file is required by the PostgreSQL's [extension support](http://www.postgresql.org/docs/current/static/extend-extensions.html "PostgreSQL Documentation: “Packaging Related Objects into an Extension”"). Like `META.json` it describes your extension, but it's actually much shorter. Really all it needs is a few keys. Here's an example from the [semver distribution](http://pgxn.org/dist/semver/) named `semver.control`:
 
     # semver extension
     comment = 'A semantic version data type'
@@ -139,31 +139,26 @@ The [`pair`](http://github.com/theory/kv-pair/) and [`semver`](http://github.com
                    sed -e 's/[[:space:]]*"name":[[:space:]]*"\([^"]*\)",/\1/')
     EXTVERSION   = $(shell grep -m 1 '[[:space:]]\{8\}"version":' META.json | \
                    sed -e 's/[[:space:]]*"version":[[:space:]]*"\([^"]*\)",\{0,1\}/\1/')
-    
+
     DATA         = $(filter-out $(wildcard sql/*--*.sql),$(wildcard sql/*.sql))
     TESTS        = $(wildcard test/sql/*.sql)
     REGRESS      = $(patsubst test/sql/%.sql,%,$(TESTS))
     REGRESS_OPTS = --inputdir=test
     DOCS         = $(wildcard doc/*.md)
     # MODULES    = $(patsubst %.c,%,$(wildcard src/*.c))
-    PG_CONFIG   ?= pg_config
-    PG91         = $(shell $(PG_CONFIG) --version | grep -qE " 8\.| 9\.0" && echo no || echo yes)
-    
-    ifeq ($(PG91),yes)
+    PG_CONFIG    = pg_config
+
     DATA = $(wildcard sql/*--*.sql)
     EXTRA_CLEAN = sql/$(EXTENSION)--$(EXTVERSION).sql
-    endif
-    
+
     PGXS := $(shell $(PG_CONFIG) --pgxs)
     include $(PGXS)
-    
-    ifeq ($(PG91),yes)
+
     all: sql/$(EXTENSION)--$(EXTVERSION).sql
-    
+
     sql/$(EXTENSION)--$(EXTVERSION).sql: sql/$(EXTENSION).sql
     	cp $< $@
-    endif
-    
+
     dist:
     	git archive --format zip --prefix=$(EXTENSION)-$(EXTVERSION)/ \
     	--output $(EXTENSION)-$(EXTVERSION).zip HEAD
@@ -174,7 +169,7 @@ The `DATA` variable identifies the SQL files containing the extensionor extensio
 
 The `MODULES` variable finds `.c` files in the `src` directory. The `pair` data type has no C code, so it's commented-out. You'll want to uncomment it if you have C code or add C code later.
 
-Next we have the `PG_CONFIG` variable. This points to the [`pg_config`](http://www.postgresql.org/docs/9.0/static/app-pgconfig.html) utility, which is required to find `PGXS` and build the extension. If a user has it in her path, it will just work. Otherwise, she can point to an alternate one when building:
+Next we have the `PG_CONFIG` variable. This points to the [`pg_config`](http://www.postgresql.org/docs/current/static/app-pgconfig.html) utility, which is required to find `PGXS` and build the extension. If a user has it in her path, it will just work. Otherwise, she can point to an alternate one when building:
 
     make PG_CONFIG=/path/to/pg_config
 
@@ -182,11 +177,7 @@ Thanks to the `?=` operator, it can also be set as an environment variable, whic
 
     env PG_CONFIG=/path/to/pg_config make && make installcheck && make install
 
-The `Makefile` next uses `pg_config` to determine whether the extension is being built against PostgreSQL 9.1 or higher. Based on what it finds, extra steps are taken in the following section. That is, if this line returns true:
-
-    ifeq ($(PG91),yes)
-
-Then we're building against 9.1 or higher. In that case, the extension SQL file gets added to `EXTRA_CLEAN` so that `make clean` will delete it. The `DATA` variable, meanwhile, is changed to hold only SQL file names that contain `--`, because such is the required file naming convention for PostgreSQL 9.1 extensions.
+The extension SQL file gets added to `EXTRA_CLEAN` so that `make clean` will delete it. The `DATA` variable, meanwhile, is changed to hold only SQL file names that contain `--`, because such is the required file naming convention for PostgreSQL extensions.
 
 The next two lines of the `Mafefile` do the actual building by including the `PGXS` `Makefile` distributed with PostgreSQL. `PGXS` knows all about building and installing extensions, based on the variables we've set, and including it makes it do just that.
 
@@ -207,7 +198,7 @@ For more on PostgreSQL extension building support, please consult [the documenta
 To further raise the visibility and utility of your extension for users, you're encouraged to include a few other files, as well:
 
 * A `README` is a great way to introduce the basics of your extension, to give folks a chance to determine its purpose. Installation instructions are also common here. Plus, it makes a a nice addition to the distribution page on PGXN ([example](http://pgxn.org/dist/explanation/)). To get the most benefit, mark it up and save it with a suffix recognized by [Text::Markup](http://search.cpan.org/perldoc?Text::Markup) and get nice HTML formatting on the site.
-* A `Changes` file ([example](http://api.pgxn.org/src/explanation/explanation-0.3.0/Changes)). This file will make it easier for users to determine if they need to upgrade when a new version comes out. 
+* A `Changes` file ([example](http://api.pgxn.org/src/explanation/explanation-0.3.0/Changes)). This file will make it easier for users to determine if they need to upgrade when a new version comes out.
 * `LICENSE`, `INSTALL`, `COPYING`, and `AUTHORS` are likewise also linked from the distribution page.
 
 The most important files to consider adding to your distribution are documentation files. Like the `README`, the API server will parse and index any file recognized by [Text::Markup](http://search.cpan.org/perldoc?Text::Markup). The main PGXN search index contains documentation files, so it's important to have great documentation. Files may be anywhere in the distribution, though of course a top-level `doc` or `docs` directory is recommended (and recognized by the `Makefile` example above).

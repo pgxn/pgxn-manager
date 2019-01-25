@@ -44,12 +44,12 @@ our %Lexicon = (
 </ul>
 
 
-<p>As of PostgreSQL 9.1, however, extensions have been integrated more deeply into the core. With just a bit more work, users who have installed an extension will be able to load it into the database with a simple command:</p>
+<p>With just a bit of work, users who have installed an extension will be able to load it into the database with a simple command:</p>
 
 <pre><code>CREATE EXTENSION pair;
 </code></pre>
 
-<p>No more need to run SQL scripts through <code>psql</code> or to maintain separate schemas to properly keep them packaged up. The documentation <a href="http://www.postgresql.org/docs/9.1/static/extend-extensions.html" title="PostgreSQL Documentation: “Packaging Related Objects into an Extension”">has the details</a>. However, the build infrastructure is the same. From your point of view as a PostgreSQL extension developer, you&rsquo;re still going to use <a href="http://www.postgresql.org/docs/current/static/xfunc-c.html#XFUNC-C-PGXS">PGXS</a> to configure and build your extension, and can distribute it via PGXN.</p>
+<p>No more need to run SQL scripts through <code>psql</code> or to maintain separate schemas to properly keep them packaged up. The documentation <a href="http://www.postgresql.org/docs/current/static/extend-extensions.html" title="PostgreSQL Documentation: “Packaging Related Objects into an Extension”">has the details</a>. However, the build infrastructure is the same. From your point of view as a PostgreSQL extension developer, you&rsquo;re still going to use <a href="http://www.postgresql.org/docs/current/static/xfunc-c.html#XFUNC-C-PGXS">PGXS</a> to configure and build your extension, and can distribute it via PGXN.</p>
 
 <p>All this is not to say that PGXN extensions must be PostgreSQL extensions, except in the sense that they should add something to PostgreSQL. For example, You might want to distribute a command-line utility like <a href="http://pgxn.org/dist/pg_top/">pg_top</a>. That&rsquo;s cool. Just be creative and make PostgreSQL better and you&rsquo;ll be on the right track.</p>
 
@@ -133,7 +133,7 @@ our %Lexicon = (
 
 <h3>We Have Assumed Control</h3>
 
-<p>A second file you should consider including in your distribution is a &ldquo;control file&rdquo;. This file is required by the PostgreSQL 9.1 <a href="http://www.postgresql.org/docs/9.1/static/extend-extensions.html" title="PostgreSQL Documentation: “Packaging Related Objects into an Extension”">extension support</a>. Like <code>META.json</code> it describes your extension, but it&rsquo;s actually much shorter. Really all it needs is a few keys. Here&rsquo;s an example from the <a href="http://pgxn.org/dist/semver/">semver distribution</a> named <code>semver.control</code>:</p>
+<p>A second file you should include in your distribution is a &ldquo;control file&rdquo;. This file is required by the PostgreSQL <a href="http://www.postgresql.org/docs/current/static/extend-extensions.html" title="PostgreSQL Documentation: “Packaging Related Objects into an Extension”">extension support</a>. Like <code>META.json</code> it describes your extension, but it&rsquo;s actually much shorter. Really all it needs is a few keys. Here&rsquo;s an example from the <a href="http://pgxn.org/dist/semver/">semver distribution</a> named <code>semver.control</code>:</p>
 
 <pre><code># semver extension
 comment = 'A semantic version data type'
@@ -142,7 +142,7 @@ module_pathname = '$libdir/semver'
 relocatable = true
 </code></pre>
 
-<p>The <code>default_version</code> value specifies the version of the extension you&rsquo;re distributing, the <code>module_pathname</code> value may be required for C extensions, and the <code>relocatable</code> value determines whether an extension can be moved from one schema to another. These are the keys you will most often use, but there are quite a few <a href="http://www.postgresql.org/docs/9.1/static/extend-extensions.html">other keys</a> you might want to review as you develop your extension.</p>
+<p>The <code>default_version</code> value specifies the version of the extension you&rsquo;re distributing, the <code>module_pathname</code> value may be required for C extensions, and the <code>relocatable</code> value determines whether an extension can be moved from one schema to another. These are the keys you will most often use, but there are quite a few <a href="http://www.postgresql.org/docs/current/static/extend-extensions.html">other keys</a> you might want to review as you develop your extension.</p>
 
 <p>For database objects, you are <em>strongly encouraged</em> to include a control file and support for <code>CREATE EXTENSION</code> in your <code>Makefile</code>. This is the way of the future folks, and, frankly, quite easy to do.</p>
 
@@ -195,17 +195,14 @@ include $(PGXS)
 
 <p>The <code>MODULES</code> variable finds <code>.c</code> files in the <code>src</code> directory. The <code>pair</code> data type has no C code, but the line is harmless here and will just start to work if C support is added later.</p>
 
-<p>Next we have the <code>PG_CONFIG</code> variable. This points to the <a href="http://www.postgresql.org/docs/9.0/static/app-pgconfig.html"><code>pg_config</code></a> utility, which is required to find <code>PGXS</code> and build the extension. If a user has it in her path, it will just work. Otherwise, she can point to an alternate one when building:</p>
+<p>Next we have the <code>PG_CONFIG</code> variable. This points to the <a href="http://www.postgresql.org/docs/current/static/app-pgconfig.html"><code>pg_config</code></a> utility, which is required to find <code>PGXS</code> and build the extension. If a user has it in her path, it will just work. Otherwise, she can point to an alternate one when building:</p>
 
 <pre><code>make PG_CONFIG=/path/to/pg_config
 </code></pre>
 
-<p>The <code>Makefile</code> next uses <code>pg_config</code> to determine whether the extension is being built against PostgreSQL 9.1 or higher. Based on what it finds, extra steps are taken in the following section. That is, if this line returns true:</p>
+<p>The <code>Makefile</code> next uses <code>pg_config</code> to determine whether the extension is being built against PostgreSQL. Based on what it finds, extra steps are taken in the following section.
 
-<pre><code>ifeq ($(PG91),yes)
-</code></pre>
-
-<p>Then we&rsquo;re building against 9.1 or higher. In that case, the extension SQL file gets copied to <code>$EXTENSION--$EXTVERSION.sql</code> and added to <code>EXTRA_CLEAN</code> so that <code>make clean</code> will delete it. The <code>DATA</code> variable, meanwhile, is changed to hold only SQL file names that contain <code>--</code>, because such is the required file naming convention for PostgreSQL 9.1 extensions.</p>
+<p>The extension SQL file gets copied to <code>$EXTENSION--$EXTVERSION.sql</code> and added to <code>EXTRA_CLEAN</code> so that <code>make clean</code> will delete it. The <code>DATA</code> variable, meanwhile, is changed to hold only SQL file names that contain <code>--</code>, because such is the required file naming convention for PostgreSQL extensions.</p>
 
 <p>The last two lines of the <code>Mafefile</code> do the actual building by including the <code>PGXS</code> <code>Makefile</code> distributed with PostgreSQL. <code>PGXS</code> knows all about building and installing extensions, based on the variables we&rsquo;ve set, and including it makes it do just that.</p>
 
@@ -216,7 +213,7 @@ make install
 make installcheck PGDATABASE=postgres
 </code></pre>
 
-<p>For more on PostgreSQL extension building support, please consult <a href="http://www.postgresql.org/docs/9/static/xfunc-c.html#XFUNC-C-PGXS">the documentation</a>.</p>
+<p>For more on PostgreSQL extension building support, please consult <a href="http://www.postgresql.org/docs/current/static/xfunc-c.html#XFUNC-C-PGXS">the documentation</a>.</p>
 
 <h3>What&rsquo;s up, Doc?</h3>
 

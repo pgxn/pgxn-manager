@@ -110,7 +110,7 @@ distribution
 extension
 :   A reusable library of code contained in a single file or within files
     referenced by the [`CREATE EXTENSION`
-    statement](http://www.postgresql.org/docs/9.1/static/sql-createextension.html).
+    statement](http://www.postgresql.org/docs/current/static/sql-createextension.html).
     Extensions usually contain one or more PostgreSQL objects — such as data
     types, functions, and operators — and are often referred to by the name of
     a primary object that can be mapped to the file name. For example, one
@@ -318,7 +318,7 @@ The [List](#List) type may be used as a shortcut to identify one or more
 well-known licenses. The following list of [License Strings](#License.String)
 are valid in the [List](#List) representation:
 
-   string     |                     description                      
+   string     |                     description
 --------------|------------------------------------------------------
  agpl_3       | GNU Affero General Public License, Version 3
  apache_1_1   | Apache Software License, Version 1.1
@@ -348,7 +348,7 @@ are valid in the [List](#List) representation:
 The following [License Strings](#License.String) are also valid and indicate
 other licensing not described above:
 
-   string     |                     description                      
+   string     |                     description
 --------------|------------------------------------------------------
  open_source  | Other Open Source Initiative (OSI) approved license
  restricted   | Requires special permission from copyright holder
