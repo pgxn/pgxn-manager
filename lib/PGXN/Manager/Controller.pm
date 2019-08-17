@@ -9,6 +9,7 @@ use PGXN::Manager::Templates;
 use aliased 'PGXN::Manager::Distribution';
 use HTML::Entities;
 use JSON::XS;
+use Email::Address;
 use Encode;
 use File::Temp ();
 use Data::Dump 'pp';
