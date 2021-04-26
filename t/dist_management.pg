@@ -1116,7 +1116,7 @@ SELECT bag_eq(
 '), ('stats','tag','{
    "count": 6,
    "popular": [
-      {"tag": "foo", "dists": 2},
+      {"tag": "Foo", "dists": 2},
       {"tag": "bar", "dists": 1},
       {"tag": "baz", "dists": 1},
       {"tag": "heavy", "dists": 1},

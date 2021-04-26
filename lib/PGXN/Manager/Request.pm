@@ -95,25 +95,16 @@ sub remote_host {
     return $env->{X_FORWARDED_HOST} || $env->{REMOTE_HOST};
 }
 
-# Eliminates use of env->{'plack.request.query'}?
-sub query_parameters {
+sub _query_parameters {
     my $self = shift;
-    $self->{decoded_query_params} ||= Hash::MultiValue->new(
-        $self->_decode($self->uri->query_form)
-    );
+    my $enc = $self->headers->content_type_charset || 'UTF-8';
+    [ map { decode $enc, $_, $CHECK } @{ $self->SUPER::_query_parameters } ]
 }
 
-# XXX Consider replacing using env->{'plack.request.body'}?
-sub body_parameters {
+sub _body_parameters {
     my $self = shift;
-    $self->{decoded_body_params} ||= Hash::MultiValue->new(
-        $self->_decode($self->SUPER::body_parameters->flatten)
-    );
-}
-
-sub _decode {
-    my $enc = shift->headers->content_type_charset || 'UTF-8';
-    map { decode $enc, $_, $CHECK } @_;
+    my $enc = $self->headers->content_type_charset || 'UTF-8';
+    [ map { decode $enc, $_, $CHECK } @{ $self->SUPER::_body_parameters } ]
 }
 
 1;
@@ -234,10 +225,12 @@ the IP address using C<address> method and resolve on your own.
 
 =head3 C<body_parameters>
 
-These two methods override the versions from L<Plack::Request> to decode all
-parameters to Perl's internal representation. Tries to use the encoding
-specified by the request or, if there is none, assumes UTF-8. This should be
-safe as browsers will submit in the same encoding as the form was rendered in.
+=head3 C<parameters>
+
+These methods decode all parameters to Perl's internal representation. Tries
+to use the encoding specified by the request or, if there is none, assumes
+UTF-8. This should be safe as browsers will submit in the same encoding as
+the form was rendered in.
 
 =head1 Author
 

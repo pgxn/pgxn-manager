@@ -37,3 +37,4 @@ Reindexes
 reindexes
 JSON
 IP
+merchantability

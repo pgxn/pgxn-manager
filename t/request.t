@@ -133,9 +133,9 @@ ok $req = PGXN::Manager::Request->new({
     QUERY_STRING => "q=%E3%83%A1%E3%82%A4%E3%83%B3%E3%83%9A%E3%83%BC%E3%82%B8",
 }), 'Create request with unicode query string';
 is_deeply $req->query_parameters, { q => "メインページ" },
-    'All params should be decoded';
-is_deeply $req->parameters, { q => "メインページ" },
     'Query params should be decoded';
+is_deeply $req->parameters, { q => "メインページ" },
+    'All params should be decoded';
 is $req->param('q'), "メインページ", 'q param should be decoded';
 
 # Try setting content type of submission.

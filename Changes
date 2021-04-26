@@ -4,7 +4,7 @@ Revision history for Perl extension PGXN::Manager
        - Explicitly loading Email::Address in PGXN::Manager::Controller
          to avoid an issue where it's not loaded at all.
        - Return a 404 instead of an error on an invalid semantic version
-         when requesting a distribution and version.
+         when requesting a distribution and version (issue #66).
        - Require SemVer v0.10.0 and pg-semver 0.3.10. These releases properly
          support the semver 2.0.0 spec (aside from version parts larger than 32
          bits).
