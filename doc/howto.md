@@ -44,7 +44,7 @@ If you have only one `.sql` file for your extension and it's the same name as th
        },
     }
     
-That's it. One thing that may not be obvious from this example is that all version numbers in a `META.json` *must* be [semantic versions](http://semver.org/spec/v1.0.0.html), including for core dependencies like plperl or PostgreSQL itself. If they're not, PGXN not index your distribution. If you don't want to read rhough the [Semantic Versioning 1.0.0 spec](http://semver.org/spec/v1.0.0.htm), just use thee-part dotted integers (such as "1.2.0") and don't worry about it.
+That's it. One thing that may not be obvious from this example is that all version numbers in a `META.json` *must* be [semantic versions](https://semver.org/spec/v2.0.0.html), including for core dependencies like plperl or PostgreSQL itself. If they're not, PGXN not index your distribution. If you don't want to read through the [Semantic Versioning 2.0.0 spec](https://semver.org/spec/v2.0.0.html), just use thee-part dotted integers (such as "1.2.0") and don't worry about it.
 
 The other thing that might be confusing here is the redundant information in the `provides` section. While the `name`, `abstract`, and `version` keys at the top level of the JSON describe the distribution itself, the `provides` section contains a list of all the extensions provided by the distribution. There is only one extension in this distrbibution, but hence the duplication. But in some cases, such as [pgTAP](http://pgxn.org/dist/pgtap/), there will be multiple extensions, each with its own information. PGXN also uses this information to assign ownership of the specified extension names to you -- if they haven't been claimed by any previous distribution.
 

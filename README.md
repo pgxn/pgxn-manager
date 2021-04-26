@@ -64,7 +64,7 @@ Installation
             cd ..
         done
 
-* Install the PostreSQL `semver` extension v0.3.0 or higher. It's available
+* Install the PostreSQL `semver` extension v0.31.0 or higher. It's available
   from PGXN itself. Grab [the latest release](http://pgxn.org/dist/semver/)
   and follow its installation instructions.
 

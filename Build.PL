@@ -95,7 +95,7 @@ $class->new(
         'Pod::Usage'                        => '1.33',
         'namespace::autoclean'              => '0.11',
         'Router::Resource'                  => '0.11',
-        'SemVer'                            => '0.4.0',
+        'SemVer'                            => '0.10.0',
         'Template::Declare'                 => '0.43',
         'Template::Declare::Tags'           => '0.43',
         'Try::Tiny'                         => '0.06',
