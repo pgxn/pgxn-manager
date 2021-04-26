@@ -2,7 +2,7 @@
 
 use 5.10.0;
 use utf8;
-use Test::More tests => 240;
+use Test::More tests => 244;
 #use Test::More 'no_plan';
 use Test::MockModule;
 use Plack::Test;
@@ -38,6 +38,18 @@ test_psgi $app => sub {
 # Connect as authenticated user.
 test_psgi $app => sub {
     my $cb  = shift;
+    my $req = GET $uri, Authorization => 'Basic ' . encode_base64("$user:****");
+
+    ok my $res = $cb->($req), "Get $uri with auth token";
+    ok !$res->is_success, 'Response should not be success';
+    is $res->code, 404, 'Response code should be 404';
+    is_well_formed_xml $res->content, 'The HTML should be well-formed';
+};
+
+# Test an invalid version.
+test_psgi $app => sub {
+    my $cb  = shift;
+    (my $uri = $uri) =~ s{[^/]+$}{not-a-version};
     my $req = GET $uri, Authorization => 'Basic ' . encode_base64("$user:****");
 
     ok my $res = $cb->($req), "Get $uri with auth token";

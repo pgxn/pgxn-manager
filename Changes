@@ -3,6 +3,8 @@ Revision history for Perl extension PGXN::Manager
 0.16.1
        - Explicitly loading Email::Address in PGXN::Manager::Controller
          to avoid an issue where it's not loaded at all.
+       - Return a 404 instead of an error on an invalid semantic version
+         when requesting a distribution and version.
 
 0.16.0  2015-08-31T18:25:24Z
        - Updated the `Makefile` example in the HOWTO to extract the extension

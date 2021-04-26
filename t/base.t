@@ -133,7 +133,7 @@ is_deeply { $email->header_pairs }, {
     'Subject'      => 'Hi',
     'MIME-Version' => '1.0',
     'Date'         => $email->header('Date'),
-    'Content-Type' => 'text/plain; charset="UTF-8"',
+    'Content-Type' => 'text/plain; charset=UTF-8',
 }, 'The headers should be correct';
 
 is $email->body, 'How you doin?', 'The body should be correct';

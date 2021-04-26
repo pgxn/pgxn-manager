@@ -15,6 +15,7 @@ use File::Temp ();
 use Data::Dump 'pp';
 use Data::Validate::URI 'is_uri';
 use Try::Tiny;
+use SemVer;
 use namespace::autoclean;
 
 our $VERSION = v0.16.1;
@@ -601,6 +602,10 @@ sub distribution {
     my $self = shift;
     my $req  = Request->new(shift);
     my $p    = shift;
+
+    # Just bail if not a valid semantic version.
+    return $self->respond_with('notfound', $req)
+        unless try { SemVer->new($p->{version}) };
 
     my $dist = PGXN::Manager->conn->run(sub {
         shift->selectrow_hashref(q{
