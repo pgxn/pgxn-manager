@@ -4,18 +4,17 @@ PGXN/Manager version 0.16.1
 This application provides a Web interface and REST API for extension owners to
 upload and manage extensions on PGXN, the PostgreSQL Extension Network. It
 also provides an administrative interface for PGXN administrators. For more
-information, visit the [PGXN site](http://pgxn.org/). For a working
+information, visit the [PGXN site](https://pgxn.org/). For a working
 deployment, hit [PGXN Manager](http://manager.pgxn.org/).
-
 
 Installation
 ------------
 
 * First, you need to satisfy the dependencies. These include:
 
-  + [Perl](http://www.perl.org/) 5.10.0 or higher (5.12 or higher strongly
+  + [Perl](https://www.perl.org/) 5.10.0 or higher (5.12 or higher strongly
     recommended)
-  + [PostgreSQL](http://www.postgresql.org/) 9.0.0 or higher with support for
+  + [PostgreSQL](https://www.postgresql.org/) 9.0.0 or higher with support for
     PL/Perl included.
 
 * Next, you'll need to install all CPAN dependencies. To determine what they
@@ -30,7 +29,6 @@ Installation
 * Configure the PostgreSQL server to preload modules used by PL/Perl
   functions. Just add these lines to the end of your `postgresql.conf` file:
 
-        custom_variable_classes = 'plperl'
         plperl.use_strict = on
         plperl.on_init='use 5.12.0; use JSON::XS; use Email::Valid; use Data::Validate::URI; use SemVer; use PGXN::Meta::Validator;'
 
@@ -40,11 +38,11 @@ Installation
        shared_preload_libraries = '$libdir/plperl'
 
 * Install these PostgreSQL core
-  [extensions](http://www.postgresql.org/docs/current/static/contrib.html):
+  [extensions](https://www.postgresql.org/docs/current/static/contrib.html):
 
-    + [citext](http://www.postgresql.org/docs/current/static/citext.html)
-    + [hstore](http://www.postgresql.org/docs/current/static/hstore.html)
-    + [pgcrypto](http://www.postgresql.org/docs/current/static/pgcrypto.html)
+    + [citext](https://www.postgresql.org/docs/current/static/citext.html)
+    + [hstore](https://www.postgresql.org/docs/current/static/hstore.html)
+    + [pgcrypto](https://www.postgresql.org/docs/current/static/pgcrypto.html)
 
   If you installed from source, you can either install all the core
   extensions, like so:
@@ -65,7 +63,7 @@ Installation
         done
 
 * Install the PostreSQL `semver` extension v0.31.0 or higher. It's available
-  from PGXN itself. Grab [the latest release](http://pgxn.org/dist/semver/)
+  from PGXN itself. Grab [the latest release](https://pgxn.org/dist/semver/)
   and follow its installation instructions.
 
 * Create a "pgxn" system user and the master mirror directory:
@@ -83,10 +81,10 @@ Installation
         cp conf/local.json conf/prod.json
 
   Change the DSN if you'd like to use a different database name or connect to
-  another host. (Consult the [DBI](http://search.cpan.org/perldoc?DBI) and
-  [DBD::Pg](http://search.cpan.org/perldoc?DBD::Pg) documentation for details
-  on the attributes that can be included in the DSN). You can also change the
-  templates for the files that will be managed on the master mirror.
+  another host. (Consult the [DBI](https://metacpan.org/pod/DBI) and
+  [DBD::Pg](https://metacpan.org/pod/DBD::Pg) documentation for details on the
+  attributes that can be included in the DSN). You can also change the templates
+  for the files that will be managed on the master mirror.
 
 * If you're using PostgreSQL 9.0, you'll need to load the extensions into the
   template database so that they'll be included in the PGXN database when it's
@@ -133,7 +131,7 @@ Installation
         psql -U postgres -c 'ALTER DATABASE pgxn_manager SET search_path = "$user",public,contrib;'
 
 * If you'd like to run the test suite, you'll need to install pgTAP from
-  [pgTAP](http://pgtap.org/). Download it and install it like so:
+  [pgTAP](https://pgtap.org/). Download it and install it like so:
 
         gmake
         gmake install
@@ -205,7 +203,7 @@ way to separate these is to set up two reverse proxy servers: One to serve
 * Get or create an SSL certificate and install it in your system.
 
 * Create the reverse proxy hosts. Here's what the
-  [mod_proxy](http://httpd.apache.org/docs/2.2/mod/mod_proxy.html)
+  [mod_proxy](https://httpd.apache.org/docs/current/mod/mod_proxy.html)
   configuration for manager.pgxn.org looks like, both apps to a a
   PGXN::Manager instance running locally on port 7496:
 
@@ -234,20 +232,20 @@ way to separate these is to set up two reverse proxy servers: One to serve
         </VirtualHost>
 
     Note that to do this, you need to have
-    [mod_proxy](http://httpd.apache.org/docs/2.2/mod/mod_proxy.html),
-    [mod_headers](http://httpd.apache.org/docs/2.2/mod/mod_headers.html), and
-    [mod_ssl](http://httpd.apache.org/docs/2.2/mod/mod_ssl.html) built and
-    installed in your Apache server (most distributions do). The value of
+    [mod_proxy](https://httpd.apache.org/docs/current/mod/mod_proxy.html),
+    [mod_headers](https://httpd.apache.org/docs/current/mod/mod_headers.html),
+    and [mod_ssl](https://httpd.apache.org/docs/current/mod/mod_ssl.html) built
+    and installed in your Apache server (most distributions do). The value of
     `X-Forwarded-Script-Name` should be the relative path to the app from the
     proxy server. Here `ProxyPass` is set to `/`, so the value should be the
     empty string. The other headers need to be set to ensure that URLs are
     properly rewritten by
-    [Plack::Middleware::ReverseProxy](http://search.cpan.org/perloc?Plack::Middleware::ReverseProxy)
+    [Plack::Middleware::ReverseProxy](https://metacpan.org/pod/Plack::Middleware::ReverseProxy)
     and clients can't spoof the values to fool the server into thinking it's
     running under HTTPS when it's not.
 
     Here's the equivalent configuration using
-    [NGINX ngx_http_proxy_module](http://nginx.org/en/docs/http/ngx_http_proxy_module.html):
+    [NGINX ngx_http_proxy_module](https://nginx.org/en/docs/http/ngx_http_proxy_module.html):
 
         server {
             server_name manager.pgxn.org
@@ -291,7 +289,7 @@ way to separate these is to set up two reverse proxy servers: One to serve
     management interface will not work.
 
 * Install
-  [Plack::Middleware::ReverseProxy](http://search.cpan.org/perloc?Plack::Middleware::ReverseProxy)
+  [Plack::Middleware::ReverseProxy](https://metacpan.org/pod/Plack::Middleware::ReverseProxy)
   from CPAN:
 
         cpan Plack::Middleware::ReverseProxy
@@ -346,7 +344,7 @@ Copyright and License
 Copyright (c) 2010-2011 David E. Wheeler.
 
 This module is free software; you can redistribute it and/or modify it under
-the [PostgreSQL License](http://www.opensource.org/licenses/postgresql).
+the [PostgreSQL License](https://www.opensource.org/licenses/postgresql).
 
 Permission to use, copy, modify, and distribute this software and its
 documentation for any purpose, without fee, and without a written agreement is
