@@ -191,7 +191,7 @@ include $(PGXS)
 
 <p>The <code>EXTENSION</code> variable identifies the extension you&rsquo;re distributing. <code>EXTVERSION</code> identifies its version, which is here read from the control file, so you only have to edit it there (and in the <code>META.json</code> file).</p>
 
-<p>The <code>DATA</code> variable identifies the SQL files containing the extension, while <code>TESTS</code> loads a list test files, which are in the <code>test/sql</code> directory. Note that the <code>pair</code> distribution uses <code>pg_regress</code> for tests, and <code>pg_reqress</code> expects that test files will have corresponding &ldquo;expected&rdquo; files to compare against. With the <code>REGRESS_OPTS = --inputdir=test</code> line, The distribution tells <code>pg_regess</code> to find the test files in <a href="http://github.com/theory/kv-pair/tree/master/test/sql/"><code>test/sql</code></a> and the expected output files in <a href="http://github.com/theory/kv-pair/tree/master/test/expected/"><code>test/expected</code></a>. And finally, the <code>DOCS</code> variable finds all the files ending in <code>.md</code> in the <a href="http://github.com/theory/kv-pair/tree/master/doc/"><code>doc</code> directory</a>.</p>
+<p>The <code>DATA</code> variable identifies the SQL files containing the extension, while <code>TESTS</code> loads a list test files, which are in the <code>test/sql</code> directory. Note that the <code>pair</code> distribution uses <code>pg_regress</code> for tests, and <code>pg_reqress</code> expects that test files will have corresponding &ldquo;expected&rdquo; files to compare against. With the <code>REGRESS_OPTS = --inputdir=test</code> line, The distribution tells <code>pg_regess</code> to find the test files in <a href="http://github.com/theory/kv-pair/tree/main/test/sql/"><code>test/sql</code></a> and the expected output files in <a href="http://github.com/theory/kv-pair/tree/main/test/expected/"><code>test/expected</code></a>. And finally, the <code>DOCS</code> variable finds all the files ending in <code>.md</code> in the <a href="http://github.com/theory/kv-pair/tree/main/doc/"><code>doc</code> directory</a>.</p>
 
 <p>The <code>MODULES</code> variable finds <code>.c</code> files in the <code>src</code> directory. The <code>pair</code> data type has no C code, but the line is harmless here and will just start to work if C support is added later.</p>
 
@@ -248,7 +248,7 @@ make installcheck PGDATABASE=postgres
 <p>Once you&rsquo;ve got your extension developed and well-tested, and your distribution just right &mdash; with the <code>META.json</code> file all proof-read and solid a nice <code>README</code> and comprehensive docs &mdash; it&rsquo;s time to wake up, and release it! What you want to do is to zip it up to create a distribution archive. Here&rsquo;s how the <code>pair</code> distribution &mdash; which is maintained in Git &mdash; was prepared:</p>
 
 <pre><code>git archive --format zip --prefix=pair-0.1.2/ \
---output ~/Desktop/pair-0.1.2.zip master
+--output ~/Desktop/pair-0.1.2.zip main
 </code></pre>
 
 <p>Then the <code>pair-0.1.0.zip</code> file was ready to release. Simple, eh?</p>
@@ -261,7 +261,7 @@ make installcheck PGDATABASE=postgres
 
 <p>Good hacking!</p>},
 
-    'Sorry, but this URL is invalid. I think you either want <a href="$url">/pub/</a> or to run PGXN Manager behind a reverse proxy server. See <a href="https://github.com/pgxn/pgxn-manager/blob/master/README.md">the README</a> for details.' => 'Sorry, but this URL is invalid. I think you either want <a href="$url">/pub/</a> or to run PGXN Manager behind a reverse proxy server. See <a href="https://github.com/pgxn/pgxn-manager/blob/master/README.md">the README</a> for details.',
+    'Sorry, but this URL is invalid. I think you either want <a href="$url">/pub/</a> or to run PGXN Manager behind a reverse proxy server. See <a href="https://github.com/pgxn/pgxn-manager/blob/main/README.md">the README</a> for details.' => 'Sorry, but this URL is invalid. I think you either want <a href="$url">/pub/</a> or to run PGXN Manager behind a reverse proxy server. See <a href="https://github.com/pgxn/pgxn-manager/blob/main/README.md">the README</a> for details.',
 
     '“[_1] [_2]” is not a known release' => '“[_1] [_2]” is not a known release',
 );

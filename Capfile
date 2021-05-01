@@ -24,7 +24,7 @@ set :repository,  "https://github.com/pgxn/pgxn-manager.git"
 set :scm,         :git
 set :deploy_via,  :remote_cache
 set :use_sudo,    false
-set :branch,      "master"
+set :branch,      "main"
 set :deploy_to,   "~/pgxn-manager"
 set :run_from,    "/var/virtuals/pgxn/#{application}.#{domain}"
 set :mirror_root, "/var/virtuals/pgxn/master.#{domain}"
@@ -38,10 +38,10 @@ set :shared_children, %w(log pids conf)
 role :app, host
 
 namespace :deploy do
-  desc 'Confirm attempts to deploy master'
+  desc 'Confirm attempts to deploy main'
   task :check_branch do
-    if self[:branch] == 'master'
-      unless Capistrano::CLI.ui.agree("\n    Are you sure you want to deploy master? ")
+    if self[:branch] == 'main'
+      unless Capistrano::CLI.ui.agree("\n    Are you sure you want to deploy main? ")
         puts "\n", 'Specify a branch via "-s branch=vX.X.X"', "\n"
         exit
       end
