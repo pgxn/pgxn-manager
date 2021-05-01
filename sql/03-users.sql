@@ -45,7 +45,7 @@ CREATE OR REPLACE FUNCTION insert_user(
         password  := '***',
         full_name := 'David Wheeler',
         email     := 'theory@pgxn.org',
-        uri       := 'http://justatheory.com/',
+        uri       := 'https://justatheory.com/',
         twitter   := 'theory',
         why       := 'Because I’m a bitchin’ Pg developer, yo.'
     );
@@ -63,11 +63,11 @@ full_name
 
 email
 : The email address of the user. Must be a valid email address as verified by
-  [Email::Valid](http://search.cpan.org/perldoc?Email::Valid).
+  [Email::Valid](https://metacpan.org/pod/Email::Valid).
 
 uri
 : Optional URI for the user. Should be a valid URI as verified by
-  [Data::Validate::URI](http://search.cpan.org/perldoc?Data::Validate::URI).
+  [Data::Validate::URI](https://metacpan.org/pod/Data::Validate::URI).
 
 twitter
 : Optional Twitter username. Case-insensitive. A leading "@" will be removed.
@@ -151,7 +151,7 @@ CREATE OR REPLACE FUNCTION update_user(
         nickname  := 'theory',
         full_name := 'David E. Wheeler',
         email     := 'justatheory@pgxn.org',
-        uri       := 'http://www.justatheory.com/',
+        uri       := 'https://www.justatheory.com/',
         twitter   :- 'theory'
     );
      update_user 
@@ -167,11 +167,11 @@ full_name
 
 email
 : The email address of the user. Must be a valid email address as verified by
-  [Email::Valid](http://search.cpan.org/perldoc?Email::Valid).
+  [Email::Valid](https://metacpan.org/pod/Email::Valid).
 
 uri
 : Optional URI for the user. Should be a valid URI as verified by
-  [Data::Validate::URI](http://search.cpan.org/perldoc?Data::Validate::URI).
+  [Data::Validate::URI](https://metacpan.org/pod/Data::Validate::URI).
 
 twitter
 : Optional Twitter username. A leading "@" wil be removed.

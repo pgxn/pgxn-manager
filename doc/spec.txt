@@ -21,7 +21,7 @@ Synopsis
           "pgTAP List <pgtap-users@pgfoundry.org>"
        ],
        "license": {
-          "PostgreSQL": "http://www.postgresql.org/about/licence"
+          "PostgreSQL": "https://www.postgresql.org/about/licence"
        },
        "prereqs": {
           "runtime": {
@@ -49,9 +49,9 @@ Synopsis
          }
        },
        "resources": {
-          "homepage": "http://pgtap.org/",
+          "homepage": "https://pgtap.org/",
           "bugtracker": {
-             "web": "http://github.com/theory/pgtap/issues"
+             "web": "https://github.com/theory/pgtap/issues"
           },
           "repository": {
             "url":  "https://github.com/theory/pgtap.git",
@@ -62,7 +62,7 @@ Synopsis
        "generated_by": "David E. Wheeler",
        "meta-spec": {
           "version": "1.0.0",
-          "url": "http://pgxn.org/meta/spec.txt"
+          "url": "https://pgxn.org/meta/spec.txt"
        },
        "tags": [
           "testing",
@@ -78,11 +78,11 @@ Description
 
 This document describes version 1.0.0 of the PGXN distribution metadata
 specification, also known as the “PGXN Meta Spec.” It is formatted using the
-[MultiMarkdown](http://fletcherpenney.net/multimarkdown/) variant of
-[Markdown](http://daringfireball.net/projects/markdown/), and the canonical
+[MultiMarkdown](https://fletcherpenney.net/multimarkdown/) variant of
+[Markdown](https://daringfireball.net/projects/markdown/), and the canonical
 copy may always be found at
-[master.pgxn.org/meta/spec.txt](http://master.pgxn.org/meta/spec.txt). A
-generated HTML-formatted copy found at [pgxn.org/spec/](http://pgxn.org/spec/)
+[master.pgxn.org/meta/spec.txt](https://master.pgxn.org/meta/spec.txt). A
+generated HTML-formatted copy found at [pgxn.org/spec/](https://pgxn.org/spec/)
 may also be considered canonical.
 
 This document is stable. Any revisions to this specification for typo
@@ -103,14 +103,14 @@ distribution
     document it usually refers to a collection of extensions, source code,
     utilities, tests, and/or documents that are distributed together for other
     developers to use. Examples of distributions are
-    [`semver`](http://pgxn.org/dist/semver/),
-    [`pair`](http://pgxn.org/dist/pair/), and
-    [`pgTAP`](http://pgxn.org/dist/pgTAP/).
+    [`semver`](https://pgxn.org/dist/semver/),
+    [`pair`](https://pgxn.org/dist/pair/), and
+    [`pgTAP`](https://pgxn.org/dist/pgTAP/).
 
 extension
 :   A reusable library of code contained in a single file or within files
     referenced by the [`CREATE EXTENSION`
-    statement](http://www.postgresql.org/docs/9.1/static/sql-createextension.html).
+    statement](https://www.postgresql.org/docs/9.1/static/sql-createextension.html).
     Extensions usually contain one or more PostgreSQL objects — such as data
     types, functions, and operators — and are often referred to by the name of
     a primary object that can be mapped to the file name. For example, one
@@ -126,7 +126,7 @@ producer
 
 must, should, may, etc.
 :   These terms are interpreted as described in [IETF RFC
-    2119](http://www.ietf.org/rfc/rfc2119.txt).
+    2119](https://www.ietf.org/rfc/rfc2119.txt).
 
 Data Types
 ==========
@@ -234,7 +234,7 @@ which the definition was modified, whether the key is *required* or
 are in parentheses, brackets, and braces, respectively.
 
 If a data type is a [Map](#Map) or [Map](#Map) subtype, valid subkeys will be
-described as well. All examples are represented as [JSON](http://json.org/).
+described as well. All examples are represented as [JSON](https://json.org/).
 
 <!-- Nothing deprecated yet.
 
@@ -291,12 +291,12 @@ author.
 Examples:
 
     "license": {
-      "PostgreSQL": "http://www.postgresql.org/about/licence"
+      "PostgreSQL": "https://www.postgresql.org/about/licence"
     }
 
     "license": {
-      "Perl 5": "http://dev.perl.org/licenses/",
-      "BSD": "http://www.opensource.org/licenses/bsd-license.html"
+      "Perl 5": "https://dev.perl.org/licenses/",
+      "BSD": "https://www.opensource.org/licenses/bsd-license.html"
     }
 
     "license": "perl_5"
@@ -409,7 +409,7 @@ Example:
 
     "meta-spec": {
       "version": "1.0.0",
-      "url": "http://pgxn.org/meta/spec.txt"
+      "url": "https://pgxn.org/meta/spec.txt"
     }
 
 (Spec 1) [required] {[Map](#Map)}
@@ -595,17 +595,17 @@ for PGXN or other repositories. If this field is not present, consumers
 Example:
 
     "resources": {
-      "homepage": "http://pgxn.org/",
+      "homepage": "https://pgxn.org/",
       "bugtracker": {
-        "web": "http://github.com/theory/pgtap/issues",
+        "web": "https://github.com/theory/pgtap/issues",
         "mailto": "pgxn-bugs@example.com"
       },
       "repository": {
         "url": "git://github.com/theory/pgtap.git",
-        "web": "http://github.com/theory/pgtap/",
+        "web": "https://github.com/theory/pgtap/",
         "type": "git"
       },
-      "x_twitter": "http://twitter.com/pgtap/"
+      "x_twitter": "https://twitter.com/pgtap/"
     }
 
 (Spec 1) [optional] {[Map](#Map)}
@@ -638,7 +638,7 @@ repository
 <dd><p>a lowercase string indicating the VCS used</p></dd>
 </dl>
 
-:   Because a URI like `http://myrepo.example.com/` is ambiguous as to type,
+:   Because a URI like `https://myrepo.example.com/` is ambiguous as to type,
     producers should provide a `type` whenever a `url` key is given. The
     `type` field should be the name of the most common program used to work
     with the repository, e.g. git, svn, cvs, darcs, bzr or hg.
@@ -653,12 +653,12 @@ This section defines the [Version](#Version) type, used by several
 fields in the PGXN Meta Spec.
 
 Version numbers must be treated as strings, and adhere to the [Semantic
-Versioning Specification](http://semver.org/). Semantic versions take a
+Versioning Specification](https://semver.org/). Semantic versions take a
 dotted-integer format consisting of three positive integers separated by full
 stop characters (i.e. “dots”, “periods” or “decimal points”). A “special
 version” *may* be denoted by appending an arbitrary ASCII string immediately
 following the patch version. Please see
-[the specification](http://semver.org/) for all details on the format.
+[the specification](https://semver.org/) for all details on the format.
 
 Version Ranges
 --------------
@@ -823,7 +823,7 @@ Notes For Implementors
 Comparing Version Numbers
 -------------------------
 
-Following the [Semantic Versioning Spec](http://semver.org/), version numbers
+Following the [Semantic Versioning Spec](https://semver.org/), version numbers
 **must** be strictly compared by splitting the [Version](#Version)
 string on full stop characters (i.e. “dots”, “periods” or “decimal points”)
 and comparing each of the three parts as integers. If an ASCII string has been
@@ -840,15 +840,15 @@ un-encumbered third integer of the same value. Some examples:
 See Also
 ========
 
-* [CPAN Meta Spec](http://search.cpan.org/perldoc?CPAN::Meta::Spec)
-* [PGXN](http://www.pgxn.org/)
-* [JSON](http://json.org/)
-* [Semantic Versioning](http://semver.org/)
+* [CPAN Meta Spec](https://metacpan.org/pod/CPAN::Meta::Spec)
+* [PGXN](https://www.pgxn.org/)
+* [JSON](https://json.org/)
+* [Semantic Versioning](https://semver.org/)
 
 Contributors
 ============
 
 The PGXN Meta Spec borrows heavily from the [CPAN Meta
-Spec](http://search.cpan.org/perldoc?CPAN::Meta::Spec), which was originally
+Spec](https://metacpan.org/pod/CPAN::Meta::Spec), which was originally
 written by Ken Williams in 2003 and has since been updated by Randy Sims,
 David Golden, and Ricardo Signes. Ported to PGXN by David E. Wheeler.

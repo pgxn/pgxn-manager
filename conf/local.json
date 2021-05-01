@@ -11,7 +11,7 @@
         ["StackTrace", "no_print_errors", 1]
     ],
     "mirror_root": "/var/www/master.pgxn.org",
-    "mirror_uri": "http://master.pgxn.org",
+    "mirror_uri": "https://master.pgxn.org",
     "admin_email": "PGXN Admins <pgxn@pgexperts.com>",
     "alert_email": "PGXN Admins <pgxn-admins@googlegroups.com>",
     "uri_templates": {
@@ -26,7 +26,7 @@
         "mirrors":   "/meta/mirrors.json",
         "spec":      "/meta/spec.{format}"
     },
-    "release_permalink": "http://pgxn.org/dist/{dist}/",
+    "release_permalink": "https://pgxn.org/dist/{dist}/",
     "twitter": {
         "consumer_key": "",
         "consumer_secret": "",

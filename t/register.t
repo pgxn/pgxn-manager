@@ -95,7 +95,7 @@ test_psgi $app => sub {
                     title => $mt->maketext('Got a blog or personal site?'),
                     label => $mt->maketext('URI'),
                     type  => 'url',
-                    phold => 'http://blog.example.com/',
+                    phold => 'https://blog.example.com/',
                     class => '',
                 },
                 {

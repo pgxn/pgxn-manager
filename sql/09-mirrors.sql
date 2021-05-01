@@ -55,7 +55,7 @@ CREATE OR REPLACE FUNCTION insert_mirror(
 
     % SELECT insert_mirror(
         admin        := 'theory',
-        uri          := 'http://kineticode.com/pgxn/',
+        uri          := 'https://kineticode.com/pgxn/',
         frequency    := 'hourly',
         location     := 'Portland, OR, USA',
         bandwidth    := '10MBps',
@@ -131,8 +131,8 @@ CREATE OR REPLACE FUNCTION update_mirror(
 
     % SELECT udpate_mirror(
         admin        := 'theory',
-        old_uri      := 'http://kineticode.com/pgxn/',
-        uri          := 'http://pgxn.kineticode.com/',
+        old_uri      := 'https://kineticode.com/pgxn/',
+        uri          := 'https://pgxn.kineticode.com/',
         frequency    := 'hourly',
         location     := 'Portland, OR, USA',
         bandwidth    := '10MBps',
@@ -196,7 +196,7 @@ CREATE OR REPLACE FUNCTION delete_mirror(
 ) RETURNS BOOLEAN LANGUAGE plpgsql SECURITY DEFINER AS $$
 /*
 
-    % SELECT delete_mirror('theory', 'http://kineticode.com/pgxn/');
+    % SELECT delete_mirror('theory', 'https://kineticode.com/pgxn/');
      delete_mirror 
     ───────────────
      t

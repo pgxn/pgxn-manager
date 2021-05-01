@@ -7,7 +7,7 @@
       "David E. Wheeler <theory@pgxn.org>"
    ],
    "license": {
-      "PostgreSQL": "http://www.postgresql.org/about/licence"
+      "PostgreSQL": "https://www.postgresql.org/about/licence"
    },
    "prereqs": {
       "runtime": {
@@ -32,7 +32,7 @@
    "generated_by": "theory",
    "meta-spec": {
       "version": "1.0.0",
-      "url": "http://pgxn.org/meta/spec.txt"
+      "url": "https://pgxn.org/meta/spec.txt"
    },
    "tags": [
       "widget",

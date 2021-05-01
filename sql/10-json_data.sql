@@ -33,7 +33,7 @@ CREATE OR REPLACE FUNCTION get_mirrors_json(
     ─────────────────────────────────────────────────
      [                                              ↵
         {                                           ↵
-           "uri": "http://example.com/pgxn/",       ↵
+           "uri": "https://example.com/pgxn/",      ↵
            "frequency": "hourly",                   ↵
            "location": "Portland, OR, USA",         ↵
            "organization": "Kineticode, Inc.",      ↵
@@ -43,7 +43,7 @@ CREATE OR REPLACE FUNCTION get_mirrors_json(
            "src": "rsync://master.pgxn.org/pgxn/"   ↵
         },                                          ↵
         {                                           ↵
-           "uri": "http://pgxn.example.net/",       ↵
+           "uri": "https://pgxn.example.net/",      ↵
            "frequency": "daily",                    ↵
            "location": "Portland, OR, USA",         ↵
            "organization": "David E. Wheeler",      ↵
@@ -404,7 +404,7 @@ CREATE OR REPLACE FUNCTION user_json(
         "nickname": "theory",                                         ↵
         "name": "David E. Wheeler",                                   ↵
         "email": "david@justatheory.com",                             ↵
-        "uri": "http://justatheory.com/",                             ↵
+        "uri": "https://justatheory.com/",                             ↵
         "twitter": "theory",                                          ↵
         "releases": {                                                 ↵
            "pair": {                                                  ↵

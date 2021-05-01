@@ -147,10 +147,10 @@ PGXN::Manager->instance->conn->run(sub {
         "release_status": "testing",
         "meta-spec": {
            "version": "1.0.0",
-           "url": "http://pgxn.org/meta/spec.txt"
+           "url": "https://pgxn.org/meta/spec.txt"
         },
         "resources": {
-          "homepage": "http://pgxn.org/dist/pair/"
+          "homepage": "https://pgxn.org/dist/pair/"
         }
     }'
     );
@@ -173,10 +173,10 @@ PGXN::Manager->instance->conn->run(sub {
         "release_status": "testing",
         "meta-spec": {
            "version": "1.0.0",
-           "url": "http://pgxn.org/meta/spec.txt"
+           "url": "https://pgxn.org/meta/spec.txt"
         },
         "resources": {
-          "homepage": "http://pgxn.org/dist/pair/"
+          "homepage": "https://pgxn.org/dist/pair/"
         }
     }'
     );
@@ -193,7 +193,7 @@ PGXN::Manager->instance->conn->run(sub {
         "tags": ["Foo", "PAIR", "pair"],
         "meta-spec": {
            "version": "1.0.0",
-           "url": "http://pgxn.org/meta/spec.txt"
+           "url": "https://pgxn.org/meta/spec.txt"
         },
         "provides": { "foo": { "version": "0.0.2", "abstract": "whatever", "file": "foo.sql" } }
     }'
@@ -210,7 +210,7 @@ PGXN::Manager->instance->conn->run(sub {
         "abstract":    "whatever",
         "meta-spec": {
            "version": "1.0.0",
-           "url": "http://pgxn.org/meta/spec.txt"
+           "url": "https://pgxn.org/meta/spec.txt"
         },
         "provides": { "bar": { "version": "0.3.2", "abstract": "whatever", "file": "bar.sql" } }
     }'
@@ -227,7 +227,7 @@ PGXN::Manager->instance->conn->run(sub {
         "abstract":    "widgets and sprockets",
         "meta-spec": {
            "version": "1.0.0",
-           "url": "http://pgxn.org/meta/spec.txt"
+           "url": "https://pgxn.org/meta/spec.txt"
         },
         "provides": { "widget": { "version": "0.2.5", "abstract": "widgety", "file": "widget.sql" } }
     }'

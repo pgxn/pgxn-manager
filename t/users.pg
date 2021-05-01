@@ -463,14 +463,14 @@ SELECT ok(
         nickname  := 'theory',
         full_name := 'David E. Wheeler',
         email     := 'david@pgxn.org',
-        uri       := 'http://justatheory.com/',
+        uri       := 'https://justatheory.com/',
         twitter   := '@theory'
     ), 'Should get true value for updating a user'
 );
 
 SELECT is(
     ARRAY[full_name, email, uri, twitter],
-    ARRAY['David E. Wheeler', 'david@pgxn.org', 'http://justatheory.com/', 'theory'],
+    ARRAY['David E. Wheeler', 'david@pgxn.org', 'https://justatheory.com/', 'theory'],
     'User should be updated'
 ) FROM users WHERE nickname = 'theory';
 
@@ -482,29 +482,29 @@ SELECT ok(
     update_user(
         nickname := 'theory',
         email    := 'theory@pgxn.org',
-        uri      := 'http://www.justatheory.com/'
+        uri      := 'https://www.justatheory.com/'
     ), 'Should get true value for updating a user again'
 );
 
 SELECT is(
     ARRAY[full_name, email, uri],
-    ARRAY['David E. Wheeler', 'theory@pgxn.org', 'http://www.justatheory.com/'],
+    ARRAY['David E. Wheeler', 'theory@pgxn.org', 'https://www.justatheory.com/'],
     'Only specified columns should be updated'
 ) FROM users WHERE nickname = 'theory';
 
 SELECT ok(
-    update_user('theory', uri := 'http://justatheory.com/'),
+    update_user('theory', uri := 'https://justatheory.com/'),
     'Should get true value for updating just URI'
 );
 
 SELECT is(
     ARRAY[full_name, email, uri],
-    ARRAY['David E. Wheeler', 'theory@pgxn.org', 'http://justatheory.com/'],
+    ARRAY['David E. Wheeler', 'theory@pgxn.org', 'https://justatheory.com/'],
     'Only URI should be updated'
 ) FROM users WHERE nickname = 'theory';
 
 SELECT ok(
-    update_user('theory', uri := 'http://justatheory.com/'),
+    update_user('theory', uri := 'https://justatheory.com/'),
     'Should get true value for updating just URI'
 );
 

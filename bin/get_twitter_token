@@ -21,7 +21,7 @@ require Pod::Usage && Pod::Usage::pod2usage(
 die qq{
 Register for a consumer token by visiting
 
-    http://dev.twitter.com/apps/new
+    https://dev.twitter.com/apps/new
 
 Then run
 
@@ -75,7 +75,7 @@ PGXN::Manager will send Tweets when a user uploads a distribution -- if you
 configure it to do so. This app helps with that configuration. To set it up,
 you first need to register an app to get a "consumer key" and "consumer
 secret" from Twitter. It's pretty easy to do it; register your PGXN::Manager
-app L<here|http://dev.twitter.com/apps/new>.
+app L<here|https://dev.twitter.com/apps/new>.
 
 Then you'll want to create a Twitter account to do the Tweeting. You can do
 that L<right here|https://twitter.com/signup>. And finally, you'll want to

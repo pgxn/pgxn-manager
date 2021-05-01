@@ -207,7 +207,7 @@ Otherwise returns false.
   }
 
 Returns true if the request is an C<XMLHttpRequest> request and false if not.
-This is specific to L<jQuery|http://jquery.org> sending the
+This is specific to L<jQuery|https://jquery.org> sending the
 C<X-Requested-With> header.
 
 =head3 C<address>
@@ -241,7 +241,7 @@ David E. Wheeler <david.wheeler@pgexperts.com>
 Copyright (c) 2010-2011 David E. Wheeler.
 
 This module is free software; you can redistribute it and/or modify it under
-the L<PostgreSQL License|http://www.opensource.org/licenses/postgresql>.
+the L<PostgreSQL License|https://www.opensource.org/licenses/postgresql>.
 
 Permission to use, copy, modify, and distribute this software and its
 documentation for any purpose, without fee, and without a written agreement is

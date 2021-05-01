@@ -12,7 +12,7 @@
         ["ReverseProxy"]
     ],
     "mirror_root": "/var/www/master.pgxn.org",
-    "mirror_uri": "http://master.pgxn.org",
+    "mirror_uri": "https://master.pgxn.org",
     "admin_email": "PGXN Admins <pgxn@pgexperts.com>",
     "alert_email": "PGXN Admins <pgxn-admins@googlegroups.com>",
     "uri_script_name_key": "HTTP_X_FORWARDED_SCRIPT_NAME",
@@ -29,7 +29,7 @@
         "mirrors":   "/meta/mirrors.json",
         "spec":      "/meta/spec.{format}"
     },
-    "release_permalink": "http://pgxn.org/dist/{dist}/",
+    "release_permalink": "https://pgxn.org/dist/{dist}/",
     "twitter": {
         "consumer_key": "",
         "consumer_secret": "",

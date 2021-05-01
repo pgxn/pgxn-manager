@@ -258,7 +258,7 @@ like so:
     }
 
 Register for the consumer key and secret
-L<here|http://dev.twitter.com/apps/new>. To get the access token and access
+L<here|https://dev.twitter.com/apps/new>. To get the access token and access
 secret, use the C<get_twitter_token> utility included with PGXN::Manager. It
 will guide you through the configuration process and emit the JSON you need to
 paste into the configuration file.
@@ -346,7 +346,7 @@ David E. Wheeler <david.wheeler@pgexperts.com>
 Copyright (c) 2010-2011 David E. Wheeler.
 
 This module is free software; you can redistribute it and/or modify it under
-the L<PostgreSQL License|http://www.opensource.org/licenses/postgresql>.
+the L<PostgreSQL License|https://www.opensource.org/licenses/postgresql>.
 
 Permission to use, copy, modify, and distribute this software and its
 documentation for any purpose, without fee, and without a written agreement is

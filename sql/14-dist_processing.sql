@@ -313,7 +313,7 @@ maintainer
 abstract
 : Short description of the distribution.
 
-See the [PGXN Meta Spec](http://pgxn.org/spec/)
+See the [PGXN Meta Spec](https://pgxn.org/spec/)
 for the complete list of specified keys.
 
 With this data, `add_distribution()` does the following things:
@@ -327,7 +327,7 @@ With this data, `add_distribution()` does the following things:
 
 * Normalizes all of the version numbers found in the metadata into compliant
   semantic version strings. See
-  [`SemVer->normal`](http://search.cpan.org/dist/SemVer/lib/SemVer.pm#declare)
+  [`SemVer->normal`](https://metacpan.org/pod/distribution/SemVer/lib/SemVer.pm#normal)
   for details on how non-compliant version strings are converted. Versions
   that cannot be normalized will trigger an exception.
 

@@ -33,14 +33,14 @@ our %Lexicon = (
 
 <h3>OMG Distribution WTF?</h3>
 
-<p>First of all, what is a &ldquo;distribution&rdquo; in the PGXN sense? Basically, it&rsquo;s a collection of one or more <a href="http://www.postgresql.org/">PostgreSQL</a> extensions. That&rsquo;s it.</p>
+<p>First of all, what is a &ldquo;distribution&rdquo; in the PGXN sense? Basically, it&rsquo;s a collection of one or more <a href="https://www.postgresql.org/">PostgreSQL</a> extensions. That&rsquo;s it.</p>
 
-<p>Oh, so now you want to know what an &ldquo;extension&rdquo; is? Naturally. Traditionally, a PostgreSQL extension has been any code that can be built by <a href="http://www.postgresql.org/docs/current/static/xfunc-c.html#XFUNC-C-PGXS">PGXS</a> and installed into the database. The PostgreSQL <a href="http://www.postgresql.org/docs/current/static/contrib.html">contributed modules</a> provide excellent examples. On PGXN some examples are:</p>
+<p>Oh, so now you want to know what an &ldquo;extension&rdquo; is? Naturally. Traditionally, a PostgreSQL extension has been any code that can be built by <a href="https://www.postgresql.org/docs/current/static/xfunc-c.html#XFUNC-C-PGXS">PGXS</a> and installed into the database. The PostgreSQL <a href="https://www.postgresql.org/docs/current/static/contrib.html">contributed modules</a> provide excellent examples. On PGXN some examples are:</p>
 
 <ul>
-<li><a href="http://pgxn.org/dist/pair/">pair</a>: a pure SQL data type</li>
-<li><a href="http://pgxn.org/dist/semver/">semver</a>: a data type implemented in C</li>
-<li><a href="http://pgxn.org/dist/italian_fts/">italian_fts</a>: An italian full-text search ditctionary</li>
+<li><a href="https://pgxn.org/dist/pair/">pair</a>: a pure SQL data type</li>
+<li><a href="https://pgxn.org/dist/semver/">semver</a>: a data type implemented in C</li>
+<li><a href="https://pgxn.org/dist/italian_fts/">italian_fts</a>: An italian full-text search ditctionary</li>
 </ul>
 
 
@@ -49,15 +49,15 @@ our %Lexicon = (
 <pre><code>CREATE EXTENSION pair;
 </code></pre>
 
-<p>No more need to run SQL scripts through <code>psql</code> or to maintain separate schemas to properly keep them packaged up. The documentation <a href="http://www.postgresql.org/docs/9.1/static/extend-extensions.html" title="PostgreSQL Documentation: “Packaging Related Objects into an Extension”">has the details</a>. However, the build infrastructure is the same. From your point of view as a PostgreSQL extension developer, you&rsquo;re still going to use <a href="http://www.postgresql.org/docs/current/static/xfunc-c.html#XFUNC-C-PGXS">PGXS</a> to configure and build your extension, and can distribute it via PGXN.</p>
+<p>No more need to run SQL scripts through <code>psql</code> or to maintain separate schemas to properly keep them packaged up. The documentation <a href="https://www.postgresql.org/docs/9.1/static/extend-extensions.html" title="PostgreSQL Documentation: “Packaging Related Objects into an Extension”">has the details</a>. However, the build infrastructure is the same. From your point of view as a PostgreSQL extension developer, you&rsquo;re still going to use <a href="https://www.postgresql.org/docs/current/static/xfunc-c.html#XFUNC-C-PGXS">PGXS</a> to configure and build your extension, and can distribute it via PGXN.</p>
 
-<p>All this is not to say that PGXN extensions must be PostgreSQL extensions, except in the sense that they should add something to PostgreSQL. For example, You might want to distribute a command-line utility like <a href="http://pgxn.org/dist/pg_top/">pg_top</a>. That&rsquo;s cool. Just be creative and make PostgreSQL better and you&rsquo;ll be on the right track.</p>
+<p>All this is not to say that PGXN extensions must be PostgreSQL extensions, except in the sense that they should add something to PostgreSQL. For example, You might want to distribute a command-line utility like <a href="https://pgxn.org/dist/pg_top/">pg_top</a>. That&rsquo;s cool. Just be creative and make PostgreSQL better and you&rsquo;ll be on the right track.</p>
 
 <h3>That&rsquo;s So Meta</h3>
 
-<p>At its simplest, the only thing PGXN requires of a distribution is a single file, <code>META.json</code>, which describes the package. This is the file that PGXN Manager uses to index a distribution, so it&rsquo;s important to get it right. The <a href="http://pgxn.org/spec/">PGXN Meta Spec</a> has all the details on what&rsquo;s required, but what follows is a pragmatic overview.</p>
+<p>At its simplest, the only thing PGXN requires of a distribution is a single file, <code>META.json</code>, which describes the package. This is the file that PGXN Manager uses to index a distribution, so it&rsquo;s important to get it right. The <a href="https://pgxn.org/spec/">PGXN Meta Spec</a> has all the details on what&rsquo;s required, but what follows is a pragmatic overview.</p>
 
-<p>If you have only one <code>.sql</code> file for your extension and it&rsquo;s the same name as the distribution, then you can make it pretty simple. For example, the <a href="http://master.pgxn.org/dist/pair/"><code>pair</code></a> distribution has only one SQL file. So the <code>META.json</code> could be:</p>
+<p>If you have only one <code>.sql</code> file for your extension and it&rsquo;s the same name as the distribution, then you can make it pretty simple. For example, the <a href="https://master.pgxn.org/dist/pair/"><code>pair</code></a> distribution has only one SQL file. So the <code>META.json</code> could be:</p>
 
 <pre><code>{
    "name": "pair",
@@ -67,21 +67,21 @@ our %Lexicon = (
    "license": "postgresql",
    "meta-spec": {
       "version": "1.0.0",
-      "url": "http://pgxn.org/meta/spec.txt"
+      "url": "https://pgxn.org/meta/spec.txt"
    },
 }
 </code></pre>
 
-<p>That&rsquo;s it. The only thing that may not be obvious from this example is that all version numbers in a <code>META.json</code> <em>must</em> be <a href="http://semver.org/">semantic versions</a>, including for core dependencies like plperl or PostgreSQL itself. If they&rsquo;re not, PGXN will make them so. So &ldquo;1.2&rdquo; would become &ldquo;1.2.0&rdquo; &mdash; and so would &ldquo;1.02&rdquo;. So do try to use semantic version strings and don&rsquo;t worry about it.</p>
+<p>That&rsquo;s it. The only thing that may not be obvious from this example is that all version numbers in a <code>META.json</code> <em>must</em> be <a href="https://semver.org/">semantic versions</a>, including for core dependencies like plperl or PostgreSQL itself. If they&rsquo;re not, PGXN will make them so. So &ldquo;1.2&rdquo; would become &ldquo;1.2.0&rdquo; &mdash; and so would &ldquo;1.02&rdquo;. So do try to use semantic version strings and don&rsquo;t worry about it.</p>
 
 <p>To really take advantage of PGXN, you&rsquo;ll want your extension to show up prominently in search results. Adding other keys to your <code>META.json</code> file will help. Other useful keys to include are:</p>
 
 <ul>
-<li><a href="http://pgxn.org/spec/#provides"><code>provides</code></a>: A list of included extensions. Useful if you have more than one in a single distribution. It also will assign ownership of the specified extension names to you &mdash; if they haven&rsquo;t been claimed by any previous distribution. Strongly recommended.</li>
-<li><a href="http://pgxn.org/spec/#tags"><code>tags</code></a>: An array of tags to associate with a distribution. Will help with searching.</li>
-<li><a href="http://pgxn.org/spec/#prereqs"><code>prereqs</code></a>: A list of prerequisite extensions or PostgreSQL contrib modules (or PostgreSQL itself).</li>
-<li><a href="http://pgxn.org/spec/#release_status"><code>release_status</code></a>: To label a distribution as &ldquo;stable,&rdquo; &ldquo;unstable,&rdquo; or &ldquo;testing.&rdquo; The latter two are useful for distributing extensions for testing but that should not be installed by automated clients.</li>
-<li><a href="http://pgxn.org/spec/#resources"><code>resources</code></a>: A list of related links, such as to an SCM repository or bug tracker. The search site displays these links on the home page for the distribution.</li>
+<li><a href="https://pgxn.org/spec/#provides"><code>provides</code></a>: A list of included extensions. Useful if you have more than one in a single distribution. It also will assign ownership of the specified extension names to you &mdash; if they haven&rsquo;t been claimed by any previous distribution. Strongly recommended.</li>
+<li><a href="https://pgxn.org/spec/#tags"><code>tags</code></a>: An array of tags to associate with a distribution. Will help with searching.</li>
+<li><a href="https://pgxn.org/spec/#prereqs"><code>prereqs</code></a>: A list of prerequisite extensions or PostgreSQL contrib modules (or PostgreSQL itself).</li>
+<li><a href="https://pgxn.org/spec/#release_status"><code>release_status</code></a>: To label a distribution as &ldquo;stable,&rdquo; &ldquo;unstable,&rdquo; or &ldquo;testing.&rdquo; The latter two are useful for distributing extensions for testing but that should not be installed by automated clients.</li>
+<li><a href="https://pgxn.org/spec/#resources"><code>resources</code></a>: A list of related links, such as to an SCM repository or bug tracker. The search site displays these links on the home page for the distribution.</li>
 </ul>
 
 
@@ -106,18 +106,18 @@ our %Lexicon = (
    },
    "resources": {
       "bugtracker": {
-         "web": "http://github.com/theory/kv-pair/issues/"
+         "web": "https://github.com/theory/kv-pair/issues/"
       },
       "repository": {
         "url":  "git://github.com/theory/kv-pair.git",
-        "web":  "http://github.com/theory/kv-pair/",
+        "web":  "https://github.com/theory/kv-pair/",
         "type": "git"
       }
    },
    "generated_by": "David E. Wheeler",
    "meta-spec": {
       "version": "1.0.0",
-      "url": "http://pgxn.org/meta/spec.txt"
+      "url": "https://pgxn.org/meta/spec.txt"
    },
    "tags": ~[
       "variadic function",
@@ -129,11 +129,11 @@ our %Lexicon = (
 }
 </code></pre>
 
-<p>Thanks to all that metadata, the extension gets a <a href="http://pgxn.org/dist/pair/">very nice page</a> on PGXN.  Note especially the <code>docfile</code> key in the <code>provides</code> section. This is the best way to tell PGXN where to find documentation to index. More on that below.</p>
+<p>Thanks to all that metadata, the extension gets a <a href="https://pgxn.org/dist/pair/">very nice page</a> on PGXN.  Note especially the <code>docfile</code> key in the <code>provides</code> section. This is the best way to tell PGXN where to find documentation to index. More on that below.</p>
 
 <h3>We Have Assumed Control</h3>
 
-<p>A second file you should consider including in your distribution is a &ldquo;control file&rdquo;. This file is required by the PostgreSQL 9.1 <a href="http://www.postgresql.org/docs/9.1/static/extend-extensions.html" title="PostgreSQL Documentation: “Packaging Related Objects into an Extension”">extension support</a>. Like <code>META.json</code> it describes your extension, but it&rsquo;s actually much shorter. Really all it needs is a few keys. Here&rsquo;s an example from the <a href="http://pgxn.org/dist/semver/">semver distribution</a> named <code>semver.control</code>:</p>
+<p>A second file you should consider including in your distribution is a &ldquo;control file&rdquo;. This file is required by the PostgreSQL 9.1 <a href="https://www.postgresql.org/docs/9.1/static/extend-extensions.html" title="PostgreSQL Documentation: “Packaging Related Objects into an Extension”">extension support</a>. Like <code>META.json</code> it describes your extension, but it&rsquo;s actually much shorter. Really all it needs is a few keys. Here&rsquo;s an example from the <a href="https://pgxn.org/dist/semver/">semver distribution</a> named <code>semver.control</code>:</p>
 
 <pre><code># semver extension
 comment = 'A semantic version data type'
@@ -142,13 +142,13 @@ module_pathname = '$libdir/semver'
 relocatable = true
 </code></pre>
 
-<p>The <code>default_version</code> value specifies the version of the extension you&rsquo;re distributing, the <code>module_pathname</code> value may be required for C extensions, and the <code>relocatable</code> value determines whether an extension can be moved from one schema to another. These are the keys you will most often use, but there are quite a few <a href="http://www.postgresql.org/docs/9.1/static/extend-extensions.html">other keys</a> you might want to review as you develop your extension.</p>
+<p>The <code>default_version</code> value specifies the version of the extension you&rsquo;re distributing, the <code>module_pathname</code> value may be required for C extensions, and the <code>relocatable</code> value determines whether an extension can be moved from one schema to another. These are the keys you will most often use, but there are quite a few <a href="https://www.postgresql.org/docs/9.1/static/extend-extensions.html">other keys</a> you might want to review as you develop your extension.</p>
 
 <p>For database objects, you are <em>strongly encouraged</em> to include a control file and support for <code>CREATE EXTENSION</code> in your <code>Makefile</code>. This is the way of the future folks, and, frankly, quite easy to do.</p>
 
 <h3>New Order</h3>
 
-<p>PGXN doesn&rsquo;t really care how distributions are structured, or if they use <a href="http://www.postgresql.org/docs/current/static/xfunc-c.html#XFUNC-C-PGXS">PGXS</a>. That said, the <a href="http://github.com/dvarrazzo/pgxnclient/">pgxn client</a> currently supports only <code>./configure</code> and <code>make</code>, so PGXS is probably the best choice.</p>
+<p>PGXN doesn&rsquo;t really care how distributions are structured, or if they use <a href="https://www.postgresql.org/docs/current/static/xfunc-c.html#XFUNC-C-PGXS">PGXS</a>. That said, the <a href="https://github.com/dvarrazzo/pgxnclient/">pgxn client</a> currently supports only <code>./configure</code> and <code>make</code>, so PGXS is probably the best choice.</p>
 
 <p>We strongly encourage that the files in distributions be organized into subdirectories:</p>
 
@@ -160,7 +160,7 @@ relocatable = true
 </ul>
 
 
-<p>The <a href="http://github.com/theory/kv-pair/"><code>pair</code></a> and <a href="http://github.com/theory/pg-semver/"><code>semver</code></a> distributions serve as examples of this. To make it all work, their <code>Makefile</code>s are written like so:</p>
+<p>The <a href="https://github.com/theory/kv-pair/"><code>pair</code></a> and <a href="https://github.com/theory/pg-semver/"><code>semver</code></a> distributions serve as examples of this. To make it all work, their <code>Makefile</code>s are written like so:</p>
 
 <pre><code>EXTENSION    = pair
 EXTVERSION   = $(shell grep default_version $(EXTENSION).control | \
@@ -191,11 +191,11 @@ include $(PGXS)
 
 <p>The <code>EXTENSION</code> variable identifies the extension you&rsquo;re distributing. <code>EXTVERSION</code> identifies its version, which is here read from the control file, so you only have to edit it there (and in the <code>META.json</code> file).</p>
 
-<p>The <code>DATA</code> variable identifies the SQL files containing the extension, while <code>TESTS</code> loads a list test files, which are in the <code>test/sql</code> directory. Note that the <code>pair</code> distribution uses <code>pg_regress</code> for tests, and <code>pg_reqress</code> expects that test files will have corresponding &ldquo;expected&rdquo; files to compare against. With the <code>REGRESS_OPTS = --inputdir=test</code> line, The distribution tells <code>pg_regess</code> to find the test files in <a href="http://github.com/theory/kv-pair/tree/main/test/sql/"><code>test/sql</code></a> and the expected output files in <a href="http://github.com/theory/kv-pair/tree/main/test/expected/"><code>test/expected</code></a>. And finally, the <code>DOCS</code> variable finds all the files ending in <code>.md</code> in the <a href="http://github.com/theory/kv-pair/tree/main/doc/"><code>doc</code> directory</a>.</p>
+<p>The <code>DATA</code> variable identifies the SQL files containing the extension, while <code>TESTS</code> loads a list test files, which are in the <code>test/sql</code> directory. Note that the <code>pair</code> distribution uses <code>pg_regress</code> for tests, and <code>pg_reqress</code> expects that test files will have corresponding &ldquo;expected&rdquo; files to compare against. With the <code>REGRESS_OPTS = --inputdir=test</code> line, The distribution tells <code>pg_regess</code> to find the test files in <a href="https://github.com/theory/kv-pair/tree/main/test/sql/"><code>test/sql</code></a> and the expected output files in <a href="https://github.com/theory/kv-pair/tree/main/test/expected/"><code>test/expected</code></a>. And finally, the <code>DOCS</code> variable finds all the files ending in <code>.md</code> in the <a href="https://github.com/theory/kv-pair/tree/main/doc/"><code>doc</code> directory</a>.</p>
 
 <p>The <code>MODULES</code> variable finds <code>.c</code> files in the <code>src</code> directory. The <code>pair</code> data type has no C code, but the line is harmless here and will just start to work if C support is added later.</p>
 
-<p>Next we have the <code>PG_CONFIG</code> variable. This points to the <a href="http://www.postgresql.org/docs/9.0/static/app-pgconfig.html"><code>pg_config</code></a> utility, which is required to find <code>PGXS</code> and build the extension. If a user has it in her path, it will just work. Otherwise, she can point to an alternate one when building:</p>
+<p>Next we have the <code>PG_CONFIG</code> variable. This points to the <a href="https://www.postgresql.org/docs/9.0/static/app-pgconfig.html"><code>pg_config</code></a> utility, which is required to find <code>PGXS</code> and build the extension. If a user has it in her path, it will just work. Otherwise, she can point to an alternate one when building:</p>
 
 <pre><code>make PG_CONFIG=/path/to/pg_config
 </code></pre>
@@ -216,30 +216,30 @@ make install
 make installcheck PGDATABASE=postgres
 </code></pre>
 
-<p>For more on PostgreSQL extension building support, please consult <a href="http://www.postgresql.org/docs/9/static/xfunc-c.html#XFUNC-C-PGXS">the documentation</a>.</p>
+<p>For more on PostgreSQL extension building support, please consult <a href="https://www.postgresql.org/docs/9/static/xfunc-c.html#XFUNC-C-PGXS">the documentation</a>.</p>
 
 <h3>What&rsquo;s up, Doc?</h3>
 
 <p>To further raise the visibility and utility of your extension for users, you&rsquo;re encouraged to include a few other files, as well:</p>
 
 <ul>
-<li>A <code>README</code> is a great way to introduce the basics of your extension, to give folks a chance to determine its purpose. Installation instructions are also common here. Plus, it makes a a nice addition to the distribution page on PGXN (<a href="http://pgxn.org/dist/explanation/">example</a>). To get the most benefit, mark it up and save it with a suffix recognized by <a href="http://search.cpan.org/perldoc?Text::Markup">Text::Markup</a> and get nice HTML formatting on the site.</li>
-<li>A <code>Changes</code> file (<a href="http://api.pgxn.org/src/explanation/explanation-0.3.0/Changes">example</a>). This file will make it easier for users to determine if they need to upgrade when a new version comes out.</li>
+<li>A <code>README</code> is a great way to introduce the basics of your extension, to give folks a chance to determine its purpose. Installation instructions are also common here. Plus, it makes a a nice addition to the distribution page on PGXN (<a href="https://pgxn.org/dist/explanation/">example</a>). To get the most benefit, mark it up and save it with a suffix recognized by <a href="https://metacpan.org/pod/Text::Markup">Text::Markup</a> and get nice HTML formatting on the site.</li>
+<li>A <code>Changes</code> file (<a href="https://api.pgxn.org/src/explanation/explanation-0.3.0/Changes">example</a>). This file will make it easier for users to determine if they need to upgrade when a new version comes out.</li>
 <li><code>LICENSE</code>, <code>INSTALL</code>, <code>COPYING</code>, and <code>AUTHORS</code> are likewise also linked from the distribution page.</li>
 </ul>
 
 
-<p>But perhaps the most important files to consider adding to your distribution are documentation files. Like the <code>README</code>, the API server will parse and index any file recognized by <a href="http://search.cpan.org/perldoc?Text::Markup">Text::Markup</a>. The main PGXN search index contains documentation files, so it&rsquo;s important to have great documentation. Files may be anywhere in the distribution, though of course a top-level <code>doc</code> or <code>docs</code> directory is recommended (and recognized by the <code>Makefile</code> example above).</p>
+<p>But perhaps the most important files to consider adding to your distribution are documentation files. Like the <code>README</code>, the API server will parse and index any file recognized by <a href="https://metacpan.org/pod/Text::Markup">Text::Markup</a>. The main PGXN search index contains documentation files, so it&rsquo;s important to have great documentation. Files may be anywhere in the distribution, though of course a top-level <code>doc</code> or <code>docs</code> directory is recommended (and recognized by the <code>Makefile</code> example above).</p>
 
-<p>To give you a feel for how important documentation is to the exposure of your PGXN distribution, try <a href="http://pgxn.org/search?q=sha&amp;in=docs">searching for &ldquo;sha&rdquo;</a>. As of this writing, there are no results, despite the fact that there is, in fact, a <a href="http://pgxn.org/dist/sha/1.0.0/">sha distribution</a>. Note also that the <a href="http://pgxn.org/dist/sha/1.0.0/">distribution page</a> lists &ldquo;sha&rdquo; as an extension, but unlike <a href="http://pgxn.org/dist/tinyint/">other</a> <a href="http://pgxn.org/dist/semver/">distribution</a> <a href="http://pgxn.org/dist/pair/">pages</a>, it does not link to documentation.</p>
+<p>To give you a feel for how important documentation is to the exposure of your PGXN distribution, try <a href="https://pgxn.org/search?q=sha&amp;in=docs">searching for &ldquo;sha&rdquo;</a>. As of this writing, there are no results, despite the fact that there is, in fact, a <a href="https://pgxn.org/dist/sha/1.0.0/">sha distribution</a>. Note also that the <a href="https://pgxn.org/dist/sha/1.0.0/">distribution page</a> lists &ldquo;sha&rdquo; as an extension, but unlike <a href="https://pgxn.org/dist/tinyint/">other</a> <a href="https://pgxn.org/dist/semver/">distribution</a> <a href="https://pgxn.org/dist/pair/">pages</a>, it does not link to documentation.</p>
 
-<p>Even if you don&rsquo;t map a documentation file to an extension, adding documentation files can be great for your search mojo. See <a href="http://pgxn.org/dist/pgmp/">pgmp</a>, for example, which as of this writing does not link the extension to a documentation file, but a whole series of other documentation files are linked (and indexed).</p>
+<p>Even if you don&rsquo;t map a documentation file to an extension, adding documentation files can be great for your search mojo. See <a href="https://pgxn.org/dist/pgmp/">pgmp</a>, for example, which as of this writing does not link the extension to a documentation file, but a whole series of other documentation files are linked (and indexed).</p>
 
 <p>To sum up, for maximum PGXN coverage, the only rules for documentation files are:</p>
 
 <ul>
-<li>They must be written in UTF-8 or specify their encodings via a <a href="http://en.wikipedia.org/wiki/Byte_order_mark">BOM</a> or markup-specific tag (such as the <code>=encoding</code> Pod tag).</li>
-<li>They must be recognized by <a href="http://search.cpan.org/perldoc?Text::Markup">Text::Markup</a>.</li>
+<li>They must be written in UTF-8 or specify their encodings via a <a href="https://en.wikipedia.org/wiki/Byte_order_mark">BOM</a> or markup-specific tag (such as the <code>=encoding</code> Pod tag).</li>
+<li>They must be recognized by <a href="https://metacpan.org/pod/Text::Markup">Text::Markup</a>.</li>
 </ul>
 
 
@@ -253,7 +253,7 @@ make installcheck PGDATABASE=postgres
 
 <p>Then the <code>pair-0.1.0.zip</code> file was ready to release. Simple, eh?</p>
 
-<p>Now, one can upload any kind of archive file to PGXN, including a tarball, or bzip2…um…ball? Basically, any kind of archive format recognized by <a href="http://search.cpan.org/perldoc?Archive::Extract">Archive::Extract</a>. A zip file is best because then PGXN::Manager won&rsquo;t have to rewrite it. It&rsquo;s also preferable that everything be packed into a directory with the name <code>$distribution-$version</code>, as in the <code>pair-0.1.2</code> example above. If not, PGXN will rewrite it that way. But it saves the server some effort if all it has to do is move a <code>.zip</code> file that&rsquo;s properly formatted, so it would be appreciated if you would upload stuff that&rsquo;s already nicely formatted for distribution in a zip archive.</p>
+<p>Now, one can upload any kind of archive file to PGXN, including a tarball, or bzip2…um…ball? Basically, any kind of archive format recognized by <a href="https://metacpan.org/pod/Archive::Extract">Archive::Extract</a>. A zip file is best because then PGXN::Manager won&rsquo;t have to rewrite it. It&rsquo;s also preferable that everything be packed into a directory with the name <code>$distribution-$version</code>, as in the <code>pair-0.1.2</code> example above. If not, PGXN will rewrite it that way. But it saves the server some effort if all it has to do is move a <code>.zip</code> file that&rsquo;s properly formatted, so it would be appreciated if you would upload stuff that&rsquo;s already nicely formatted for distribution in a zip archive.</p>
 
 <h3>Release It!</h3>
 
@@ -330,7 +330,7 @@ method.
 Returns a PGXN::Manager::Locale handle appropriate for the specified
 argument, which must take the form of the HTTP_ACCEPT_LANGUAGE string
 typically created in web server environments and specified in L<RFC
-3282|http://tools.ietf.org/html/rfc3282>. The parsing of this header is
+3282|https://tools.ietf.org/html/rfc3282>. The parsing of this header is
 handled by L<I18N::LangTags::Detect>.
 
 =head2 Instance Methods
@@ -372,7 +372,7 @@ David E. Wheeler <david.wheeler@pgexperts.com>
 Copyright (c) 2010-2011 David E. Wheeler.
 
 This module is free software; you can redistribute it and/or modify it under
-the L<PostgreSQL License|http://www.opensource.org/licenses/postgresql>.
+the L<PostgreSQL License|https://www.opensource.org/licenses/postgresql>.
 
 Permission to use, copy, modify, and distribute this software and its
 documentation for any purpose, without fee, and without a written agreement is

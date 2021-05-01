@@ -1,6 +1,6 @@
 /*!
  * PGXN JavaScript Library
- * http://pgxn.org/
+ * https://pgxn.org/
  *
  * Copyright (c) 2010-2011 David E. Wheeler.
  *

@@ -3,10 +3,10 @@
 # Start PGXN Manager on Starman on Debian.
 # Based on code blatently stolen from the Catalyst init script:
 
-# http://github.com/arodland/cat-fcgi-init
+# https://github.com/arodland/cat-fcgi-init
 # Copyright (c) 2009-2010, Andrew Rodland
 # Distributed under the 3-clause BSD license:
-# http://github.com/arodland/cat-fcgi-init/blob/master/LICENSE
+# https://github.com/arodland/cat-fcgi-init/blob/master/LICENSE
 #
 ### BEGIN INIT INFO
 # Provides: pgxn_manager

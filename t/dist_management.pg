@@ -115,11 +115,11 @@ SELECT results_eq(
         },
         "meta-spec": {
            "version": "1.0.0",
-           "url": "http://pgxn.org/meta/spec.txt"
+           "url": "https://pgxn.org/meta/spec.txt"
         },
         "release_status": "testing",
         "resources": {
-          "homepage": "http://pgxn.org/dist/pair/"
+          "homepage": "https://pgxn.org/dist/pair/"
         }
     }') $$,
     $$ VALUES('pair'::term, '0.0.1'::semver, 'testing'::relstatus, 'Ordered pair',
@@ -159,7 +159,7 @@ SELECT results_eq(
    },
    "tags": ["foo", "bar", "baz"],
    "resources": {
-      "homepage": "http://pgxn.org/dist/pair/"
+      "homepage": "https://pgxn.org/dist/pair/"
    }
 }
 ') $$,
@@ -177,7 +177,7 @@ SELECT results_eq(
         "abstract": "whatever",
         "meta-spec": {
            "version": "1.0.0",
-           "url": "http://pgxn.org/meta/spec.txt"
+           "url": "https://pgxn.org/meta/spec.txt"
         },
         "provides": { "pair": { "version": "0.0.1", "abstract": "whatever", "file": "pair.sql" }}
     }') $$,
@@ -364,7 +364,7 @@ SELECT throws_ok(
         "abstract":    "whatever",
         "meta-spec": {
            "version": "1.0.0",
-           "url": "http://pgxn.org/meta/spec.txt"
+           "url": "https://pgxn.org/meta/spec.txt"
         },
         "provides": { "pair": { "version": "0.0.1", "abstract": "whatever", "file": "pair.sql" }}
     }$$) $_$,
@@ -384,7 +384,7 @@ SELECT throws_ok(
         "abstract":    "whatever",
         "meta-spec": {
            "version": "1.0.0",
-           "url": "http://pgxn.org/meta/spec.txt"
+           "url": "https://pgxn.org/meta/spec.txt"
         },
         "provides": { "triple": { "version": "0.0.1", "abstract": "whatever", "file": "pair.sql" } }
     }$$) $_$,
@@ -414,7 +414,7 @@ SELECT throws_like(
         "abstract":    "whatever",
         "meta-spec": {
            "version": "1.0.0",
-           "url": "http://pgxn.org/meta/spec.txt"
+           "url": "https://pgxn.org/meta/spec.txt"
         },
         "provides": {
             "pair": { "file": "pair.sql.in", "version": "" }
@@ -452,11 +452,11 @@ SELECT bag_eq(
         },
         "meta-spec": {
            "version": "1.0.0",
-           "url": "http://pgxn.org/meta/spec.txt"
+           "url": "https://pgxn.org/meta/spec.txt"
         },
         "release_status": "testing",
         "resources": {
-          "homepage": "http://pgxn.org/dist/pair/"
+          "homepage": "https://pgxn.org/dist/pair/"
         }
     }')$$,
     $$ VALUES ('meta', 'pair', '{
@@ -494,7 +494,7 @@ SELECT bag_eq(
    },
    "tags": ["foo", "bar", "baz"],
    "resources": {
-      "homepage": "http://pgxn.org/dist/pair/"
+      "homepage": "https://pgxn.org/dist/pair/"
    }
 }
 '), ('dist', 'pair', '{
@@ -672,7 +672,7 @@ SELECT is(meta, '{
    },
    "tags": ["foo", "bar", "baz"],
    "resources": {
-      "homepage": "http://pgxn.org/dist/pair/"
+      "homepage": "https://pgxn.org/dist/pair/"
    }
 }
 ', '...including the metadata')
@@ -722,7 +722,7 @@ SELECT throws_ok(
         "abstract":    "whatever",
         "meta-spec": {
            "version": "1.0.0",
-           "url": "http://pgxn.org/meta/spec.txt"
+           "url": "https://pgxn.org/meta/spec.txt"
         },
         "provides": { "pair": { "version": "0.2.2", "abstract": "whatever", "file": "pair.sql" } }
     }') $$,
@@ -741,7 +741,7 @@ SELECT bag_eq(
         "abstract":    "whatever",
         "meta-spec": {
            "version": "1.0.0",
-           "url": "http://pgxn.org/meta/spec.txt"
+           "url": "https://pgxn.org/meta/spec.txt"
         },
         "provides": { "foo": { "version": "0.0.2", "abstract": "whatever", "file": "foo.sql" } },
         "tags": ["Foo", "PAIR", "pair"]
@@ -979,7 +979,7 @@ SELECT throws_ok(
         "abstract":    "whatever",
         "meta-spec": {
            "version": "1.0.0",
-           "url": "http://pgxn.org/meta/spec.txt"
+           "url": "https://pgxn.org/meta/spec.txt"
         },
         "provides": { "pair": { "version": "0.0.3", "abstract": "whatever", "file": "pair.sql" } }
 
@@ -1002,7 +1002,7 @@ SELECT bag_eq(
         "tags": ["heavy", "words"],
         "meta-spec": {
            "version": "1.0.0",
-           "url": "http://pgxn.org/meta/spec.txt"
+           "url": "https://pgxn.org/meta/spec.txt"
         },
         "provides": {
            "pair": {
@@ -1303,7 +1303,7 @@ SELECT throws_ok(
         },
         "meta-spec": {
            "version": "1.0.0",
-           "url": "http://pgxn.org/meta/spec.txt"
+           "url": "https://pgxn.org/meta/spec.txt"
         }
     }')$$,
     'P0001',
@@ -1327,7 +1327,7 @@ SELECT throws_ok(
         },
         "meta-spec": {
            "version": "1.0.0",
-           "url": "http://pgxn.org/meta/spec.txt"
+           "url": "https://pgxn.org/meta/spec.txt"
         }
     }')$$,
     'P0001',
@@ -1351,7 +1351,7 @@ SELECT throws_ok(
         "abstract":    "whatever",
         "meta-spec": {
            "version": "1.0.0",
-           "url": "http://pgxn.org/meta/spec.txt"
+           "url": "https://pgxn.org/meta/spec.txt"
         },
         "provides": { "pair": { "version": "0.0.1", "abstract": "whatever", "file": "pair.sql" } }
 
@@ -1370,7 +1370,7 @@ SELECT throws_ok(
         "abstract":    "whatever",
         "meta-spec": {
            "version": "1.0.0",
-           "url": "http://pgxn.org/meta/spec.txt"
+           "url": "https://pgxn.org/meta/spec.txt"
         },
         "provides": { "foo": { "version": "0.0.1", "abstract": "whatever", "file": "pair.sql" } }
     }$$) $_$,
@@ -1395,7 +1395,7 @@ SELECT bag_eq(
         "tags": ["wang", "words", "yo"],
         "meta-spec": {
            "version": "1.0.0",
-           "url": "http://pgxn.org/meta/spec.txt"
+           "url": "https://pgxn.org/meta/spec.txt"
         },
         "provides": {
            "pair": {
@@ -1714,7 +1714,7 @@ SELECT row_eq(
    },
    "tags": ["foo", "bar", "baz"],
    "resources": {
-      "homepage": "http://pgxn.org/dist/pair/"
+      "homepage": "https://pgxn.org/dist/pair/"
    }
 }
 ', ARRAY[['Trip', '0.2.1'],['pair','0.2.2']],
@@ -1737,7 +1737,7 @@ SELECT throws_ok(
         "abstract":    "howdy",
         "meta-spec": {
            "version": "1.0.0",
-           "url": "http://pgxn.org/meta/spec.txt"
+           "url": "https://pgxn.org/meta/spec.txt"
         },
         "provides": {
             "pair": { "file": "pair.sql.in", "version": "0.2.5" }
@@ -1767,7 +1767,7 @@ SELECT throws_ok(
         "abstract":    "howdy",
         "meta-spec": {
            "version": "1.0.0",
-           "url": "http://pgxn.org/meta/spec.txt"
+           "url": "https://pgxn.org/meta/spec.txt"
         },
         "provides": {
             "pair": { "file": "pair.sql.in", "version": "0.2.0" }

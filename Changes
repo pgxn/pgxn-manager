@@ -8,6 +8,7 @@ Revision history for Perl extension PGXN::Manager
        - Require SemVer v0.10.0 and pg-semver 0.3.10. These releases properly
          support the semver 2.0.0 spec (aside from version parts larger than 32
          bits).
+       - Updated all URLs with HTTPS variants to use HTTPS.
 
 0.16.0  2015-08-31T18:25:24Z
        - Updated the `Makefile` example in the HOWTO to extract the extension
@@ -173,8 +174,8 @@ Revision history for Perl extension PGXN::Manager
         this time for MultiMarkdown's inability to properly parse a single-row
         table. Hopefully these workarounds can be removed someday when
         MultiMarkdown 3.0 is ported to Perl.
-      - Updated Meta Spec links to their new URL, http://pgxn.org/spec/,
-        and GitHub link to their new URL, http://github.com/spec/.
+      - Updated Meta Spec links to their new URL, https://pgxn.org/spec/,
+        and GitHub link to their new URL, https://github.com/spec/.
       - The "provides" section of a `META.json` file is now properly
         validated, so a missing version no longer triggers a 500 error, but
         tells the user that the version is missing. Reported by Hitoshi

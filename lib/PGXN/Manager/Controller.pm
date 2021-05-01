@@ -231,7 +231,7 @@ sub register {
             # Success! Notify the admins.
             my $host = $req->remote_host || $req->address;
             my $name = $params->{full_name} ? "     Name: $params->{full_name}\n" : '';
-            my $twit = $params->{twitter}   ? "  Twitter: http://twitter.com/$params->{twitter}\n" : '';
+            my $twit = $params->{twitter}   ? "  Twitter: https://twitter.com/$params->{twitter}\n" : '';
             my $uri  = $params->{uri}       ? "      URI: $params->{uri}\n" : '';
             (my $why = $params->{why}) =~ s/^/> /g;
 
@@ -1282,7 +1282,7 @@ David E. Wheeler <david.wheeler@pgexperts.com>
 Copyright (c) 2010-2011 David E. Wheeler.
 
 This module is free software; you can redistribute it and/or modify it under
-the L<PostgreSQL License|http://www.opensource.org/licenses/postgresql>.
+the L<PostgreSQL License|https://www.opensource.org/licenses/postgresql>.
 
 Permission to use, copy, modify, and distribute this software and its
 documentation for any purpose, without fee, and without a written agreement is

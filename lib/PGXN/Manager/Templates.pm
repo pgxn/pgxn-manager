@@ -66,9 +66,9 @@ BEGIN { create_wrapper wrapper => sub {
             };
             if ($args->{js} || $args->{with_jquery} || $args->{validate_form}) {
                 script {
-                    # http://docs.jquery.com/Downloading_jQuery#CDN_Hosted_jQuery
+                    # https://docs.jquery.com/Downloading_jQuery#CDN_Hosted_jQuery
                     type is 'text/javascript';
-                    src is 'http://code.jquery.com/jquery-1.6.min.js';
+                    src is 'https://code.jquery.com/jquery-1.6.min.js';
                 };
                 script {
                     type is 'text/javascript';
@@ -82,9 +82,9 @@ BEGIN { create_wrapper wrapper => sub {
                 }
                 if (my $id = $args->{validate_form}) {
                     script {
-                        # http://bassistance.de/jquery-plugins/jquery-plugin-validation/
+                        # https://bassistance.de/jquery-plugins/jquery-plugin-validation/
                         type is 'text/javascript';
-                        src  is 'http://ajax.microsoft.com/ajax/jquery.validate/1.7/jquery.validate.pack.js';
+                        src  is 'https://ajax.microsoft.com/ajax/jquery.validate/1.7/jquery.validate.pack.js';
                     };
                     script {
                         type is 'text/javascript';
@@ -187,7 +187,7 @@ BEGIN { create_wrapper wrapper => sub {
                 id is 'footer';
                 p {
                     outs 'PGXN::Manager ' . PGXN::Manager->version_string;
-                    outs_raw '. <a href="http://github.com/pgxn/pgxn-manager">Distributed</a> under the <a href="http://www.opensource.org/licenses/postgresql">PostgreSQL License</a>.';
+                    outs_raw '. <a href="https://github.com/pgxn/pgxn-manager">Distributed</a> under the <a href="https://www.opensource.org/licenses/postgresql">PostgreSQL License</a>.';
                 };
             };
         }; # /body
@@ -250,14 +250,14 @@ template about => sub {
             li {
                 outs T q{Create an extension and package it up for distribution. Basically, that means using };
                 a {
-                    href is 'http://www.postgresql.org/docs/current/static/xfunc-c.html#XFUNC-C-PGXS';
+                    href is 'https://www.postgresql.org/docs/current/static/xfunc-c.html#XFUNC-C-PGXS';
                     T 'PGXS'
                 };
                 outs T q{ to build your extension, and creating a};
                 code { 'META.json' };
                 outs T q{ file according to the};
                 a {
-                    href is 'http://pgxn.org/spec/';
+                    href is 'https://pgxn.org/spec/';
                     T 'PGXN Meta Spec';
                 };
                 outs '.';
@@ -287,48 +287,48 @@ template about => sub {
                 dt { T 'Coding' };
                 dd {
                     a {
-                        href is 'http://justatheory.com/';
+                        href is 'https://justatheory.com/';
                         'David E. Wheeler';
                     };
                 };
                 dt { T 'Logo' };
                 dd {
                     a {
-                        href is 'http://strongrrl.com/';
+                        href is 'https://strongrrl.com/';
                         'Strongrrl';
                     };
                 };
                 dt { T 'Site Design' };
                 dd {
                     a {
-                        href is 'http://andreasviklund.com/';
+                        href is 'https://andreasviklund.com/';
                         'Andreas Viklund';
                     };
                     outs ', ';
                     a {
-                        href is 'http://jasoncole.ca';
+                        href is 'https://jasoncole.ca';
                         'Jason Cole';
                     };
                     outs ', ';
                     a {
-                        href is 'http://veerle.duoh.com/';
+                        href is 'https://veerle.duoh.com/';
                         'Veerle Pieters';
                     };
-                    outs_raw ' (<a href="http://veerle-v2.duoh.com/blog/comments/a_css_styled_table/">tables</a>), ';
+                    outs_raw ' (tables), ';
                     a {
-                        href is 'http://itweek.deviantart.com/';
+                        href is 'https://itweek.deviantart.com/';
                         'Miles Ponson';
                     };
-                    outs_raw ' (<a href="http://itweek.deviantart.com/art/Knob-Buttons-Toolbar-icons-73463960">icons</a>), and ';
+                    outs_raw ' (<a href="https://itweek.deviantart.com/art/Knob-Buttons-Toolbar-icons-73463960">icons</a>), and ';
                     a {
-                        href is 'http://justatheory.com/';
+                        href is 'https://justatheory.com/';
                         'David E. Wheeler';
                     };
                 };
                 dt { T 'Funding' };
                 dd {
                     a {
-                        href is 'http://pgxn.org/donors/';
+                        href is 'https://pgxn.org/donors/';
                         T 'Our generous donors';
                     };
                 };
@@ -348,7 +348,7 @@ template contact => sub {
                 p {
                     outs T 'Join the discussion on the';
                     a {
-                        href is 'http://groups.google.com/group/pgxn-users';
+                        href is 'https://groups.google.com/group/pgxn-users';
                         T 'PGXN User Mail List.';
                     };
                 };
@@ -358,7 +358,7 @@ template contact => sub {
                 p {
                     outs T 'Please send bug reports to the';
                     a {
-                        href is 'http://github.com/pgxn/pgxn-manager/issues';
+                        href is 'https://github.com/pgxn/pgxn-manager/issues';
                         T 'PGXN Manager Issue Tracker.';
                     };
                 };
@@ -368,13 +368,13 @@ template contact => sub {
                 p {
                     outs T 'PGXN Manager is released under the';
                     a {
-                        href is 'http://www.opensource.org/licenses/postgresql';
+                        href is 'https://www.opensource.org/licenses/postgresql';
                         T 'PostgreSQL License';
                     };
                     outs '. ';
                     outs T 'Download PGXN Manager releases from';
                     a {
-                        href is 'http://github.com/pgxn/pgxn-manager/downloads';
+                        href is 'https://github.com/pgxn/pgxn-manager/downloads';
                         T 'GitHub Downloads';
                     };
                     outs '.';
@@ -385,7 +385,7 @@ template contact => sub {
                 p {
                     outs T 'The PGXN Manager source is availabe in a Git repository';
                     a {
-                        href is 'http://github.com/pgxn/pgxn-manager';
+                        href is 'https://github.com/pgxn/pgxn-manager';
                         T 'on GitHub';
                     };
                     outs '. ';
@@ -420,7 +420,7 @@ template request => sub {
             id      is 'reqform';
             action  is $req->uri_for('/account/register');
             # Browser should send us UTF-8 if that's what we ask for.
-            # http://www.unicode.org/mail-arch/unicode-ml/Archives-Old/UML023/0450.html
+            # https://www.unicode.org/mail-arch/unicode-ml/Archives-Old/UML023/0450.html
             enctype is 'application/x-www-form-urlencoded; charset=UTF-8';
             method  is 'post';
 
@@ -995,7 +995,7 @@ template show_account => sub {
             id      is 'accform';
             action  is $req->uri_for('/account');
             # Browser should send us UTF-8 if that's what we ask for.
-            # http://www.unicode.org/mail-arch/unicode-ml/Archives-Old/UML023/0450.html
+            # https://www.unicode.org/mail-arch/unicode-ml/Archives-Old/UML023/0450.html
             enctype is 'application/x-www-form-urlencoded; charset=UTF-8';
             method  is 'post';
 
@@ -1024,7 +1024,7 @@ template essentials => sub {
         for my $spec (
             [qw(full_name Name     text),  'Barack Obama', T 'What does your mother call you?'    ],
             [qw(email     Email    email), 'you@example.com', T('Where can we get hold of you?'), 'required email' ],
-            [qw(uri       URI      url),   'http://blog.example.com/', T 'Got a blog or personal site?'  ],
+            [qw(uri       URI      url),   'https://blog.example.com/', T 'Got a blog or personal site?'  ],
             ($args->{nonick} ? () : [qw(nickname  Nickname text),  'bobama', T('By what user name would you like to be known? ASCII letters, numbers, and dashes only, please.'), 'required' ]),
             [qw(twitter   Twitter   text),   '@barackobama', T 'Got a Twitter account? Tell us the username and your uploads will be tweeted!'  ],
         ) {
@@ -1270,7 +1270,7 @@ template show_mirror => sub {
                 class is 'essentials';
                 legend { T 'The Essentials' };
                 for my $spec (
-                    [qw(uri       URI      url),   'http://example.com/pgxn', T('What is the base URI for the mirror?'), 'required url' ],
+                    [qw(uri       URI      url),   'https://example.com/pgxn', T('What is the base URI for the mirror?'), 'required url' ],
                     [qw(organization Organization text),   'Full Organization Name', T('Whom should we blame when the mirror dies?'), 'required' ],
                     [qw(email Email email),   'pgxn@example.com', T('Where can we get hold of the responsible party?'), 'required email' ],
                     [qw(frequency Frequency text),   'daily/bidaily/.../weekly', T('How often is the mirror updated?'), 'required' ],
@@ -1398,7 +1398,7 @@ David E. Wheeler <david.wheeler@pgexperts.com>
 Copyright (c) 2010-2011 David E. Wheeler.
 
 This module is free software; you can redistribute it and/or modify it under
-the L<PostgreSQL License|http://www.opensource.org/licenses/postgresql>.
+the L<PostgreSQL License|https://www.opensource.org/licenses/postgresql>.
 
 Permission to use, copy, modify, and distribute this software and its
 documentation for any purpose, without fee, and without a written agreement is

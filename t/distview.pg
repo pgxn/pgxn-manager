@@ -68,7 +68,7 @@ SELECT lives_ok(
         "abstract":    "whatever",
         "meta-spec": {
            "version": "1.0.0",
-           "url": "http://pgxn.org/meta/spec.txt"
+           "url": "https://pgxn.org/meta/spec.txt"
         },
         "provides": { "pair": { "version": "0.0.1", "abstract": "whatever", "file": "pair.sql" } }
     }') $$,
@@ -111,7 +111,7 @@ SELECT lives_ok(
         "abstract":    "whatevers",
         "meta-spec": {
            "version": "1.0.0",
-           "url": "http://pgxn.org/meta/spec.txt"
+           "url": "https://pgxn.org/meta/spec.txt"
         },
         "provides": {
             "what": { "version": "0.1.2", "file": "what.sql" },

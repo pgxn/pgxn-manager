@@ -1,4 +1,4 @@
-/* andreas07 - an open source xhtml/css website layout by Andreas Viklund - http://andreasviklund.com . Free to use for any purpose as long as the proper credits are given for the original design work.
+/* andreas07 - an open source xhtml/css website layout by Andreas Viklund - https://andreasviklund.com . Free to use for any purpose as long as the proper credits are given for the original design work.
 
 Version: 1.1, November 28, 2005 */
 
@@ -143,7 +143,7 @@ label.invalid:after
 .accept, .remove {display:inline;}
 
 /**************** Messages ****************/
-/* Borrowed from http://css.dzone.com/news/css-message-boxes-different-me */
+/* Borrowed from https://css.dzone.com/news/css-message-boxes-different-me */
 .info, .success, .warning, .error, .validation, .why
 { border:1px solid; margin:10px 4px; padding:15px 10px 15px 50px; background-repeat:no-repeat; background-position:.65em .65em;}
 
@@ -160,7 +160,7 @@ label.invalid:after
 { color:#d8000c; background-color:#ffbaba; background-image:url(../img/error.png);}
 
 /**************** Tables ****************/
-/* Borrowed from http://veerle-v2.duoh.com/blog/comments/a_css_styled_table/ */
+/* Borrowed from https://veerle-v2.duoh.com/blog/comments/a_css_styled_table/ */
 table
 {width:100%;border-spacing:0;border-collapse:collapse;}
 

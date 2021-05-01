@@ -22,7 +22,7 @@ CREATE OR REPLACE FUNCTION rand_str_of_len(
 
 Returns a random string of ASCII alphanumeric characters of the specified
 length. Borrowed [from
-Depesz](http://www.depesz.com/index.php/2007/06/25/random-text-record-identifiers/).
+Depesz](https://www.depesz.com/2007/06/25/random-text-record-identifiers/).
 Used internally by `forgot_password()` to generate tokens.
 
 */

@@ -162,7 +162,7 @@ test_psgi +PGXN::Manager::Router->app => sub {
                     title => $mt->maketext('What is the base URI for the mirror?'),
                     label => $mt->maketext('URI'),
                     type  => 'url',
-                    phold => 'http://example.com/pgxn',
+                    phold => 'https://example.com/pgxn',
                     class => 'required url',
                     value => 'http://kineticode.com/pgxn/',
                 },

@@ -80,7 +80,7 @@ SELECT is(
 SELECT json_ok(get_mirrors_json(), 'Empty JSON array should be valid');
 
 SELECT ok(
-    insert_user('theory', 'wet blanket', email := 'theory@pgxn.org', uri := 'http://justatheory.com/'),
+    insert_user('theory', 'wet blanket', email := 'theory@pgxn.org', uri := 'https://justatheory.com/'),
     'Insert user "theory"'
 );
 UPDATE users SET is_admin = true WHERE nickname = 'theory';
@@ -201,7 +201,7 @@ SELECT lives_ok(
         "abstract": "Ordered pair",
         "meta-spec": {
            "version": "1.0.0",
-           "url": "http://pgxn.org/meta/spec.txt"
+           "url": "https://pgxn.org/meta/spec.txt"
         },
         "provides": {
             "pair": { "file": "pair.sql.in", "version": "0.2.2" },
@@ -251,7 +251,7 @@ SELECT lives_ok(
         "abstract": "Ordered pair",
         "meta-spec": {
            "version": "1.0.0",
-           "url": "http://pgxn.org/meta/spec.txt"
+           "url": "https://pgxn.org/meta/spec.txt"
         },
         "provides": {
             "pair": { "file": "pair.sql.in", "version": "0.2.3" },
@@ -309,7 +309,7 @@ SELECT lives_ok(
         "abstract": "Ordered pair",
         "meta-spec": {
            "version": "1.0.0",
-           "url": "http://pgxn.org/meta/spec.txt"
+           "url": "https://pgxn.org/meta/spec.txt"
         },
         "provides": {
             "pair": { "file": "pair.sql.in", "version": "0.2.4" },
@@ -385,7 +385,7 @@ SELECT lives_ok(
         "abstract": "Ordered triplet",
         "meta-spec": {
            "version": "1.0.0",
-           "url": "http://pgxn.org/meta/spec.txt"
+           "url": "https://pgxn.org/meta/spec.txt"
         },
         "provides": { "trip": { "version": "0.2.5", "abstract": "Ordered triplet", "file": "trip.sql" } }
     }') $$,
@@ -434,7 +434,7 @@ SELECT lives_ok(
         "abstract": "Ordered pair",
         "meta-spec": {
            "version": "1.0.0",
-           "url": "http://pgxn.org/meta/spec.txt"
+           "url": "https://pgxn.org/meta/spec.txt"
         },
         "provides": {
             "pair": { "file": "pair.sql.in", "version": "0.2.4" },
@@ -569,7 +569,7 @@ SELECT lives_ok(
         },
        "meta-spec": {
           "version": "1.0.0",
-          "url": "http://pgxn.org/meta/spec.txt"
+          "url": "https://pgxn.org/meta/spec.txt"
         }
     }') $$,
     'Add a stable distribution pair 0.0.10'
@@ -808,7 +808,7 @@ SELECT lives_ok(
         "provides": { "duwop": { "version": "0.50.1", "abstract": "Do wa, p-diddy", "file": "duwop.sql" } },
         "meta-spec": {
            "version": "1.0.0",
-           "url": "http://pgxn.org/meta/spec.txt"
+           "url": "https://pgxn.org/meta/spec.txt"
         }
     }') $$,
     'Add another distribution'
@@ -896,7 +896,7 @@ SELECT is(
    "nickname": "theory",
    "name": "",
    "email": "theory@pgxn.org",
-   "uri": "http://justatheory.com/",
+   "uri": "https://justatheory.com/",
    "releases": {
       "duwop": {
          "stable": [

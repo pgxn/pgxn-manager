@@ -26,7 +26,7 @@ $$;
 
 ------------------------------------------------------------------------------
 -- Create a timezone data type. This is really fast. See
--- http://justatheory.com/computers/databases/postgresql/timezone_validation.html.
+-- https://justatheory.com/computers/databases/postgresql/timezone_validation.html.
 
 CREATE OR REPLACE FUNCTION is_timezone(
     tz CITEXT
@@ -62,7 +62,7 @@ CREATE DOMAIN term CITEXT CHECK (
 -- Create a label data type, following the rules in RFC 1034. Labels can then
 -- be used as host names in domains.
 --
--- http://tools.ietf.org/html/rfc1034
+-- https://tools.ietf.org/html/rfc1034
 --
 -- "The labels must follow the rules for ARPANET host names. They must
 -- start with a letter, end with a letter or digit, and have as interior
@@ -77,7 +77,7 @@ CREATE DOMAIN label AS CITEXT
 --
 -- Check constraint is_email for email base type
 -- Using Email::Valid, as suggested by Greg Sabino Mullane.
--- http://people.planetpostgresql.org/greg/index.php?/archives/49-Avoiding-the-reinvention-of-two-email-wheels.html
+-- https://people.planetpostgresql.org/greg/index.php?/archives/49-Avoiding-the-reinvention-of-two-email-wheels.html
 --
 CREATE OR REPLACE FUNCTION is_email(
     email CITEXT

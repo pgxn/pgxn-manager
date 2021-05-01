@@ -174,7 +174,7 @@ sub normalize {
     my $pmv = PGXN::Meta::Validator->new($meta);
     unless ($pmv->is_valid) {
         $self->error([
-            'The [_1] file does not adhere to the <a href="http://pgxn.org/spec/">PGXN Meta Specification</a>. Errors:<br/>[_2]',
+            'The [_1] file does not adhere to the <a href="https://pgxn.org/spec/">PGXN Meta Specification</a>. Errors:<br/>[_2]',
             $self->metamemb->fileName,
             '• ' . join '<br/>• ', $pmv->errors
         ]);
@@ -604,7 +604,7 @@ David E. Wheeler <david.wheeler@pgexperts.com>
 Copyright (c) 2010-2011 David E. Wheeler.
 
 This module is free software; you can redistribute it and/or modify it under
-the L<PostgreSQL License|http://www.opensource.org/licenses/postgresql>.
+the L<PostgreSQL License|https://www.opensource.org/licenses/postgresql>.
 
 Permission to use, copy, modify, and distribute this software and its
 documentation for any purpose, without fee, and without a written agreement is
