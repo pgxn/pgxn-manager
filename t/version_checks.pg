@@ -33,7 +33,7 @@ SELECT volatility_is(   'check_dist_version', 'stable' );
 
 SELECT lives_ok(
     $$ SELECT check_dist_version('widgets', '1.0.0') $$,
-    'Should no error from check_dist_version() for non-existent release'
+    'Should get no error from check_dist_version() for non-existent release'
 );
 
 -- We need a user.
