@@ -175,7 +175,6 @@ BEGIN { create_wrapper wrapper => sub {
                     ) {
                         li { a {
                             id is $item->[2];
-                            my $uri =
                             href is $req->uri_for($item->[0]);
                             class is 'active' if $path eq $item->[0];
                             T $item->[1];
