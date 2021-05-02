@@ -175,7 +175,7 @@ BEGIN { create_wrapper wrapper => sub {
                     ) {
                         li { a {
                             id is $item->[2];
-                            my $uri = 
+                            my $uri =
                             href is $req->uri_for($item->[0]);
                             class is 'active' if $path eq $item->[0];
                             T $item->[1];
@@ -1395,7 +1395,7 @@ David E. Wheeler <david.wheeler@pgexperts.com>
 
 =head1 Copyright and License
 
-Copyright (c) 2010-2011 David E. Wheeler.
+Copyright (c) 2010-2021 David E. Wheeler.
 
 This module is free software; you can redistribute it and/or modify it under
 the L<PostgreSQL License|http://www.opensource.org/licenses/postgresql>.
