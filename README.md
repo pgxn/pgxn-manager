@@ -23,7 +23,7 @@ Installation
         perl Build.PL
 
   To install them, run
-  
+
         ./Build installdeps
 
 * Configure the PostgreSQL server to preload modules used by PL/Perl
@@ -341,7 +341,7 @@ from the system.
 Copyright and License
 ---------------------
 
-Copyright (c) 2010-2011 David E. Wheeler.
+Copyright (c) 2010-2021 David E. Wheeler.
 
 This module is free software; you can redistribute it and/or modify it under
 the [PostgreSQL License](https://www.opensource.org/licenses/postgresql).

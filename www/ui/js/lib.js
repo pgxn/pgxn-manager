@@ -2,7 +2,7 @@
  * PGXN JavaScript Library
  * https://pgxn.org/
  *
- * Copyright (c) 2010-2011 David E. Wheeler.
+ * Copyright (c) 2010-2021 David E. Wheeler.
  *
  */
 
@@ -52,7 +52,7 @@ PGXN.init_moderate = function () {
             $('.userplay').next().fadeOut(100);
             PGXN.ajax_click(e, this, '#userlist');
         });
-        
+
     });
 };
 
@@ -82,4 +82,4 @@ PGXN.init_mirrors = function () {
 
 
 
- 
+
