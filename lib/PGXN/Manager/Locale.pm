@@ -404,8 +404,8 @@ that way. But it saves the server some effort if all it has to do is move a
 
 <h3 id="releaseit">Release It!</h3>
 
-<p>Now <a href="/account/register">request an account</a> if you don&#8217;t already have one, then
-log in and <a href="https:///upload">upload</a> the release zip file.</p>
+<p>Now <a href="/account/register">request an account</a> if you don&#8217;t already have one, hit
+the &#8220;Upload&#8221; link in the side navigation, and the release zip file.</p>
 
 <p>And that&#8217;s it! Not too bad, eh? Just please do be very careful cutting and
 pasting examples. Or better yet, give <a href="https://github.com/guedes/pgxn-utils/">pgxn-utils</a> a try. It will create a

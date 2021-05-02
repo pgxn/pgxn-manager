@@ -351,8 +351,8 @@ that way. But it saves the server some effort if all it has to do is move a
 
 ### Release It!
 
-Now [request an account](/account/register) if you don't already have one, then
-log in and [upload](https:///upload) the release zip file.
+Now [request an account] if you don't already have one, hit the "Upload" link in
+the side navigation, and the release zip file.
 
 And that's it! Not too bad, eh? Just please do be very careful cutting and
 pasting examples. Or better yet, give [pgxn-utils] a try. It will create a
@@ -396,3 +396,4 @@ Good hacking!
   [BOM]: https://en.wikipedia.org/wiki/Byte_order_mark
   [Archive::Extract]: https://metacpan.org/pod/Archive::Extract
   [pgxn-utils]: https://github.com/guedes/pgxn-utils/
+  [request an account]: /account/register
