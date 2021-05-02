@@ -24,25 +24,27 @@ At its simplest, the only thing PGXN requires of a distribution is a single file
 
 If you have only one `.sql` file for your extension and it's the same name as the distribution, then you can make it pretty simple. For example, the [`pair`](https://master.pgxn.org/dist/pair/) distribution has only one SQL file. So the `META.json` could be:
 
-    {
-       "name": "pair",
-       "abstract": "A key/value pair data type",
-       "version": "0.1.0",
-       "maintainer": "David E. Wheeler <david@justatheory.com>",
-       "license": "postgresql",
-       "provides": {
-          "pair": {
-             "abstract": "A key/value pair data type",
-             "file": "sql/pair.sql",
-             "docfile": "doc/pair.md",
-             "version": "0.1.0"
-          }
-       },
-       "meta-spec": {
-          "version": "1.0.0",
-          "url": "https://pgxn.org/meta/spec.txt"
-       },
-    }
+``` json
+{
+   "name": "pair",
+   "abstract": "A key/value pair data type",
+   "version": "0.1.0",
+   "maintainer": "David E. Wheeler <david@justatheory.com>",
+   "license": "postgresql",
+   "provides": {
+      "pair": {
+         "abstract": "A key/value pair data type",
+         "file": "sql/pair.sql",
+         "docfile": "doc/pair.md",
+         "version": "0.1.0"
+      }
+   },
+   "meta-spec": {
+      "version": "1.0.0",
+      "url": "https://pgxn.org/meta/spec.txt"
+   },
+}
+```
     
 That's it. One thing that may not be obvious from this example is that all version numbers in a `META.json` *must* be [semantic versions](https://semver.org/spec/v2.0.0.html), including for core dependencies like plperl or PostgreSQL itself. If they're not, PGXN not index your distribution. If you don't want to read through the [Semantic Versioning 2.0.0 spec](https://semver.org/spec/v2.0.0.html), just use thee-part dotted integers (such as "1.2.0") and don't worry about it.
 
@@ -57,46 +59,48 @@ To really take advantage of PGXN, you'll want your extension to show up prominen
 
 So here's a more extended example from the `pair` data type:
 
-    {
-       "name": "pair",
-       "abstract": "A key/value pair data type",
-       "description": "This library contains a single PostgreSQL extension, a key/value pair data type called “pair”, along with a convenience function for constructing key/value pairs.",
-       "version": "0.1.4",
-       "maintainer": [
-          "David E. Wheeler <david@justatheory.com>"
-       ],
-       "license": "postgresql",
-       "provides": {
-          "pair": {
-             "abstract": "A key/value pair data type",
-             "file": "sql/pair.sql",
-             "docfile": "doc/pair.md",
-             "version": "0.1.0"
-          }
-       },
-       "resources": {
-          "bugtracker": {
-             "web": "https://github.com/theory/kv-pair/issues/"
-          },
-          "repository": {
-            "url":  "git://github.com/theory/kv-pair.git",
-            "web":  "https://github.com/theory/kv-pair/",
-            "type": "git"
-          }
-       },
-       "generated_by": "David E. Wheeler",
-       "meta-spec": {
-          "version": "1.0.0",
-          "url": "https://pgxn.org/meta/spec.txt"
-       },
-       "tags": [
-          "variadic function",
-          "ordered pair",
-          "pair",
-          "key value",
-          "key value pair"
-       ]
-    }
+``` json
+{
+   "name": "pair",
+   "abstract": "A key/value pair data type",
+   "description": "This library contains a single PostgreSQL extension, a key/value pair data type called “pair”, along with a convenience function for constructing key/value pairs.",
+   "version": "0.1.4",
+   "maintainer": [
+      "David E. Wheeler <david@justatheory.com>"
+   ],
+   "license": "postgresql",
+   "provides": {
+      "pair": {
+         "abstract": "A key/value pair data type",
+         "file": "sql/pair.sql",
+         "docfile": "doc/pair.md",
+         "version": "0.1.0"
+      }
+   },
+   "resources": {
+      "bugtracker": {
+         "web": "https://github.com/theory/kv-pair/issues/"
+      },
+      "repository": {
+      "url":  "git://github.com/theory/kv-pair.git",
+      "web":  "https://github.com/theory/kv-pair/",
+      "type": "git"
+      }
+   },
+   "generated_by": "David E. Wheeler",
+   "meta-spec": {
+      "version": "1.0.0",
+      "url": "https://pgxn.org/meta/spec.txt"
+   },
+   "tags": [
+      "variadic function",
+      "ordered pair",
+      "pair",
+      "key value",
+      "key value pair"
+   ]
+}
+```
 
 PGXN Manager will verify the `META.json` file and complain if it's not right. You can also check it before uploading by installing [PGXN::Meta::Validator](https://metacpan.org/release/PGXN-Meta-Validator) and sim ply running:
 
@@ -112,11 +116,13 @@ Thanks to all that metadata, the extension gets a [very nice page](https://pgxn.
 
 A second file you should consider including in your distribution is a "control file". This file is required by the PostgreSQL 9.1 [extension support](https://www.postgresql.org/docs/current/static/extend-extensions.html "PostgreSQL Documentation: “Packaging Related Objects into an Extension”"). Like `META.json` it describes your extension, but it's actually much shorter. Really all it needs is a few keys. Here's an example from the [semver distribution](https://pgxn.org/dist/semver/) named `semver.control`:
 
-    # semver extension
-    comment = 'A semantic version data type'
-    default_version = '0.2.1'
-    module_pathname = '$libdir/semver'
-    relocatable = true
+``` ini
+# semver extension
+comment = 'A semantic version data type'
+default_version = '0.2.1'
+module_pathname = '$libdir/semver'
+relocatable = true
+```
 
 The `default_version` value specifies the version of the extension you're distributing, the `module_pathname` value may be required for C extensions, and the `relocatable` value determines whether an extension can be moved from one schema to another. These are the keys you will most often use, but there are quite a few [other keys](https://www.postgresql.org/docs/current/static/extend-extensions.html) you might want to review as you develop your extension.
 
@@ -135,38 +141,40 @@ We strongly encourage that the files in distributions be organized into subdirec
 
 The [`pair`](https://github.com/theory/kv-pair/) and [`semver`](https://github.com/theory/pg-semver/) distributions serve as examples of this. To make it all work, their `Makefile`s are written like so:
 
-    EXTENSION    = $(shell grep -m 1 '"name":' META.json | \
-                   sed -e 's/[[:space:]]*"name":[[:space:]]*"\([^"]*\)",/\1/')
-    EXTVERSION   = $(shell grep -m 1 '[[:space:]]\{8\}"version":' META.json | \
-                   sed -e 's/[[:space:]]*"version":[[:space:]]*"\([^"]*\)",\{0,1\}/\1/')
-    
-    DATA         = $(filter-out $(wildcard sql/*--*.sql),$(wildcard sql/*.sql))
-    TESTS        = $(wildcard test/sql/*.sql)
-    REGRESS      = $(patsubst test/sql/%.sql,%,$(TESTS))
-    REGRESS_OPTS = --inputdir=test
-    DOCS         = $(wildcard doc/*.md)
-    # MODULES    = $(patsubst %.c,%,$(wildcard src/*.c))
-    PG_CONFIG   ?= pg_config
-    PG91         = $(shell $(PG_CONFIG) --version | grep -qE " 8\.| 9\.0" && echo no || echo yes)
-    
-    ifeq ($(PG91),yes)
-    DATA = $(wildcard sql/*--*.sql)
-    EXTRA_CLEAN = sql/$(EXTENSION)--$(EXTVERSION).sql
-    endif
-    
-    PGXS := $(shell $(PG_CONFIG) --pgxs)
-    include $(PGXS)
-    
-    ifeq ($(PG91),yes)
-    all: sql/$(EXTENSION)--$(EXTVERSION).sql
-    
-    sql/$(EXTENSION)--$(EXTVERSION).sql: sql/$(EXTENSION).sql
-    	cp $< $@
-    endif
-    
-    dist:
-    	git archive --format zip --prefix=$(EXTENSION)-$(EXTVERSION)/ \
-    	--output $(EXTENSION)-$(EXTVERSION).zip HEAD
+``` makefile
+EXTENSION    = $(shell grep -m 1 '"name":' META.json | \
+               sed -e 's/[[:space:]]*"name":[[:space:]]*"\([^"]*\)",/\1/')
+EXTVERSION   = $(shell grep -m 1 '[[:space:]]\{8\}"version":' META.json | \
+               sed -e 's/[[:space:]]*"version":[[:space:]]*"\([^"]*\)",\{0,1\}/\1/')
+
+DATA         = $(filter-out $(wildcard sql/*--*.sql),$(wildcard sql/*.sql))
+TESTS        = $(wildcard test/sql/*.sql)
+REGRESS      = $(patsubst test/sql/%.sql,%,$(TESTS))
+REGRESS_OPTS = --inputdir=test
+DOCS         = $(wildcard doc/*.md)
+# MODULES    = $(patsubst %.c,%,$(wildcard src/*.c))
+PG_CONFIG   ?= pg_config
+PG91         = $(shell $(PG_CONFIG) --version | grep -qE " 8\.| 9\.0" && echo no || echo yes)
+
+ifeq ($(PG91),yes)
+DATA = $(wildcard sql/*--*.sql)
+EXTRA_CLEAN = sql/$(EXTENSION)--$(EXTVERSION).sql
+endif
+
+PGXS := $(shell $(PG_CONFIG) --pgxs)
+include $(PGXS)
+
+ifeq ($(PG91),yes)
+all: sql/$(EXTENSION)--$(EXTVERSION).sql
+
+sql/$(EXTENSION)--$(EXTVERSION).sql: sql/$(EXTENSION).sql
+cp $< $@
+endif
+
+dist:
+git archive --format zip --prefix=$(EXTENSION)-$(EXTVERSION)/ \
+--output $(EXTENSION)-$(EXTVERSION).zip HEAD
+```
 
 The `EXTENSION` variable is read in from `META.json` to identify the extension you're distributing. `EXTVERSION`, also read from `META.json`, identifies the extension version (that is, the one from the `provides` section), so you only have to edit it there (and in the control file).
 

@@ -9,6 +9,8 @@ Revision history for Perl extension PGXN::Manager
          support the semver 2.0.0 spec (aside from version parts larger than 32
          bits).
        - Updated all URLs with HTTPS variants to use HTTPS.
+       - Regenerated the HOWTO HTML using MultiMarkdown, so as to get heading
+         IDs for direct linking and with a language class for the code examples.
 
 0.16.0  2015-08-31T18:25:24Z
        - Updated the `Makefile` example in the HOWTO to extract the extension
