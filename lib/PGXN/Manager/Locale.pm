@@ -40,6 +40,8 @@ packaging your extensions and distributing them on PGXN. If anything is unclear,
 please do <a href="/contact">let us know</a>. It&#8217;s our aim to make this the one stop for
 all of your PGXN distribution needs.</p>
 
+<h3>Contents</h3>
+
 <div class="TOC">
 
 <ul>

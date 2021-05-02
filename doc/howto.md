@@ -11,7 +11,9 @@ packaging your extensions and distributing them on PGXN. If anything is unclear,
 please do [let us know](/contact). It's our aim to make this the one stop for
 all of your PGXN distribution needs.
 
- {{TOC}}
+<h3>Contents</h3>
+
+{{TOC}}
 
 ### OMG Distribution WTF?
 
