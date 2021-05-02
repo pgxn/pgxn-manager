@@ -77,7 +77,7 @@ CREATE DOMAIN label AS CITEXT
 --
 -- Check constraint is_email for email base type
 -- Using Email::Valid, as suggested by Greg Sabino Mullane.
--- https://people.planetpostgresql.org/greg/index.php?/archives/49-Avoiding-the-reinvention-of-two-email-wheels.html
+-- https://web.archive.org/web/20080413183435/https://people.planetpostgresql.org/greg/index.php?/archives/49-Avoiding-the-reinvention-of-two-email-wheels.html
 --
 CREATE OR REPLACE FUNCTION is_email(
     email CITEXT
