@@ -2,6 +2,38 @@ CREATE OR REPLACE FUNCTION check_dist_version (
     dist     TERM,
     version  SEMVER
 ) RETURNS VOID LANGUAGE plpgsql STABLE SECURITY DEFINER AS $$
+/*
+
+    SELECT check_dist_version('pair', '1.2.0');
+    check_dist_version
+    --------------------
+
+
+Checks to see if a distribution name and version is allowed to be created or
+updated. Returns no value if the version is allowed, and throws an exception if
+it is not. A new version of a distribution can be created or updated if any of
+the following rules apply to the distribution:
+
+*   No other version exists
+*   The new version is greater than or equal to all existing versions (x.y.z)
+*   The new version is greater than or equal to all versions with the same major
+    and minor parts (x.y)
+*   The new version is greater than or equal to all versions with the same major
+    parts (x)
+
+The first case applies if it's a new distribution name.
+
+The second is the usual expected case, where the new version is the highest
+
+The third case applies for updating an existing minor version. For example, if
+there are existing versions 1.2.3 and 1.4.2, a new version 1.2.4 would be
+allowed, but not 1.2.2 or 1.3.0.
+
+The fourth case applies for updating an existing major version. For example, if
+there are existing versions 1.2.6 and 2.0.4, a new version 1.3.0 would be
+allowed, but not 0.10.0.
+
+*/
 DECLARE
     max_version SEMVER;
     min_version SEMVER;
