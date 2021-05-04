@@ -37,8 +37,8 @@ the place to do it.</p>
 <p>This document explains how. There&#8217;s some background information, too, but the
 goal is to provide the information and references you need to get started
 packaging your extensions and distributing them on PGXN. If anything is unclear,
-please do <a href="/contact">let us know</a>. It&#8217;s our aim to make this the one stop for
-all of your PGXN distribution needs.</p>
+please do <a href="http://manager.pgxn.org/contact" title="Contact PGXN">let us know</a>. It&#8217;s our aim to make this the one stop for all of your
+PGXN distribution needs.</p>
 
 <h3>Contents</h3>
 
@@ -404,8 +404,8 @@ that way. But it saves the server some effort if all it has to do is move a
 
 <h3 id="releaseit">Release It!</h3>
 
-<p>Now <a href="/account/register">request an account</a> if you don&#8217;t already have one, hit
-the &#8220;Upload&#8221; link in the side navigation, and the release zip file.</p>
+<p>Now <a href="http://manager.pgxn.org/account/register">request an account</a> if you don&#8217;t already have one, hit the &#8220;Upload&#8221; link in
+the side navigation, and the release zip file.</p>
 
 <p>And that&#8217;s it! Not too bad, eh? Just please do be very careful cutting and
 pasting examples. Or better yet, give <a href="https://github.com/guedes/pgxn-utils/">pgxn-utils</a> a try. It will create a

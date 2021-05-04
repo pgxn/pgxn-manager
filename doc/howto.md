@@ -8,8 +8,8 @@ the place to do it.
 This document explains how. There's some background information, too, but the
 goal is to provide the information and references you need to get started
 packaging your extensions and distributing them on PGXN. If anything is unclear,
-please do [let us know](/contact). It's our aim to make this the one stop for
-all of your PGXN distribution needs.
+please do [let us know]. It's our aim to make this the one stop for all of your
+PGXN distribution needs.
 
 <h3>Contents</h3>
 
@@ -362,6 +362,7 @@ a release directly to PGXN Manager. Give it a whirl!
 
 Good hacking!
 
+  [let us know]: http://manager.pgxn.org/contact "Contact PGXN"
   [PostgreSQL]: https://www.postgresql.org/
   [additional supplied modules]: https://www.postgresql.org/docs/current/static/contrib.html
   [pair]: https://pgxn.org/dist/pair/
@@ -396,4 +397,4 @@ Good hacking!
   [BOM]: https://en.wikipedia.org/wiki/Byte_order_mark
   [Archive::Extract]: https://metacpan.org/pod/Archive::Extract
   [pgxn-utils]: https://github.com/guedes/pgxn-utils/
-  [request an account]: /account/register
+  [request an account]: http://manager.pgxn.org/account/register
