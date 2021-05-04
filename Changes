@@ -11,6 +11,13 @@ Revision history for Perl extension PGXN::Manager
        - Updated all URLs with HTTPS variants to use HTTPS.
        - Regenerated the HOWTO HTML using MultiMarkdown, so as to get heading
          IDs for direct linking and with a language class for the code examples.
+       - Distribution versions are now allowed to be less than than previous
+         release versions if they update existing major or minor versions. So if
+         you have versions 2.0.0, 2.2.1, and 2.4.2, you can release 2.0.1,
+         2.2.2, 2.4.3, 2.5.0, or 3.0.0, but not 2.0.0-r1, 2.2.0, or 2.3.0. This
+         should allow for the release of updates to older versions without
+         otherwise creating new major or minor versions that were not previously
+         released. Thanks to Geoff Montee for the report! (#52).
 
 0.16.0  2015-08-31T18:25:24Z
        - Updated the `Makefile` example in the HOWTO to extract the extension

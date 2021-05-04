@@ -3,16 +3,39 @@ CREATE OR REPLACE FUNCTION check_dist_version (
     version  SEMVER
 ) RETURNS VOID LANGUAGE plpgsql STABLE SECURITY DEFINER AS $$
 DECLARE
-    prev_version SEMVER;
+    max_version SEMVER;
+    min_version SEMVER;
+    maj_version SEMVER;
 BEGIN
     -- Make sure the version is greater than previous release versions.
-    SELECT MAX(d.version) INTO prev_version
+    -- Allow lower version if higher than existing minor version or higher than existing major version.
+    SELECT MAX(d.version),
+           MAX(d.version) FILTER (WHERE get_semver_major(d.version) = get_semver_major(check_dist_version.version) AND get_semver_minor(d.version) = get_semver_minor(check_dist_version.version)),
+           MAX(d.version) FILTER (WHERE get_semver_major(d.version) = get_semver_major(check_dist_version.version))
+      INTO max_version, min_version, maj_version
       FROM distributions d
      WHERE d.name = dist;
-    IF version < prev_version THEN
-       RAISE EXCEPTION 'Distribution “% %” version less than in previous release “% %”',
-             dist, version, dist, prev_version;
+
+    -- Allow if no previous, or version is higher than any x.y.z version.
+    IF max_version IS NULL OR version > max_version THEN RETURN; END IF;
+
+    -- Allow if higher than existing instance of same x.y version.
+    IF min_version IS NOT NULL THEN
+        IF version > min_version THEN RETURN; END IF;
+        RAISE EXCEPTION 'Distribution “% %” version not greater than previous minor release “% %”',
+              dist, version, dist, min_version;
     END IF;
+
+    -- Allow if higher than existing instance of same x version.
+    IF maj_version IS NOT NULL THEN
+        IF version > maj_version THEN RETURN; END IF;
+        RAISE EXCEPTION 'Distribution “% %” version not greater than previous major release “% %”',
+              dist, version, dist, maj_version;
+    END IF;
+
+    -- No previous major or minor found and not higher than anything else, so bail.
+    RAISE EXCEPTION 'Distribution “% %” version not greater than previous release “% %”',
+          dist, version, dist, max_version;
 END;
 $$;
 
