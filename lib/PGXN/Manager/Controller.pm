@@ -160,6 +160,7 @@ sub server_error {
     my $uri = Request->new($err_env)->uri_for($err_env->{PATH_INFO});
 
     if (%{ $err_env }) {
+        $err_env->{HTTP_AUTHORIZATION} = '[REDACTED]' if $err_env->{HTTP_AUTHORIZATION};
         # Send an email to the administrators.
         my $pgxn = PGXN::Manager->instance;
         my $config = $pgxn->config;
@@ -168,9 +169,9 @@ sub server_error {
             to      => $config->{alert_email},
             subject => "PGXN Manager Internal Server Error",
             body    => "An error occurred during a request to $uri.\n\n"
-                     . "Environment:\n\n" . pp($err_env)
-                     . "\n\nTrace:\n\n"
+                     . "Trace:\n\n"
                      . ($env->{'plack.stacktrace.text'} || 'None found. :-(')
+                     . "\n\nEnvironment:\n\n" . pp($err_env)
                      . "\n",
         });
     }

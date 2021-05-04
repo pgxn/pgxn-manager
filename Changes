@@ -18,6 +18,8 @@ Revision history for Perl extension PGXN::Manager
          should allow for the release of updates to older versions without
          otherwise creating new major or minor versions that were not previously
          released. Thanks to Geoff Montee for the report! (#52).
+       - Fixed the email sent to the PGXN admins on error to redact
+         `HTTP_AUTHORIZATION` header from the environment dump.
 
 0.16.0  2015-08-31T18:25:24Z
        - Updated the `Makefile` example in the HOWTO to extract the extension

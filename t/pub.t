@@ -137,8 +137,8 @@ my $err_app = sub {
     my $env = shift;
     $env->{'psgix.errordocument.PATH_INFO'} = '/';
     $env->{'psgix.errordocument.SCRIPT_NAME'} = '/pub';
-    $env->{'psgix.errordocument.SCRIPT_NAME'} = '/pub';
     $env->{'psgix.errordocument.HTTP_HOST'} = 'localhost';
+    $env->{'psgix.errordocument.HTTP_AUTHORIZATION'} = 'Basic ' . encode_base64("$user:****");
     $env->{'plack.stacktrace.text'} = 'This is the trace';
     $app->($env);
 };
@@ -209,13 +209,18 @@ sub test_error_response {
         'To header should be set';
     is $email->get_body, 'An error occurred during a request to http://localhost/pub/.
 
-Environment:
-
-{ HTTP_HOST => "localhost", PATH_INFO => "/", SCRIPT_NAME => "/pub" }
-
 Trace:
 
 This is the trace
+
+Environment:
+
+{
+  HTTP_AUTHORIZATION => "[REDACTED]",
+  HTTP_HOST          => "localhost",
+  PATH_INFO          => "/",
+  SCRIPT_NAME        => "/pub",
+}
 ',
     'The body should be correct';
     Email::Sender::Simple->default_transport->clear_deliveries;
