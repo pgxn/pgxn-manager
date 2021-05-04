@@ -87,12 +87,12 @@ sub is_xhr {
 
 sub address     {
     my $env = $_[0]->env;
-    return $env->{X_FORWARDED_FOR} || $env->{REMOTE_ADDR};
+    return $env->{HTTP_X_FORWARDED_FOR} || $env->{REMOTE_ADDR};
 }
 
 sub remote_host {
     my $env = $_[0]->env;
-    return $env->{X_FORWARDED_HOST} || $env->{REMOTE_HOST};
+    return $env->{HTTP_X_FORWARDED_HOST} || $env->{REMOTE_HOST};
 }
 
 sub _query_parameters {

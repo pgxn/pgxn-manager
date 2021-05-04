@@ -179,7 +179,7 @@ is_deeply [$req->parameters->get_all('q')], ['テスト', 'メインページ'],
 # Test remote_host() and address().
 is $req->remote_host, 'localhost', 'remote_host should be "localhost"';
 is $req->address, '127.0.0.1', 'remote_host should be "127.0.0.1"';
-$req->env->{X_FORWARDED_HOST} = 'foo';
+$req->env->{HTTP_X_FORWARDED_HOST} = 'foo';
 is $req->remote_host, 'foo', 'remote_host should prefer X-Forwarded-host';
-$req->env->{X_FORWARDED_FOR} = '192.168.0.1';
+$req->env->{HTTP_X_FORWARDED_FOR} = '192.168.0.1';
 is $req->address, '192.168.0.1', 'remote_host should prefer X-Forwarded-For';

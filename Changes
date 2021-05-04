@@ -22,6 +22,9 @@ Revision history for Perl extension PGXN::Manager
          `HTTP_AUTHORIZATION` header from the environment dump.
        - Fix the quoting for the reason for a new user request in the email sent
          to admins.
+       - Fixed the request object to read X_ variables from the Plack environment
+         with a leading HTTP_. In other words, read HTTP_X_FORWARDED_FOR not
+         X_FORWARDED_FOR. This seems to be how X_ variables are loaded by Plack.
 
 0.16.0  2015-08-31T18:25:24Z
        - Updated the `Makefile` example in the HOWTO to extract the extension

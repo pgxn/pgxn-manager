@@ -216,7 +216,7 @@ test_psgi $app => sub {
         'From header should be set';
     is $email->get_header('To'), PGXN::Manager->config->{alert_email},
         'To header should be set';
-    is $email->get_body, 'A new PGXN account has been requested from localhost:
+    is $email->get_body, 'A new PGXN account has been requested from 127.0.0.1:
 
      Name: Tom Lane
  Nickname: tgl

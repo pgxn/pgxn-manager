@@ -231,7 +231,7 @@ sub register {
             );
 
             # Success! Notify the admins.
-            my $host = $req->remote_host || $req->address;
+            my $host = $req->address;
             my $name = $params->{full_name} ? "     Name: $params->{full_name}\n" : '';
             my $twit = $params->{twitter}   ? "  Twitter: https://twitter.com/$params->{twitter}\n" : '';
             my $uri  = $params->{uri}       ? "      URI: $params->{uri}\n" : '';
