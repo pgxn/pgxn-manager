@@ -183,7 +183,7 @@ test_psgi $app => sub {
         email     => 'tgl@pgxn.org',
         uri       => '',
         nickname  => 'tgl',
-        why       => 'In short, +1 from me. Regards, Tom Lane',
+        why       => "In short, +1 from me.\n\nRegards, Tom Lane",
     ]), 'POST tgl to /register';
     ok $res->is_redirect, 'It should be a redirect response';
     my $req = PGXN::Manager::Request->new(req_to_psgi($res->request));
@@ -199,7 +199,7 @@ test_psgi $app => sub {
              WHERE nickname = ?
         }, undef, 'tgl'), [
             'Tom Lane', 'tgl@pgxn.org', '', '',
-            'In short, +1 from me. Regards, Tom Lane', 'new'
+            "In short, +1 from me.\n\nRegards, Tom Lane", 'new'
         ], 'TGL should exist';
     });
 
@@ -223,7 +223,9 @@ test_psgi $app => sub {
     Email: tgl@pgxn.org
    Reason:
 
-> In short, +1 from me. Regards, Tom Lane
+> In short, +1 from me.
+> 
+> Regards, Tom Lane
 
 Moderate at ' . $req->auth_uri_for('admin/moderate') . ".\n",
     'The body should be correct';
@@ -238,7 +240,7 @@ test_psgi $app => sub {
         email     => 'tgl@pgxn.org',
         uri       => 'http://tgl.example.org/',
         nickname  => 'tgl',
-        why       => 'In short, +1 from me. Regards, Tom Lane',
+        why       => "In short, +1 from me.\n\nRegards, Tom Lane",
     ]), 'POST tgl to /register again';
     ok !$res->is_redirect, 'It should not be a redirect response';
     is $res->code, 409, 'Should have 409 status code';
@@ -275,7 +277,7 @@ test_psgi $app => sub {
         $tx->ok('./form[@id="reqform"]/fieldset[2]', '... Check second fieldset', sub {
             $tx->is(
                 './textarea[@id="why"]',
-                'In short, +1 from me. Regards, Tom Lane',
+                "In short, +1 from me.\n\nRegards, Tom Lane",
                 '...... Why textarea should be set'
             );
         });
@@ -292,7 +294,7 @@ test_psgi $app => sub {
         uri       => 'http://tgl.example.org/',
         nickname  => 'tgl',
         twitter   => 'tomlane',
-        why       => 'In short, +1 from me. Regards, Tom Lane',
+        why       => "In short, +1 from me.\n\nRegards, Tom Lane",
     ]), 'POST valid tgl to /register again';
     my $req = PGXN::Manager::Request->new(req_to_psgi($res->request));
     $req->env->{SCRIPT_NAME} = '/pub';
@@ -327,7 +329,7 @@ test_psgi $app => sub {
             email     => 'tgl@pgxn.org',
             uri       => 'http://tgl.example.org/',
             nickname  => 'yodude',
-            why       => 'In short, +1 from me. Regards, Tom Lane',
+            why       => "In short, +1 from me.\n\nRegards, Tom Lane",
         ],
     )), 'POST yodude to /register';
     ok !$res->is_redirect, 'It should not be a redirect response';
@@ -370,7 +372,7 @@ test_psgi $app => sub {
         $tx->ok('./form[@id="reqform"]/fieldset[2]', '... Check second fieldset', sub {
             $tx->is(
                 './textarea[@id="why"]',
-                'In short, +1 from me. Regards, Tom Lane',
+                "In short, +1 from me.\n\nRegards, Tom Lane",
                 '...... Why textarea should be set'
             );
         });
@@ -389,7 +391,7 @@ test_psgi $app => sub {
         email     => 'tgl@pgxn.org',
         uri       => '',
         nickname  => 'tgl',
-        why       => 'In short, +1 from me. Regards, Tom Lane',
+        why       => "In short, +1 from me.\n\nRegards, Tom Lane",
     ])), 'POST valid XMLHttpRequest for tgl to /register again';
     ok $res->is_success, 'It should be a successful response';
     is $res->content, $mt->maketext('Success'), 'And the content should say so';
@@ -419,7 +421,7 @@ test_psgi $app => sub {
             email     => 'tgl@pgxn.org',
             uri       => 'http://tgl.example.org/',
             nickname  => 'yodude',
-            why       => 'In short, +1 from me. Regards, Tom Lane',
+            why       => "In short, +1 from me.\n\nRegards, Tom Lane",
         ]
     )), 'POST yodude via Ajax to /register';
     is $res->code, 409, 'Should have 409 status code';

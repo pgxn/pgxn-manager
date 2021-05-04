@@ -208,6 +208,7 @@ sub register {
 
     try {
         $pgxn->conn->run(sub {
+            $params->{why} =~ s/\r?\n/\n/g;
             $_->do(
                 q{SELECT insert_user(
                     nickname  := ?,
@@ -234,7 +235,7 @@ sub register {
             my $name = $params->{full_name} ? "     Name: $params->{full_name}\n" : '';
             my $twit = $params->{twitter}   ? "  Twitter: https://twitter.com/$params->{twitter}\n" : '';
             my $uri  = $params->{uri}       ? "      URI: $params->{uri}\n" : '';
-            (my $why = $params->{why}) =~ s/^/> /g;
+            (my $why = $params->{why}) =~ s/^/> /gm;
 
             $pgxn->send_email({
                 from => $pgxn->config->{admin_email},
