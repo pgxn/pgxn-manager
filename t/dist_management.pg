@@ -1307,7 +1307,7 @@ SELECT throws_ok(
         }
     }')$$,
     'P0001',
-    'Distribution “pair 0.0.2” version less than in previous release “pair 0.0.3”',
+    'Distribution “pair 0.0.2” version not greater than previous minor release “pair 0.0.3”',
     'Should get error adding lower distribution version'
 );
 

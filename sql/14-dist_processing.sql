@@ -17,18 +17,18 @@ BEGIN
      WHERE d.name = dist;
 
     -- Allow if no previous, or version is higher than any x.y.z version.
-    IF max_version IS NULL OR version > max_version THEN RETURN; END IF;
+    IF max_version IS NULL OR version >= max_version THEN RETURN; END IF;
 
     -- Allow if higher than existing instance of same x.y version.
     IF min_version IS NOT NULL THEN
-        IF version > min_version THEN RETURN; END IF;
+        IF version >= min_version THEN RETURN; END IF;
         RAISE EXCEPTION 'Distribution “% %” version not greater than previous minor release “% %”',
               dist, version, dist, min_version;
     END IF;
 
     -- Allow if higher than existing instance of same x version.
     IF maj_version IS NOT NULL THEN
-        IF version > maj_version THEN RETURN; END IF;
+        IF version >= maj_version THEN RETURN; END IF;
         RAISE EXCEPTION 'Distribution “% %” version not greater than previous major release “% %”',
               dist, version, dist, maj_version;
     END IF;

@@ -26,7 +26,7 @@ my $TMPDIR = PGXN::Manager->new->config->{tmpdir}
 my $EXT_RE = do {
     my ($ext) = lc(PGXN::Manager->new->config->{uri_templates}{download})
         =~ /[.]([^.]+)$/;
-    qr/[.](?:$ext|zip)$/
+    $ext eq 'zip' ? qr/[.]zip$/ : qr/[.](?:$ext|zip)$/;
 };
 my $META_RE = qr/\bMETA[.]json$/;
 

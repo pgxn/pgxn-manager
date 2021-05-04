@@ -1,5 +1,5 @@
 BEGIN;
-SELECT plan(82);
+SELECT plan(81);
 --SELECT * FROM no_plan();
 
 -- Check that we have the functions we think we have.
@@ -72,14 +72,10 @@ SELECT lives_ok($$
          , ('widgets', '1.3.2', 'theory', 'sick', '', NOW() - '16 hour'::interval)
 $$, 'Create more widgets releases');
 
-SELECT diag(version) FROM distributions WHERE name = 'widgets' ORDER BY version;
-
--- Should die on all existing versions lower than existing max versions.
-SELECT throws_ok(
+-- Should be okay with existing versions.
+SELECT lives_ok(
     $$ SELECT check_dist_version('widgets', '$$ || version || $$')$$,
-    'P0001',
-    'Distribution “widgets ' || version || '” version not greater than previous minor release “widgets ' || version || '”',
-    'Should get error from check_dist_version() for version ' || version
+    'Should get no error from check_dist_version() for version ' || version
 ) FROM unnest(ARRAY['1.0.0', '1.1.0', '1.2.0-beta', '1.3.2']) AS f(version);
 
 -- Should die on all versions <= than existing version
@@ -103,8 +99,7 @@ SELECT throws_ok(
     ('1.2.0-alpha', '1.2.0-beta'),
     ('1.3.1', '1.3.2'),
     ('1.1.0-x', '1.1.0'),
-    ('1.3.0-r1', '1.3.2'),
-    ('1.3.2', '1.3.2')
+    ('1.3.0-r1', '1.3.2')
 ) f(version, existing);
 
 -- But higher versions should be fine.
