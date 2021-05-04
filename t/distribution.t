@@ -148,7 +148,7 @@ my $distmeta = decode_json do {
 is_deeply $dist->distmeta, $distmeta, 'It should have the metadata';
 
 # Now do the tarball.
-ok $dist = new_dist($disttgz), 'Create a distribution with a tgz archive again';
+ok $dist = new_dist($disttgz, '', 'foo.tgz'), 'Create a distribution with a tgz archive again';
 ok $dist->extract, 'Extract it';
 ok !$dist->error, 'Should be successful';
 ok $dist->read_meta, 'Read its meta data';
@@ -585,12 +585,11 @@ is_deeply [$dist->error], ['Distribution “[_1]” already exists', 'widget 0.2
 ##############################################################################
 # Utility for constructing a distribution.
 sub new_dist {
-    my $fn = shift;
-    my $bn = basename $fn;
+    my ($fn, $user, $bn) = @_;
     $CLASS->new(
-        creator  => shift || 'user',
+        creator  => $user || 'user',
         archive  => $fn,
-        basename => $bn,
+        basename => $bn || basename $fn,
     );
 }
 

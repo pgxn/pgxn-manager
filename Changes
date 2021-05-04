@@ -25,6 +25,12 @@ Revision history for Perl extension PGXN::Manager
        - Fixed the request object to read X_ variables from the Plack environment
          with a leading HTTP_. In other words, read HTTP_X_FORWARDED_FOR not
          X_FORWARDED_FOR. This seems to be how X_ variables are loaded by Plack.
+       - Worked around a situation where Plack gives an uploaded file a
+         meaningless temporary name that Archive::Extract cannot detect the
+         archive type for. Permanent fix submitted in PR jib/archive-extract#8,
+         but with a copy of the same solution here until it gets merged and
+         released. Thanks to Sandro Santilli ror the report and Philippe Beaudoin
+         for providing a file with which replicate the issue (#61).
 
 0.16.0  2015-08-31T18:25:24Z
        - Updated the `Makefile` example in the HOWTO to extract the extension
