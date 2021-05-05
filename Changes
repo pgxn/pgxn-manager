@@ -37,6 +37,8 @@ Revision history for Perl extension PGXN::Manager
          redirect from the original pub variants. No reason not to, though other
          auth routes still require basic authentication, at least for now.
          Thanks to Andrew Kane for the spot! (#70).
+       - Updated the format of version check errors to show the distribution
+         releases the conflicts are found in.
 
 0.16.0  2015-08-31T18:25:24Z
        - Updated the `Makefile` example in the HOWTO to extract the extension

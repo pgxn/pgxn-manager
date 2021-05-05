@@ -83,18 +83,32 @@ DECLARE
 BEGIN
     IF as_of IS NULL THEN
         versions := ARRAY(
-            SELECT format('“%s %s” < “%s %s”', de.extension, provided[i][2], de.extension, MAX(de.ext_version))
-              FROM distribution_extensions de
-              JOIN generate_subscripts(provided, 1) i
-                ON provided[i][1] = de.extension
-               AND provided[i][2]::semver < de.ext_version
-             GROUP BY de.extension, provided[i][2]
-             ORDER BY de.extension
+            WITH higher(ext, new_ver, old_ver) AS (
+                SELECT de.extension, provided[i][2], MAX(de.ext_version)
+                  FROM distribution_extensions de
+                  JOIN generate_subscripts(provided, 1) i
+                    ON provided[i][1] = de.extension
+                   AND provided[i][2]::semver < de.ext_version
+                 GROUP BY de.extension, provided[i][2]
+            )
+            SELECT format(
+                '“%s %s” < “%s %s” in %s %s',
+                h.ext, h.new_ver, h.ext, h.old_ver, de.distribution, de.dist_version
+            )
+              FROM higher h
+              JOIN distribution_extensions de
+                ON de.extension = h.ext AND de.ext_version = h.old_ver
+             ORDER BY h.ext
         );
     ELSE
         -- Make sure extension versions are >= than in previous releases
         versions := ARRAY(
-            SELECT format('“%s %s” < “%s %s”', de.extension, provided[i][2], de.extension, MAX(de.ext_version))
+            SELECT format(
+                '“%s %s” < “%s %s” in %s %s',
+                de.extension, provided[i][2],
+                de.extension, MAX(de.ext_version),
+                d.name, d.version
+            )
               FROM distribution_extensions de
               JOIN generate_subscripts(provided, 1) i
                 ON provided[i][1] = de.extension
@@ -103,7 +117,7 @@ BEGIN
                 ON de.distribution = d.name
                AND de.dist_version = d.version
                AND d.created_at < as_of
-             GROUP BY de.extension, provided[i][2]
+             GROUP BY de.extension, provided[i][2], d.name, d.version
              ORDER BY de.extension
         );
     END IF;
@@ -125,9 +139,14 @@ CREATE OR REPLACE FUNCTION check_later_versions(
 DECLARE
     versions TEXT[];
 BEGIN
-    -- Make sure extension versions are >= than in later releases
+    -- Make sure extension versions are <= than in later releases
     versions := ARRAY(
-        SELECT format('“%s %s” > “%s %s”', de.extension, provided[i][2], de.extension, MIN(de.ext_version))
+        SELECT format(
+            '“%s %s” > “%s %s” in %s %s',
+            de.extension, provided[i][2],
+            de.extension, MIN(de.ext_version),
+            d.name, d.version
+        )
           FROM distribution_extensions de
           JOIN generate_subscripts(provided, 1) i
             ON provided[i][1] = de.extension
@@ -136,7 +155,7 @@ BEGIN
             ON de.distribution = d.name
            AND de.dist_version = d.version
            AND d.created_at > as_of
-         GROUP BY de.extension, provided[i][2]
+         GROUP BY de.extension, provided[i][2], d.name, d.version
          ORDER BY de.extension
     );
     IF array_length(versions, 1) > 0 THEN

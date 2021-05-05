@@ -1331,7 +1331,7 @@ SELECT throws_ok(
         }
     }')$$,
     'P0001',
-    E'One or more extension versions are less than previous versions:\n  * “pair 0.2.1” < “pair 0.2.3”',
+    E'One or more extension versions are less than previous versions:\n  * “pair 0.2.1” < “pair 0.2.3” in pair 0.0.3',
     'Should get error adding lower extension version'
 );
 
@@ -1744,7 +1744,7 @@ SELECT throws_ok(
         }
     }')$$,
     'P0001',
-    E'One or more extension versions are greater than later versions:\n  * “pair 0.2.5” > “pair 0.2.3”',
+    E'One or more extension versions are greater than later versions:\n  * “pair 0.2.5” > “pair 0.2.3” in pair 0.0.3',
     'Should get error for higher extension version'
 );
 
@@ -1774,7 +1774,7 @@ SELECT throws_ok(
         }
     }')$$,
     'P0001',
-    E'One or more extension versions are less than previous versions:\n  * “pair 0.2.0” < “pair 0.2.2”',
+    E'One or more extension versions are less than previous versions:\n  * “pair 0.2.0” < “pair 0.2.2” in Pair 0.0.1',
     'Should get error for lower extension version'
 );
 

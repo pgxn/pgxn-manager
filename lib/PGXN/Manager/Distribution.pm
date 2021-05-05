@@ -32,7 +32,7 @@ my $META_RE = qr/\bMETA[.]json$/;
 
 # https://github.com/jib/archive-extract/pull/8/
 my $ARCHIVE_TYPE_FOR = Archive::Extract->can('type_for') || sub {
-    $_ = shift;
+    local $_ = shift;
     return /.+?\.(?:tar\.gz|tgz)$/i         ? Archive::Extract::TGZ   :
            /.+?\.gz$/i                      ? Archive::Extract::GZ    :
            /.+?\.tar$/i                     ? Archive::Extract::TAR   :

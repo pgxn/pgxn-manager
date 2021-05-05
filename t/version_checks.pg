@@ -174,7 +174,7 @@ SELECT lives_ok(
 SELECT throws_ok(
     $$ SELECT check_prev_versions('{{"thingy", "1.0.0-r1"}}') $$,
     'P0001',
-    E'One or more extension versions are less than previous versions:\n  * “thingy 1.0.0-r1” < “thingy 1.0.0”',
+    E'One or more extension versions are less than previous versions:\n  * “thingy 1.0.0-r1” < “thingy 1.0.0” in widgets 1.0.0',
     'Should get error for lower extension version'
 );
 
@@ -210,7 +210,7 @@ SELECT lives_ok(
 SELECT throws_ok(
     $$ SELECT check_prev_versions('{{"thingy", "1.0.0-r1"}, {"sprocket", "1.0.0-r1"}}') $$,
     'P0001',
-    E'One or more extension versions are less than previous versions:\n  * “sprocket 1.0.0-r1” < “sprocket 1.0.0”\n  * “thingy 1.0.0-r1” < “thingy 1.0.0”',
+    E'One or more extension versions are less than previous versions:\n  * “sprocket 1.0.0-r1” < “sprocket 1.0.0” in widgets 1.0.0\n  * “thingy 1.0.0-r1” < “thingy 1.0.0” in widgets 1.0.0',
     'Should get error for lower extension versions'
 );
 
@@ -233,7 +233,7 @@ SELECT lives_ok(
 SELECT throws_ok(
     $$ SELECT check_prev_versions('{{"thingy", "1.0.0-r1"}, {"sprocket", "1.0.0-r1"}}') $$,
     'P0001',
-    E'One or more extension versions are less than previous versions:\n  * “sprocket 1.0.0-r1” < “sprocket 1.0.0”\n  * “thingy 1.0.0-r1” < “thingy 1.0.0”',
+    E'One or more extension versions are less than previous versions:\n  * “sprocket 1.0.0-r1” < “sprocket 1.0.0” in widgets 1.0.0\n  * “thingy 1.0.0-r1” < “thingy 1.0.0” in widgets 1.0.0',
     'Should still get error for lower extension version'
 );
 
@@ -251,7 +251,7 @@ SELECT lives_ok(
 SELECT throws_ok(
     $$ SELECT check_prev_versions('{{"thingy", "1.0.0"}}') $$,
     'P0001',
-    E'One or more extension versions are less than previous versions:\n  * “thingy 1.0.0” < “thingy 4.0.0”',
+    E'One or more extension versions are less than previous versions:\n  * “thingy 1.0.0” < “thingy 4.0.0” in pair 4.0.0',
     'Should no error for previous version'
 );
 
@@ -289,7 +289,7 @@ SELECT lives_ok(
 SELECT throws_ok(
     $$ SELECT check_later_versions('{{"thingy", "4.1.0"}}', NOW() - '4 days'::interval) $$,
     'P0001',
-    E'One or more extension versions are greater than later versions:\n  * “thingy 4.1.0” > “thingy 4.0.0”',
+    E'One or more extension versions are greater than later versions:\n  * “thingy 4.1.0” > “thingy 4.0.0” in pair 4.0.0',
     'Should get error for higher extension version'
 );
 
@@ -301,7 +301,7 @@ SELECT lives_ok(
 SELECT throws_ok(
     $$ SELECT check_later_versions('{{"thingy", "1.1.0"}, {"sprocket", "1.1.0"}}', NOW() - '5 days'::interval) $$,
     'P0001',
-    E'One or more extension versions are greater than later versions:\n  * “sprocket 1.1.0” > “sprocket 1.0.0”\n  * “thingy 1.1.0” > “thingy 1.0.0”',
+    E'One or more extension versions are greater than later versions:\n  * “sprocket 1.1.0” > “sprocket 1.0.0” in widgets 1.0.0\n  * “thingy 1.1.0” > “thingy 1.0.0” in widgets 1.0.0',
     'Should get error for higer extension versions'
 );
 
