@@ -31,11 +31,12 @@ Revision history for Perl extension PGXN::Manager
          but with a copy of the same solution here until it gets merged and
          released. Thanks to Sandro Santilli ror the report and Philippe Beaudoin
          for providing a file with which replicate the issue (#61).
-       - Enabled the new account request and password reset request pages in
+       - Moved the new account request and password reset request pages to
          the auth router, without requiring authentication, so that they load
-         and work with HTTPS, as some browsers will strongly prefer. No reason
-         not to, though other auth routes still require basic authentication, at
-         least for now. Thanks to Andrew Kane for the spot! (#70).
+         and work with HTTPS, as some browsers will strongly prefer. Return a
+         redirect from the original pub variants. No reason not to, though other
+         auth routes still require basic authentication, at least for now.
+         Thanks to Andrew Kane for the spot! (#70).
 
 0.16.0  2015-08-31T18:25:24Z
        - Updated the `Makefile` example in the HOWTO to extract the extension

@@ -35,6 +35,7 @@ my %message_for = (
 
 my %code_for = (
     success     => 200,
+    moved       => 301,
     seeother    => 303,
     badrequest  => 400,
     forbidden   => 403,
@@ -55,6 +56,14 @@ sub render {
     $res->body($body);
     $res->content_length(length $body);
     $res->content_type($p->{type} || 'text/html; charset=UTF-8');
+    return $res->finalize;
+}
+
+sub move_to_auth {
+    my $self = shift;
+    my $req  = Request->new(shift);
+    my $res  = $req->new_response;
+    $res->redirect($req->auth_uri_for($req->path_info), $code_for{moved});
     return $res->finalize;
 }
 
@@ -1247,9 +1256,16 @@ Renders the response to the request using L<PGXN::Manager::Templates>.
 
 =head3 C<redirect>
 
-  $controller->render('/home', $req);
+  $controller->redirect('/home', $req);
 
 Redirect the request to a new page.
+
+=head3 C<move_to_auth>
+
+  $controller->move_to_auth($env);
+
+Redirects the request to the same URI in the authenticated site. Used for
+formerly-provided pub routes that have been moved to auth.
 
 =head3 C<respond_with>
 

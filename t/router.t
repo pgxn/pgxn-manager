@@ -2,12 +2,13 @@
 
 use 5.10.0;
 use utf8;
-use Test::More tests => 28;
+use Test::More tests => 37;
 #use Test::More 'no_plan';
 use Plack::Test;
 use HTTP::Request::Common;
 use Test::File::Contents;
 use PGXN::Manager;
+use HTTP::Message::PSGI;
 use lib 't/lib';
 use TxnTest;
 use MIME::Base64;
@@ -110,4 +111,16 @@ test_psgi +PGXN::Manager::Router->app => sub {
     is $res->code, 401, 'Should get 401 response';
     like $res->content, qr/Authorization required/,
         'The body should indicate need for authentication';
+};
+
+# Test that old pub routes have been moved to auth.
+test_psgi +PGXN::Manager::Router->app => sub {
+    my $cb = shift;
+    for my $uri (qw(account/register account/forgotten account/thanks)) {
+        ok my $res = $cb->(GET "/pub/$uri"), "Fetch /pub/$uri";
+        is $res->code, 301, 'Should get 301 response';
+        my $req = PGXN::Manager::Request->new(req_to_psgi($res->request));
+        is $res->headers->header('location'), $req->auth_uri_for("/$uri"),
+            "Should redirect to /auth/$uri";
+    }
 };

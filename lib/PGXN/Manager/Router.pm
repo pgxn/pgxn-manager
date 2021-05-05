@@ -52,17 +52,15 @@ sub app {
                 };
 
                 resource '/account/register' => sub {
-                    GET  { $controller->request(@_)  };
-                    POST { $controller->register(@_) };
+                    GET  { $controller->move_to_auth(@_)  };
                 };
 
                 resource '/account/forgotten' => sub {
-                    GET  { $controller->forgotten(@_)  };
-                    POST { $controller->send_reset(@_) };
+                    GET  { $controller->move_to_auth(@_)  };
                 };
 
                 resource '/account/thanks' => sub {
-                    GET { $controller->thanks(@_) };
+                    GET { $controller->move_to_auth(@_) };
                 };
             };
             mount '/ui' => $files;
