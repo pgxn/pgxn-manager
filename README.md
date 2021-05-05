@@ -257,7 +257,7 @@ way to separate these is to set up two reverse proxy servers: One to serve
                 proxy_set_header  X-Forwarded-Host        $host;
                 proxy_set_header  X-Forwarded-For         $proxy_add_x_forwarded_for;
                 proxy_set_header  X-Forwarded-HTTPS       "";
-                proxy_set_header  X-Forwaded-Proto        http;
+                proxy_set_header  X-Forwarded-Proto       http;
                 proxy_set_header  X-Forwarded-Port        80;
                 proxy_set_header  X-Forwarded-Script-Name "";
             }
@@ -277,7 +277,7 @@ way to separate these is to set up two reverse proxy servers: One to serve
                 proxy_set_header  X-Forwarded-Host        $host;
                 proxy_set_header  X-Forwarded-For         $proxy_add_x_forwarded_for;
                 proxy_set_header  X-Forwarded-HTTPS       ON;
-                proxy_set_header  X-Forwaded-Proto        https;
+                proxy_set_header  X-Forwarded-Proto       https;
                 proxy_set_header  X-Forwarded-Port        443;
                 proxy_set_header  X-Forwarded-Script-Name "";
             }
