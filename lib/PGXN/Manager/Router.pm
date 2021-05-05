@@ -97,6 +97,20 @@ sub app {
                     GET { $controller->howto(@_) };
                 };
 
+                resource '/account/register' => sub {
+                    GET  { $controller->request(@_)  };
+                    POST { $controller->register(@_) };
+                };
+
+                resource '/account/forgotten' => sub {
+                    GET  { $controller->forgotten(@_)  };
+                    POST { $controller->send_reset(@_) };
+                };
+
+                resource '/account/thanks' => sub {
+                    GET { $controller->thanks(@_) };
+                };
+
                 resource  '/account' => sub {
                     GET  { $controller->show_account(@_)   };
                     POST { $controller->update_account(@_) };
@@ -168,7 +182,7 @@ sub app {
 
                 # Authenticate all requests.
                 enable_if {
-                    shift->{PATH_INFO} !~ m{^/account/(?:reset/|changed)}
+                    shift->{PATH_INFO} !~ m{^/account/(?:reset/|changed|register|forgotten|thanks)}
                 } 'Auth::Basic', realm => 'PGXN Users Only', authenticator => sub {
                     my ($username, $password) = map { decode 'UTF-8', $_ } @_;
                     PGXN::Manager->conn->run(sub {

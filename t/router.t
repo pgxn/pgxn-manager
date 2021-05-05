@@ -102,6 +102,7 @@ PGXN::Manager->conn->run(sub {
         undef, $admin, $user, 'inactive',
     );
 });
+
 test_psgi +PGXN::Manager::Router->app => sub {
     my $cb = shift;
     my $req = GET '/auth', Authorization => 'Basic ' . encode_base64("$user:****");

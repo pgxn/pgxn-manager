@@ -4,7 +4,7 @@ use 5.10.0;
 use utf8;
 BEGIN { $ENV{EMAIL_SENDER_TRANSPORT} = 'Test' }
 
-use Test::More tests => 340;
+use Test::More tests => 407;
 #use Test::More 'no_plan';
 use Plack::Test;
 use HTTP::Request::Common;
@@ -25,70 +25,72 @@ my $mt       = PGXN::Manager::Locale->accept('en');
 # Fetch the forgotten form.
 test_psgi $app => sub {
     my $cb = shift;
-    ok my $res = $cb->(GET '/pub/account/forgotten'), 'Fetch /account/forgotten';
-    ok $res->is_success, 'Should get a successful response';
-    is_well_formed_xml $res->content, 'The HTML should be well-formed';
-    my $tx = Test::XPath->new( xml => $res->content, is_html => 1 );
+    for my $prefix (qw(pub auth)) {
+        ok my $res = $cb->(GET "/$prefix/account/forgotten"), "Fetch $prefix/account/forgotten";
+        ok $res->is_success, 'Should get a successful response';
+        is_well_formed_xml $res->content, 'The HTML should be well-formed';
+        my $tx = Test::XPath->new( xml => $res->content, is_html => 1 );
 
-    my $req = PGXN::Manager::Request->new(req_to_psgi($res->request));
-    $req->env->{SCRIPT_NAME} = '/pub';
-    XPathTest->test_basics($tx, $req, $mt, {
-        h1 => 'Forgot Your Password?',
-        page_title => 'Forgot your password? Request a reset link',
-    });
+        my $req = PGXN::Manager::Request->new(req_to_psgi($res->request));
+        $req->env->{SCRIPT_NAME} = "/$prefix";
+        XPathTest->test_basics($tx, $req, $mt, {
+            h1 => 'Forgot Your Password?',
+            page_title => 'Forgot your password? Request a reset link',
+        });
 
-    # Check out the content.
-    $tx->ok('/html/body/div[@id="content"]', 'Look at the content', sub {
-        $tx->is('count(./*)', 3, '... Should have three subelements');
-        $tx->is(
-            './p',
-            $mt->maketext('Please type your email address or PGXN nickname below.'),
-            '... Should have intro paragraph'
-        );
+        # Check out the content.
+        $tx->ok('/html/body/div[@id="content"]', 'Look at the content', sub {
+            $tx->is('count(./*)', 3, '... Should have three subelements');
+            $tx->is(
+                './p',
+                $mt->maketext('Please type your email address or PGXN nickname below.'),
+                '... Should have intro paragraph'
+            );
 
-        # Check out the form.
-        $tx->ok('./form[@id="forgotform"]', '... Test change form', sub {
-            for my $attr (
-                [action  => $req->uri_for('/account/forgotten')],
-                [enctype => 'application/x-www-form-urlencoded; charset=UTF-8'],
-                [method  => 'post']
-            ) {
-                $tx->is(
-                    "./\@$attr->[0]",
-                    $attr->[1],
-                    qq{...... Its $attr->[0] attribute should be "$attr->[1]"},
-                );
-            }
-            $tx->is('count(./*)', 2, '...... Should have two subelements');
-            $tx->ok('./fieldset', '...... Test fieldset', sub {
-                $tx->is('count(./*)', 2, '......... Should have two subelements');
-                $tx->is(
-                    './legend',
-                    $mt->maketext('Who Are You?'),
-                    '......... Should have legend'
-                );
-                $tx->ok('./input[@id="who"]', '......... Test "who" field', sub {
-                    $tx->is('./@type', 'text', '............ Should be type "text"');
-                    $tx->is('./@name', 'who', '............ Should be name "who"');
+            # Check out the form.
+            $tx->ok('./form[@id="forgotform"]', '... Test change form', sub {
+                for my $attr (
+                    [action  => $req->uri_for('/account/forgotten')],
+                    [enctype => 'application/x-www-form-urlencoded; charset=UTF-8'],
+                    [method  => 'post']
+                ) {
                     $tx->is(
-                        './@placeholder',
-                        'bobama@pgxn.org',
-                        '............ Should have placeholder'
+                        "./\@$attr->[0]",
+                        $attr->[1],
+                        qq{...... Its $attr->[0] attribute should be "$attr->[1]"},
+                    );
+                }
+                $tx->is('count(./*)', 2, '...... Should have two subelements');
+                $tx->ok('./fieldset', '...... Test fieldset', sub {
+                    $tx->is('count(./*)', 2, '......... Should have two subelements');
+                    $tx->is(
+                        './legend',
+                        $mt->maketext('Who Are You?'),
+                        '......... Should have legend'
+                    );
+                    $tx->ok('./input[@id="who"]', '......... Test "who" field', sub {
+                        $tx->is('./@type', 'text', '............ Should be type "text"');
+                        $tx->is('./@name', 'who', '............ Should be name "who"');
+                        $tx->is(
+                            './@placeholder',
+                            'bobama@pgxn.org',
+                            '............ Should have placeholder'
+                        );
+                    });
+                });
+                $tx->ok('./input[@id="submit"]', '...... Test submit button', sub {
+                    $tx->is('./@class', 'submit', '......... Should have class "submit"');
+                    $tx->is('./@type', 'submit', '......... Should have id "submit"');
+                    $tx->is('./@name', 'submit', '......... Should have id "submit"');
+                    $tx->is(
+                        './@value',
+                        $mt->maketext('Send Instructions'),
+                        '......... Should have value'
                     );
                 });
-            });
-            $tx->ok('./input[@id="submit"]', '...... Test submit button', sub {
-                $tx->is('./@class', 'submit', '......... Should have class "submit"');
-                $tx->is('./@type', 'submit', '......... Should have id "submit"');
-                $tx->is('./@name', 'submit', '......... Should have id "submit"');
-                $tx->is(
-                    './@value',
-                    $mt->maketext('Send Instructions'),
-                    '......... Should have value'
-                );
-            });
-        })
-    });
+            })
+        });
+    }
 };
 
 # Try an empty submit.
@@ -128,7 +130,7 @@ test_psgi $app => sub {
 test_psgi $app => sub {
     my $cb = shift;
     my $req    = POST(
-        '/pub/account/forgotten',
+        '/auth/account/forgotten',
         'X-Requested-With' => 'XMLHttpRequest',
         Content => [who => ''],
     );
