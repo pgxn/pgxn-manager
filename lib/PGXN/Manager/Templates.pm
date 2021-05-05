@@ -137,7 +137,7 @@ BEGIN { create_wrapper wrapper => sub {
                     ) {
                         li { a {
                             id is $item->[2];
-                            href is $req->uri_for($item->[0]);
+                            href is $req->auth_uri_for($item->[0]);
                             class is 'active' if $path eq $item->[0];
                             T $item->[1];
                         } };
@@ -232,7 +232,7 @@ template about => sub {
                       $req->user;
                 } else {
                     a {
-                        href is $req->uri_for('/account/register');
+                        href is $req->auth_uri_for('/account/register');
                         T 'Register for an acount.';
                     };
                 }
@@ -417,7 +417,7 @@ template request => sub {
         }
         form {
             id      is 'reqform';
-            action  is $req->uri_for('/account/register');
+            action  is $req->auth_uri_for('/account/register');
             # Browser should send us UTF-8 if that's what we ask for.
             # https://www.unicode.org/mail-arch/unicode-ml/Archives-Old/UML023/0450.html
             enctype is 'application/x-www-form-urlencoded; charset=UTF-8';
@@ -879,7 +879,7 @@ template forgotten => sub {
         }
         form {
             id      is 'forgotform';
-            action  is $req->uri_for('/account/forgotten');
+            action  is $req->auth_uri_for('/account/forgotten');
             enctype is 'application/x-www-form-urlencoded; charset=UTF-8';
             method  is 'post';
 

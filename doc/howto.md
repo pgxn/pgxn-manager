@@ -397,4 +397,4 @@ Good hacking!
   [BOM]: https://en.wikipedia.org/wiki/Byte_order_mark
   [Archive::Extract]: https://metacpan.org/pod/Archive::Extract
   [pgxn-utils]: https://github.com/guedes/pgxn-utils/
-  [request an account]: http://manager.pgxn.org/account/register
+  [request an account]: https://manager.pgxn.org/account/register
