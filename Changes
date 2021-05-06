@@ -18,6 +18,14 @@ Revision history for Perl extension PGXN::Manager
          should allow for the release of updates to older versions without
          otherwise creating new major or minor versions that were not previously
          released. Thanks to Geoff Montee for the report! (#52).
+       - Extension versions are no longer checked to ensure they're greater than
+         or equal to previous versions. It's simply not feasible to check for
+         appropriate extension versions while allowing the release of lower
+         distribution versions as described in the last point without
+         introducing an extremely convoluted set of rules we're likely to get
+         wrong, and likely annoy at times even if they're right. Better to check
+         for sensible distribution versions and let authors be responsible for
+         proper extension version hygiene.
        - Fixed the email sent to the PGXN admins on error to redact
          `HTTP_AUTHORIZATION` header from the environment dump.
        - Fix the quoting for the reason for a new user request in the email sent

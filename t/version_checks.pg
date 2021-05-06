@@ -1,28 +1,16 @@
 BEGIN;
-SELECT plan(81);
+SELECT plan(42);
 --SELECT * FROM no_plan();
 
 -- Check that we have the functions we think we have.
-SELECT has_function(f)
-  FROM unnest(ARRAY['check_dist_version', 'check_prev_versions']) AS f;
+SELECT has_function(f) FROM unnest(ARRAY['check_dist_version']) AS f;
 
 SELECT has_function('check_dist_version',   ARRAY['term', 'semver']);
-SELECT has_function('check_prev_versions',  ARRAY['text[]', 'timestamp with time zone']);
-SELECT has_function('check_later_versions', ARRAY['text[]', 'timestamp with time zone']);
 
 -- User "pgxn" should not have access to the functions.
 SELECT ok(
     NOT has_function_privilege('pgxn', 'check_dist_version(term, semver)', 'EXECUTE'),
     'User "pgxn" should not have EXECUTE priv on check_dist_version()'
-);
-SELECT ok(
-    NOT has_function_privilege('pgxn', 'check_prev_versions(text[], timestamptz)', 'EXECUTE'),
-    'User "pgxn" should not have EXECUTE priv on check_prev_versions()'
-);
-
-SELECT ok(
-    NOT has_function_privilege('pgxn', 'check_later_versions(text[], timestamptz)', 'EXECUTE'),
-    'User "pgxn" should not have EXECUTE priv on check_later_versions()'
 );
 
 /****************************************************************************/
@@ -134,176 +122,6 @@ SELECT lives_ok(
     'Still should get no error from check_dist_version() for pair version ' || version
 ) FROM unnest(ARRAY['4.0.1', '4.4.0', '5.10.20', '5.5.5']) AS f(version);
 
-/****************************************************************************/
--- Test check_prev_versions().
-SELECT function_returns('check_prev_versions', 'void' );
-SELECT function_lang_is('check_prev_versions', 'plpgsql' );
-SELECT volatility_is(   'check_prev_versions', 'stable' );
-
-SELECT lives_ok(
-    $$ SELECT check_prev_versions('{}') $$,
-    'Should get no error from check_prev_versions() for non-existent extension'
-);
-
--- Add an extension.
-SELECT lives_ok($$
-    INSERT INTO extensions (name, owner)
-    VALUES ('thingy', 'theory')
-$$, 'Insert "thingy" extension');
-
-SELECT lives_ok($$
-    INSERT INTO distribution_extensions (extension, ext_version, abstract, distribution, dist_version)
-    VALUES ('thingy', '1.0.0', '', 'widgets', '1.0.0')
-$$, 'Insert "thingy" 1.0.0');
-
-SELECT lives_ok(
-    $$ SELECT check_prev_versions('{{"thingy", "1.0.0-r1"}}', NOW() - '4 days'::interval) $$,
-    'Should get no error for same release date'
-);
-
-SELECT lives_ok(
-    $$ SELECT check_prev_versions('{{"thingy", "1.0.0"}}') $$,
-    'Should get no error for same version'
-);
-
-SELECT lives_ok(
-    $$ SELECT check_prev_versions('{{"thingy", "1.1.0"}}') $$,
-    'Should get no error for higher extension version'
-);
-
-SELECT throws_ok(
-    $$ SELECT check_prev_versions('{{"thingy", "1.0.0-r1"}}') $$,
-    'P0001',
-    E'One or more extension versions are less than previous versions:\n  * “thingy 1.0.0-r1” < “thingy 1.0.0” in widgets 1.0.0',
-    'Should get error for lower extension version'
-);
-
--- Okay, add another exension.
-SELECT lives_ok($$
-    INSERT INTO extensions (name, owner)
-    VALUES ('sprocket', 'theory')
-$$, 'Insert "sprocket" extension');
-
-SELECT lives_ok($$
-    INSERT INTO distribution_extensions (extension, ext_version, abstract, distribution, dist_version)
-    VALUES ('sprocket', '1.0.0', '', 'widgets', '1.0.0')
-$$, 'Insert "sprocket" 1.0.0');
-
-SELECT lives_ok(
-    $$ SELECT check_prev_versions(
-        '{{"thingy", "1.0.0-r1"}, {"sprocket", "1.0.0-r1"}}',
-        NOW() - '4 days'::interval
-    ) $$, 'Should get no error for same distribution date'
-);
-
-SELECT lives_ok(
-    $$ SELECT check_prev_versions(
-        '{{"thingy", "1.0.0"}, {"sprocket", "1.0.0"}}'
-    ) $$, 'Should get no error for same versions'
-);
-
-SELECT lives_ok(
-    $$ SELECT check_prev_versions('{{"thingy", "1.1.0"}, {"sprocket", "1.1.0"}}'
-    ) $$, 'Should get no error for higher extension versions'
-);
-
-SELECT throws_ok(
-    $$ SELECT check_prev_versions('{{"thingy", "1.0.0-r1"}, {"sprocket", "1.0.0-r1"}}') $$,
-    'P0001',
-    E'One or more extension versions are less than previous versions:\n  * “sprocket 1.0.0-r1” < “sprocket 1.0.0” in widgets 1.0.0\n  * “thingy 1.0.0-r1” < “thingy 1.0.0” in widgets 1.0.0',
-    'Should get error for lower extension versions'
-);
-
--- Okay, insert another extension from a different distribution.
-SELECT lives_ok($$
-    INSERT INTO extensions (name, owner)
-    VALUES ('pair', 'theory')
-$$, 'Insert "pair" extension');
-
-SELECT lives_ok($$
-    INSERT INTO distribution_extensions (extension, ext_version, abstract, distribution, dist_version)
-    VALUES ('pair', '4.0.0', '', 'pair', '4.0.0')
-$$, 'Insert "pair" 4.0.0');
-
-SELECT lives_ok(
-    $$ SELECT check_prev_versions('{{"thingy", "1.0.0"}, {"sprocket", "1.0.0"}}') $$,
-    'Should still get no error for the same extension versions'
-);
-
-SELECT throws_ok(
-    $$ SELECT check_prev_versions('{{"thingy", "1.0.0-r1"}, {"sprocket", "1.0.0-r1"}}') $$,
-    'P0001',
-    E'One or more extension versions are less than previous versions:\n  * “sprocket 1.0.0-r1” < “sprocket 1.0.0” in widgets 1.0.0\n  * “thingy 1.0.0-r1” < “thingy 1.0.0” in widgets 1.0.0',
-    'Should still get error for lower extension version'
-);
-
--- Okay, release a version of the "thingy" extesion in a different distribution.
-SELECT lives_ok($$
-    INSERT INTO distribution_extensions (extension, ext_version, abstract, distribution, dist_version)
-    VALUES ('thingy', '4.0.0', '', 'pair', '4.0.0')
-$$, 'Insert "thingy" 4.0.0');
-
-SELECT lives_ok(
-    $$ SELECT check_prev_versions('{{"thingy", "4.0.0"}}') $$,
-    'Should get no error for same new version'
-);
-
-SELECT throws_ok(
-    $$ SELECT check_prev_versions('{{"thingy", "1.0.0"}}') $$,
-    'P0001',
-    E'One or more extension versions are less than previous versions:\n  * “thingy 1.0.0” < “thingy 4.0.0” in pair 4.0.0',
-    'Should no error for previous version'
-);
-
-SELECT lives_ok(
-    $$ SELECT check_prev_versions('{{"thingy", "1.0.0"}}', NOW() - '4 days'::interval) $$,
-    'Should get no error for previous version and date'
-);
-
-/****************************************************************************/
--- Test check_later_versions().
-SELECT function_returns('check_later_versions', 'void' );
-SELECT function_lang_is('check_later_versions', 'plpgsql' );
-SELECT volatility_is(   'check_later_versions', 'stable' );
-
-SELECT lives_ok(
-    $$ SELECT check_later_versions('{}', NOW()) $$,
-    'Should get no error from check_later_versions() for non-existent extension'
-);
-
-SELECT lives_ok(
-    $$ SELECT check_later_versions('{{"thingy", "1.0.0"}}', NOW() - '4 days'::interval) $$,
-    'Should get no error for same release date'
-);
-
-SELECT lives_ok(
-    $$ SELECT check_later_versions('{{"thingy", "4.0.0"}}', NOW() - '1 days'::interval) $$,
-    'Should get no error for current version'
-);
-
-SELECT lives_ok(
-    $$ SELECT check_later_versions('{{"thingy", "4.1.0"}}', NOW()) $$,
-    'Should get no error for higher extension version'
-);
-
-SELECT throws_ok(
-    $$ SELECT check_later_versions('{{"thingy", "4.1.0"}}', NOW() - '4 days'::interval) $$,
-    'P0001',
-    E'One or more extension versions are greater than later versions:\n  * “thingy 4.1.0” > “thingy 4.0.0” in pair 4.0.0',
-    'Should get error for higher extension version'
-);
-
-SELECT lives_ok(
-    $$ SELECT check_later_versions('{{"thingy", "1.0.0", "sprocket", "1.0.0"}}', NOW() - '4 days'::interval) $$,
-    'Should get no errors for same release date'
-);
-
-SELECT throws_ok(
-    $$ SELECT check_later_versions('{{"thingy", "1.1.0"}, {"sprocket", "1.1.0"}}', NOW() - '5 days'::interval) $$,
-    'P0001',
-    E'One or more extension versions are greater than later versions:\n  * “sprocket 1.1.0” > “sprocket 1.0.0” in widgets 1.0.0\n  * “thingy 1.1.0” > “thingy 1.0.0” in widgets 1.0.0',
-    'Should get error for higer extension versions'
-);
 
 SELECT * FROM finish();
 ROLLBACK;
