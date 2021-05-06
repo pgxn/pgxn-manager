@@ -2,7 +2,7 @@
 
 use 5.10.0;
 use utf8;
-use Test::More tests => 64;
+use Test::More tests => 65;
 #use Test::More 'no_plan';
 use JSON::XS;
 use Test::File;
@@ -127,14 +127,16 @@ ok $pgxn->send_email({
 is_deeply $params, { transport => $pgxn->email_transport },
     'The email params should be correct';
 isa_ok $email, 'Email::MIME', 'The email';
-is_deeply { $email->header_pairs }, {
+$headers = { $email->header_pairs };
+like delete $headers->{'Content-Type'}, qr{text/plain; charset="?UTF-8"?},
+    'The Content Type should be correct';
+is_deeply $headers, {
     'To'           => 'fred@example.com',
     'From'         => 'joe@example.net',
     'Subject'      => 'Hi',
     'MIME-Version' => '1.0',
     'Date'         => $email->header('Date'),
-    'Content-Type' => 'text/plain; charset=UTF-8',
-}, 'The headers should be correct';
+}, 'The other headers should be correct';
 
 is $email->body, 'How you doin?', 'The body should be correct';
 

@@ -1,6 +1,8 @@
 PGXN/Manager version 0.20.0
 ===========================
 
+[![Test Status](https://github.com/pgxn/pgxn-manager/workflows/CI/badge.svg)](https://github.com/pgxn/pgxn-manager/actions)
+
 This application provides a Web interface and REST API for extension owners to
 upload and manage extensions on PGXN, the PostgreSQL Extension Network. It
 also provides an administrative interface for PGXN administrators. For more
@@ -14,7 +16,7 @@ Installation
 
   +   [Perl](https://www.perl.org/) 5.10.0 or higher (5.12 or higher strongly
       recommended)
-  +   [PostgreSQL](https://www.postgresql.org/) 9.1.0 or higher with support for
+  +   [PostgreSQL](https://www.postgresql.org/) 12.0 or higher with support for
       PL/Perl included.
 
 *   Next, you'll need to install all CPAN dependencies. To determine what they
