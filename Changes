@@ -142,7 +142,7 @@ Revision history for Perl extension PGXN::Manager
         required, including Module::Build::DB.
       - A request to / no longer returns a redirect to /pub/, bur rather a
         "forbidden" response (403) explaining that you probably wanted /pub/
-        or to run PGXN Manager behind a rerverse proxy server.
+        or to run PGXN Manager behind a reverse proxy server.
       - Documented reverse proxy configuration with Nginx in the README.
 
 0.13.1  2011-06-01T04:26:20
@@ -213,7 +213,7 @@ Revision history for Perl extension PGXN::Manager
         were already lowercased in file names) are case-insensitive. So while
         preserving case in JSON files, force lowercase in file names for
         consistency.
-      - An attept to upload a file without actually selecting a file to upload
+      - An attempt to upload a file without actually selecting a file to upload
         no longer causes a 500 error. A 400 error is returned instead,
         presenting the user with the form.
 
@@ -255,7 +255,7 @@ Revision history for Perl extension PGXN::Manager
       - Changed the volatility option on the `utc_date()` database function
         from "stable" to "immutable".
       - Added `num_to_list` param to the `all_stats_json()` database function.
-      - Changed the voltility of the `all_stats_json()` and
+      - Changed the volatility of the `all_stats_json()` and
         `get_distribution()` database functions from "volatile" to "stable".
       - Changed the "spec" URL template to "/meta/spec.{format}".
 
@@ -279,7 +279,7 @@ Revision history for Perl extension PGXN::Manager
       - Added the `reindex()` method to PGXN::Manager::Distribution. It can be
         used to reindex an existing distribution.
       - Added `pgxn_maint` utility, and its implementation,
-        PGXN::Manager::Maint. Allows maintence tasks to be easily executed.
+        PGXN::Manager::Maint. Allows maintenance tasks to be easily executed.
         Supported tasks include:
         * `update-stats`
         * `reindex`
@@ -377,12 +377,12 @@ Revision history for Perl extension PGXN::Manager
       - Updated to use native `semver` data type now distributed on PGXN.
 
 0.6.0 2011-01-05T03:24:51
-      - Added Twitter notification upon successful updload.
+      - Added Twitter notification upon successful upload.
       - Added `bin/get_twitter_token`, a utility to make configuring
         the Twitter OAuth token relatively simple.
       - Consolidated the sending of email into a single method, `send_email`
         in PGXN::Manager.
-      - Fixed a bug in our exception-handling code to properl include the
+      - Fixed a bug in our exception-handling code to properly include the
         exception message along with the stack trace in log, UI, and email
         output.
 
@@ -400,7 +400,7 @@ Revision history for Perl extension PGXN::Manager
         * Made the type a little smaller.
         * Fixed borders so menu items don't move between loads.
       - Removed the copyright statement from every page.
-      - Audied module usage and made the list in `Build.PL` comprehensive.
+      - Audited module usage and made the list in `Build.PL` comprehensive.
       - Updated the DBIx::Connector requirement to 0.42, which has an
         exception-handling fix.
       - Updated Router::Resource requirement to 0.11, which has a header
@@ -419,7 +419,7 @@ Revision history for Perl extension PGXN::Manager
 0.4.5 2010-11-01T19:13:51
       - Updated for storage of stack trace by Plack::Middelware::StackTrace in
         Plack 0.9951.
-      - Fixed permission inssue when an uploaded file is moved rather than
+      - Fixed permission issue when an uploaded file is moved rather than
         rewritten.
       - Removed stack trace from error environment in the 500 error emails. It
         was ugly and redundant, considering that it's included as a separate
@@ -496,7 +496,7 @@ Revision history for Perl extension PGXN::Manager
       - Added `conf/prod.json`. I think the usage will be pretty typical, and
         it will be nicer for folks just to have a file to edit.
       - Changed Archive::Extract error handling in PGXN::Manager::Distribution
-        to always die with our custom erorr message, rather than try to parse
+        to always die with our custom error message, rather than try to parse
         the original error message, which can vary depending on the
         implementation of `tar`.
       - Fixed a test failure when looking at the sha1 in `t/distview.t`.
@@ -509,7 +509,7 @@ Revision history for Perl extension PGXN::Manager
         the site and is logged in.
       - Now using a subdirectory of the temp directory named
         "pgxn-session-$ENV{PLACK_ENV}" to store the session files. This
-        prevents the polution of /tmp with a lot of junk.
+        prevents the pollution of /tmp with a lot of junk.
       - Change mounts so that the public site is mounted under /pub/ and the
         auth site is mounted under /auth/. They are now effectively separate
         apps. This allows them to be separately reverse-proxied.
