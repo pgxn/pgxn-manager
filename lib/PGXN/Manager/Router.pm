@@ -24,54 +24,13 @@ sub app {
         my $mids  = PGXN::Manager->instance->config->{middleware} || [];
         my $files = Plack::App::File->new(root => './www/ui/');
 
-        # First app is simple redirect to /pub.
-        mount '/'   => sub { $controller->root(@_) };
+        # First app is simple redirect to /auth/.
+        mount '/' => sub { $controller->root(@_) };
 
-        # Public app.
-        mount '/pub' => builder {
-            my $router = router {
-                missing { $controller->missing(@_) };
-                resource '/' => sub {
-                    GET { $controller->home(@_) };
-                };
+        # Second redirects the old /pub app to /auth/.
+        mount '/pub' => sub { $controller->move_to_auth(@_) };
 
-                resource '/error' => sub {
-                    GET { $controller->server_error(@_) };
-                };
-
-                resource '/about' => sub {
-                    GET { $controller->about(@_) };
-                };
-
-                resource '/contact' => sub {
-                    GET { $controller->contact(@_) };
-                };
-
-                resource '/howto' => sub {
-                    GET { $controller->howto(@_) };
-                };
-
-                resource '/account/register' => sub {
-                    GET  { $controller->move_to_auth(@_)  };
-                };
-
-                resource '/account/forgotten' => sub {
-                    GET  { $controller->move_to_auth(@_)  };
-                };
-
-                resource '/account/thanks' => sub {
-                    GET { $controller->move_to_auth(@_) };
-                };
-            };
-            mount '/ui' => $files;
-            mount '/'   => builder {
-                enable 'Session', store => $store;
-                enable @{ $_ } for @{ $mids };
-                sub { $router->dispatch(shift) };
-            };
-        };
-
-        # Authenticated app.
+        # Main app, called "auth" for historical reasons.
         mount '/auth' => builder {
             my $router = router {
                 missing { $controller->missing(@_) };
@@ -178,9 +137,9 @@ sub app {
                 enable 'Session', store => $store;
                 enable @{ $_ } for @{ $mids };
 
-                # Authenticate all requests.
+                # Authenticate all requests that require authentication.
                 enable_if {
-                    shift->{PATH_INFO} !~ m{^/account/(?:reset/|changed|register|forgotten|thanks)}
+                    shift->{PATH_INFO} !~ m{^/$|^/(?:account/(?:reset/|changed|register|forgotten|thanks)|error|about|contact|howto)\b}
                 } 'Auth::Basic', realm => 'PGXN Users Only', authenticator => sub {
                     my ($username, $password) = map { decode 'UTF-8', $_ } @_;
                     PGXN::Manager->conn->run(sub {

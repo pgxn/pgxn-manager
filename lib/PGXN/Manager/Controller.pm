@@ -63,7 +63,7 @@ sub move_to_auth {
     my $self = shift;
     my $req  = Request->new(shift);
     my $res  = $req->new_response;
-    $res->redirect($req->auth_uri_for($req->path_info), $code_for{moved});
+    $res->redirect($req->auth_uri_for($req->path_info || '/'), $code_for{moved});
     return $res->finalize;
 }
 
@@ -135,9 +135,9 @@ sub respond_with {
 sub root {
     my $self = shift;
     my $req = Request->new(shift);
-    my $url = $req->uri_for('/pub/');
+    my $url = $req->uri_for('/auth/');
     $self->respond_with('forbidden', $req, [
-        qq{Sorry, but this URL is invalid. I think you either want <a href="$url">/pub/</a> or to run PGXN Manager behind a reverse proxy server. See <a href="https://github.com/pgxn/pgxn-manager/blob/master/README.md">the README</a> for details.}
+        qq{Sorry, but this URL is invalid. I think you either want <a href="$url">/auth/</a> or to run PGXN Manager behind a reverse proxy server. See <a href="https://github.com/pgxn/pgxn-manager/blob/master/README.md">the README</a> for details.}
     ]);
 }
 
@@ -1095,7 +1095,7 @@ Constructs and returns a new controller.
 
   PGXN::Manager::Controller->root($env);
 
-Handles request for /, redirecting to C</pub>.
+Handles request for /, redirecting to C</auth>.
 
 =head3 C<home>
 

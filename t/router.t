@@ -2,7 +2,7 @@
 
 use 5.10.0;
 use utf8;
-use Test::More tests => 37;
+use Test::More tests => 64;
 #use Test::More 'no_plan';
 use Plack::Test;
 use HTTP::Request::Common;
@@ -27,28 +27,50 @@ test_psgi +PGXN::Manager::Router->app => sub {
         'The body should indicate that permission is denied';
 };
 
-# Test home page.
+# Create a user who can authenticate.
+my $admin = TxnTest->admin;
+
+# Test home page with and without authentication
 test_psgi +PGXN::Manager::Router->app => sub {
     my $cb = shift;
-    ok my $res = $cb->(GET '/pub/'), 'Fetch /pub/';
+    ok my $res = $cb->(GET '/auth/'), 'Fetch /auth/';
     is $res->code, 200, 'Should get 200 response';
     like $res->content, qr/Welcome/, 'The body should look correct';
+
+    my $req = GET '/auth/', Authorization => 'Basic ' . encode_base64("$admin:****");
+    ok $res = $cb->($req), 'Fetch /auth/ with auth token';
+    is $res->code, 200, 'Should still get 200 response';
+    like $res->content, qr/Welcome/, 'The body should again look correct';
 };
 
 # Test static file.
 test_psgi +PGXN::Manager::Router->app => sub {
     my $cb = shift;
-    ok my $res = $cb->(GET '/pub/ui/css/screen.css'), 'Fetch /pub/ui/css/screen.css';
+    my $uri = '/auth/ui/css/screen.css';
+    ok my $res = $cb->(GET $uri), "Fetch $uri";
     is $res->code, 200, 'Should get 200 response';
     file_contents_is 'www/ui/css/screen.css', $res->content,
         'The file should have been served';
+
+    my $req = GET $uri, Authorization => 'Basic ' . encode_base64("$admin:****");
+    ok $res = $cb->($req), "Fetch $uri with auth token";
+    is $res->code, 200, 'Should still get 200 response';
+    file_contents_is 'www/ui/css/screen.css', $res->content,
+        'The file should have been served again';
 };
 
 # Test bogus URL.
 test_psgi +PGXN::Manager::Router->app => sub {
     my $cb = shift;
-    ok my $res = $cb->(GET '/pub/nonexistentpage'), 'Fetch /pub/nonexistentpage';
-    is $res->code, 404, 'Should get 404 response';
+    my $uri = '/auth/nonexistentpage';
+    ok my $res = $cb->(GET $uri), "Fetch $uri";
+    is $res->code, 401, 'Should get 401 response';
+    like $res->content, qr/Authorization required/,
+        'The body should indicate need for authentication';
+
+    my $req = GET $uri, Authorization => 'Basic ' . encode_base64("$admin:****");
+    ok $res = $cb->($req), "Fetch $uri with auth token";
+    is $res->code, 404, 'Should now get 404 response';
     like decode_utf8($res->content), qr/Where’d It Go\?/,
         'The body should have the error';
 };
@@ -60,19 +82,6 @@ test_psgi +PGXN::Manager::Router->app => sub {
     is $res->code, 401, 'Should get 401 response';
     like $res->content, qr/Authorization required/,
         'The body should indicate need for authentication';
-};
-
-# Create a user who can authenticate.
-my $admin = TxnTest->admin;
-
-# Test authentication.
-test_psgi +PGXN::Manager::Router->app => sub {
-    my $cb = shift;
-    my $req = GET '/auth/', Authorization => 'Basic ' . encode_base64("$admin:****");
-    ok my $res = $cb->($req), 'Fetch /auth with auth token';
-    is $res->code, 200, 'Should get 200 response';
-    like $res->content, qr/Welcome/,
-        'The body should indicate we authenticated';
 };
 
 # Test invalid password.
@@ -116,7 +125,17 @@ test_psgi +PGXN::Manager::Router->app => sub {
 # Test that old pub routes have been moved to auth.
 test_psgi +PGXN::Manager::Router->app => sub {
     my $cb = shift;
-    for my $uri (qw(account/register account/forgotten account/thanks)) {
+    for my $uri ('', qw(
+        error
+        about
+        contact
+        howto
+        ui
+        account/register
+        account/forgotten
+        account/thanks
+        nonesuch
+    )) {
         ok my $res = $cb->(GET "/pub/$uri"), "Fetch /pub/$uri";
         is $res->code, 301, 'Should get 301 response';
         my $req = PGXN::Manager::Request->new(req_to_psgi($res->request));
