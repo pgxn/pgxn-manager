@@ -1,0 +1,32 @@
+name: Release
+on:
+  push:
+    tags: [v*]
+jobs:
+  release:
+    name: Release on GitHub
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+    - name: Check out the repo
+      uses: actions/checkout@v2
+    - name: Package the Release
+      id: package
+      run: perl Build.PL && ./Build manifest && ./Build dist && echo "::set-output name=tarball::$(./Build tarball_name )"
+    - name: Generate Release Changes
+      run: ./Build latest_changes
+    - name: Create GitHub Release
+      id: release
+      uses: actions/create-release@v1
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+        body_path: latest_changes.md
+    - name: Upload Release Asset
+      uses: actions/upload-release-asset@v1
+      with:
+        upload_url: ${{ steps.release.outputs.upload_url }}
+        asset_path: ./${{ steps.package.outputs.tarball }}
+        asset_name: ${{ steps.package.outputs.tarball }}
+        asset_content_type: application/gzip
