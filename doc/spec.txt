@@ -110,7 +110,7 @@ distribution
 extension
 :   A reusable library of code contained in a single file or within files
     referenced by the [`CREATE EXTENSION`
-    statement](https://www.postgresql.org/docs/9.1/static/sql-createextension.html).
+    statement](https://www.postgresql.org/docs/current/static/sql-createextension.html).
     Extensions usually contain one or more PostgreSQL objects — such as data
     types, functions, and operators — and are often referred to by the name of
     a primary object that can be mapped to the file name. For example, one

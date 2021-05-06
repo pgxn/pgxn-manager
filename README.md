@@ -16,7 +16,7 @@ Installation
 
   +   [Perl](https://www.perl.org/) 5.10.0 or higher (5.12 or higher strongly
       recommended)
-  +   [PostgreSQL](https://www.postgresql.org/) 9.1.0 or higher with support for
+  +   [PostgreSQL](https://www.postgresql.org/) 12.0 or higher with support for
       PL/Perl included.
 
 *   Next, you'll need to install all CPAN dependencies. To determine what they
