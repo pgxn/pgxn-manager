@@ -1,7 +1,7 @@
 PGXN/Manager version 0.20.0
 ===========================
 
-[![Test Status](https://github.com/pgxn/pgxn-manager/workflows/CI/CD/badge.svg)](https://github.com/pgxn/docker-manager/actions)
+[![Test Status](https://github.com/pgxn/pgxn-manager/workflows/CI/badge.svg)](https://github.com/pgxn/pgxn-manager/actions)
 
 This application provides a Web interface and REST API for extension owners to
 upload and manage extensions on PGXN, the PostgreSQL Extension Network. It
