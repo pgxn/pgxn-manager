@@ -119,7 +119,7 @@ BEGIN { create_wrapper wrapper => sub {
                         id is 'publicmenu';
                         li { a {
                             id is 'login';
-                            href is $req->auth_uri;
+                            href is $req->uri_for('/login');
                             T 'Log In';
                         } };
                     }

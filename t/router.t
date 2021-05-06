@@ -2,7 +2,7 @@
 
 use 5.10.0;
 use utf8;
-use Test::More tests => 64;
+use Test::More tests => 80;
 #use Test::More 'no_plan';
 use Plack::Test;
 use HTTP::Request::Common;
@@ -105,6 +105,21 @@ test_psgi +PGXN::Manager::Router->app => sub {
         'The body should indicate we authenticated';
 };
 
+# Test /login.
+test_psgi +PGXN::Manager::Router->app => sub {
+    my $cb = shift;
+    ok my $res = $cb->(GET '/auth/login'), 'Fetch /auth/login';
+    is $res->code, 401, 'Should get 401 response';
+    like $res->content, qr/Authorization required/,
+        'The body should indicate need for authentication';
+
+    my $req = GET '/auth/login', Authorization => 'Basic ' . encode_base64("$user:****");
+    ok $res = $cb->($req), 'Fetch /auth/login with user auth token';
+    is $res->code, 307, 'Should get 307 response';
+    is $res->content, '', 'Should have no content';
+};
+
+
 # Deactivate the user.
 PGXN::Manager->conn->run(sub {
     $_->do(
@@ -141,5 +156,6 @@ test_psgi +PGXN::Manager::Router->app => sub {
         my $req = PGXN::Manager::Request->new(req_to_psgi($res->request));
         is $res->headers->header('location'), $req->auth_uri_for("/$uri"),
             "Should redirect to /auth/$uri";
+        is $res->content, '', 'Should have no content';
     }
 };

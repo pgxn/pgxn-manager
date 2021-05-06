@@ -36,6 +36,7 @@ my %message_for = (
 my %code_for = (
     success     => 200,
     moved       => 301,
+    redirect    => 307,
     seeother    => 303,
     badrequest  => 400,
     forbidden   => 403,
@@ -383,6 +384,12 @@ sub send_reset {
     # Redirect for normal request.
     $req->session->{reset_sent} = 1;
     return $self->redirect('/', $req);
+}
+
+sub login {
+    my $self = shift;
+    my $req  = Request->new(shift);
+    return $self->redirect('/distributions', $req, $code_for{redirect});
 }
 
 sub reset_form {
@@ -1173,6 +1180,11 @@ Shows for for user to fill out when password forgotten.
 
 Handles POST from C<forgotten> form. Generates a reset token and sends a reset
 email.
+
+=head3 C<login>
+
+Simply redirects to /distributions, under the assumption that the Router
+properly requires it to be authenticated.
 
 =head3 C<reset_form>
 

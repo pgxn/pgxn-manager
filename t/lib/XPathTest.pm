@@ -189,7 +189,7 @@ sub test_basics {
 
                 my $i = 0;
                 for my $spec (
-                    [ '/auth/',             'Log In',          'login'   ],
+                    [ '/login',             'Log In',          'login'   ],
                     [ '/account/register',  'Request Account', 'request' ],
                     [ '/account/forgotten', 'Reset Password',  'reset'   ],
                 ) {

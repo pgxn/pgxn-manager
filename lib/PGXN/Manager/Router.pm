@@ -38,6 +38,10 @@ sub app {
                     GET { $controller->home(@_) };
                 };
 
+                resource '/login' => sub {
+                    GET { $controller->login(@_) };
+                };
+
                 resource '/error' => sub {
                     GET { $controller->server_error(@_) };
                 };

@@ -42,10 +42,13 @@ Revision history for Perl extension PGXN::Manager
        - Eliminated the /pub app. The entire site is now served by the /auth
          app, so that it can be fully encrypted. Basic auth is enabled for those
          parts of the site that require authentication, but the rest is publicly
-         available, including the home page, about, howtwo, etc. The /pub app
-         now simply redirects to the /auth app, in case it's still used,
-         although the reverse proxy configuration should be updated to do the
-         same, to avoid calling the /pub app at all.
+         available, including the home page, about, howto, etc. The /pub app now
+         simply redirects to the /auth app, in case it's still used, although
+         the reverse proxy configuration should be updated to do the same, to
+         avoid calling the /pub app at all.
+       - Added the /login path and made it the URL for the "Log In" link on
+         unauthenticated pages. It requires auth and simply redirects to
+         /distributions for now.
 
 0.16.0  2015-08-31T18:25:24Z
        - Updated the `Makefile` example in the HOWTO to extract the extension
