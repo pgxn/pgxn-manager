@@ -362,7 +362,7 @@ a release directly to PGXN Manager. Give it a whirl!
 
 Good hacking!
 
-  [let us know]: http://manager.pgxn.org/contact "Contact PGXN"
+  [let us know]: https://manager.pgxn.org/contact "Contact PGXN"
   [PostgreSQL]: https://www.postgresql.org/
   [additional supplied modules]: https://www.postgresql.org/docs/current/static/contrib.html
   [pair]: https://pgxn.org/dist/pair/

@@ -119,7 +119,7 @@ $class->new(
     },
     meta_merge => {
         resources => {
-            homepage   => 'http://manager.pgxn.org/',
+            homepage   => 'https://manager.pgxn.org/',
             bugtracker => 'https://github.com/pgxn/pgxn-manager/issues/',
             repository => 'https://github.com/pgxn/pgxn-manager/',
         }

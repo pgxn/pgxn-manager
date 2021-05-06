@@ -5,7 +5,7 @@ This application provides a Web interface and REST API for extension owners to
 upload and manage extensions on PGXN, the PostgreSQL Extension Network. It
 also provides an administrative interface for PGXN administrators. For more
 information, visit the [PGXN site](https://pgxn.org/). For a working
-deployment, hit [PGXN Manager](http://manager.pgxn.org/).
+deployment, hit [PGXN Manager](https://manager.pgxn.org/).
 
 Installation
 ------------
