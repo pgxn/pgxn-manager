@@ -8,7 +8,7 @@ jobs:
   build:
     strategy:
       matrix:
-        pg: [12]
+        pg: [14, 13, 12, 11, 10]
     name: 🐘 PostgreSQL ${{ matrix.pg }}
     runs-on: ubuntu-latest
     container: pgxn/pgxn-tools
@@ -22,7 +22,8 @@ jobs:
           perl Build.PL --context test
           PERL_MM_USE_DEFAULT=1 ./Build installdeps --cpan_client 'cpanm -qn'
           cat eg/plperl.conf >> $(psql --no-psqlrc -U postgres -Atqc 'SHOW config_file')
-          pgxn install semver pgtap
+          pgxn install semver
+          pgxn install pgtap
           pg_ctlcluster ${{ matrix.pg }} test restart
           ./Build db
       - name: Test PGXN::Manager
