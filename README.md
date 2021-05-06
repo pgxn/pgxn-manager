@@ -10,48 +10,48 @@ deployment, hit [PGXN Manager](https://manager.pgxn.org/).
 Installation
 ------------
 
-* First, you need to satisfy the dependencies. These include:
+*   First, you need to satisfy the dependencies. These include:
 
-  + [Perl](https://www.perl.org/) 5.10.0 or higher (5.12 or higher strongly
-    recommended)
-  + [PostgreSQL](https://www.postgresql.org/) 9.0.0 or higher with support for
-    PL/Perl included.
+  +   [Perl](https://www.perl.org/) 5.10.0 or higher (5.12 or higher strongly
+      recommended)
+  +   [PostgreSQL](https://www.postgresql.org/) 9.1.0 or higher with support for
+      PL/Perl included.
 
-* Next, you'll need to install all CPAN dependencies. To determine what they
-  are, simply run
+*   Next, you'll need to install all CPAN dependencies. To determine what they
+    are, run
 
         perl Build.PL
 
-  To install them, run
+    To install them, run
 
         ./Build installdeps
 
-* Configure the PostgreSQL server to preload modules used by PL/Perl
-  functions. Just add these lines to the end of your `postgresql.conf` file:
+*   Configure the PostgreSQL server to pre-load modules used by PL/Perl
+    functions. Just add these lines to the end of your `postgresql.conf` file:
 
         plperl.use_strict = on
         plperl.on_init='use 5.12.0; use JSON::XS; use Email::Valid; use Data::Validate::URI; use SemVer; use PGXN::Meta::Validator;'
 
-  If you would also like those modules to load in the parent PostgreSQL process,
-  rather than for each connection, add:
+    If you would also like those modules to load in the parent PostgreSQL process,
+    rather than for each connection, add:
 
-       shared_preload_libraries = '$libdir/plperl'
+        shared_preload_libraries = '$libdir/plperl'
 
-* Install these PostgreSQL core
-  [extensions](https://www.postgresql.org/docs/current/static/contrib.html):
+*   Install these PostgreSQL core
+    [extensions](https://www.postgresql.org/docs/current/static/contrib.html):
 
-    + [citext](https://www.postgresql.org/docs/current/static/citext.html)
-    + [hstore](https://www.postgresql.org/docs/current/static/hstore.html)
-    + [pgcrypto](https://www.postgresql.org/docs/current/static/pgcrypto.html)
+    +   [citext](https://www.postgresql.org/docs/current/static/citext.html)
+    +   [hstore](https://www.postgresql.org/docs/current/static/hstore.html)
+    +   [pgcrypto](https://www.postgresql.org/docs/current/static/pgcrypto.html)
 
-  If you installed from source, you can either install all the core
-  extensions, like so:
+    If you installed from source, you can either install all the core
+    extensions, like so:
 
         cd contrib/
         gmake
         gmake install
 
-  Or if you like, you can install individual extensions like so:
+    Or if you like, you can install individual extensions like so:
 
         cd contrib
         for ext in citext hstore pgcrypto
@@ -62,51 +62,32 @@ Installation
             cd ..
         done
 
-* Install the PostreSQL `semver` extension v0.31.0 or higher. It's available
-  from PGXN itself. Grab [the latest release](https://pgxn.org/dist/semver/)
-  and follow its installation instructions.
+*   Install the PostgreSQL `semver` extension v0.31.1 or higher. It's available
+    from PGXN itself. Grab [the latest release](https://pgxn.org/dist/semver/)
+    and follow its installation instructions.
 
-* Create a "pgxn" system user and the master mirror directory:
+*   Create a "pgxn" system user and the master mirror directory:
 
         useradd pgxn -d /nonexistent
         mkdir -p /var/www/master.pgxn.org
         chown -R pgxn:pgxn /var/www/master.pgxn.org
 
-  The "pgxn" user should not have any system access. You should also configure
-  your Web server to serve this directory. For proper networking, it should
-  also be copy-able via anonymous `rsync` connections.
+    The "pgxn" user should not have any system access. You should also configure
+    your web server to serve this directory. For proper networking, it should
+    also be copy-able via anonymous `rsync` connections.
 
-* Create the configuration file. The easiest way is to copy one of the templates:
+*   Create the configuration file. The easiest way is to copy one of the
+    templates:
 
         cp conf/local.json conf/prod.json
 
-  Change the DSN if you'd like to use a different database name or connect to
-  another host. (Consult the [DBI](https://metacpan.org/pod/DBI) and
-  [DBD::Pg](https://metacpan.org/pod/DBD::Pg) documentation for details on the
-  attributes that can be included in the DSN). You can also change the templates
-  for the files that will be managed on the master mirror.
+    Change the DSN if you'd like to use a different database name or connect to
+    another host. (Consult the [DBI](https://metacpan.org/pod/DBI) and
+    [DBD::Pg](https://metacpan.org/pod/DBD::Pg) documentation for details on the
+    attributes that can be included in the DSN). You can also change the
+    templates for the files that will be managed on the master mirror.
 
-* If you're using PostgreSQL 9.0, you'll need to load the extensions into the
-  template database so that they'll be included in the PGXN database when it's
-  created. (This isn't necessary for PostgreSQL 9.1, as the installer will
-  load the extensions for you). The simplest way to do so is to create a
-  "contrib" schema and put them there. You'll also need to create the "pgxn"
-  user and give it access to the schema.
-
-        psql -U postgres -d template1 -c 'CREATE SCHEMA contrib;'
-        psql -U postgres -d template1 -c 'CREATE USER pgxn;'
-        psql -U postgres -d template1 -c 'GRANT USAGE ON SCHEMA contrib TO pgxn;'
-
-  Then use the `$PGOPTIONS` environment variable to load the extensions into
-  that schema:
-
-        for ext in citext hstore pgcrypto semver
-        do
-            PGOPTIONS=--search_path=contrib psql -d template1 \
-              -f /path/to/pgsql/share/contrib/$ext.sql
-        done
-
-* Build PGXN::Manager:
+*   Build PGXN::Manager:
 
         perl Build.PL --db_super_user postgres \
                       --db_client /path/to/pgsql/bin/psql \
@@ -114,108 +95,70 @@ Installation
         ./Build
         ./Build db
 
-  If you're on PostgreSQL 9.0 and have installed the extensions into the
-  "contrib" schema, you'll need to set `$PGOPTIONS` for `./Build db`:
-
-        PGOPTIONS=--search_path=public,contrib ./Build db
-
-* Once the database has been built, if you're running PostgreSQL 9.1, you can
-  drop the "contrib" schema from the template database:
-
-        psql -U postgres -d template1 -c 'DROP SCHEMA contrib CASCADE;'
-
-  You'll also need to make sure that the "contrib" schema is in the search
-  path of your new database (so you don't have to use the `$PGOPTIONS`
-  environment variable anymore):
-
-        psql -U postgres -c 'ALTER DATABASE pgxn_manager SET search_path = "$user",public,contrib;'
-
-* If you'd like to run the test suite, you'll need to install pgTAP from
-  [pgTAP](https://pgtap.org/). Download it and install it like so:
+*   If you'd like to run the test suite, you'll need to install pgTAP from
+    [pgTAP](https://pgxn.org/dist/pgtap/). Download it and install it like so:
 
         gmake
         gmake install
 
-  Then repeat the steps above but use the "test" context, specified by the
-  call to `Build.PL` like so:
+    Then repeat the steps above but use the "test" context, specified by the
+    call to `Build.PL` like so:
 
         perl Build.PL --db_super_user postgres \
                       --db_client /path/to/pgsql/bin/psql \
                       --context test
 
-  If you're on 9.0, you'll need to load pgTAP into the database; I recommend
-  putting it into the "contrib" schema along with the other extensions:
-
-        PGOPTIONS=--search_path=contrib psql -U postgres-d pgxn_manager_test \
-          -f /path/to/pgsql/share/contrib/pgtap.sql
-
-  Next, edit the DSN in `conf/test.json` so that it will connect to the test
-  database. Then run the tests, which will need to be able to find `psql` in
-  the system path:
+    Next, edit the DSN in `conf/test.json` so that it will connect to the test
+    database. Then run the tests, which will need to be able to find `psql` in
+    the system path:
 
         ./Build test
 
-  You can then drop the test database if you like:
+    You can then drop the test database if you like:
 
         dropdb -U postgres pgxn_manager_test
 
-* Fire up the app:
+*   Fire up the app:
 
         sudo -u pgxn plackup -E prod bin/pgxn_manager.psgi
 
-* Connect to port 5000 on your host and you should see the UI!
+*   Connect to http://localhost:5000/auth/ and you should see the UI!
 
-* Now you need to make yourself an administrator. Click the "Request Account"
-  link and request an account.
+*   Now you need to make yourself an administrator. Click the "Request Account"
+    link and request an account.
 
-* Now connect to the database:
+*   Now connect to the database:
 
         /usr/local/pgsql/bin/psql -U postgres pgxn_manager
 
-  And approve your account, making youself an admin while you're at it. Also,
-  set your password to an empty string. Assuming you gave yourself the
-  nickname "fred", the query is:
+    And approve your account, making yourself an admin while you're at it. Also,
+    set your password using `crypt()`. Assuming you gave yourself the nickname
+    "fred" and you want the password `change me!`, the query is:
 
         UPDATE users
            SET status   = 'active',
                is_admin = true,
                set_by   = 'fred',
-               password = ''
+               password = crypt('change me!', gen_salt('des')) 
          WHERE nickname = 'fred';
 
-* Then give yourself a proper password by executing the `change_password()`
-  function. Make sure the third argument is your great new password:
+*   Hit the "Log In" link and log yourself in.
 
-      SELECT change_password('fred', '', 'changme!');
-
-* Hit the "Log In" link and log yourself in.
-
-* Profit!
+*   Profit!
 
 Running a Proxy Server
 ----------------------
 
-PGXN::Manager is actually two apps in one. The public site runs under /pub/
-and the site for users authenticated via Basic Auth runs under /auth/. A nice
-way to separate these is to set up two reverse proxy servers: One to serve
-/pub/ on port 80 and one to serve /auth/ on port 443. Here's how to do that.
+PGXN::Manager used to be two apps in one, so for historical reasons runs under
+/auth/. A nice way to present this as the core URL for a domain, use a reverse
+proxy server. Here's how to do that.
 
-* Get or create an SSL certificate and install it in your system.
+*   Get or create an SSL certificate and install it in your system.
 
-* Create the reverse proxy hosts. Here's what the
-  [mod_proxy](https://httpd.apache.org/docs/current/mod/mod_proxy.html)
-  configuration for manager.pgxn.org looks like, both apps to a a
-  PGXN::Manager instance running locally on port 7496:
-
-        <VirtualHost *:80>
-          ServerName manager.pgxn.org
-          ProxyPass / http://localhost:7496/pub/
-          ProxyPassReverse / http://localhost:7496/pub/
-          RequestHeader set X-Forwarded-HTTPS %{HTTPS}s
-          RequestHeader set X-Forwaded-Proto http
-          RequestHeader set X-Forwarded-Port 80
-          RequestHeader set X-Forwarded-Script-Name ""
-        </VirtualHost>
+*   Create the reverse proxy hosts. Here's what the
+    [mod_proxy](https://httpd.apache.org/docs/current/mod/mod_proxy.html)
+    configuration for manager.pgxn.org looks like, both apps to a a
+    PGXN::Manager instance running locally on port 7496:
 
         <VirtualHost *:443>
           ServerName manager.pgxn.org
@@ -244,24 +187,16 @@ way to separate these is to set up two reverse proxy servers: One to serve
     and clients can't spoof the values to fool the server into thinking it's
     running under HTTPS when it's not.
 
+    If you're updating a sever that used to serve up the non-TLS /pub app,
+    Update the port 80 configuration to redirect to the TLS /auth app, like so:
+
+        <VirtualHost *:80>
+          ServerName manager.pgxn.org
+          Redirect "/" "https://manager.pgxn.org/"
+        </VirtualHost>
+
     Here's the equivalent configuration using
     [NGINX ngx_http_proxy_module](https://nginx.org/en/docs/http/ngx_http_proxy_module.html):
-
-        server {
-            server_name manager.pgxn.org
-            listen 80;
-            merge_slashes: off;
-            location / {
-                proxy_pass        http://127.0.0.1:7496/pub/;
-                proxy_redirect    off;
-                proxy_set_header  X-Forwarded-Host        $host;
-                proxy_set_header  X-Forwarded-For         $proxy_add_x_forwarded_for;
-                proxy_set_header  X-Forwarded-HTTPS       "";
-                proxy_set_header  X-Forwarded-Proto       http;
-                proxy_set_header  X-Forwarded-Port        80;
-                proxy_set_header  X-Forwarded-Script-Name "";
-            }
-        }
 
         server {
             server_name manager.pgxn.org
@@ -283,22 +218,28 @@ way to separate these is to set up two reverse proxy servers: One to serve
             }
         }
 
-    Again, it's important to get the headers rewritten properly in order for
-    the routing and writing of URLs is correct and so that clients can't spoof
-    them. Also, be sure to disable `merge_slashes` or else the mirror
-    management interface will not work.
+        server {
+            server_name manager.pgxn.org
+            listen 80;
+            return 301 https://manager.pgxn.org$request_uri;
+        }
 
-* Install
-  [Plack::Middleware::ReverseProxy](https://metacpan.org/pod/Plack::Middleware::ReverseProxy)
-  from CPAN:
+    Again, it's important to get the headers rewritten properly in order for the
+    routing and writing of URLs to be correct and so that clients can't spoof
+    them. Also, be sure to disable `merge_slashes` or else the mirror management
+    interface will not work.
+
+*   Install
+    [Plack::Middleware::ReverseProxy](https://metacpan.org/pod/Plack::Middleware::ReverseProxy)
+    from CPAN:
 
         cpan Plack::Middleware::ReverseProxy
 
-* Edit the production configuration file. The there are only a few additional
-  keys to edit:
+*   Edit the production configuration file. The there are only a few additional
+    keys to edit:
 
-    1. Add the ReverseProxy middleware. The "middleware" key should end up
-       looking something like this:
+    1.  Add the ReverseProxy middleware. The "middleware" key should end up
+        looking something like this:
 
             "middleware": [
                ["ErrorDocument", 500, "/error", "subrequest", 1],
@@ -307,36 +248,35 @@ way to separate these is to set up two reverse proxy servers: One to serve
                ["ReverseProxy"]
             ],
 
-    2. Tell PGXN::Manager to use the X-Forwarded-Script-Name header to create
-       proper URLs (otherwise no images, CSS, or JavaScript will work):
+    2.  Tell PGXN::Manager to use the `X-Forwarded-Script-Name` header to create
+        proper URLs (otherwise no images, CSS, or JavaScript will work):
 
             "uri_script_name_key": "HTTP_X_FORWARDED_SCRIPT_NAME",
 
-    3. Tell the public site what link to use to the authenticated site:
+    3.  Tell the public site what link to use to the authenticated site:
 
             "auth_uri": "https://manager.pgxn.org/",
 
-    4. Configure the Twitter OAuth token so that PGXN::Manager can tweet
-       uploads. The simplest way to do so is to run `bin/get_twitter_token -h`
-       for helpful intructions and easy configuration.
+    4.  Configure the Twitter OAuth token so that PGXN::Manager can tweet
+        uploads. The simplest way to do so is to run `bin/get_twitter_token -h`
+        for helpful instructions and easy configuration.
 
     You'll also find these settings in `conf/proxied.json` to help get you
     started.
 
-* Restart your Apache server and then your PGXN Manager server. You should now
-  be able to hit the public site at the root of your domain on port 80, and at
-  the authenticated site at the root of your domain on port 443.
+*   Restart your proxy server and then your PGXN Manager server. You should now
+    be able to load the site at the root of your domain on port 443.
 
 Monitoring Mirrors
 ------------------
 
-Once you have mirrors syncing from the master mirror directory (via rsync or
-however else), you might want to use the `check_mirrors` utility in a cron
-job. It simply iterates over teh list of mirrors maintained by PGXN::Manager
-and reports of any of them appear to be more than a specified number of days,
-hours, or minutes behind. This will allow you to determine when a mirror may
-no longer be available, so that you can contact the owner or remove the mirror
-from the system.
+Once you have mirrors syncing from the master mirror directory (via `rsync` or
+however else), you might want to use the `check_mirrors` utility in a cron job.
+It simply iterates over teh list of mirrors maintained by PGXN::Manager and
+reports of any of them appear to be more than a specified number of days, hours,
+or minutes behind. This will allow you to determine when a mirror may no longer
+be available, so that you can contact the owner or remove the mirror from the
+system.
 
 Copyright and License
 ---------------------
