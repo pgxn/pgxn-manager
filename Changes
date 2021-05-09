@@ -35,10 +35,9 @@ Revision history for Perl extension PGXN::Manager
          X_FORWARDED_FOR. This seems to be how X_ variables are loaded by Plack.
        - Worked around a situation where Plack gives an uploaded file a
          meaningless temporary name that Archive::Extract cannot detect the
-         archive type for. Permanent fix submitted in PR jib/archive-extract#8,
-         but with a copy of the same solution here until it gets merged and
-         released. Thanks to Sandro Santilli ror the report and Philippe Beaudoin
-         for providing a file with which replicate the issue (#61).
+         archive type for. Requires the Archive::Extract 0.88. Thanks to Sandro
+         Santilli ror the report and Philippe Beaudoin for providing a file with
+         which replicate the issue (#61).
        - Moved the new account request and password reset request pages to
          the auth router, without requiring authentication, so that they load
          and work with HTTPS, as some browsers will strongly prefer. Return a

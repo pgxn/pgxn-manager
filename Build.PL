@@ -60,7 +60,7 @@ $class->new(
     },
     requires => {
         'aliased'                           => '0.30',
-        'Archive::Extract'                  => '0.42',
+        'Archive::Extract'                  => '0.88',
         'Archive::Zip'                      => '1.30',
         'Class::ISA'                        => '0.36',
         'Cwd'                               => '3.33',

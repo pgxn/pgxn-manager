@@ -28,7 +28,6 @@
 
 # Avoid build files.
 ^PGXN-Manager
-^Capfile
 
 # Avoid Pod tests.
 t/pod[^.]*\.t

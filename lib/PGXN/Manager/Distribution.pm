@@ -30,22 +30,6 @@ my $EXT_RE = do {
 };
 my $META_RE = qr/\bMETA[.]json$/;
 
-# https://github.com/jib/archive-extract/pull/8/
-my $ARCHIVE_TYPE_FOR = Archive::Extract->can('type_for') || sub {
-    local $_ = shift;
-    return /.+?\.(?:tar\.gz|tgz)$/i         ? Archive::Extract::TGZ   :
-           /.+?\.gz$/i                      ? Archive::Extract::GZ    :
-           /.+?\.tar$/i                     ? Archive::Extract::TAR   :
-           /.+?\.(zip|jar|ear|war|par)$/i   ? Archive::Extract::ZIP   :
-           /.+?\.(?:tbz2?|tar\.bz2?)$/i     ? Archive::Extract::TBZ   :
-           /.+?\.bz2$/i                     ? Archive::Extract::BZ2   :
-           /.+?\.Z$/                        ? Archive::Extract::Z     :
-           /.+?\.lzma$/                     ? Archive::Extract::LZMA  :
-           /.+?\.(?:txz|tar\.xz)$/i         ? Archive::Extract::TXZ   :
-           /.+?\.xz$/                       ? Archive::Extract::XZ    :
-           '';
-};
-
 make_path $TMPDIR if !-d $TMPDIR;
 Archive::Zip::setErrorHandler(\&_zip_error_handler);
 
@@ -130,7 +114,7 @@ sub extract {
                 local $SIG{__WARN__} = \&_ae_error_handler;
                 my $ae = Archive::Extract->new(
                     archive => $self->archive,
-                    type    => $ARCHIVE_TYPE_FOR->($self->basename),
+                    type    => Archive::Extract::type_for($self->basename),
                 );
                 $ae->extract(to => $extract_dir);
                 $ae;
