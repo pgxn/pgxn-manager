@@ -469,7 +469,7 @@ Revision history for Perl extension PGXN::Manager
         a link to the moderation UI.
       - Renamed `Request->login_uri` to `auth_uri`, and renamed the
         configuration setting to same.
-      - Added `Request->auth_uri_for()` and updated places in the public site
+      - Added `Request->uri_for()` and updated places in the public site
         that link to the auth site to use it.
       - Moved the password reset form (to which a link is set when a new user
         account is accepted or a user fills in the forgotten password form) to

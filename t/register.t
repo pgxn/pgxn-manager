@@ -52,7 +52,7 @@ test_psgi $app => sub {
     # Now examine the form.
     $tx->ok('/html/body/div[@id="content"]/form[@id="reqform"]', sub {
         for my $attr (
-            [action  => $req->auth_uri_for('/account/register')],
+            [action  => $req->uri_for('/account/register')],
             [enctype => 'application/x-www-form-urlencoded; charset=UTF-8'],
             [method  => 'post']
         ) {
@@ -186,7 +186,7 @@ test_psgi $app => sub {
     ]), 'POST tgl to /register';
     ok $res->is_redirect, 'It should be a redirect response';
     my $req = PGXN::Manager::Request->new(req_to_psgi($res->request));
-    is $res->headers->header('location'), $req->auth_uri_for('/account/thanks'),
+    is $res->headers->header('location'), $req->uri_for('/account/thanks'),
         'Should redirect to /account/thanks';
 
     # And now Tom Lane should be registered.
@@ -225,7 +225,7 @@ test_psgi $app => sub {
 > 
 > Regards, Tom Lane
 
-Moderate at ' . $req->auth_uri_for('admin/moderate') . ".\n",
+Moderate at ' . $req->uri_for('admin/moderate') . ".\n",
     'The body should be correct';
     Email::Sender::Simple->default_transport->clear_deliveries;
 };
@@ -295,7 +295,7 @@ test_psgi $app => sub {
     ]), 'POST valid tgl to /register again';
     my $req = PGXN::Manager::Request->new(req_to_psgi($res->request));
     ok $res->is_redirect, 'It should be a redirect response';
-    is $res->headers->header('location'), $req->auth_uri_for('/account/thanks'),
+    is $res->headers->header('location'), $req->uri_for('/account/thanks'),
         'Should redirect to /account/thanks';
 
     # And now Tom Lane should be registered.
@@ -351,7 +351,7 @@ test_psgi $app => sub {
         $tx->is('./p[@class="error"]', $err, '... Error paragraph should be set');
         $tx->is(
             './p[@class="error"]/a/@href',
-            $req->auth_uri_for('/reset', email => 'tgl@pgxn.org'),
+            $req->uri_for('/reset', email => 'tgl@pgxn.org'),
             '... And it should have a link'
         );
 

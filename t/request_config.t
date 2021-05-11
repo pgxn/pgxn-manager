@@ -2,7 +2,7 @@
 
 use 5.10.0;
 use utf8;
-use Test::More tests => 7;
+use Test::More tests => 6;
 #use Test::More 'no_plan';
 use HTTP::Request::Common;
 use HTTP::Message::PSGI;
@@ -34,7 +34,3 @@ ok $req = PGXN::Manager::Request->new(req_to_psgi(GET(
 
 is $req->uri_for('foo'), $base . 'app/foo', 'app uri_for(foo)';
 is $req->uri_for('/foo'), $base . 'hi/foo', 'app uri_for(/foo)';
-
-# Make sure we get the configured login URI.
-is $req->auth_uri, URI->new('https://manager.pgxn.org/');
-

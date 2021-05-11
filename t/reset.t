@@ -494,7 +494,7 @@ test_psgi $app => sub {
             '... Should have the success message'
         );
         $tx->is(
-            './p/a[@href="' . $req->auth_uri . '"]',
+            './p/a[@href="' . $req->uri_for('/login') . '"]',
             $mt->maketext('Go log in!'),
             'And should have the log in link'
         );

@@ -145,7 +145,7 @@ test_psgi +PGXN::Manager::Router->app => sub {
         ok my $res = $cb->(GET "/pub/$uri"), "Fetch /pub/$uri";
         is $res->code, 301, 'Should get 301 response';
         my $req = PGXN::Manager::Request->new(req_to_psgi($res->request));
-        is $res->headers->header('location'), $req->auth_uri_for("/$uri"),
+        is $res->headers->header('location'), "/$uri",
             "Should redirect to /$uri";
         is $res->content, '', 'Should have no content';
     }
