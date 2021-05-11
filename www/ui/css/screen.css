@@ -5,7 +5,7 @@ Version: 1.1, November 28, 2005 */
 /**************** Page and tag styles ****************/
 
 body
-{margin:0; padding:0; color:#303030; background:#e0e0e0 url(../img/bodybg.gif) top left repeat-y; font-family: 'trebuchet ms', Helvetica, sans-serif;}
+{margin:0; padding:0; color:#303030; background:#e0e0e0 url(/ui/img/bodybg.gif) top left repeat-y; font-family: 'trebuchet ms', Helvetica, sans-serif;}
 
 ul
 {list-style:square; margin:15px 0 20px 0; padding:0;}
@@ -31,7 +31,7 @@ a img
 /**************** Sidebar area styles ****************/
 
 #sidebar
-{position:absolute; top:0; left:0; width:260px; height:100%; overflow:auto; background:#e0e0e0 url(../img/sidebarbg.gif) top right repeat-y; text-align:right;}
+{position:absolute; top:0; left:0; width:260px; height:100%; overflow:auto; background:#e0e0e0 url(/ui/img/sidebarbg.gif) top right repeat-y; text-align:right;}
 
 body > #sidebar
 {position:fixed;}
@@ -148,16 +148,16 @@ label.invalid:after
 { border:1px solid; margin:10px 4px; padding:15px 10px 15px 50px; background-repeat:no-repeat; background-position:.65em .65em;}
 
 .info, .why
-{ color:#00529b; background-color:#bde5f8; background-image:url(../img/info.png);}
+{ color:#00529b; background-color:#bde5f8; background-image:url(/ui/img/info.png);}
 
 .success
-{ color:#4f8a10; background-color:#dff2bf; background-image:url(../img/success.png);}
+{ color:#4f8a10; background-color:#dff2bf; background-image:url(/ui/img/success.png);}
 
 .warning
-{ color:#9f6000; background-color:#feefb3; background-image:url(../img/warning.png);}
+{ color:#9f6000; background-color:#feefb3; background-image:url(/ui/img/warning.png);}
 
 .error
-{ color:#d8000c; background-color:#ffbaba; background-image:url(../img/error.png);}
+{ color:#d8000c; background-color:#ffbaba; background-image:url(/ui/img/error.png);}
 
 /**************** Tables ****************/
 /* Borrowed from https://veerle-v2.duoh.com/blog/comments/a_css_styled_table/ */
@@ -165,7 +165,7 @@ table
 {width:100%;border-spacing:0;border-collapse:collapse;}
 
 th
-{font-weight:bold; font-size:90%; color:#236691; border-right:1px solid #C1DAD7; border-bottom:1px solid #C1DAD7; border-top:1px solid #C1DAD7; text-align:left; padding:6px; background:#CAE8EA url(../img/thbg.png) no-repeat;}
+{font-weight:bold; font-size:90%; color:#236691; border-right:1px solid #C1DAD7; border-bottom:1px solid #C1DAD7; border-top:1px solid #C1DAD7; text-align:left; padding:6px; background:#CAE8EA url(/ui/img/thbg.png) no-repeat;}
 
 
 th:first-child, td:first-child
@@ -178,10 +178,10 @@ tr.specalt a
 {font-weight:bold;}
 
 tr.spec th
-{border-left:1px solid #C1DAD7; border-top:0; background:#fff url(../img/wedge_brown.png) 2px 2px no-repeat; font-weight:bold; font-size:90%;}
+{border-left:1px solid #C1DAD7; border-top:0; background:#fff url(/ui/img/wedge_brown.png) 2px 2px no-repeat; font-weight:bold; font-size:90%;}
 
 tr.specalt th
-{border-left:1px solid #C1DAD7; border-top:0; background:#eaf7fb url(../img/wedge_blue.png) 2px 2px no-repeat; font-weight:bold; font-size:90%;}
+{border-left:1px solid #C1DAD7; border-top:0; background:#eaf7fb url(/ui/img/wedge_blue.png) 2px 2px no-repeat; font-weight:bold; font-size:90%;}
 
 td
 { border-right:1px solid #C1DAD7; border-bottom:1px solid #C1DAD7; background:#fff; padding:8px 6px 0;}
@@ -206,7 +206,7 @@ table th .control
 table th .control img
 {margin-right:2px;}
 
-#userlist .userinfo {display:none;background:transparent url(../img/bubup.png) 34px 0 no-repeat;margin:0;width:20em;padding-top:12px;}
+#userlist .userinfo {display:none;background:transparent url(/ui/img/bubup.png) 34px 0 no-repeat;margin:0;width:20em;padding-top:12px;}
 #userlist .userinfo .why {padding-bottom:0;margin-right:0;margin:0;}
 #userlist .userinfo blockquote {margin-left:-40px;margin-right:10px;font-style:italic;font-size:80%}
 #userlist .userinfo blockquote p {white-space:pre-wrap;}
