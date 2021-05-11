@@ -1252,12 +1252,10 @@ template show_mirror => sub {
             };
         }
         form {
-            id      is 'mirrorform';
+            id is 'mirrorform';
             if ($update) {
-                # We don't want the "/auth" bit, but do want the rest of the
-                # path, as it has the URL being edited.
-                (my $path = join '/', $req->uri->path_segments) =~ s{^/auth}{};
-                action is $req->uri_for($path, 'x-tunneled-method' => 'put');
+                # The path has the URL being edited.
+                action is $req->uri_for($req->uri->path, 'x-tunneled-method' => 'put');
             } else {
                 action  is $req->uri_for('/admin/mirrors');
             }

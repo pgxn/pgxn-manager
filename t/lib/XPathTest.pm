@@ -198,9 +198,8 @@ sub test_basics {
                         "count(./li[$i]/*)", 1,
                         "Should be one subelement of menu item $i"
                     );
-                    my $uri = $spec->[0] eq '/auth/'  ? $req->auth_uri
-                        : $spec->[0] =~ m{^/account/} ?  $req->auth_uri_for($spec->[0])
-                        : $req->uri_for($spec->[0]);
+                    my $uri = $spec->[0] =~ m{^/account/} ?  $req->auth_uri_for($spec->[0])
+                            : $req->uri_for($spec->[0]);
                     $_->is(
                         "./li[$i]/a/\@class", 'active',
                         "Link $i should be active"

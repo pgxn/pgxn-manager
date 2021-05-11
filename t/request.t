@@ -101,7 +101,7 @@ ok !$req->user_is_admin, 'user_is_admin should be false';
 # Create and authenticate non-admin user.
 my $user = TxnTest->user;
 isa_ok $req = +PGXN::Manager::Request->new(req_to_psgi(
-    GET '/auth'
+    GET '/login'
 )), 'PGXN::Manager::Request', 'Auth request';
 
 $req->env->{REMOTE_USER} = $user;
@@ -111,7 +111,7 @@ ok !$req->user_is_admin, '... But not an admin';
 # Create and authenticate admin user.
 my $admin = TxnTest->admin;
 isa_ok $req = +PGXN::Manager::Request->new(req_to_psgi(
-    GET '/auth'
+    GET '/login'
 )), 'PGXN::Manager::Request', 'Admin Auth request';
 
 $req->env->{REMOTE_USER} = $admin;
