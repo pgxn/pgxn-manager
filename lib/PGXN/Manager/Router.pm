@@ -140,7 +140,7 @@ sub app {
 
                 # Authenticate all requests that require authentication.
                 enable_if {
-                    shift->{PATH_INFO} !~ m{^/$|^/(?:account/(?:reset/|changed|register|forgotten|thanks)|error|about|contact|howto)\b}
+                    shift->{PATH_INFO} !~ m{^/(?:$|(?:error|about|contact|howto)$|account/(?:reset/|(?:register|changed|forgotten|thanks)$))}
                 } 'Auth::Basic', realm => 'PGXN Users Only', authenticator => sub {
                     my ($username, $password) = map { decode 'UTF-8', $_ } @_;
                     PGXN::Manager->conn->run(sub {
