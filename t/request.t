@@ -40,9 +40,9 @@ is $req->uri_for('foo', bar => 'baz', 'foo' => 1),
 
 ##############################################################################
 # Test auth_uri() and auth_uri_for().
-$req->env->{SCRIPT_NAME} = '/pub';
-is $req->auth_uri, 'http://localhost/auth/', 'Should have default login URI';
-$base = 'http://localhost/auth/';
+$req->env->{SCRIPT_NAME} = '/foo';
+is $req->auth_uri, 'http://localhost', 'Should have default login URI';
+$base = 'http://localhost/';
 
 is $req->auth_uri_for('foo'), $base . 'foo',
     'auth_uri() should work with a simple string';

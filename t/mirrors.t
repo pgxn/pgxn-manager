@@ -24,7 +24,7 @@ use XPathTest;
 
 my $app      = PGXN::Manager::Router->app;
 my $mt       = PGXN::Manager::Locale->accept('en');
-my $uri      = '/auth/admin/mirrors';
+my $uri      = '/admin/mirrors';
 my $user     = TxnTest->user;
 my $admin    = TxnTest->admin;
 
@@ -49,7 +49,6 @@ test_psgi +PGXN::Manager::Router->app => sub {
 
     $req = PGXN::Manager::Request->new(req_to_psgi($req));
     $req->env->{REMOTE_USER} = $user;
-    $req->env->{SCRIPT_NAME} = '/auth';
     XPathTest->test_basics($tx, $req, $mt, {
         h1 => 'Permission Denied',
         page_title => q{Whoops! I don't think you belong here},
@@ -77,7 +76,6 @@ test_psgi +PGXN::Manager::Router->app => sub {
 
     $req = PGXN::Manager::Request->new(req_to_psgi($req));
     $req->env->{REMOTE_USER} = $admin;
-    $req->env->{SCRIPT_NAME} = '/auth';
     XPathTest->test_basics($tx, $req, $mt, {
         h1 => 'Mirrors',
         page_title  => 'Administer project rsync mirrors',
@@ -260,7 +258,6 @@ test_psgi +PGXN::Manager::Router->app => sub {
 
     $req = PGXN::Manager::Request->new(req_to_psgi($req));
     $req->env->{REMOTE_USER} = $admin;
-    $req->env->{SCRIPT_NAME} = '/auth';
     XPathTest->test_basics($tx, $req, $mt, {
         h1          => 'Mirrors',
         page_title  => 'Administer project rsync mirrors',
@@ -570,7 +567,7 @@ test_psgi +PGXN::Manager::Router->app => sub {
 # Okay, now let's delete a mirror. Start without authenticating.
 test_psgi $app => sub {
     my $cb = shift;
-    my $uri = '/auth/admin/mirrors/http://kineticode.com/pgxn/?x-tunneled-method=delete';
+    my $uri = '/admin/mirrors/http://kineticode.com/pgxn/?x-tunneled-method=delete';
     ok my $res = $cb->(POST $uri), "POST $uri";
     is $res->code, 401, 'Should get 401 response';
     like $res->content, qr/Authorization required/,
@@ -580,7 +577,7 @@ test_psgi $app => sub {
 # Try a non-admin user.
 test_psgi $app => sub {
     my $cb = shift;
-    my $uri = '/auth/admin/mirrors/http://kineticode.com/pgxn/?x-tunneled-method=delete';
+    my $uri = '/admin/mirrors/http://kineticode.com/pgxn/?x-tunneled-method=delete';
     my $req = POST $uri, Authorization => 'Basic ' . encode_base64("$user:****");
     ok my $res = $cb->($req), "POST $uri";
 
@@ -590,7 +587,6 @@ test_psgi $app => sub {
 
     $req = PGXN::Manager::Request->new(req_to_psgi($req));
     $req->env->{REMOTE_USER} = $user;
-    $req->env->{SCRIPT_NAME} = '/auth';
     XPathTest->test_basics($tx, $req, $mt, {
         h1 => 'Permission Denied',
         page_title => q{Whoops! I don't think you belong here},
@@ -609,7 +605,7 @@ test_psgi $app => sub {
 # Now try without the requisite tunneled DELETE method.
 test_psgi $app => sub {
     my $cb = shift;
-    my $uri = '/auth/admin/mirrors/http://kineticode.com/pgxn/';
+    my $uri = '/admin/mirrors/http://kineticode.com/pgxn/';
     my $req = POST $uri, Authorization => 'Basic ' . encode_base64("$admin:****");
     ok my $res = $cb->($req), "POST $uri";
 
@@ -621,7 +617,6 @@ test_psgi $app => sub {
 
     $req = PGXN::Manager::Request->new(req_to_psgi($req));
     $req->env->{REMOTE_USER} = $admin;
-    $req->env->{SCRIPT_NAME} = '/auth';
     XPathTest->test_basics($tx, $req, $mt, {
         h1 => 'Not Allowed',
     });
@@ -645,7 +640,7 @@ file_not_exists_ok $meta, "mirrors.json should not exist";
 # Now delete one of these bad boys!
 test_psgi $app => sub {
     my $cb = shift;
-    my $uri = '/auth/admin/mirrors/http://kineticode.com/pgxn/?x-tunneled-method=delete';
+    my $uri = '/admin/mirrors/http://kineticode.com/pgxn/?x-tunneled-method=delete';
     my $req = POST $uri, Authorization => 'Basic ' . encode_base64("$admin:****");
 
     # Send the request.
@@ -654,7 +649,6 @@ test_psgi $app => sub {
 
     # Validate we got the expected response.
     $req = PGXN::Manager::Request->new(req_to_psgi($res->request));
-    $req->env->{SCRIPT_NAME} = '/auth';
     is $res->headers->header('location'), $req->uri_for('/admin/mirrors'),
         'Should redirect to /admin/mirrors';
 
@@ -680,7 +674,7 @@ test_psgi $app => sub {
 # Try deleting the same mirror; should get a 404.
 test_psgi $app => sub {
     my $cb = shift;
-    my $uri = '/auth/admin/mirrors/http://kineticode.com/pgxn/?x-tunneled-method=delete';
+    my $uri = '/admin/mirrors/http://kineticode.com/pgxn/?x-tunneled-method=delete';
     my $req = POST $uri, Authorization => 'Basic ' . encode_base64("$admin:****");
 
     # Send the request.
@@ -691,7 +685,6 @@ test_psgi $app => sub {
 
     $req = PGXN::Manager::Request->new(req_to_psgi($req));
     $req->env->{REMOTE_USER} = $admin;
-    $req->env->{SCRIPT_NAME} = '/auth';
     XPathTest->test_basics($tx, $req, $mt, {
         h1 => 'Where’d It Go?',
     });
@@ -709,7 +702,7 @@ test_psgi $app => sub {
 # Try again with an XMLHttpRequest.
 test_psgi $app => sub {
     my $cb = shift;
-    my $uri = '/auth/admin/mirrors/http://kineticode.com/pgxn/?x-tunneled-method=delete';
+    my $uri = '/admin/mirrors/http://kineticode.com/pgxn/?x-tunneled-method=delete';
     my $req = POST $uri, Authorization => 'Basic ' . encode_base64("$admin:****"),
         'X-Requested-With' => 'XMLHttpRequest';
 
@@ -724,7 +717,7 @@ test_psgi $app => sub {
 # Now delete the other mirror using XMLHttpRequest.
 test_psgi $app => sub {
     my $cb = shift;
-    my $uri = '/auth/admin/mirrors/http://pgxn.justatheory.com?x-tunneled-method=delete';
+    my $uri = '/admin/mirrors/http://pgxn.justatheory.com?x-tunneled-method=delete';
     my $req = POST $uri, Authorization => 'Basic ' . encode_base64("$admin:****"),
         'X-Requested-With' => 'XMLHttpRequest';
 

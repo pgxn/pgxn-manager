@@ -23,7 +23,7 @@ use XPathTest;
 
 my $app   = PGXN::Manager::Router->app;
 my $mt    = PGXN::Manager::Locale->accept('en');
-my $uri   = '/auth/admin/moderate';
+my $uri   = '/admin/moderate';
 my $user  = TxnTest->user;
 my $admin = TxnTest->admin;
 my $root  = PGXN::Manager->instance->config->{mirror_root};
@@ -51,7 +51,6 @@ test_psgi +PGXN::Manager::Router->app => sub {
 
     $req = PGXN::Manager::Request->new(req_to_psgi($req));
     $req->env->{REMOTE_USER} = $user;
-    $req->env->{SCRIPT_NAME} = '/auth';
     XPathTest->test_basics($tx, $req, $mt, {
         h1 => 'Permission Denied',
         page_title => q{Whoops! I don't think you belong here},
@@ -92,7 +91,6 @@ test_psgi +PGXN::Manager::Router->app => sub {
 
     $req = PGXN::Manager::Request->new(req_to_psgi($req));
     $req->env->{REMOTE_USER} = $admin;
-    $req->env->{SCRIPT_NAME} = '/auth';
     XPathTest->test_basics($tx, $req, $mt, {
         h1 => 'Moderate Account Requests',
         with_jquery => 1,
@@ -591,7 +589,7 @@ test_psgi +PGXN::Manager::Router->app => sub {
     my $json = File::Spec->catfile($root, qw(user bob.json));
     file_not_exists_ok $json, 'bob.json should not exist';
     my $req  = POST(
-        '/auth/admin/user/bob/status',
+        '/admin/user/bob/status',
         Authorization => 'Basic ' . encode_base64("$admin:****"),
         Content => [ status => 'active' ],
     );
@@ -599,7 +597,6 @@ test_psgi +PGXN::Manager::Router->app => sub {
     ok my $res = $cb->($req), 'POST acceptance for bob';
     ok $res->is_redirect, 'Response should be a redirect';
     $req = PGXN::Manager::Request->new(req_to_psgi($req));
-    $req->env->{SCRIPT_NAME} = '/auth';
     is $res->headers->header('location'), $req->uri_for('/admin/moderate'),
         "Should redirect to $uri";
 
@@ -629,7 +626,7 @@ test_psgi +PGXN::Manager::Router->app => sub {
 Your PGXN account request has been approved[.] Ready to get started[?]
 Great! Just click this link to set your password and get going:
 
-    http://localhost/auth/account/reset/\w{4,}
+    http://localhost/account/reset/\w{4,}
 
 Best,
 
@@ -655,7 +652,7 @@ PGXN::Manager->conn->run(sub {
 test_psgi +PGXN::Manager::Router->app => sub {
     my $cb     = shift;
     my $req    = POST(
-        '/auth/admin/user/joe/status',
+        '/admin/user/joe/status',
         'X-Requested-With' => 'XMLHttpRequest',
         Authorization => 'Basic ' . encode_base64("$admin:****"),
         Content => [status => 'deleted'],

@@ -22,7 +22,7 @@ use XPathTest;
 
 my $app  = PGXN::Manager::Router->app;
 my $mt   = PGXN::Manager::Locale->accept('en');
-my $uri  = '/auth/account';
+my $uri  = '/account';
 my $root = PGXN::Manager->instance->config->{mirror_root};
 my $head = {
     h1            => 'Edit Your Account',
@@ -54,7 +54,6 @@ test_psgi +PGXN::Manager::Router->app => sub {
 
     $req = PGXN::Manager::Request->new(req_to_psgi($req));
     $req->env->{REMOTE_USER} = $user;
-    $req->env->{SCRIPT_NAME} = '/auth';
     XPathTest->test_basics($tx, $req, $mt, $head);
 
     $tx->ok('/html/body/div[@id="content"]', 'Look at the content', sub {
@@ -286,7 +285,6 @@ test_psgi $app => sub {
 
     my $req = PGXN::Manager::Request->new(req_to_psgi($res->request));
     $req->env->{REMOTE_USER} = $user;
-    $req->env->{SCRIPT_NAME} = '/auth';
     XPathTest->test_basics($tx, $req, $mt, $head);
 
     # Now verify that we have the error message and that the form fields are
@@ -329,7 +327,6 @@ test_psgi $app => sub {
 
     my $req = PGXN::Manager::Request->new(req_to_psgi($res->request));
     $req->env->{REMOTE_USER} = $user;
-    $req->env->{SCRIPT_NAME} = '/auth';
     XPathTest->test_basics($tx, $req, $mt, $head);
 
     # Now verify that we have the error message.
@@ -367,7 +364,6 @@ test_psgi $app => sub {
 
     my $req = PGXN::Manager::Request->new(req_to_psgi($res->request));
     $req->env->{REMOTE_USER} = $user;
-    $req->env->{SCRIPT_NAME} = '/auth';
     XPathTest->test_basics($tx, $req, $mt, $head);
 
     # Now verify that we have the error message.

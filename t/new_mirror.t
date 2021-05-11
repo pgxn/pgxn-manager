@@ -26,7 +26,7 @@ use XPathTest;
 
 my $app      = PGXN::Manager::Router->app;
 my $mt       = PGXN::Manager::Locale->accept('en');
-my $uri      = '/auth/admin/mirrors/new';
+my $uri      = '/admin/mirrors/new';
 my $user     = TxnTest->user;
 my $admin    = TxnTest->admin;
 my $h1       = $mt->maketext('New Mirror');
@@ -58,7 +58,6 @@ test_psgi +PGXN::Manager::Router->app => sub {
 
     $req = PGXN::Manager::Request->new(req_to_psgi($req));
     $req->env->{REMOTE_USER} = $user;
-    $req->env->{SCRIPT_NAME} = '/auth';
     XPathTest->test_basics($tx, $req, $mt, {
         h1 => 'Permission Denied',
         page_title => q{Whoops! I don't think you belong here},
@@ -86,7 +85,6 @@ test_psgi +PGXN::Manager::Router->app => sub {
 
     $req = PGXN::Manager::Request->new(req_to_psgi($req));
     $req->env->{REMOTE_USER} = $admin;
-    $req->env->{SCRIPT_NAME} = '/auth';
     XPathTest->test_basics($tx, $req, $mt, $hparams);
 
     # Check the content
@@ -260,7 +258,7 @@ END { remove_tree $pgxn->config->{mirror_root} }
 file_not_exists_ok $meta, "mirrors.json should not exist";
 
 # Okay, let's submit the form.
-$uri = '/auth/admin/mirrors';
+$uri = '/admin/mirrors';
 test_psgi $app => sub {
     my $cb = shift;
     my $req = POST(
@@ -286,7 +284,6 @@ test_psgi $app => sub {
 
     # Validate we got the expected response.
     $req = PGXN::Manager::Request->new(req_to_psgi($res->request));
-    $req->env->{SCRIPT_NAME} = '/auth';
     is $res->headers->header('location'), $req->uri_for('/admin/mirrors'),
         'Should redirect to /admin/mirrors';
 
@@ -405,7 +402,6 @@ test_psgi $app => sub {
 
     $req = PGXN::Manager::Request->new(req_to_psgi($res->request));
     $req->env->{REMOTE_USER} = $admin;
-    $req->env->{SCRIPT_NAME} = '/auth';
     XPathTest->test_basics($tx, $req, $mt, $hparams);
 
     # Now verify that we have the error message and that the form fields are
@@ -478,7 +474,6 @@ test_psgi $app => sub {
 
     $req = PGXN::Manager::Request->new(req_to_psgi($res->request));
     $req->env->{REMOTE_USER} = $admin;
-    $req->env->{SCRIPT_NAME} = '/auth';
     XPathTest->test_basics($tx, $req, $mt, $hparams);
 
     # Now verify that we have the error message and that the form fields are
@@ -574,7 +569,6 @@ test_psgi $app => sub {
 
     $req = PGXN::Manager::Request->new(req_to_psgi($res->request));
     $req->env->{REMOTE_USER} = $admin;
-    $req->env->{SCRIPT_NAME} = '/auth';
     XPathTest->test_basics($tx, $req, $mt, $hparams);
 
     # Now verify that we have the error message and that the form fields are
@@ -655,7 +649,6 @@ test_psgi $app => sub {
 
     $req = PGXN::Manager::Request->new(req_to_psgi($res->request));
     $req->env->{REMOTE_USER} = $admin;
-    $req->env->{SCRIPT_NAME} = '/auth';
     XPathTest->test_basics($tx, $req, $mt, $hparams);
 
     # Now verify that we have the error message and that the form fields are
@@ -739,7 +732,6 @@ test_psgi $app => sub {
 
     $req = PGXN::Manager::Request->new(req_to_psgi($res->request));
     $req->env->{REMOTE_USER} = $admin;
-    $req->env->{SCRIPT_NAME} = '/auth';
     XPathTest->test_basics($tx, $req, $mt, $hparams);
 
     # Now verify that we have the error message and that the form fields are
@@ -833,8 +825,7 @@ for my $field (qw(uri src rsync)) {
 
         $req = PGXN::Manager::Request->new(req_to_psgi($res->request));
         $req->env->{REMOTE_USER} = $admin;
-        $req->env->{SCRIPT_NAME} = '/auth';
-        XPathTest->test_basics($tx, $req, $mt, $hparams);
+            XPathTest->test_basics($tx, $req, $mt, $hparams);
 
         # Now verify that we have the error message and that the form fields are
         # filled-in.

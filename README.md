@@ -124,7 +124,7 @@ Installation
 
         sudo -u pgxn plackup -E prod bin/pgxn_manager.psgi
 
-*   Connect to http://localhost:5000/auth/ and you should see the UI!
+*   Connect to http://localhost:5000/ and you should see the UI!
 
 *   Now you need to make yourself an administrator. Click the "Request Account"
     link and request an account.
@@ -151,9 +151,7 @@ Installation
 Running a Proxy Server
 ----------------------
 
-PGXN::Manager used to be two apps in one, so for historical reasons runs under
-/auth/. A nice way to present this as the core URL for a domain, use a reverse
-proxy server. Here's how to do that.
+Here's how to run PGXN::Manager behind a reverse proxy server:
 
 *   Get or create an SSL certificate and install it in your system.
 
@@ -168,8 +166,8 @@ proxy server. Here's how to do that.
           SSLCertificateFile /path/to/certs/manager.pgxn.org.crt
           SSLCertificateKeyFile /path/to/private/manager.pgxn.org.key
           SSLCipherSuite ALL:!ADH:!EXPORT:!SSLv2:RC4+RSA:+HIGH:+MEDIUM
-          ProxyPass / http://localhost:7496/auth/
-          ProxyPassReverse / http://localhost:7496/auth/
+          ProxyPass / http://localhost:7496/
+          ProxyPassReverse / http://localhost:7496/
           RequestHeader set X-Forwarded-HTTPS %{HTTPS}s
           RequestHeader set X-Forwaded-Proto https
           RequestHeader set X-Forwarded-Port 443
@@ -189,8 +187,9 @@ proxy server. Here's how to do that.
     and clients can't spoof the values to fool the server into thinking it's
     running under HTTPS when it's not.
 
-    If you're updating a sever that used to serve up the non-TLS /pub app,
-    Update the port 80 configuration to redirect to the TLS /auth app, like so:
+    If you're updating a from an earlier version of PGXN::Manager that used to
+    serve up the non-TLS /pub app, Update the port 80 configuration to redirect
+    to the TLS / app, like so:
 
         <VirtualHost *:80>
           ServerName manager.pgxn.org
@@ -209,7 +208,7 @@ proxy server. Here's how to do that.
             ssl_certificate_key /path/to/certs/manager.pgxn.org.key;
 
             location / {
-                proxy_pass        http://127.0.0.1:7496/auth/;
+                proxy_pass        http://127.0.0.1:7496/;
                 proxy_redirect    off;
                 proxy_set_header  X-Forwarded-Host        $host;
                 proxy_set_header  X-Forwarded-For         $proxy_add_x_forwarded_for;
@@ -250,16 +249,13 @@ proxy server. Here's how to do that.
                ["ReverseProxy"]
             ],
 
-    2.  Tell PGXN::Manager to use the `X-Forwarded-Script-Name` header to create
-        proper URLs (otherwise no images, CSS, or JavaScript will work):
+    2.  If you elect to host PGXN::Manager under a subpath, such as /pgxn/, tell
+        PGXN::Manager to use the `X-Forwarded-Script-Name` header to create
+        proper URLs. otherwise no images, CSS, or JavaScript will work):
 
             "uri_script_name_key": "HTTP_X_FORWARDED_SCRIPT_NAME",
 
-    3.  Tell the public site what link to use to the authenticated site:
-
-            "auth_uri": "https://manager.pgxn.org/",
-
-    4.  Configure the Twitter OAuth token so that PGXN::Manager can tweet
+    3.  Configure the Twitter OAuth token so that PGXN::Manager can tweet
         uploads. The simplest way to do so is to run `bin/get_twitter_token -h`
         for helpful instructions and easy configuration.
 

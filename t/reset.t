@@ -25,13 +25,12 @@ my $mt       = PGXN::Manager::Locale->accept('en');
 # Fetch the forgotten form.
 test_psgi $app => sub {
     my $cb = shift;
-    ok my $res = $cb->(GET '/auth/account/forgotten'), 'Fetch /account/forgotten';
+    ok my $res = $cb->(GET '/account/forgotten'), 'Fetch /account/forgotten';
     ok $res->is_success, 'Should get a successful response';
     is_well_formed_xml $res->content, 'The HTML should be well-formed';
     my $tx = Test::XPath->new( xml => $res->content, is_html => 1 );
 
     my $req = PGXN::Manager::Request->new(req_to_psgi($res->request));
-    $req->env->{SCRIPT_NAME} = "/auth";
     XPathTest->test_basics($tx, $req, $mt, {
         h1 => 'Forgot Your Password?',
         page_title => 'Forgot your password? Request a reset link',
@@ -94,7 +93,7 @@ test_psgi $app => sub {
 # Try an empty submit.
 test_psgi $app => sub {
     my $cb = shift;
-    ok my $res = $cb->(POST '/auth/account/forgotten', [
+    ok my $res = $cb->(POST '/account/forgotten', [
         who => '',
     ]), 'POST empty form to /account/forgotten';
 
@@ -104,7 +103,6 @@ test_psgi $app => sub {
     is_well_formed_xml $res->content, 'The HTML should be well-formed';
     my $tx = Test::XPath->new( xml => $res->content, is_html => 1 );
     my $req = PGXN::Manager::Request->new(req_to_psgi($res->request));
-    $req->env->{SCRIPT_NAME} = '/auth';
 
     XPathTest->test_basics($tx, $req, $mt, {
         h1 => 'Forgot Your Password?',
@@ -128,7 +126,7 @@ test_psgi $app => sub {
 test_psgi $app => sub {
     my $cb = shift;
     my $req    = POST(
-        '/auth/account/forgotten',
+        '/account/forgotten',
         'X-Requested-With' => 'XMLHttpRequest',
         Content => [who => ''],
     );
@@ -153,13 +151,12 @@ test_psgi $app => sub {
     my $sess = {};
     $mock->mock( session => sub { $sess });
 
-    ok my $res = $cb->(POST '/auth/account/forgotten', [
+    ok my $res = $cb->(POST '/account/forgotten', [
         who => 'nobody',
     ]), 'POST nobody to /account/forgotten';
 
     ok $res->is_redirect, 'Should get a redirect response';
     my $req = PGXN::Manager::Request->new(req_to_psgi($res->request));
-    $req->env->{SCRIPT_NAME} = '/auth';
     is $res->headers->header('location'), $req->uri_for('/'),
         "Should redirect to home";
     ok $sess->{reset_sent},
@@ -179,13 +176,12 @@ test_psgi $app => sub {
     $mock->mock( session => sub { $sess });
 
     my $user = TxnTest->user;
-    ok my $res = $cb->(POST '/auth/account/forgotten', [
+    ok my $res = $cb->(POST '/account/forgotten', [
         who => $user,
     ]), "POST $user to /account/forgotten";
 
     ok $res->is_redirect, 'Should get a redirect response';
     my $req = PGXN::Manager::Request->new(req_to_psgi($res->request));
-    $req->env->{SCRIPT_NAME} = '/auth';
     is $res->headers->header('location'), $req->uri_for('/'),
         "Should redirect to home";
     ok $sess->{reset_sent},
@@ -205,13 +201,13 @@ test_psgi $app => sub {
     like $email->get_body, qr{Click the link below to reset your PGXN password[.] But do it soon!
 This link will expire in 24 hours:
 
-    http://localhost/auth/account/reset/\w{4,}
+    http://localhost/account/reset/\w{4,}
 
 Best,
 
 PGXN Management}ms,
         'Should have reset body';
-    ($tok) = $email->get_body =~ m{http://localhost/auth/account/reset/(\w{4,})};
+    ($tok) = $email->get_body =~ m{http://localhost/account/reset/(\w{4,})};
     Email::Sender::Simple->default_transport->clear_deliveries;
 };
 
@@ -220,7 +216,7 @@ my $tok2;
 test_psgi +PGXN::Manager::Router->app => sub {
     my $cb     = shift;
     my $req    = POST(
-        '/auth/account/forgotten',
+        '/account/forgotten',
         'X-Requested-With' => 'XMLHttpRequest',
         Content => [who => 'user@pgxn.org'],
     );
@@ -244,7 +240,7 @@ test_psgi +PGXN::Manager::Router->app => sub {
     like $email->get_body, qr{Click the link below to reset your PGXN password[.] But do it soon!
 This link will expire in 24 hours:
 
-    http://localhost/auth/account/reset/\w{4,}
+    http://localhost/account/reset/\w{4,}
 
 Best,
 
@@ -253,19 +249,18 @@ PGXN Management}ms,
     Email::Sender::Simple->default_transport->clear_deliveries;
 
     # Grab the token for resetting the password below.
-    ($tok2) = $email->get_body =~ m{http://localhost/auth/account/reset/(\w{4,})};
+    ($tok2) = $email->get_body =~ m{http://localhost/account/reset/(\w{4,})};
 };
 
 # Let's see what the reset form looks like, eh?
 test_psgi $app => sub {
     my $cb = shift;
-    ok my $res = $cb->(GET "/auth/account/reset/$tok"), "Fetch /account/reset/$tok";
+    ok my $res = $cb->(GET "/account/reset/$tok"), "Fetch /account/reset/$tok";
     ok $res->is_success, 'Should get a successful response';
     is_well_formed_xml $res->content, 'The HTML should be well-formed';
     my $tx = Test::XPath->new( xml => $res->content, is_html => 1 );
 
     my $req = PGXN::Manager::Request->new(req_to_psgi($res->request));
-    $req->env->{SCRIPT_NAME} = '/auth';
     XPathTest->test_basics($tx, $req, $mt, {
         h1 => 'Reset Your PGXN Password',
         page_title => 'Reset Your Password'
@@ -363,14 +358,13 @@ test_psgi $app => sub {
     my $sess = {};
     $mock->mock( session => sub { $sess });
 
-    ok my $res = $cb->(POST "/auth/account/reset/$tok", [
+    ok my $res = $cb->(POST "/account/reset/$tok", [
         new_pass => 'whatever',
         verify   => 'whatever',
     ]), "Send POST to /account/reset/$tok";
 
     ok $res->is_redirect, 'Should get a redirect response';
     my $req = PGXN::Manager::Request->new(req_to_psgi($res->request));
-    $req->env->{SCRIPT_NAME} = '/auth';
     is $res->headers->header('location'), $req->uri_for('/account/changed'),
         "Should redirect to /account/changed";
 };
@@ -379,7 +373,7 @@ test_psgi $app => sub {
 test_psgi +PGXN::Manager::Router->app => sub {
     my $cb   = shift;
     my $user = TxnTest->user;
-    my $req  = GET '/auth/', Authorization => 'Basic ' . encode_base64("$user:whatever");
+    my $req  = GET '/', Authorization => 'Basic ' . encode_base64("$user:whatever");
     ok my $res = $cb->($req), "Get with auth token";
     ok $res->is_success, 'Response should be success';
 };
@@ -392,7 +386,7 @@ test_psgi $app => sub {
     my $sess = {};
     $mock->mock( session => sub { $sess });
 
-    ok my $res = $cb->(POST "/auth/account/reset/$tok", [
+    ok my $res = $cb->(POST "/account/reset/$tok", [
         new_pass => 'whatever',
         verify   => 'whatever',
     ]), 'Send POST to /account/reset/expired';
@@ -404,7 +398,6 @@ test_psgi $app => sub {
     my $tx = Test::XPath->new( xml => $res->content, is_html => 1 );
 
     my $req = PGXN::Manager::Request->new(req_to_psgi($res->request));
-    $req->env->{SCRIPT_NAME} = '/auth';
     XPathTest->test_basics($tx, $req, $mt, {
         h1 => 'Resource Gone',
         page_title => 'Resource Gone',
@@ -429,7 +422,7 @@ test_psgi $app => sub {
     $mock->mock( session => sub { $sess });
 
     ok my $res = $cb->(POST(
-        "/auth/account/reset/$tok",
+        "/account/reset/$tok",
         'X-Requested-With' => 'XMLHttpRequest',
         Content => [
             new_pass => 'whatever',
@@ -453,7 +446,7 @@ test_psgi $app => sub {
     $mock->mock( session => sub { $sess });
 
     ok my $res = $cb->(POST(
-        "/auth/account/reset/$tok2",
+        "/account/reset/$tok2",
         'X-Requested-With' => 'XMLHttpRequest',
         Content => [
             new_pass => 'fünkmusic',
@@ -469,7 +462,7 @@ test_psgi $app => sub {
 test_psgi +PGXN::Manager::Router->app => sub {
     my $cb   = shift;
     my $user = TxnTest->user;
-    my $req  = GET '/auth/', Authorization => 'Basic '
+    my $req  = GET '/', Authorization => 'Basic '
              . encode_base64(encode 'UTF-8', "$user:fünkmusic");
     ok my $res = $cb->($req), "Get with auth token";
     ok $res->is_success, 'Response should be success';
@@ -478,13 +471,12 @@ test_psgi +PGXN::Manager::Router->app => sub {
 # Have a look at /account/changed.
 test_psgi $app => sub {
     my $cb = shift;
-    ok my $res = $cb->(GET '/auth/account/changed'), 'Fetch /account/changed';
+    ok my $res = $cb->(GET '/account/changed'), 'Fetch /account/changed';
     ok $res->is_success, 'Should get a successful response';
     is_well_formed_xml $res->content, 'The HTML should be well-formed';
     my $tx = Test::XPath->new( xml => $res->content, is_html => 1 );
 
     my $req = PGXN::Manager::Request->new(req_to_psgi($res->request));
-    $req->env->{SCRIPT_NAME} = '/auth';
     XPathTest->test_basics($tx, $req, $mt, {
         h1 => 'Password Changed',
         page_title => 'Password Changed',

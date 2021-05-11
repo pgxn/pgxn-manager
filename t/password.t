@@ -19,7 +19,7 @@ use XPathTest;
 
 my $app  = PGXN::Manager::Router->app;
 my $mt   = PGXN::Manager::Locale->accept('en');
-my $uri  = '/auth/account/password';
+my $uri  = '/account/password';
 my $head = {
     h1            => 'Change Your Password',
     validate_form => '#passform',
@@ -48,7 +48,6 @@ test_psgi +PGXN::Manager::Router->app => sub {
 
     $req = PGXN::Manager::Request->new(req_to_psgi($req));
     $req->env->{REMOTE_USER} = $user;
-    $req->env->{SCRIPT_NAME} = '/auth';
     XPathTest->test_basics($tx, $req, $mt, $head);
 
     $tx->ok('/html/body/div[@id="content"]', 'Look at the content', sub {
@@ -213,7 +212,6 @@ test_psgi $app => sub {
 
     my $req = PGXN::Manager::Request->new(req_to_psgi($res->request));
     $req->env->{REMOTE_USER} = $user;
-    $req->env->{SCRIPT_NAME} = '/auth';
     XPathTest->test_basics($tx, $req, $mt, $head);
 
     # Make sure we've got an error message.
@@ -282,7 +280,6 @@ test_psgi $app => sub {
 
     my $req = PGXN::Manager::Request->new(req_to_psgi($res->request));
     $req->env->{REMOTE_USER} = $user;
-    $req->env->{SCRIPT_NAME} = '/auth';
     XPathTest->test_basics($tx, $req, $mt, $head);
 
     # Make sure we've got an error message.
@@ -351,7 +348,6 @@ test_psgi $app => sub {
 
     my $req = PGXN::Manager::Request->new(req_to_psgi($res->request));
     $req->env->{REMOTE_USER} = $user;
-    $req->env->{SCRIPT_NAME} = '/auth';
     XPathTest->test_basics($tx, $req, $mt, $head);
 
     # Make sure we've got an error message.

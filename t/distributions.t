@@ -22,7 +22,7 @@ use XPathTest;
 
 my $app      = PGXN::Manager::Router->app;
 my $mt       = PGXN::Manager::Locale->accept('en');
-my $uri      = '/auth/distributions';
+my $uri      = '/distributions';
 my $user     = TxnTest->user;
 my $admin    = TxnTest->admin;
 
@@ -47,7 +47,6 @@ test_psgi +PGXN::Manager::Router->app => sub {
 
     $req = PGXN::Manager::Request->new(req_to_psgi($req));
     $req->env->{REMOTE_USER} = $user;
-    $req->env->{SCRIPT_NAME} = '/auth';
     XPathTest->test_basics($tx, $req, $mt, {
         h1 => 'Your Distributions',
         page_title => 'Your distributions',
@@ -199,7 +198,6 @@ test_psgi +PGXN::Manager::Router->app => sub {
 
     $req = PGXN::Manager::Request->new(req_to_psgi($req));
     $req->env->{REMOTE_USER} = $user;
-    $req->env->{SCRIPT_NAME} = '/auth';
     XPathTest->test_basics($tx, $req, $mt, {
         h1 => 'Your Distributions',
         page_title => 'Your distributions',
@@ -384,7 +382,6 @@ test_psgi +PGXN::Manager::Router->app => sub {
 
     $req = PGXN::Manager::Request->new(req_to_psgi($req));
     $req->env->{REMOTE_USER} = $admin;
-    $req->env->{SCRIPT_NAME} = '/auth';
     XPathTest->test_basics($tx, $req, $mt, {
         h1 => 'Your Distributions',
         page_title => 'Your distributions',

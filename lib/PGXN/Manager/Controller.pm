@@ -133,15 +133,6 @@ sub respond_with {
     ];
 }
 
-sub root {
-    my $self = shift;
-    my $req = Request->new(shift);
-    my $url = $req->uri_for('/auth/');
-    $self->respond_with('forbidden', $req, [
-        qq{Sorry, but this URL is invalid. I think you either want <a href="$url">/auth/</a> or to run PGXN Manager behind a reverse proxy server. See <a href="https://github.com/pgxn/pgxn-manager/blob/master/README.md">the README</a> for details.}
-    ]);
-}
-
 sub home {
     my $self = shift;
     return $self->render('/home', { env => shift });
@@ -1097,12 +1088,6 @@ called from within Router::Resource HTTP methods.
 Constructs and returns a new controller.
 
 =head2 Actions
-
-=head3 C<root>
-
-  PGXN::Manager::Controller->root($env);
-
-Handles request for /, redirecting to C</auth>.
 
 =head3 C<home>
 

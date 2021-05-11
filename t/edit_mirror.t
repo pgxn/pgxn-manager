@@ -27,7 +27,7 @@ use Test::NoWarnings;
 
 my $app      = PGXN::Manager::Router->app;
 my $mt       = PGXN::Manager::Locale->accept('en');
-my $uri      = '/auth/admin/mirrors/new';
+my $uri      = '/admin/mirrors/new';
 my $user     = TxnTest->user;
 my $admin    = TxnTest->admin;
 my $h1       = $mt->maketext('Edit Mirror');
@@ -36,7 +36,7 @@ my $p        = $mt->maketext(q{All fields except "Note" are required. Thanks for
 # Connect without authenticating.
 test_psgi $app => sub {
     my $cb = shift;
-    my $uri = '/auth/admin/mirrors/http://kineticode.com/pgxn/';
+    my $uri = '/admin/mirrors/http://kineticode.com/pgxn/';
     ok my $res = $cb->(GET $uri), "GET $uri";
     is $res->code, 401, 'Should get 401 response';
     like $res->content, qr/Authorization required/,
@@ -46,7 +46,7 @@ test_psgi $app => sub {
 # Connect as non-admin user.
 test_psgi +PGXN::Manager::Router->app => sub {
     my $cb  = shift;
-    my $uri = '/auth/admin/mirrors/http://pgxn.justatheory.com/';
+    my $uri = '/admin/mirrors/http://pgxn.justatheory.com/';
     my $req = GET $uri, Authorization => 'Basic ' . encode_base64("$user:****");
 
     ok my $res = $cb->($req), "Get $uri with auth token";
@@ -56,7 +56,6 @@ test_psgi +PGXN::Manager::Router->app => sub {
 
     $req = PGXN::Manager::Request->new(req_to_psgi($req));
     $req->env->{REMOTE_USER} = $user;
-    $req->env->{SCRIPT_NAME} = '/auth';
     XPathTest->test_basics($tx, $req, $mt, {
         h1 => 'Permission Denied',
         page_title => q{Whoops! I don't think you belong here},
@@ -75,7 +74,7 @@ test_psgi +PGXN::Manager::Router->app => sub {
 # Connect as authenticated user for non-existent mirror.
 test_psgi +PGXN::Manager::Router->app => sub {
     my $cb  = shift;
-    my $uri = '/auth/admin/mirrors/http://kineticode.com/pgxn/';
+    my $uri = '/admin/mirrors/http://kineticode.com/pgxn/';
     my $req = GET $uri, Authorization => 'Basic ' . encode_base64("$admin:****");
 
     ok my $res = $cb->($req), "Get $uri with auth token";
@@ -85,7 +84,6 @@ test_psgi +PGXN::Manager::Router->app => sub {
 
     $req = PGXN::Manager::Request->new(req_to_psgi($req));
     $req->env->{REMOTE_USER} = $admin;
-    $req->env->{SCRIPT_NAME} = '/auth';
     XPathTest->test_basics($tx, $req, $mt, {
         h1 => 'Where’d It Go?',
     });
@@ -106,7 +104,7 @@ create_mirrors();
 # Connect as authenticated user and get that mirror.
 test_psgi +PGXN::Manager::Router->app => sub {
     my $cb  = shift;
-    my $uri = '/auth/admin/mirrors/http://kineticode.com/pgxn/';
+    my $uri = '/admin/mirrors/http://kineticode.com/pgxn/';
     my $req = GET $uri, Authorization => 'Basic ' . encode_base64("$admin:****");
 
     ok my $res = $cb->($req), "Get $uri with auth token";
@@ -116,7 +114,6 @@ test_psgi +PGXN::Manager::Router->app => sub {
 
     $req = PGXN::Manager::Request->new(req_to_psgi($req));
     $req->env->{REMOTE_USER} = $admin;
-    $req->env->{SCRIPT_NAME} = '/auth';
     XPathTest->test_basics($tx, $req, $mt, {
         h1 => 'Edit Mirror',
         page_title  => 'Enter the mirror information provided by the contact',
@@ -327,7 +324,6 @@ test_psgi $app => sub {
 
     $req = PGXN::Manager::Request->new(req_to_psgi($req));
     $req->env->{REMOTE_USER} = $admin;
-    $req->env->{SCRIPT_NAME} = '/auth';
     XPathTest->test_basics($tx, $req, $mt, {
         h1 => 'Not Allowed',
     });
@@ -344,7 +340,7 @@ test_psgi $app => sub {
 
 # Now try with the PUT but nonexistent URI.
 test_psgi $app => sub {
-    my $uri = '/auth/admin/mirrors/http://pgxn.justatheory.com/?x-tunneled-method=put';
+    my $uri = '/admin/mirrors/http://pgxn.justatheory.com/?x-tunneled-method=put';
     my $cb = shift;
     my $req = POST(
         $uri,
@@ -373,7 +369,6 @@ test_psgi $app => sub {
 
     $req = PGXN::Manager::Request->new(req_to_psgi($req));
     $req->env->{REMOTE_USER} = $admin;
-    $req->env->{SCRIPT_NAME} = '/auth';
     XPathTest->test_basics($tx, $req, $mt, {
         h1 => 'Edit Mirror',
         page_title  => 'Enter the mirror information provided by the contact',
@@ -398,7 +393,7 @@ file_not_exists_ok $meta, "mirrors.json should not exist";
 
 # Okay, now submit the PUT for the proper resource, hrm?
 test_psgi $app => sub {
-    my $uri = '/auth/admin/mirrors/http://kineticode.com/pgxn/?x-tunneled-method=put';
+    my $uri = '/admin/mirrors/http://kineticode.com/pgxn/?x-tunneled-method=put';
     my $cb = shift;
     my $req = POST(
         $uri,
@@ -423,7 +418,6 @@ test_psgi $app => sub {
 
     # Validate we got the expected response.
     $req = PGXN::Manager::Request->new(req_to_psgi($res->request));
-    $req->env->{SCRIPT_NAME} = '/auth';
     is $res->headers->header('location'), $req->uri_for('/admin/mirrors'),
         'Should redirect to /admin/mirrors';
 
@@ -459,7 +453,7 @@ test_psgi $app => sub {
 
 # Now try an XMLHttpRequest
 test_psgi $app => sub {
-    my $uri = '/auth/admin/mirrors/http://pgxn.kineticode.com/?x-tunneled-method=put';
+    my $uri = '/admin/mirrors/http://pgxn.kineticode.com/?x-tunneled-method=put';
     my $cb = shift;
     my $req = POST(
         $uri,
@@ -503,7 +497,7 @@ $rmock->mock(user_is_admin => 1);
 
 # Awesome. Let's get a URI conflict and see how it handles it.
 test_psgi $app => sub {
-    my $uri = '/auth/admin/mirrors/http://pgxn.kineticode.com/?x-tunneled-method=put';
+    my $uri = '/admin/mirrors/http://pgxn.kineticode.com/?x-tunneled-method=put';
     my $cb = shift;
     my $req = POST(
         $uri,
@@ -533,7 +527,6 @@ test_psgi $app => sub {
 
     $req = PGXN::Manager::Request->new(req_to_psgi($res->request));
     $req->env->{REMOTE_USER} = $admin;
-    $req->env->{SCRIPT_NAME} = '/auth';
     XPathTest->test_basics($tx, $req, $mt, {
         h1 => 'Edit Mirror',
         page_title  => 'Enter the mirror information provided by the contact',
@@ -593,7 +586,7 @@ $admin = TxnTest->admin;
 create_mirrors();
 test_psgi $app => sub {
     my $cb  = shift;
-    my $uri = '/auth/admin/mirrors/http://kineticode.com/pgxn/?x-tunneled-method=put';
+    my $uri = '/admin/mirrors/http://kineticode.com/pgxn/?x-tunneled-method=put';
     my $req = POST(
         $uri,
         Authorization => 'Basic ' . encode_base64("$admin:****"),
@@ -611,7 +604,6 @@ test_psgi $app => sub {
 
     $req = PGXN::Manager::Request->new(req_to_psgi($res->request));
     $req->env->{REMOTE_USER} = $admin;
-    $req->env->{SCRIPT_NAME} = '/auth';
     XPathTest->test_basics($tx, $req, $mt, {
         h1 => 'Edit Mirror',
         page_title  => 'Enter the mirror information provided by the contact',
@@ -668,7 +660,7 @@ test_psgi $app => sub {
 # Try with just a subset of missing values.
 test_psgi $app => sub {
     my $cb  = shift;
-    my $uri = '/auth/admin/mirrors/http://kineticode.com/pgxn/?x-tunneled-method=put';
+    my $uri = '/admin/mirrors/http://kineticode.com/pgxn/?x-tunneled-method=put';
     my $req = POST(
         $uri,
         Authorization => 'Basic ' . encode_base64("$admin:****"),
@@ -690,7 +682,6 @@ test_psgi $app => sub {
 
     $req = PGXN::Manager::Request->new(req_to_psgi($res->request));
     $req->env->{REMOTE_USER} = $admin;
-    $req->env->{SCRIPT_NAME} = '/auth';
     XPathTest->test_basics($tx, $req, $mt, {
         h1 => 'Edit Mirror',
         page_title  => 'Enter the mirror information provided by the contact',

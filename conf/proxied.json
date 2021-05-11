@@ -16,7 +16,6 @@
     "admin_email": "PGXN Admins <pgxn@pgexperts.com>",
     "alert_email": "PGXN Admins <pgxn-admins@googlegroups.com>",
     "uri_script_name_key": "HTTP_X_FORWARDED_SCRIPT_NAME",
-    "auth_uri": "https://manager.pgxn.org/",
     "uri_templates": {
         "download":  "/dist/{dist}/{version}/{dist}-{version}.zip",
         "readme":    "/dist/{dist}/{version}/README.txt",

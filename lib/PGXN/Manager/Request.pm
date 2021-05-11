@@ -34,10 +34,10 @@ my $auth_uri = PGXN::Manager->config->{auth_uri}
 
 sub auth_uri { $auth_uri || do {
     my $self = shift;
-    my $path = 'auth/';
+    my $path = '';
     no warnings 'uninitialized';
     if ($self->{$script_name_header} =~ m{/pub\b}) {
-        ($path = $self->env->{$script_name_header}) =~ s{\bpub\b}{auth};
+        ($path = $self->env->{$script_name_header}) =~ s{\bpub\b}{};
     }
     my $uri = $self->base->clone;
     $uri->path($path);
@@ -143,17 +143,13 @@ example, if the current request is to C</foo>:
 
   my $uri = $req->auth_uri;
 
-Returns the authenticated site URI. Normally this will be C</auth/>. But
-administrators can override it to use any URI, which is handy for a proxy
-server that serves the authenticated site separately from the public site.
+Returns the authenticated site URI. Normally this should be C</>.
 
 =head3 C<auth_uri_for>
 
   my $uri = $req->auth_uri_for('/foo', bar => 'baz');
 
-Creates and returns a L<URI> relative to the C<auth_uri>. Should only be used
-from the public site to create links to the authenticated site, and all URIs
-should be absolute.
+Creates and returns a L<URI> relative to the C<auth_uri>.
 
 =head3 C<respond_with>
 
