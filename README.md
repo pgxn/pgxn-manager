@@ -188,8 +188,8 @@ Here's how to run PGXN::Manager behind a reverse proxy server:
     running under HTTPS when it's not.
 
     If you're updating a from an earlier version of PGXN::Manager that used to
-    serve up the non-TLS /pub app, Update the port 80 configuration to redirect
-    to the TLS / app, like so:
+    serve up the /pub app, Update the port 80 configuration to redirect to the
+    TLS / app, like so:
 
         <VirtualHost *:80>
           ServerName manager.pgxn.org

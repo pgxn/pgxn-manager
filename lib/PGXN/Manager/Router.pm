@@ -24,8 +24,9 @@ sub app {
         my $mids  = PGXN::Manager->instance->config->{middleware} || [];
         my $files = Plack::App::File->new(root => './www/ui/');
 
-        # Second redirects the old /pub app to /.
-        mount '/pub' => sub { $controller->move_to_auth(@_) };
+        # Second redirects the old /pub and /auth apps to /.
+        mount '/pub'  => sub { $controller->move_to_auth(@_) };
+        mount '/auth' => sub { $controller->move_to_auth(@_) };
 
         # Main app, called "auth" for historical reasons.
         mount '/' => builder {

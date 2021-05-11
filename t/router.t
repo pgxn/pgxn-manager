@@ -2,7 +2,7 @@
 
 use 5.10.0;
 use utf8;
-use Test::More tests => 77;
+use Test::More tests => 117;
 #use Test::More 'no_plan';
 use Plack::Test;
 use HTTP::Request::Common;
@@ -128,7 +128,7 @@ test_psgi +PGXN::Manager::Router->app => sub {
         'The body should indicate need for authentication';
 };
 
-# Test that old pub routes have been moved to auth.
+# Test that old pub and auth routes have been moved to /.
 test_psgi +PGXN::Manager::Router->app => sub {
     my $cb = shift;
     for my $uri ('', qw(
@@ -142,11 +142,14 @@ test_psgi +PGXN::Manager::Router->app => sub {
         account/thanks
         nonesuch
     )) {
-        ok my $res = $cb->(GET "/pub/$uri"), "Fetch /pub/$uri";
-        is $res->code, 301, 'Should get 301 response';
-        my $req = PGXN::Manager::Request->new(req_to_psgi($res->request));
-        is $res->headers->header('location'), "/$uri",
-            "Should redirect to /$uri";
-        is $res->content, '', 'Should have no content';
+        for my $app (qw(pub auth)) {
+            $app_uri = "/$app/$uri";
+            ok my $res = $cb->(GET $app_uri), "Fetch $app_uri";
+            is $res->code, 301, "Should get 301 response from $app_uri";
+            my $req = PGXN::Manager::Request->new(req_to_psgi($res->request));
+            is $res->headers->header('location'), "/$uri",
+                "Should redirect from $app_uri to /$uri";
+            is $res->content, '', "Should have no content from $app_uri";
+        }
     }
 };
