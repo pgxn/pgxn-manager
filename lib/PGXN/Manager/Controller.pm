@@ -64,7 +64,7 @@ sub move_to_auth {
     my $self = shift;
     my $req  = Request->new(shift);
     my $res  = $req->new_response;
-    $res->redirect($req->auth_uri_for($req->path_info || '/'), $code_for{moved});
+    $res->redirect($req->path_info || '/', $code_for{moved});
     return $res->finalize;
 }
 
@@ -131,15 +131,6 @@ sub respond_with {
         ['Content-Type' => $type, 'Content-Length' => length $msg],
         [$msg]
     ];
-}
-
-sub root {
-    my $self = shift;
-    my $req = Request->new(shift);
-    my $url = $req->uri_for('/auth/');
-    $self->respond_with('forbidden', $req, [
-        qq{Sorry, but this URL is invalid. I think you either want <a href="$url">/auth/</a> or to run PGXN Manager behind a reverse proxy server. See <a href="https://github.com/pgxn/pgxn-manager/blob/master/README.md">the README</a> for details.}
-    ]);
 }
 
 sub home {
@@ -258,7 +249,7 @@ sub register {
                       . $uri
                       . $twit
                       . "   Reason:\n\n$why\n\n"
-                      . "Moderate at " . $req->auth_uri_for('admin/moderate') . ".\n"
+                      . "Moderate at " . $req->uri_for('admin/moderate') . ".\n"
             });
 
             return $self->respond_with('success', $req) if $req->is_xhr;
@@ -364,7 +355,7 @@ sub send_reset {
     });
 
     if ($token) {
-        my $uri = $req->auth_uri_for("/account/reset/$token->[0]");
+        my $uri = $req->uri_for("/account/reset/$token->[0]");
         # Create and send the email.
         $pgxn->send_email({
             from => $pgxn->config->{admin_email},
@@ -483,7 +474,7 @@ sub set_status {
         });
 
         # Update the user JSON.
-        my $uri = $req->auth_uri_for("/account/reset/$token->[0]");
+        my $uri = $req->uri_for("/account/reset/$token->[0]");
         $to   = $token->[1];
         $subj = 'Welcome to PGXN!';
         $body = "What up, $params->{nick}.\n\n"
@@ -1097,12 +1088,6 @@ called from within Router::Resource HTTP methods.
 Constructs and returns a new controller.
 
 =head2 Actions
-
-=head3 C<root>
-
-  PGXN::Manager::Controller->root($env);
-
-Handles request for /, redirecting to C</auth>.
 
 =head3 C<home>
 

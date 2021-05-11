@@ -24,14 +24,12 @@ sub app {
         my $mids  = PGXN::Manager->instance->config->{middleware} || [];
         my $files = Plack::App::File->new(root => './www/ui/');
 
-        # First app is simple redirect to /auth/.
-        mount '/' => sub { $controller->root(@_) };
-
-        # Second redirects the old /pub app to /auth/.
-        mount '/pub' => sub { $controller->move_to_auth(@_) };
+        # Second redirects the old /pub and /auth apps to /.
+        mount '/pub'  => sub { $controller->move_to_auth(@_) };
+        mount '/auth' => sub { $controller->move_to_auth(@_) };
 
         # Main app, called "auth" for historical reasons.
-        mount '/auth' => builder {
+        mount '/' => builder {
             my $router = router {
                 missing { $controller->missing(@_) };
                 resource '/' => sub {
@@ -143,7 +141,7 @@ sub app {
 
                 # Authenticate all requests that require authentication.
                 enable_if {
-                    shift->{PATH_INFO} !~ m{^/$|^/(?:account/(?:reset/|changed|register|forgotten|thanks)|error|about|contact|howto)\b}
+                    shift->{PATH_INFO} !~ m{^/(?:$|(?:error|about|contact|howto)$|account/(?:reset/|(?:register|changed|forgotten|thanks)$))}
                 } 'Auth::Basic', realm => 'PGXN Users Only', authenticator => sub {
                     my ($username, $password) = map { decode 'UTF-8', $_ } @_;
                     PGXN::Manager->conn->run(sub {

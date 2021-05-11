@@ -137,7 +137,7 @@ BEGIN { create_wrapper wrapper => sub {
                     ) {
                         li { a {
                             id is $item->[2];
-                            href is $req->auth_uri_for($item->[0]);
+                            href is $req->uri_for($item->[0]);
                             class is 'active' if $path eq $item->[0];
                             T $item->[1];
                         } };
@@ -232,7 +232,7 @@ template about => sub {
                       $req->user;
                 } else {
                     a {
-                        href is $req->auth_uri_for('/account/register');
+                        href is $req->uri_for('/account/register');
                         T 'Register for an acount.';
                     };
                 }
@@ -241,7 +241,7 @@ template about => sub {
                 li {
                     outs T q{Once your account has been approved, you'll be notified via email.};
                     a {
-                        href is $req->auth_uri;
+                        href is $req->uri_for('/');
                         T 'Go ahead and login.';
                     };
                 };
@@ -264,7 +264,7 @@ template about => sub {
             li {
                 outs T q{Package up your distribution into an archive file (zip, tarball, etc.).};
                 a {
-                    href is $req->auth_uri_for('/upload');
+                    href is $req->uri_for('/upload');
                     T 'Upload it to release';
                 };
                 outs T '!';
@@ -417,7 +417,7 @@ template request => sub {
         }
         form {
             id      is 'reqform';
-            action  is $req->auth_uri_for('/account/register');
+            action  is $req->uri_for('/account/register');
             # Browser should send us UTF-8 if that's what we ask for.
             # https://www.unicode.org/mail-arch/unicode-ml/Archives-Old/UML023/0450.html
             enctype is 'application/x-www-form-urlencoded; charset=UTF-8';
@@ -879,7 +879,7 @@ template forgotten => sub {
         }
         form {
             id      is 'forgotform';
-            action  is $req->auth_uri_for('/account/forgotten');
+            action  is $req->uri_for('/account/forgotten');
             enctype is 'application/x-www-form-urlencoded; charset=UTF-8';
             method  is 'post';
 
@@ -970,7 +970,7 @@ template pass_changed => sub {
             class is 'success';
             outs T 'W00t! Your password has been changed. So what are you waiting for?';
             a {
-                href is $req->auth_uri;
+                href is $req->uri_for('/login');
                 T 'Go log in!'
             }
         };
@@ -1252,12 +1252,10 @@ template show_mirror => sub {
             };
         }
         form {
-            id      is 'mirrorform';
+            id is 'mirrorform';
             if ($update) {
-                # We don't want the "/auth" bit, but do want the rest of the
-                # path, as it has the URL being edited.
-                (my $path = join '/', $req->uri->path_segments) =~ s{^/auth}{};
-                action is $req->uri_for($path, 'x-tunneled-method' => 'put');
+                # The path has the URL being edited.
+                action is $req->uri_for($req->uri->path, 'x-tunneled-method' => 'put');
             } else {
                 action  is $req->uri_for('/admin/mirrors');
             }

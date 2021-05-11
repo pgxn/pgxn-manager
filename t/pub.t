@@ -20,48 +20,45 @@ use TxnTest;
 my $app  = PGXN::Manager::Router->app;
 my $mt   = PGXN::Manager::Locale->accept('en');
 
-# Test /auth/contact basics.
+# Test /contact basics.
 test_psgi $app => sub {
     my $cb = shift;
-    ok my $res = $cb->(GET '/auth/contact'), "GET /auth/contact";
+    ok my $res = $cb->(GET '/contact'), "GET /contact";
     ok $res->is_success, 'Should be a successful request';
     is_well_formed_xml $res->content, 'The HTML should be well-formed';
     my $tx = Test::XPath->new( xml => $res->content, is_html => 1 );
 
     my $req = PGXN::Manager::Request->new(req_to_psgi($res->request));
-    $req->env->{SCRIPT_NAME} = '/auth';
     XPathTest->test_basics($tx, $req, $mt, {
         h1         => 'Contact Us',
         page_title => 'contact_page_title',
     });
 };
 
-# Test /auth/about basics.
+# Test /about basics.
 test_psgi $app => sub {
     my $cb = shift;
-    ok my $res = $cb->(GET '/auth/about'), "GET /auth/about";
+    ok my $res = $cb->(GET '/about'), "GET /about";
     ok $res->is_success, 'Should be a successful request';
     is_well_formed_xml $res->content, 'The HTML should be well-formed';
     my $tx = Test::XPath->new( xml => $res->content, is_html => 1 );
 
     my $req = PGXN::Manager::Request->new(req_to_psgi($res->request));
-    $req->env->{SCRIPT_NAME} = '/auth';
     XPathTest->test_basics($tx, $req, $mt, {
         h1         => 'About PGXN Manager',
         page_title => 'about_page_title',
     });
 };
 
-# Test /auth/howto basics.
+# Test /howto basics.
 test_psgi $app => sub {
     my $cb = shift;
-    ok my $res = $cb->(GET '/auth/howto'), "GET /auth/howto";
+    ok my $res = $cb->(GET '/howto'), "GET /howto";
     ok $res->is_success, 'Should be a successful request';
     is_well_formed_xml $res->content, 'The HTML should be well-formed';
     my $tx = Test::XPath->new( xml => $res->content, is_html => 1 );
 
     my $req = PGXN::Manager::Request->new(req_to_psgi($res->request));
-    $req->env->{SCRIPT_NAME} = '/auth';
     XPathTest->test_basics($tx, $req, $mt, {
         h1         => 'PGXN How To',
         page_title => 'howto_page_title',
@@ -71,11 +68,11 @@ test_psgi $app => sub {
     like $res->decoded_content, qr/$content/, 'Content should match locale section data';
 };
 
-# Test /auth/error basics.
+# Test /error basics.
 my $err_app = sub {
     my $env = shift;
     $env->{'psgix.errordocument.PATH_INFO'} = '/';
-    $env->{'psgix.errordocument.SCRIPT_NAME'} = '/auth';
+    $env->{'psgix.errordocument.SCRIPT_NAME'} = '/foo';
     $env->{'psgix.errordocument.HTTP_HOST'} = 'localhost';
     $env->{'psgix.errordocument.HTTP_AUTHORIZATION'} = 'Basic ' . encode_base64("user:****");
     $env->{'plack.stacktrace.text'} = 'This is the trace';
@@ -84,13 +81,12 @@ my $err_app = sub {
 
 test_psgi $err_app => sub {
     my $cb = shift;
-    ok my $res = $cb->(GET '/auth/error'), "GET /auth/error";
+    ok my $res = $cb->(GET '/error'), "GET /error";
     ok $res->is_success, 'Should be a successful request';
     is_well_formed_xml $res->content, 'The HTML should be well-formed';
     my $tx = Test::XPath->new( xml => $res->content, is_html => 1 );
 
     my $req = PGXN::Manager::Request->new(req_to_psgi($res->request));
-    $req->env->{SCRIPT_NAME} = '/auth';
     XPathTest->test_basics($tx, $req, $mt, {
         h1         => 'Ow ow ow ow ow ow…',
         page_title => 'Internal Server Error',
@@ -124,7 +120,7 @@ sub test_error_response {
         'From header should be set';
     is $email->get_header('To'), PGXN::Manager->config->{alert_email},
         'To header should be set';
-    is $email->get_body, 'An error occurred during a request to http://localhost/auth/.
+    is $email->get_body, 'An error occurred during a request to http://localhost/foo/.
 
 Trace:
 
@@ -136,7 +132,7 @@ Environment:
   HTTP_AUTHORIZATION => "[REDACTED]",
   HTTP_HOST          => "localhost",
   PATH_INFO          => "/",
-  SCRIPT_NAME        => "/auth",
+  SCRIPT_NAME        => "/foo",
 }
 ',
     'The body should be correct';

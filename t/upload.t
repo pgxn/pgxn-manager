@@ -38,7 +38,7 @@ my $hparams  = {
 # Connect without authenticating.
 test_psgi $app => sub {
     my $cb = shift;
-    ok my $res = $cb->(GET '/auth/upload'), 'GET /auth/upload';
+    ok my $res = $cb->(GET '/upload'), 'GET /upload';
     is $res->code, 401, 'Should get 401 response';
     like $res->content, qr/Authorization required/,
         'The body should indicate need for authentication';
@@ -47,16 +47,15 @@ test_psgi $app => sub {
 test_psgi $app => sub {
     my $cb = shift;
     ok my $res = $cb->(GET(
-        '/auth/upload',
+        '/upload',
         Authorization => 'Basic ' . encode_base64("$user:****"),
-    )), 'Fetch /auth/upload';
+    )), 'Fetch /upload';
     ok $res->is_success, 'Should get a successful response';
     is_well_formed_xml $res->content, 'The HTML should be well-formed';
     my $tx = Test::XPath->new( xml => $res->content, is_html => 1 );
 
     my $req = PGXN::Manager::Request->new(req_to_psgi($res->request));
     $req->env->{REMOTE_USER} = $user;
-    $req->env->{SCRIPT_NAME} = '/auth';
     XPathTest->test_basics($tx, $req, $mt, $hparams);
 
     # Check content.
@@ -163,17 +162,16 @@ file_not_exists_ok $files{$_}, "File $_ should not yet exist" for keys %files;
 test_psgi $app => sub {
     my $cb = shift;
     ok my $res = $cb->(POST(
-        '/auth/upload',
+        '/upload',
         Authorization => 'Basic ' . encode_base64("$user:****"),
         Content_Type => 'form-data',
         Content => [ archive => [$distzip] ],
-    )), 'POST zip archive to /auth/upload';
+    )), 'POST zip archive to /upload';
     ok $res->is_redirect, 'Response should be a redirect';
     my $req = PGXN::Manager::Request->new(req_to_psgi($res->request));
-    $req->env->{SCRIPT_NAME} = '/auth';
     is $res->headers->header('location'),
         $req->uri_for('/distributions/widget/0.2.5'),
-        'Should redirect to /auth/distributions/widget/0.2.5';
+        'Should redirect to /distributions/widget/0.2.5';
 };
 
 # Let's have a look-see.
@@ -187,12 +185,12 @@ remove_tree $root;
 test_psgi $app => sub {
     my $cb = shift;
     ok my $res = $cb->(POST(
-        '/auth/upload',
+        '/upload',
         Authorization => 'Basic ' . encode_base64("$user:****"),
         'X-Requested-With' => 'XMLHttpRequest',
         Content_Type => 'form-data',
         Content => [ archive => [$distzip] ],
-    )), 'POST zip archive to /auth/upload';
+    )), 'POST zip archive to /upload';
     ok $res->is_success, 'Response should success';
     is $res->content, $mt->maketext('Success'),
         'And the content should say so';
@@ -207,13 +205,13 @@ $rmock->mock(user_is_admin => 0);
 test_psgi $app => sub {
     my $cb = shift;
     ok my $res = $cb->(POST(
-        '/auth/upload',
+        '/upload',
         Authorization => 'Basic ' . encode_base64("$user:****"),
         Content_Type => 'form-data',
         'X-Requested-With' => 'XMLHttpRequest',
         Accept => 'text/html',
         Content => [ archive => [$distzip] ],
-    )), 'POST dupe zip archive to /auth/upload';
+    )), 'POST dupe zip archive to /upload';
     is $res->code, 409, 'Should get 409 response';
     is $res->content, '<p class="error">' . encode_utf8(encode_entities($mt->maketext(
         'Distribution “[_1]” already exists', 'widget 0.2.5'
@@ -229,12 +227,12 @@ remove_tree $root;
 test_psgi $app => sub {
     my $cb = shift;
     ok my $res = $cb->(POST(
-        '/auth/upload',
+        '/upload',
         Authorization => 'Basic ' . encode_base64("$user:****"),
         'X-Requested-With' => 'XMLHttpRequest',
         Content_Type => 'form-data',
         Content => [ archive => [$distzip] ],
-    )), 'POST zip archive to /auth/upload again';
+    )), 'POST zip archive to /upload again';
     ok $res->is_success, 'Response should success';
     is $res->content, $mt->maketext('Success'),
         'And the content should say so';
@@ -246,18 +244,17 @@ file_exists_ok $files{$_}, "File $_ should again exist" for keys %files;
 test_psgi $app => sub {
     my $cb = shift;
     ok my $res = $cb->(POST(
-        '/auth/upload',
+        '/upload',
         Authorization => 'Basic ' . encode_base64(TxnTest->admin . ":****"),
         Content_Type => 'form-data',
         Content => [ archive => [$distzip] ],
-    )), 'POST dupe zip with non-owner to /auth/upload';
+    )), 'POST dupe zip with non-owner to /upload';
     is $res->code, 409, 'Should get 409 response';
     is_well_formed_xml $res->content, 'The HTML should be well-formed';
     my $tx = Test::XPath->new( xml => $res->content, is_html => 1 );
 
     my $req = PGXN::Manager::Request->new(req_to_psgi($res->request));
     $req->env->{REMOTE_USER} = TxnTest->admin;
-    $req->env->{SCRIPT_NAME} = '/auth';
     XPathTest->test_basics($tx, $req, $mt, $hparams);
 
     # Now verify that we have the error message and that the form fields are
@@ -276,11 +273,11 @@ remove_tree $root;
 test_psgi $app => sub {
     my $cb = shift;
     ok my $res = $cb->(POST(
-        '/auth/upload',
+        '/upload',
         Authorization => 'Basic ' . encode_base64("$user:****"),
         Content_Type => 'form-data',
         Content => [ archive => [] ],
-    )), 'POST no archive to /auth/upload again';
+    )), 'POST no archive to /upload again';
     ok !$res->is_success, 'Response should not be success';
     is $res->code, 400, 'Should get 400 response';
     is_well_formed_xml $res->content, 'The HTML should be well-formed';
@@ -297,12 +294,12 @@ test_psgi $app => sub {
 test_psgi $app => sub {
     my $cb = shift;
     ok my $res = $cb->(POST(
-        '/auth/upload',
+        '/upload',
         Authorization => 'Basic ' . encode_base64("$user:****"),
         'X-Requested-With' => 'XMLHttpRequest',
         Content_Type => 'form-data',
         Content => [ archive => [] ],
-    )), 'POST no zip archive to /auth/upload via Ajax';
+    )), 'POST no zip archive to /upload via Ajax';
     ok !$res->is_success, 'Response should not be success';
     is $res->code, 400, 'Should get 400 response';
     is $res->content, 'Bad request: no archive parameter.'

@@ -415,7 +415,7 @@ a release directly to PGXN Manager. Give it a whirl!</p>
 
 <p>Good hacking!</p>`,
 
-    'Sorry, but this URL is invalid. I think you either want <a href="$url">/pub/</a> or to run PGXN Manager behind a reverse proxy server. See <a href="https://github.com/pgxn/pgxn-manager/blob/main/README.md">the README</a> for details.' => 'Sorry, but this URL is invalid. I think you either want <a href="$url">/pub/</a> or to run PGXN Manager behind a reverse proxy server. See <a href="https://github.com/pgxn/pgxn-manager/blob/main/README.md">the README</a> for details.',
+    'Sorry, but this URL is invalid. I think you either want <a href="$url">/</a> or to run PGXN Manager behind a reverse proxy server. See <a href="https://github.com/pgxn/pgxn-manager/blob/main/README.md">the README</a> for details.' => 'Sorry, but this URL is invalid. I think you either want <a href="$url">/</a> or to run PGXN Manager behind a reverse proxy server. See <a href="https://github.com/pgxn/pgxn-manager/blob/main/README.md">the README</a> for details.',
 
     '“[_1] [_2]” is not a known release' => '“[_1] [_2]” is not a known release',
 );

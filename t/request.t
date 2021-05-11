@@ -2,7 +2,7 @@
 
 use 5.10.0;
 use utf8;
-use Test::More tests => 54;
+use Test::More tests => 50;
 #use Test::More 'no_plan';
 use HTTP::Request::Common;
 use HTTP::Message::PSGI;
@@ -37,19 +37,6 @@ is $req->uri_for('foo', bar => 'baz'), $base . 'app/foo?bar=baz',
 is $req->uri_for('foo', bar => 'baz', 'foo' => 1),
     $base . 'app/foo?bar=baz;foo=1',
     'uri_for(foo, bar => baz, foo => 1)';
-
-##############################################################################
-# Test auth_uri() and auth_uri_for().
-$req->env->{SCRIPT_NAME} = '/pub';
-is $req->auth_uri, 'http://localhost/auth/', 'Should have default login URI';
-$base = 'http://localhost/auth/';
-
-is $req->auth_uri_for('foo'), $base . 'foo',
-    'auth_uri() should work with a simple string';
-is $req->auth_uri_for('/foo'), $base . 'foo',
-    'auth_uri() should work with an absolute URI';
-is $req->auth_uri_for('foo', bar => 'baz'), $base . 'foo?bar=baz',
-    'auth_uri_for(foo, bar => baz)';
 
 ##############################################################################
 # Test respond_with()
@@ -101,7 +88,7 @@ ok !$req->user_is_admin, 'user_is_admin should be false';
 # Create and authenticate non-admin user.
 my $user = TxnTest->user;
 isa_ok $req = +PGXN::Manager::Request->new(req_to_psgi(
-    GET '/auth'
+    GET '/login'
 )), 'PGXN::Manager::Request', 'Auth request';
 
 $req->env->{REMOTE_USER} = $user;
@@ -111,7 +98,7 @@ ok !$req->user_is_admin, '... But not an admin';
 # Create and authenticate admin user.
 my $admin = TxnTest->admin;
 isa_ok $req = +PGXN::Manager::Request->new(req_to_psgi(
-    GET '/auth'
+    GET '/login'
 )), 'PGXN::Manager::Request', 'Admin Auth request';
 
 $req->env->{REMOTE_USER} = $admin;

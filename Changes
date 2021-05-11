@@ -38,21 +38,16 @@ Revision history for Perl extension PGXN::Manager
          archive type for. Requires the Archive::Extract 0.88. Thanks to Sandro
          Santilli ror the report and Philippe Beaudoin for providing a file with
          which replicate the issue (#61).
-       - Moved the new account request and password reset request pages to
-         the auth router, without requiring authentication, so that they load
-         and work with HTTPS, as some browsers will strongly prefer. Return a
-         redirect from the original pub variants. No reason not to, though other
-         auth routes still require basic authentication, at least for now.
-         Thanks to Andrew Kane for the spot! (#70).
+       - Eliminated the /pub app and moved the /auth app to /. The entire site
+         is now served by the / app, so that it can be fully encrypted. Basic
+         auth is enabled for those parts of the site that require
+         authentication, but the rest is publicly available, including the home
+         page, about, howto, etc. The /pub and /auth apps now simply redirect to
+         the / app, in case they're still used, although the reverse proxy
+         configuration should be updated to do the same, to avoid calling the
+         /pub and /auth apps at all, only /.
        - Updated the format of version check errors to show the distribution
          releases the conflicts are found in.
-       - Eliminated the /pub app. The entire site is now served by the /auth
-         app, so that it can be fully encrypted. Basic auth is enabled for those
-         parts of the site that require authentication, but the rest is publicly
-         available, including the home page, about, howto, etc. The /pub app now
-         simply redirects to the /auth app, in case it's still used, although
-         the reverse proxy configuration should be updated to do the same, to
-         avoid calling the /pub app at all.
        - Added the /login path and made it the URL for the "Log In" link on
          unauthenticated pages. It requires auth and simply redirects to
          /distributions for now.
@@ -474,7 +469,7 @@ Revision history for Perl extension PGXN::Manager
         a link to the moderation UI.
       - Renamed `Request->login_uri` to `auth_uri`, and renamed the
         configuration setting to same.
-      - Added `Request->auth_uri_for()` and updated places in the public site
+      - Added `Request->uri_for()` and updated places in the public site
         that link to the auth site to use it.
       - Moved the password reset form (to which a link is set when a new user
         account is accepted or a user fills in the forgotten password form) to
