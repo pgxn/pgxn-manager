@@ -25,7 +25,16 @@ my $class = $build_pkg->subclass(
             open my $out, '>:raw', 'latest_changes.md' or die "Cannot open latest_changes.md: $!\n";
             while (<$in>) { last if /^\Q$dv\E\b/ }
             print {$out} "Changes for v$dv\n";
-            while (<$in>) { last if /^\s*$/; print {$out} $_ }
+            while (<$in>) {
+                last if /^\s*$/;
+                chomp;
+                if (s/^\s+-/-  /) {
+                    print {$out} "\n";
+                } else {
+                    s/^\s+/ /;
+                }
+                print {$out} $_;
+            }
             $self->add_to_cleanup('latest_changes.md');
         }
     },
