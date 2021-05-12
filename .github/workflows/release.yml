@@ -11,10 +11,9 @@ jobs:
     steps:
     - name: Check out the repo
       uses: actions/checkout@v2
-    - name: Install Module::Build
-      run: cpanm Module::Build
     - name: Package the Release
       id: package
+      uses: shogo82148/actions-setup-perl@v1
       run: perl Build.PL && ./Build manifest && ./Build dist && echo "::set-output name=tarball::$(./Build tarball_name )"
     - name: Generate Release Changes
       run: ./Build latest_changes
