@@ -6,7 +6,7 @@
 \B\.git
 
 # Avoid Makemaker generated and utility files.
-\bMakefile$
+^Makefile$
 \bblib
 \bMakeMaker-\d
 \bpm_to_blib$
