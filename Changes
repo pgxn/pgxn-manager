@@ -53,6 +53,8 @@ Revision history for Perl extension PGXN::Manager
          /distributions for now.
        - Dropped support for running PGXN Manager on PostgresSQL 11 or lower.
        - Removed the Pod tests from the release.
+       - Fixed a server error when the account registration form is submitted
+         with no nickname.
 
 0.16.0  2015-08-31T18:25:24Z
        - Updated the `Makefile` example in the HOWTO to extract the extension

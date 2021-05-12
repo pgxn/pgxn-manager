@@ -4,7 +4,7 @@ use 5.10.0;
 use utf8;
 BEGIN { $ENV{EMAIL_SENDER_TRANSPORT} = 'Test' }
 
-use Test::More tests => 622;
+use Test::More tests => 689;
 #use Test::More 'no_plan';
 use Plack::Test;
 use HTTP::Request::Common;
@@ -281,6 +281,50 @@ test_psgi $app => sub {
     });
 };
 
+# Now try submitting an incomplete form.
+test_psgi $app => sub {
+    my $cb = shift;
+    ok my $res = $cb->(POST '/account/register', [
+        full_name => 'Bob Newhart',
+        email     => 'bob@example.org'
+    ]), 'POST tgl to /register with incomplete data';
+    ok !$res->is_redirect, 'It should not be a redirect response';
+    is $res->code, 400, 'Should have 400 status code';
+
+    is +Email::Sender::Simple->default_transport->deliveries,
+        0, 'No email should have been sent';
+
+    # So check the content.
+    is_well_formed_xml $res->content, 'The HTML should be well-formed';
+    my $tx = Test::XPath->new( xml => $res->content, is_html => 1 );
+
+    my $req = PGXN::Manager::Request->new(req_to_psgi($res->request));
+    XPathTest->test_basics($tx, $req, $mt, $hparams);
+
+    # Now verify that we have the error message and that the form fields are
+    # filled-in.
+    $tx->ok('/html/body/div[@id="content"]', 'Test the content', sub {
+        $tx->is('count(./*)', 4, '... It should have four subelements');
+        $tx->is('./h1', $h1, '... The title h1 should be set');
+        $tx->is('./p[1]', $p, '... Intro paragraph should be set');
+        my $err = $mt->maketext('Sorry, the nickname “[_1]” is invalid. Your nickname must start with an ASCII letter (a-z), end with an ASCII letter or digit, and otherwise contain only ASCII letters, digits, or hyphen. Sorry to be so strict.', '');
+        $tx->is('./p[@class="error"]', $err, '... Error paragraph should be set');
+
+        # Check the form fields.
+        $tx->ok('./form[@id="reqform"]/fieldset[1]', '... Check first fieldset', sub {
+            $tx->is('./input[@id="full_name"]/@value', 'Bob Newhart', '...... Name should be set');
+            $tx->is('./input[@id="email"]/@value', 'bob@example.org', '...... Email should be set');
+            $tx->is('./input[@id="uri"]/@value', '', '...... URI should be empty');
+            $tx->is('./input[@id="nickname"]/@value', '', '...... Nickname should not be set');
+            $tx->is('./input[@id="nickname"]/@class', 'required highlight', '...... And it should be highlighted');
+        });
+
+        $tx->ok('./form[@id="reqform"]/fieldset[2]', '... Check second fieldset', sub {
+            $tx->is('./textarea[@id="why"]', '', '...... Why textarea should be empty')
+        });
+    });
+};
+
 # Start a new test transaction and create Tom again.
 TxnTest->restart;
 test_psgi $app => sub {
@@ -440,7 +484,7 @@ test_psgi $app => sub {
         why       => '',
     ]), 'POST empty form to /register yet again';
     ok !$res->is_redirect, 'It should not be a redirect response';
-    is $res->code, 409, 'Should have 409 status code';
+    is $res->code, 400, 'Should have 400 status code';
 
     is @{ Email::Sender::Simple->default_transport->deliveries },
         0, 'No email should have been sent';
@@ -479,7 +523,7 @@ test_psgi $app => sub {
         why       => '',
     ]), 'POST form with bogus nickname to /register';
     ok !$res->is_redirect, 'It should not be a redirect response';
-    is $res->code, 409, 'Should have 409 status code';
+    is $res->code, 400, 'Should have 400 status code';
 
     is @{ Email::Sender::Simple->default_transport->deliveries },
         0, 'No email should have been sent';
@@ -517,7 +561,7 @@ test_psgi $app => sub {
         why       => 'I rock',
     ]), 'POST form with bogus email to /register';
     ok !$res->is_redirect, 'It should not be a redirect response';
-    is $res->code, 409, 'Should have 409 status code';
+    is $res->code, 400, 'Should have 400 status code';
 
     is @{ Email::Sender::Simple->default_transport->deliveries },
         0, 'No email should have been sent';
@@ -555,7 +599,7 @@ test_psgi $app => sub {
         why       => 'I rock',
     ]), 'POST form with bogus URI to /register';
     ok !$res->is_redirect, 'It should not be a redirect response';
-    is $res->code, 409, 'Should have 409 status code';
+    is $res->code, 400, 'Should have 400 status code';
 
     is @{ Email::Sender::Simple->default_transport->deliveries },
         0, 'No email should have been sent';
@@ -593,7 +637,7 @@ test_psgi $app => sub {
         why       => '    ',
     ]), 'POST form with empty why to /register';
     ok !$res->is_redirect, 'It should not be a redirect response';
-    is $res->code, 409, 'Should have 409 status code';
+    is $res->code, 400, 'Should have 400 status code';
 
     is @{ Email::Sender::Simple->default_transport->deliveries },
         0, 'No email should have been sent';

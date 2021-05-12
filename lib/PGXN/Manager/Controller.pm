@@ -196,9 +196,22 @@ sub register {
     my $params = $req->body_parameters;
     my $pgxn   = PGXN::Manager->instance;
 
-    if ($params->{nickname} && $params->{email} && (!$params->{why} || $params->{why} !~ /\w+/ || length $params->{why} < 5)) {
+    # Just bail if we have no nickname.
+    if (!$params->{nickname}) {
+        return $self->respond_with('badrequest', $req, $msg) if $req->is_xhr;
+        return $self->render('/request', { req => $req, code => $code_for{badrequest}, vars => {
+            %{ $params },
+            highlight => 'nickname',
+            error     =>  [
+                'Sorry, the nickname “[_1]” is invalid. Your nickname must start with an ASCII letter (a-z), end with an ASCII letter or digit, and otherwise contain only ASCII letters, digits, or hyphen. Sorry to be so strict.',
+                            '',
+            ],
+        }});
+    }
+
+    if ($params->{email} && (!$params->{why} || $params->{why} !~ /\w+/ || length $params->{why} < 5)) {
         delete $params->{why};
-        return $self->render('/request', { req => $req, code => $code_for{conflict}, vars => {
+        return $self->render('/request', { req => $req, code => $code_for{badrequest}, vars => {
             %{ $params },
             highlight => 'why',
             error => [
@@ -206,6 +219,7 @@ sub register {
             ],
         }});
     }
+    $params->{why} //= '';
 
     try {
         $pgxn->conn->run(sub {
@@ -262,11 +276,12 @@ sub register {
     } catch {
         # Failure!
         my $err = shift;
-        my ($msg, $highlight);
+        my ($msg, $highlight, $status);
         no if $] >= 5.017011, warnings => 'experimental::smartmatch';
         given (try { $err->state }) {
             when ('23505') {
                 # Unique constraint violation.
+                $status = 'conflict';
                 if ($err->errstr =~ /\busers_pkey\b/) {
                     $highlight = 'nickname';
                     $msg = [
@@ -286,6 +301,7 @@ sub register {
                 }
             } when ('23514') {
                 # Domain label violation.
+                $status = 'badrequest';
                 given ($err->errstr) {
                     when (/\blabel_check\b/) {
                     $highlight = 'nickname';
@@ -316,9 +332,9 @@ sub register {
         }
 
         # Respond with error code for XHR request.
-        return $self->respond_with('conflict', $req, $msg) if $req->is_xhr;
+        return $self->respond_with($status, $req, $msg) if $req->is_xhr;
 
-        $self->render('/request', { req => $req, code => $code_for{conflict}, vars => {
+        $self->render('/request', { req => $req, code => $code_for{$status}, vars => {
             %{ $params },
             highlight => $highlight,
             error     => $msg,

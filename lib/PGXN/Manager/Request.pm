@@ -115,17 +115,11 @@ example, if the current request is to C</foo>:
   my $rel = $req->uri_for('bar');  # http://localhost/foo/bar
   my $abs = $req->uri_for('/yow'); # http://localhost/yow
 
-=head3 C<auth_uri>
-
-  my $uri = $req->auth_uri;
-
-Returns the authenticated site URI. Normally this should be C</>.
-
 =head3 C<uri_for>
 
   my $uri = $req->uri_for('/foo', bar => 'baz');
 
-Creates and returns a L<URI> relative to the C<auth_uri>.
+Creates and returns a L<URI>.
 
 =head3 C<respond_with>
 

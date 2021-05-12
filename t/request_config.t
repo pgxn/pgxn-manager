@@ -12,9 +12,6 @@ use PGXN::Manager;
 BEGIN {
     # Change the script name key before loading the request object.
     PGXN::Manager->config->{uri_script_name_key} = 'HTTP_X_SCRIPT_NAME';
-
-    # Set the login URI.
-    PGXN::Manager->config->{auth_uri} = 'https://manager.pgxn.org/';
 }
 
 use PGXN::Manager::Request;
