@@ -335,7 +335,7 @@ test_psgi $app => sub {
         uri       => 'http://tgl.example.org/',
         nickname  => 'tgl',
         twitter   => 'tomlane',
-        why       => "In short, +1 from me.\n\nRegards, Tom Lane",
+        why       => "In short, +1 from \xE2\x80\x98me\xE2\x80\x99.\n\nRegards, Tom Lane",
     ]), 'POST valid tgl to /register again';
     my $req = PGXN::Manager::Request->new(req_to_psgi($res->request));
     ok $res->is_redirect, 'It should be a redirect response';
@@ -369,7 +369,7 @@ test_psgi $app => sub {
             email     => 'tgl@pgxn.org',
             uri       => 'http://tgl.example.org/',
             nickname  => 'yodude',
-            why       => "In short, +1 from me.\n\nRegards, Tom Lane",
+            why       => "In short, +1 from \xE2\x80\x98me\xE2\x80\x99.\n\nRegards, Tom Lane",
         ],
     )), 'POST yodude to /register';
     ok !$res->is_redirect, 'It should not be a redirect response';
@@ -411,7 +411,7 @@ test_psgi $app => sub {
         $tx->ok('./form[@id="reqform"]/fieldset[2]', '... Check second fieldset', sub {
             $tx->is(
                 './textarea[@id="why"]',
-                "In short, +1 from me.\n\nRegards, Tom Lane",
+                "In short, +1 from ‘me’.\n\nRegards, Tom Lane",
                 '...... Why textarea should be set'
             );
         });
