@@ -1,6 +1,9 @@
 Revision history for Perl extension PGXN::Manager
 
 0.20.1
+       - Removed the `Capfile` and `eg` directory from the source (and distribution).
+         Examples for managing PGXN can now be found in the pgxn/pgxn-ops
+         repository on GitHub.
 
 0.20.0   2021-05-12T02:15:41Z
        - Explicitly loading Email::Address in PGXN::Manager::Controller
