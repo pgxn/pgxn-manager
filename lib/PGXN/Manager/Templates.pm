@@ -634,7 +634,7 @@ template moderate => sub {
                                         class is 'button';
                                         type is 'image';
                                         name is 'submit';
-                                        src is $req->uri_for("/ui/img/$spec->[0].png")
+                                        src is $req->uri_for("/ui/img/$spec->[0].svg")
                                     };
                                 };
                             }
@@ -1160,7 +1160,7 @@ template show_mirrors => sub {
                             a {
                                 href is $req->uri_for('/admin/mirrors/new');
                                 title is T 'Create a new Mirror';
-                                img { src is $req->uri_for('/ui/img/add.png') };
+                                img { src is $req->uri_for('/ui/img/plus.svg') };
                                 outs T 'Add';
                             };
                         };

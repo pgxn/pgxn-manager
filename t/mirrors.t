@@ -142,10 +142,10 @@ test_psgi +PGXN::Manager::Router->app => sub {
                                 qr{\Q$t},
                                 '.................. Should have title "Add"'
                             );
-                            my $src = $req->uri_for('/ui/img/add.png');
+                            my $src = $req->uri_for('/ui/img/plus.svg');
                             $tx->ok(
                                 qq{./img[\@src="$src"]},
-                                '.................. Should have add.png image'
+                                '.................. Should have plus.svg image'
                             );
                         });
                     });
@@ -306,10 +306,10 @@ test_psgi +PGXN::Manager::Router->app => sub {
                                 qr{\Q$t},
                                 '.................. Should have title "Add"'
                             );
-                            my $src = $req->uri_for('/ui/img/add.png');
+                            my $src = $req->uri_for('/ui/img/plus.svg');
                             $tx->ok(
                                 qq{./img[\@src="$src"]},
-                                '.................. Should have add.png image'
+                                '.................. Should have plus.svg image'
                             );
                         });
                     });

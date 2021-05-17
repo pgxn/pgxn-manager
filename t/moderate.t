@@ -157,7 +157,7 @@ test_psgi +PGXN::Manager::Router->app => sub {
                             $tx->is(
                                 'count(./*)', 1,
                                 '............... It should have 1 subelement');
-                            my $uri = $req->uri_for('/ui/img/play.png');
+                            my $uri = $req->uri_for('/ui/img/play.svg');
                             $tx->ok(
                                 qq{./img[\@src="$uri"]},
                                 '............... Which should be the play image'
@@ -345,7 +345,7 @@ test_psgi +PGXN::Manager::Router->app => sub {
                             $tx->is(
                                 'count(./*)', 1,
                                 '............... It should have 1 subelement');
-                            my $uri = $req->uri_for('/ui/img/play.png');
+                            my $uri = $req->uri_for('/ui/img/play.svg');
                             $tx->ok(
                                 qq{./img[\@src="$uri"]},
                                 '............... Which should be the play image'
