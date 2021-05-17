@@ -732,7 +732,7 @@ template distributions => sub {
             };
             tbody {
                 my $i = 0;
-                my $forward = $req->uri_for('/ui/img/forward.png');
+                my $forward = $req->uri_for('/ui/img/play.svg');
                 while (my $row = $args->{sth}->fetchrow_hashref) {
                     row {
                         class is ++$i % 2 ? 'spec' : 'specalt';
@@ -1172,7 +1172,7 @@ template show_mirrors => sub {
             };
             tbody {
                 my $i = 0;
-                my $forward = $req->uri_for('/ui/img/forward.png');
+                my $forward = $req->uri_for('/ui/img/play.svg');
                 while (my $row = $args->{sth}->fetchrow_hashref) {
                     row {
                         class is ++$i % 2 ? 'spec' : 'specalt';

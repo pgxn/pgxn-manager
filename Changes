@@ -4,6 +4,7 @@ Revision history for Perl extension PGXN::Manager
        - Removed the `Capfile` and `eg` directory from the source (and distribution).
          Examples for managing PGXN can now be found in the pgxn/pgxn-ops
          repository on GitHub.
+       - Replaced all icons with SVG icons from the icons8/flat-color-icons project.
 
 0.20.0   2021-05-12T02:15:41Z
        - Explicitly loading Email::Address in PGXN::Manager::Controller

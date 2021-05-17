@@ -354,7 +354,7 @@ test_psgi +PGXN::Manager::Router->app => sub {
                             );
                             $tx->is(
                                 './img/@src',
-                                $req->uri_for('/ui/img/forward.png'),
+                                $req->uri_for('/ui/img/play.svg'),
                                 'It should have an image link'
                             );
                             $tx->like(
@@ -465,7 +465,7 @@ test_psgi +PGXN::Manager::Router->app => sub {
                             );
                             $tx->is(
                                 './img/@src',
-                                $req->uri_for('/ui/img/forward.png'),
+                                $req->uri_for('/ui/img/play.svg'),
                                 'It should have an image link'
                             );
                             $tx->like(

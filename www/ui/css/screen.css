@@ -166,7 +166,7 @@ table
 {width:100%;border-spacing:0;border-collapse:collapse;}
 
 th
-{font-weight:bold; font-size:90%; color:#236691; border-right:1px solid #C1DAD7; border-bottom:1px solid #C1DAD7; border-top:1px solid #C1DAD7; text-align:left; padding:6px; background:#CAE8EA url(/ui/img/thbg.png) no-repeat;}
+{font-weight:bold; font-size:90%; color:#236691; border-right:1px solid #C1DAD7; border-bottom:1px solid #C1DAD7; border-top:1px solid #C1DAD7; text-align:left; padding:6px; background:#CAE8EA;}
 
 
 th:first-child, td:first-child
@@ -179,10 +179,10 @@ tr.specalt a
 {font-weight:bold;}
 
 tr.spec th
-{border-left:1px solid #C1DAD7; border-top:0; background:#fff url(/ui/img/wedge_brown.png) 2px 2px no-repeat; font-weight:bold; font-size:90%;}
+{border-left:1px solid #C1DAD7; border-top:0; background:#fff; font-weight:bold; font-size:90%;}
 
 tr.specalt th
-{border-left:1px solid #C1DAD7; border-top:0; background:#eaf7fb url(/ui/img/wedge_blue.png) 2px 2px no-repeat; font-weight:bold; font-size:90%;}
+{border-left:1px solid #C1DAD7; border-top:0; background:#eaf7fb; font-weight:bold; font-size:90%;}
 
 td
 { border-right:1px solid #C1DAD7; border-bottom:1px solid #C1DAD7; background:#fff; padding:6px 6px 0;}
