@@ -15,9 +15,9 @@ sub test_basics {
 
     # Check the head element.
     $tx->ok('/html/head', 'Test head', sub {
-        my $c = $p->{validate_form} ? 9
-              : $p->{with_jquery}   ? 7
-                                    : 5;
+        my $c = $p->{validate_form} ? 12
+              : $p->{with_jquery}   ? 10
+                                    : 8;
         $c++ if $p->{desc};
         $c++ if $p->{keywords};
         $c++ if $p->{js};
@@ -69,9 +69,24 @@ sub test_basics {
             'Should have IE6 fix comment');
 
         $_->is(
-            './link[@rel="shortcut icon"]/@href',
-            $req->uri_for('/ui/img/favicon.png'),
-            'Should specify the favicon',
+            './link[@rel="icon"][@type="image/svg+xml"]/@href',
+            $req->uri_for('/ui/img/icon.svg'),
+            'Should specify the SVG icon',
+        );
+        $_->is(
+            './link[@rel="icon"][2]/@href',
+            $req->uri_for('/ui/img/icon.ico'),
+            'Should specify the ICO icon',
+        );
+        $_->is(
+            './link[@rel="apple-touch-icon"][@sizes="180x180"]/@href',
+            $req->uri_for('/ui/img/icon-180.png'),
+            'Should specify the Apple touch icon',
+        );
+        $_->is(
+            './link[@rel="manifest"]/@href',
+            $req->uri_for('/ui/manifest.json'),
+            'Should specify the manifest for Android',
         );
 
         if ($p->{with_jquery} || $p->{validate_form}) {

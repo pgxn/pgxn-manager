@@ -3,7 +3,7 @@
 use 5.10.0;
 use utf8;
 
-use Test::More tests => 331;
+use Test::More tests => 343;
 #use Test::More 'no_plan';
 use Plack::Test;
 use HTTP::Request::Common;

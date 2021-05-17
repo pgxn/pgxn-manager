@@ -2,7 +2,7 @@
 
 use 5.10.0;
 use utf8;
-use Test::More tests => 169;
+use Test::More tests => 178;
 #use Test::More 'no_plan';
 use Test::XML;
 use Test::XPath;

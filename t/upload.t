@@ -2,7 +2,7 @@
 
 use 5.10.0;
 use utf8;
-use Test::More tests => 192;
+use Test::More tests => 198;
 #use Test::More 'no_plan';
 use Test::File;
 use Test::MockModule;

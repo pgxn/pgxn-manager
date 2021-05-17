@@ -60,9 +60,29 @@ BEGIN { create_wrapper wrapper => sub {
                 href is $req->uri_for('/ui/css/fix.css');
             };
             outs_raw "\n  <![endif]-->";
+            # https://evilmartians.com/chronicles/how-to-favicon-in-2021-six-files-that-fit-most-needs
+            # SVG covers majority of cases.
             link {
-                rel is 'shortcut icon';
-                href is $req->uri_for('/ui/img/favicon.png');
+                rel  is 'icon';
+                href is $req->uri_for('/ui/img/icon.svg');
+                type is 'image/svg+xml';
+            };
+            # ICO covers most other cases. Generated from the 32px PNG in
+            # Preview.app by holding down option for additional export options.
+            link {
+                rel  is 'icon';
+                href is $req->uri_for('/ui/img/icon.ico');
+            };
+            # Special case for Apple touch devices.
+            link {
+                rel   is 'apple-touch-icon';
+                href  is $req->uri_for('/ui/img/icon-180.png');
+                sizes is "180x180";
+            };
+            # Special case for Android devices.
+            link {
+                rel  is 'manifest';
+                href is $req->uri_for('/ui/manifest.json');
             };
             if ($args->{js} || $args->{with_jquery} || $args->{validate_form}) {
                 script {
