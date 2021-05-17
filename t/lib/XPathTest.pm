@@ -115,7 +115,7 @@ sub test_basics {
                 $req->uri_for('/'),
                'It should link to the right place'
             );
-            $_->is('./img/@src', $req->uri_for('/ui/img/logo.png'), 'Should have logo');
+            $_->is('./img/@src', $req->uri_for('/ui/img/icon.svg'), 'Should have logo');
         });
         $_->is('./h1', $mt->maketext('PGXN Manager'), 'Should have name');
         $_->is('./h2', $mt->maketext('tagline'), 'Should have tagline');

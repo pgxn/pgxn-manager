@@ -105,7 +105,7 @@ BEGIN { create_wrapper wrapper => sub {
                 a {
                     id is 'logo';
                     href is $req->uri_for('/');
-                    img { src is $req->uri_for('/ui/img/logo.png') };
+                    img { src is $req->uri_for('/ui/img/icon.svg') };
                 };
                 h1 { T 'PGXN Manager' };
                 h2 { T 'tagline' };

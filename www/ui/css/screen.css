@@ -33,6 +33,7 @@ a img
 #sidebar
 {position:absolute; top:0; left:0; width:260px; height:100%; overflow:auto; background:#e0e0e0 url(/ui/img/sidebarbg.gif) top right repeat-y; text-align:right;}
 
+#logo img { width: 256px;}
 body > #sidebar
 {position:fixed;}
 
