@@ -439,8 +439,8 @@ test_psgi +PGXN::Manager::Router->app => sub {
                                     );
                                     $tx->is(
                                         './@src',
-                                        $req->uri_for('/ui/img/remove.png'),
-                                        '..................... Source should be remove.png'
+                                        $req->uri_for('/ui/img/remove.svg'),
+                                        '..................... Source should be remove.svg'
                                     );
                                 }
                             );
@@ -550,8 +550,8 @@ test_psgi +PGXN::Manager::Router->app => sub {
                                     );
                                     $tx->is(
                                         './@src',
-                                        $req->uri_for('/ui/img/remove.png'),
-                                        '..................... Source should be remove.png'
+                                        $req->uri_for('/ui/img/remove.svg'),
+                                        '..................... Source should be remove.svg'
                                     );
                                 }
                             );

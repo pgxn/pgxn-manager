@@ -183,7 +183,7 @@ test_psgi $app => sub {
                     $tx->is('count(./*)', 2, '............ Should have two subelements');
                     $tx->is(
                         './img/@src',
-                        $req->uri_for('/ui/img/warning.png'),
+                        $req->uri_for('/ui/img/warning.svg'),
                         'Should have warning image'
                     );
                     $tx->is(

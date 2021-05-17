@@ -815,7 +815,7 @@ template distribution => sub {
                         ));
                         href is $uri;
                         title is T 'Download the [_1] README.', $name;
-                        img { src is $req->uri_for('/ui/img/warning.png') };
+                        img { src is $req->uri_for('/ui/img/warning.svg') };
                         span { T 'README' };
                     };
                 };
@@ -1208,7 +1208,7 @@ template show_mirrors => sub {
                                     class is 'button';
                                     type is 'image';
                                     name is 'submit';
-                                    src is $req->uri_for("/ui/img/remove.png")
+                                    src is $req->uri_for("/ui/img/remove.svg")
                                 };
                             };
                         };
