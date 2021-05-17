@@ -584,7 +584,7 @@ template moderate => sub {
                                 class is 'userplay';
                                 href is '#';
                                 title is T q{Review [_1]'s }, $user->{nickname};
-                                img { src is $req->uri_for('/ui/img/play.png' ) };
+                                img { src is $req->uri_for('/ui/img/play.svg' ) };
                                 outs $user->{nickname};
                             };
                             div {
@@ -800,7 +800,7 @@ template distribution => sub {
                     );
                     href is $uri;
                     title is T 'Download [_1].', $name;
-                    img { src is $req->uri_for('/ui/img/download.png') };
+                    img { src is $req->uri_for('/ui/img/download.svg') };
                     span { T 'Archive' };
                 };
             };
@@ -827,7 +827,7 @@ template distribution => sub {
                     ));
                     href is $uri;
                     title is T 'Download the [_1] Metadata.', $name;
-                    img { src is $req->uri_for('/ui/img/info.png') };
+                    img { src is $req->uri_for('/ui/img/info.svg') };
                     span { T 'Metadata' };
                 };
             };

@@ -149,7 +149,7 @@ label.invalid:after
 { border:1px solid; margin:10px 4px; padding:15px 10px 15px 50px; background-repeat:no-repeat; background-position:.65em .65em;}
 
 .info, .why
-{ color:#00529b; background-color:#bde5f8; background-image:url(/ui/img/info.png);}
+{ color:#00529b; background-color:#bde5f8; background-image:url(/ui/img/info.svg); background-size:32px;}
 
 .success
 { color:#4f8a10; background-color:#dff2bf; background-image:url(/ui/img/ok.svg); background-size:32px;}
@@ -207,7 +207,7 @@ table th .control
 table th .control img
 {margin-right:2px;}
 
-#userlist .userinfo {display:none;background:transparent url(/ui/img/bubup.png) 34px 0 no-repeat;margin:0;width:20em;padding-top:12px;}
+#userlist .userinfo {display:none;background:transparent url(/ui/img/bubup.svg) 34px 0 no-repeat;margin:0;width:20em;padding-top:12px;z-index:10}
 #userlist .userinfo .why {padding-bottom:0;margin-right:0;margin:0;}
 #userlist .userinfo blockquote {margin-left:-40px;margin-right:10px;font-style:italic;font-size:80%}
 #userlist .userinfo blockquote p {white-space:pre-wrap;}
@@ -226,7 +226,7 @@ table th .control img
 #distlinks li
 {margin:0 0 .5em 0;}
 #distlinks img
-{border:0;vertical-align:middle;}
+{border:0;vertical-align:middle;width:32px;}
 
 #content p.dist
 {width:440px;}

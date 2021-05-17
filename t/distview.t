@@ -157,7 +157,7 @@ test_psgi $app => sub {
                     $tx->is('count(./*)', 2, '............ Should have two subelements');
                     $tx->is(
                         './img/@src',
-                        $req->uri_for('/ui/img/download.png'),
+                        $req->uri_for('/ui/img/download.svg'),
                         'Should have download image'
                     );
                     $tx->is(
@@ -209,7 +209,7 @@ test_psgi $app => sub {
                     $tx->is('count(./*)', 2, '............ Should have two subelements');
                     $tx->is(
                         './img/@src',
-                        $req->uri_for('/ui/img/info.png'),
+                        $req->uri_for('/ui/img/info.svg'),
                         'Should have info image'
                     );
                     $tx->is(

@@ -266,8 +266,8 @@ test_psgi +PGXN::Manager::Router->app => sub {
                                     );
                                     $tx->is(
                                         './@src',
-                                        $req->uri_for('/ui/img/accept.png'),
-                                        '..................... Source should be accept.png'
+                                        $req->uri_for('/ui/img/accept.svg'),
+                                        '..................... Source should be accept.svg'
                                     );
                                 }
                             );
@@ -327,8 +327,8 @@ test_psgi +PGXN::Manager::Router->app => sub {
                                     );
                                     $tx->is(
                                         './@src',
-                                        $req->uri_for('/ui/img/remove.png'),
-                                        '..................... Source should be remove.png'
+                                        $req->uri_for('/ui/img/remove.svg'),
+                                        '..................... Source should be remove.svg'
                                     );
                                 }
                             );
@@ -467,8 +467,8 @@ test_psgi +PGXN::Manager::Router->app => sub {
                                     );
                                     $tx->is(
                                         './@src',
-                                        $req->uri_for('/ui/img/accept.png'),
-                                        '..................... Source should be accept.png'
+                                        $req->uri_for('/ui/img/accept.svg'),
+                                        '..................... Source should be accept.svg'
                                     );
                                 }
                             );
@@ -528,8 +528,8 @@ test_psgi +PGXN::Manager::Router->app => sub {
                                     );
                                     $tx->is(
                                         './@src',
-                                        $req->uri_for('/ui/img/remove.png'),
-                                        '..................... Source should be remove.png'
+                                        $req->uri_for('/ui/img/remove.svg'),
+                                        '..................... Source should be remove.svg'
                                     );
                                 }
                             );
