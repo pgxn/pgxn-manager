@@ -96,7 +96,7 @@ test_psgi +PGXN::Manager::Router->app => sub {
                 q{Hit the green ✚ add a new mirror.}
             ), '...... First should be the add item');
             $tx->is('./li[2]', $mt->maketext(
-                q{Hit the green ➔ to edit an existing mirror.}
+                q{Hit the green ▶ to edit an existing mirror.}
             ), '...... Second should be the edit item');
             $tx->is('./li[3]', $mt->maketext(
                 q{Hit the red ▬ to delete an existing mirror.}

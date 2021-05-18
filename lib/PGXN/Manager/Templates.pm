@@ -1166,7 +1166,7 @@ template show_mirrors => sub {
         };
         ul {
             li { T q{Hit the green ✚ add a new mirror.}};
-            li { T q{Hit the green ➔ to edit an existing mirror.}};
+            li { T q{Hit the green ▶ to edit an existing mirror.}};
             li { T q{Hit the red ▬ to delete an existing mirror.}};
         };
         table {
