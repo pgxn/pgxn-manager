@@ -807,8 +807,6 @@ template distribution => sub {
     );
 
     wrapper {
-        h1 { $name };
-        p { class is 'abstract'; $dist->{abstract} };
         ul {
             id is 'distlinks';
             li {
@@ -852,6 +850,8 @@ template distribution => sub {
                 };
             };
         };
+        h1 { $name };
+        p { class is 'abstract'; $dist->{abstract} };
         if (delete $req->session->{success}) {
             p {
                 class is 'success dist';
