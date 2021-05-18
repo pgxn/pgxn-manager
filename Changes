@@ -1,6 +1,8 @@
 Revision history for Perl extension PGXN::Manager
 
 0.20.2
+       - Switched to a more appropriate README icon in the distribution view,
+         and changed the background color for a bit more contrast.
 
 0.20.1   2021-05-18T01:56:15Z
        - Removed the `Capfile` and `eg` directory from the source (and

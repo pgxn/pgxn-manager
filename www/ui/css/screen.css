@@ -222,7 +222,7 @@ table th .control img
 #content dd li {padding-top:.1em;}
 
 #distlinks
-{ border:1px solid; margin:10px 4px; padding:15px 10px 15px 50px;color:#00529b;background-color:#bde5f8;width:8em;list-style:none;padding:10px;margin:0;float:right;}
+{ border:1px solid; margin:10px 4px; padding:15px 10px 15px 50px;color:#aaa;background-color:#ffc;width:8em;list-style:none;padding:10px;margin:0;float:right;}
 #distlinks li
 {margin:0 0 .5em 0;}
 #distlinks img

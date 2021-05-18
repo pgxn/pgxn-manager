@@ -834,7 +834,7 @@ template distribution => sub {
                         ));
                         href is $uri;
                         title is T 'Download the [_1] README.', $name;
-                        img { src is $req->uri_for('/ui/img/warning.svg') };
+                        img { src is $req->uri_for('/ui/img/document.svg') };
                         span { T 'README' };
                     };
                 };
