@@ -637,8 +637,8 @@ template moderate => sub {
                         cell {
                             class is 'actions';
                             for my $spec (
-                                [accept => 'active' ],
-                                [remove => 'deleted' ],
+                                [accept => 'active', T 'Approve account for "[_1]"', $user->{nickname} ],
+                                [remove => 'deleted', T 'Reject account for "[_1]"', $user->{nickname} ],
                             ) {
                                 form {
                                     class is $spec->[0];
@@ -654,6 +654,7 @@ template moderate => sub {
                                         class is 'button';
                                         type is 'image';
                                         name is 'submit';
+                                        title is $spec->[2];
                                         src is $req->uri_for("/ui/img/$spec->[0].svg")
                                     };
                                 };

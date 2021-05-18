@@ -4,7 +4,7 @@ use 5.10.0;
 use utf8;
 BEGIN { $ENV{EMAIL_SENDER_TRANSPORT} = 'Test' }
 
-use Test::More tests => 289;
+use Test::More tests => 291;
 #use Test::More 'no_plan';
 use Plack::Test;
 use HTTP::Request::Common;
@@ -269,6 +269,11 @@ test_psgi +PGXN::Manager::Router->app => sub {
                                         $req->uri_for('/ui/img/accept.svg'),
                                         '..................... Source should be accept.svg'
                                     );
+                                    $tx->is(
+                                        './@title',
+                                        $mt->maketext('Approve account for "[_1]"', 'bob'),
+                                        '..................... Title should be be to approve user',
+                                    );
                                 }
                             );
                         });
@@ -329,6 +334,11 @@ test_psgi +PGXN::Manager::Router->app => sub {
                                         './@src',
                                         $req->uri_for('/ui/img/remove.svg'),
                                         '..................... Source should be remove.svg'
+                                    );
+                                    $tx->is(
+                                        './@title',
+                                        $mt->maketext('Reject account for "[_1]"', 'bob'),
+                                        '..................... Title should be be to reject user',
                                     );
                                 }
                             );

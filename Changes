@@ -1,12 +1,18 @@
 Revision history for Perl extension PGXN::Manager
 
 0.20.1
-       - Removed the `Capfile` and `eg` directory from the source (and distribution).
-         Examples for managing PGXN can now be found in the pgxn/pgxn-ops
-         repository on GitHub.
-       - Replaced all icons with SVG icons from the icons8/flat-color-icons project.
+       - Removed the `Capfile` and `eg` directory from the source (and
+         distribution). Examples for managing PGXN can now be found in the
+         pgxn/pgxn-ops repository on GitHub.
+       - Replaced all icons with SVG icons from the icons8/flat-color-icons
+         project.
        - Updated the favicons for best support on modern browsers, including
-         SVG and ICO variants, as well as special cases for iOS and Android devices.
+         SVG and ICO variants, as well as special cases for iOS and Android
+         devices.
+       - Added titles to new account moderation buttons.
+       - Improved the layout of the new account request userinfo popover so
+         that it is in front of everything else and does not overlap with the
+         side nav.
 
 0.20.0   2021-05-12T02:15:41Z
        - Explicitly loading Email::Address in PGXN::Manager::Controller

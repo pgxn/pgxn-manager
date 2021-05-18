@@ -26,6 +26,8 @@ our %Lexicon = (
     '"[_1]" is missing the required [numerate,_2,key] [qlist,_3] under [_4]' => '“[_1]” is missing the required [numerate,_2,key] [qlist,_3] under [_4]',
     '"[_1]" is an invalid distribution name' => '“[_1]” is not a valid distribution name. Distribution names must be at least two characters and may not contain unprintable or whitespace characters or /, \\, or :.',
     howto_page_title => 'How to create PostgreSQL extensions and distribute them on PGXN',
+    'Approve account for "[_1]"' => 'Approve account for “[_1]“',
+    'Reject account for "[_1]"' => 'Approve account for “[_1]“',
     # multimarkdown doc/howto.md | perl -pe 's/([\[\]])/~$1/g'
     howto_body => q`<p>PGXN is the PostgreSQL Extension Network. If you&#8217;re a PostgreSQL developer,
 you&#8217;ve no doubt created customizations to make your life simpler. This is

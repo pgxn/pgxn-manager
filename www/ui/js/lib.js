@@ -40,7 +40,7 @@ PGXN.init_moderate = function () {
             var bub = $(this).next();
             bub.css({
                 position:'absolute',
-                left:$(this).offset().left - 64,
+                // left:$(this).offset().left - 64,
                 top:$(this).offset().top + 21
             }).toggle();
             bub.click(function () { $(this).hide() });
@@ -79,7 +79,3 @@ PGXN.init_mirrors = function () {
         $('.actions .button').click(function (e) { PGXN.ajax_click(e, this, '#mirrorlist') });
     });
 };
-
-
-
-
