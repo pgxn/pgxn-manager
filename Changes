@@ -1,6 +1,6 @@
 Revision history for Perl extension PGXN::Manager
 
-0.20.1
+0.20.1   2021-05-18T01:56:15Z
        - Removed the `Capfile` and `eg` directory from the source (and
          distribution). Examples for managing PGXN can now be found in the
          pgxn/pgxn-ops repository on GitHub.
