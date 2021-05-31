@@ -1,6 +1,8 @@
 #!/usr/bin/env perl -w
 
 use 5.10.0;
+use strict;
+use warnings;
 use utf8;
 BEGIN { $ENV{EMAIL_SENDER_TRANSPORT} = 'Test' }
 
@@ -375,7 +377,7 @@ test_psgi $app => sub {
     ok !$res->is_redirect, 'It should not be a redirect response';
     is $res->code, 409, 'Should have 409 status code';
 
-    is @{ Email::Sender::Simple->default_transport->deliveries },
+    is +Email::Sender::Simple->default_transport->deliveries,
         0, 'No email should have been sent';
 
     # So check the content.
@@ -464,7 +466,7 @@ test_psgi $app => sub {
         ]
     )), 'POST yodude via Ajax to /register';
     is $res->code, 409, 'Should have 409 status code';
-    is @{ Email::Sender::Simple->default_transport->deliveries },
+    is +Email::Sender::Simple->default_transport->deliveries,
         0, 'No email should have been sent';
 
     is $res->content,
@@ -486,7 +488,7 @@ test_psgi $app => sub {
     ok !$res->is_redirect, 'It should not be a redirect response';
     is $res->code, 400, 'Should have 400 status code';
 
-    is @{ Email::Sender::Simple->default_transport->deliveries },
+    is +Email::Sender::Simple->default_transport->deliveries,
         0, 'No email should have been sent';
 
     # So check the content.
@@ -525,7 +527,7 @@ test_psgi $app => sub {
     ok !$res->is_redirect, 'It should not be a redirect response';
     is $res->code, 400, 'Should have 400 status code';
 
-    is @{ Email::Sender::Simple->default_transport->deliveries },
+    is +Email::Sender::Simple->default_transport->deliveries,
         0, 'No email should have been sent';
 
     # So check the content.
@@ -563,7 +565,7 @@ test_psgi $app => sub {
     ok !$res->is_redirect, 'It should not be a redirect response';
     is $res->code, 400, 'Should have 400 status code';
 
-    is @{ Email::Sender::Simple->default_transport->deliveries },
+    is +Email::Sender::Simple->default_transport->deliveries,
         0, 'No email should have been sent';
 
     # So check the content.
@@ -601,7 +603,7 @@ test_psgi $app => sub {
     ok !$res->is_redirect, 'It should not be a redirect response';
     is $res->code, 400, 'Should have 400 status code';
 
-    is @{ Email::Sender::Simple->default_transport->deliveries },
+    is +Email::Sender::Simple->default_transport->deliveries,
         0, 'No email should have been sent';
 
     # So check the content.
@@ -639,7 +641,7 @@ test_psgi $app => sub {
     ok !$res->is_redirect, 'It should not be a redirect response';
     is $res->code, 400, 'Should have 400 status code';
 
-    is @{ Email::Sender::Simple->default_transport->deliveries },
+    is +Email::Sender::Simple->default_transport->deliveries,
         0, 'No email should have been sent';
 
     # So check the content.

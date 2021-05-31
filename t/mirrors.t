@@ -1,7 +1,10 @@
 #!/usr/bin/env perl -w
 
 use 5.10.0;
+use strict;
+use warnings;
 use utf8;
+
 use Test::More tests => 532;
 #use Test::More 'no_plan';
 use Plack::Test;

@@ -1,7 +1,10 @@
 #!/usr/bin/env perl -w
 
 use 5.10.0;
+use strict;
+use warnings;
 use utf8;
+
 use Test::More tests => 269;
 #use Test::More 'no_plan';
 use Archive::Zip qw(:ERROR_CODES);
@@ -206,7 +209,7 @@ $mock->mock(_update_meta => $updater);
 # Mock errors so they are returned in a deterministic order.
 my $vmock = Test::MockModule->new('PGXN::Meta::Validator');
 my $errmeth;
-$vmock->mock(errors => sub {  @err = sort $errmeth->(@_); @err });
+$vmock->mock(errors => sub { my @err = sort $errmeth->(@_); @err });
 $errmeth = $vmock->original('errors');
 
 ok $dist = new_dist($distzip), 'Create a distribution with a zip archive again';

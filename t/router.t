@@ -1,7 +1,10 @@
 #!/usr/bin/env perl -w
 
 use 5.10.0;
+use strict;
+use warnings;
 use utf8;
+
 use Test::More tests => 117;
 #use Test::More 'no_plan';
 use Plack::Test;
@@ -143,7 +146,7 @@ test_psgi +PGXN::Manager::Router->app => sub {
         nonesuch
     )) {
         for my $app (qw(pub auth)) {
-            $app_uri = "/$app/$uri";
+            my $app_uri = "/$app/$uri";
             ok my $res = $cb->(GET $app_uri), "Fetch $app_uri";
             is $res->code, 301, "Should get 301 response from $app_uri";
             my $req = PGXN::Manager::Request->new(req_to_psgi($res->request));

@@ -1,7 +1,10 @@
 #!/usr/bin/env perl -w
 
 use 5.10.0;
+use strict;
+use warnings;
 use utf8;
+
 use Test::More tests => 65;
 #use Test::More 'no_plan';
 use JSON::XS;
@@ -127,7 +130,7 @@ ok $pgxn->send_email({
 is_deeply $params, { transport => $pgxn->email_transport },
     'The email params should be correct';
 isa_ok $email, 'Email::MIME', 'The email';
-$headers = { $email->header_pairs };
+my $headers = { $email->header_pairs };
 like delete $headers->{'Content-Type'}, qr{text/plain; charset="?UTF-8"?},
     'The Content Type should be correct';
 is_deeply $headers, {

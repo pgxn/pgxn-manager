@@ -1,7 +1,10 @@
 #!/usr/bin/env perl -w
 
 use 5.10.0;
+use strict;
+use warnings;
 use utf8;
+
 use Test::More tests => 6;
 #use Test::More 'no_plan';
 use HTTP::Request::Common;
@@ -25,7 +28,7 @@ is $req->uri_for('foo'), $base . 'foo', 'uri_for(foo)';
 is $req->uri_for('/foo'), $base . 'foo', 'uri_for(/foo)';
 
 $base = 'http://localhost/hi/';
-my $env = req_to_psgi GET $base . 'app';
+$env = req_to_psgi GET $base . 'app';
 $env->{HTTP_X_SCRIPT_NAME} = '/hi';
 
 ok $req = PGXN::Manager::Request->new($env), 'Create a request to /hi/app';
