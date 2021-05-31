@@ -139,7 +139,7 @@ sub read_meta {
     my $self = shift;
     return $self if $self->distmeta;
 
-    my $zip  = $self->zip;
+    my $zip = $self->zip;
 
     my ($member) = $zip->membersMatching($META_RE);
     unless ($member) {
@@ -148,8 +148,8 @@ sub read_meta {
         ]);
         return;
     }
-
     # Cache the member.
+
     $self->metamemb($member);
 
     # Process the JSON.
@@ -199,29 +199,6 @@ sub normalize {
         $self->modified(1);
     }
 
-    return $self;
-}
-
-sub _update_meta {
-    # Abstract to a CPAN module (and use it in setup_meta() db function, too).
-    my $self = shift;
-    my $mem  = $self->metamemb;
-    my $meta = $self->distmeta;
-    $meta->{generated_by} = 'PGXN::Manager ' . PGXN::Manager->version_string;
-    my $encoder = JSON::XS->new->space_after->allow_nonref->indent->canonical;
-    $mem->contents( "{\n   " . join(",\n   ", map {
-        $encoder->indent( $_ ne 'tags');
-        my $v = $encoder->encode($meta->{$_});
-        chomp $v;
-        $v =~ s/^(?![[{])/   /gm if ref $meta->{$_} && $_ ne 'tags';
-        qq{"$_": $v}
-    } grep {
-        defined $meta->{$_}
-    } qw(
-        name abstract description version maintainer release_status user sha1
-        license prereqs provides tags resources generated_by no_index
-        meta-spec
-    )) . "\n}\n");
     return $self;
 }
 

@@ -5,7 +5,7 @@ use strict;
 use warnings;
 use utf8;
 
-use Test::More tests => 269;
+use Test::More tests => 265;
 #use Test::More 'no_plan';
 use Archive::Zip qw(:ERROR_CODES);
 use HTTP::Headers;
@@ -30,7 +30,7 @@ BEGIN {
 }
 
 can_ok $CLASS, qw(
-    process extract read_meta normalize _update_meta zipit indexit DEMOLISH
+    process extract read_meta normalize zipit indexit DEMOLISH
 );
 
 my $distdir    = File::Spec->catdir(qw(t dist widget));
@@ -201,11 +201,6 @@ is $dist->distmeta, undef, 'But we should have no distmeta';
 
 ##############################################################################
 # Test normalize().
-my $mock = Test::MockModule->new($CLASS);
-my $updated = 0;
-my $updater = sub { $updated++ };
-$mock->mock(_update_meta => $updater);
-
 # Mock errors so they are returned in a deterministic order.
 my $vmock = Test::MockModule->new('PGXN::Meta::Validator');
 my $errmeth;
@@ -222,18 +217,8 @@ ok $dist->metamemb, 'It should have the meta member';
 is $dist->metamemb->fileName, 'widget-0.2.5/META.json',
     'It should be the right file';
 is_deeply $dist->distmeta, $distmeta, 'The distmeta should be unchanged';
-is $updated, 0, 'And _update_meta() should not have been called';
-
-# Let's test _update_meta() while we're here.
-$mock->unmock('_update_meta');
-ok $dist->_update_meta, 'Update the metadata';
-$distmeta->{generated_by} = 'PGXN::Manager ' . PGXN::Manager->version_string;
-use Encode;
-is_deeply decode_json scalar encode_utf8 $dist->metamemb->contents, $distmeta,
+is_deeply decode_json $dist->metamemb->contents, $distmeta,
     'The distmeta should be complete';
-
-# Mock _update_meta again.
-$mock->mock(_update_meta => $updater);
 
 # Try the tarball which has a bogus prefix.
 ok $dist = new_dist($disttgz), 'Create a distribution with a tgz archive again';
@@ -247,12 +232,10 @@ is $dist->metamemb->fileName, 'widget-0.2.5/META.json',
     'It should have its prefix properly updated';
 $distmeta->{generated_by} = 'theory';
 is_deeply $dist->distmeta, $distmeta, 'The distmeta should be unchanged';
-is $updated, 0, 'And _update_meta() should not have been called';
 is_deeply [sort $dist->zip->memberNames ], [
     'widget-0.2.5/',
     map { "widget-0.2.5/$_"} qw(META.json Makefile README widget.sql.in)
 ], 'All of the files should have the new prefix';
-is $updated, 0, '_update_meta() should not have been called';
 
 # Try invalid distribution names.
 my $dmeta = {
@@ -327,7 +310,6 @@ is $dist->localized_error,
     'Should get localized missing keys error';
 
 # Make sure that the "prereq" versions are validated.
-$updated = 0;
 $distmeta->{version} = '2.5.0';
 $distmeta->{prereqs}{runtime}{requires}{PostgreSQL} = '8.0';
 $dzip->memberNamed('widget-0.2.5/META.json')->contents(encode_json $distmeta);
@@ -365,7 +347,6 @@ is $dist->localized_error,
     'And it should localize properly';
 
 # Make sure that the "provides" versions are validated.
-$updated = 0;
 $distmeta->{provides}{widget}{version} = '1.095';
 $dzip->memberNamed('widget-0.2.5/META.json')->contents(encode_json $distmeta);
 $dzip->writeToFileNamed($nonsemzip) == AZ_OK or die 'write error';
