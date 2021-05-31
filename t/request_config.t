@@ -16,18 +16,18 @@ BEGIN {
 
 use PGXN::Manager::Request;
 
-isa_ok my $req = PGXN::Manager::Request->new(req_to_psgi(GET(
-    '/', 'X-Script-Name' => '/hello'
-))), 'PGXN::Manager::Request', 'Request';
+my $base = 'http://localhost/hello/';
+my $env = req_to_psgi GET $base;
+$env->{HTTP_X_SCRIPT_NAME} = '/hello';
 
-my $base = $req->base;
-
+isa_ok my $req = PGXN::Manager::Request->new($env), 'PGXN::Manager::Request', 'Request';
 is $req->uri_for('foo'), $base . 'foo', 'uri_for(foo)';
-is $req->uri_for('/foo'), $base . 'hello/foo', 'uri_for(/foo)';
+is $req->uri_for('/foo'), $base . 'foo', 'uri_for(/foo)';
 
-ok $req = PGXN::Manager::Request->new(req_to_psgi(GET(
-    '/app', 'X-Script-Name' => '/hi'
-))), 'Create a request to /app';
+$base = 'http://localhost/hi/';
+my $env = req_to_psgi GET $base . 'app';
+$env->{HTTP_X_SCRIPT_NAME} = '/hi';
 
-is $req->uri_for('foo'), $base . 'app/foo', 'app uri_for(foo)';
-is $req->uri_for('/foo'), $base . 'hi/foo', 'app uri_for(/foo)';
+ok $req = PGXN::Manager::Request->new($env), 'Create a request to /hi/app';
+is $req->uri_for('foo'), $base . 'foo', 'app uri_for(foo)';
+is $req->uri_for('/foo'), $base . 'foo', 'app uri_for(/foo)';

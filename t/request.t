@@ -2,7 +2,7 @@
 
 use 5.10.0;
 use utf8;
-use Test::More tests => 50;
+use Test::More tests => 52;
 #use Test::More 'no_plan';
 use HTTP::Request::Common;
 use HTTP::Message::PSGI;
@@ -14,22 +14,26 @@ BEGIN {
     use_ok 'PGXN::Manager::Request';
 }
 
+##############################################################################
+# Test uri_for()
 isa_ok my $req = PGXN::Manager::Request->new(req_to_psgi(GET '/')),
     'PGXN::Manager::Request', 'Request';
 isa_ok $req, 'Plack::Request', 'It also';
-
-##############################################################################
-# Test uri_for()
 my $base = $req->base;
 
 is $req->uri_for('foo'), $base . 'foo', 'uri_for(foo)';
 is $req->uri_for('/foo'), $base . 'foo', 'uri_for(/foo)';
+is $req->uri_for('/ex/http://foo.com/'), $base . 'ex/http://foo.com/',
+    'uri_for(ex/http://foo.com/';
 
-ok $req = PGXN::Manager::Request->new(req_to_psgi(GET '/app')),
-    'Create a request to /app';
+ok $req = PGXN::Manager::Request->new(
+    req_to_psgi(GET('/app'), SCRIPT_NAME => '/app')
+), 'Create a request to / under script /app';
 
 is $req->uri_for('foo'), $base . 'app/foo', 'app uri_for(foo)';
-is $req->uri_for('/foo'), $base . 'foo', 'app uri_for(/foo)';
+is $req->uri_for('/foo'), $base . 'app/foo', 'app uri_for(/foo)';
+is $req->uri_for('/ex/http://foo.com/'), $base . 'app/ex/http://foo.com/',
+    'app uri_for(ex/http://foo.com/';
 
 is $req->uri_for('foo', bar => 'baz'), $base . 'app/foo?bar=baz',
     'uri_for(foo, bar => baz)';

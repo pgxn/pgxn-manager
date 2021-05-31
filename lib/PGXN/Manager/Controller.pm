@@ -263,7 +263,7 @@ sub register {
                       . $uri
                       . $twit
                       . "   Reason:\n\n$why\n\n"
-                      . "Moderate at " . $req->uri_for('admin/moderate') . ".\n"
+                      . "Moderate at " . $req->uri_for('/admin/moderate') . ".\n"
             });
 
             return $self->respond_with('success', $req) if $req->is_xhr;

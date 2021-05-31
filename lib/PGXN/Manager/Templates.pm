@@ -1276,7 +1276,7 @@ template show_mirror => sub {
             id is 'mirrorform';
             if ($update) {
                 # The path has the URL being edited.
-                action is $req->uri_for($req->uri->path, 'x-tunneled-method' => 'put');
+                action is $req->uri_for($req->path_info, 'x-tunneled-method' => 'put');
             } else {
                 action  is $req->uri_for('/admin/mirrors');
             }

@@ -13,17 +13,12 @@ use Encode;
 our $VERSION = v0.20.2;
 
 my $CHECK = Encode::FB_CROAK | Encode::LEAVE_SRC;
-my $script_name_header = PGXN::Manager->config->{uri_script_name_key} || 'SCRIPT_NAME';
+my $SCRIPT_NAME = PGXN::Manager->config->{uri_script_name_key} || 'SCRIPT_NAME';
 
 sub uri_for {
-    my ($self, $path) = (shift, shift);
-    my $uri = $self->base;
-    my $relpath = $self->env->{$script_name_header};
-    if ($path !~ m{^/}) {
-        $relpath = $self->path_info;
-        $relpath .= '/' if $relpath !~ s{/$}{};
-    }
-    $uri->path( $relpath . $path);
+    my $req = shift;
+    my $uri = $req->base;
+    $uri->path($req->env->{$SCRIPT_NAME} . ($_[0] =~ m{^/} ? '' : '/') . shift);
     $uri->query_form([@_], ';') if @_;
     $uri;
 }
@@ -105,21 +100,19 @@ PGXN::Manager.
 
 =head3 C<uri_for>
 
-  my $uri = $req->uri_for('foo', bar => 'baz');
-
-Creates and returns a L<URI> for the specified URI path and query parameters.
-If the path begins with a slash, it is assumed to be an absolute path.
-Otherwise it is assumed to be relative to the current request path. For
-example, if the current request is to C</foo>:
-
-  my $rel = $req->uri_for('bar');  # http://localhost/foo/bar
-  my $abs = $req->uri_for('/yow'); # http://localhost/yow
-
-=head3 C<uri_for>
-
   my $uri = $req->uri_for('/foo', bar => 'baz');
 
-Creates and returns a L<URI>.
+Creates and returns a L<URI> for the specified URI path and query parameters.
+The path is assumed to be an absolute path and to be properly escaped. It will
+be appended to the base path for the app as defined by the script name.
+
+If a proxy server fronting tea app hosts it under a different path, configure
+the proxy to pass that path in a header and tell PGXN::Manager what header to
+look for by setting the `uri_script_name_key` configuration variable. For
+example, if hosting under `/pgxn`, you  might configure the proxy to pass that
+value in the `X-Forwarded-Script-Name` header and set the configuration to
+
+  "uri_script_name_key": "HTTP_X_FORWARDED_SCRIPT_NAME",
 
 =head3 C<respond_with>
 
