@@ -185,10 +185,9 @@ sub normalize {
     }
 
     # Is the prefix right?
-    (my $meta_prefix = $self->metamemb->fileName) =~ s{/$META_RE}{};
+    (my $meta_prefix = $self->metamemb->fileName) =~ s{$META_RE}{};
     $meta_prefix //= '';
-
-    my $prefix = lc "$meta->{name}-$meta->{version}";
+    my $prefix = lc "$meta->{name}-$meta->{version}/";
     if ($meta_prefix ne $prefix) {
         # Rename all members.
         my $old = quotemeta $meta_prefix;

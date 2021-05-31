@@ -6,6 +6,8 @@ Revision history for Perl extension PGXN::Manager
        - Simplified Request::uri_for and fixed the URI included in account
          request emails.
        - Removed unused method from PGXN::Manager::Distribution.
+       - Fixed an issue processing uploaded files with no directory prefix.
+         Thanks to Damien Clochard for the test case.
 
 0.20.1   2021-05-18T01:56:15Z
        - Removed the `Capfile` and `eg` directory from the source (and
