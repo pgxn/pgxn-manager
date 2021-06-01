@@ -18,7 +18,7 @@ use Net::Twitter::Lite::WithAPIv1_1;
 use Email::Sender::Simple;
 use namespace::autoclean;
 
-our $VERSION = v0.20.2;
+our $VERSION = v0.20.3;
 
 =head1 Name
 

@@ -10,7 +10,7 @@ use PGXN::Manager::Controller;
 use PGXN::Manager;
 use Encode;
 
-our $VERSION = v0.20.2;
+our $VERSION = v0.20.3;
 
 sub app {
     builder {

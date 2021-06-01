@@ -1,5 +1,7 @@
 Revision history for Perl extension PGXN::Manager
 
+0.20.3
+
 0.20.2   2021-06-01T01:48:32Z
        - Switched to a more appropriate README icon in the distribution view,
          and changed the background color for a bit more contrast.
