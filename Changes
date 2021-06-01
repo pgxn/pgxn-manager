@@ -1,9 +1,9 @@
 Revision history for Perl extension PGXN::Manager
 
-0.20.2
+0.20.2   2021-06-01T01:48:32Z
        - Switched to a more appropriate README icon in the distribution view,
          and changed the background color for a bit more contrast.
-       - Simplified Request::uri_for and fixed the URI included in account
+       - Simplified Request->uri_for and fixed the URI included in account
          request emails.
        - Removed unused method from PGXN::Manager::Distribution.
        - Fixed an issue processing uploaded files with no directory prefix.
