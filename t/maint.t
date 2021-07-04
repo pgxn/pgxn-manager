@@ -34,6 +34,7 @@ can_ok $CLASS => qw(
     update_users
     reindex
     reindex_all
+    reset_password
     _write_json_to
     DEMOLISH
     _pod2usage
@@ -59,6 +60,10 @@ END {
 # Instantiate and test config.
 my $maint = new_ok $CLASS;
 my %defopts = (
+    admin     => '',
+    expires   => '2 days',
+    reason    => '',
+    base_url  => 'https://manager.pgxn.org',
     help      => undef,
     man       => undef,
     verbosity => 0,

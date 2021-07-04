@@ -14,6 +14,10 @@ our $VERSION = v0.20.3;
 
 has verbosity => (is => 'rw', required => 1, isa => 'Int', default => 0);
 has exitval   => (is => 'rw', required => 0, isa => 'Int', default => 0);
+has admin     => (is => 'ro', required => 0, isa => 'Str', default => '');
+has expires   => (is => 'ro', required => 0, isa => 'Str', default => '2 days');
+has reason    => (is => 'ro', required => 0, isa => 'Str', default => '');
+has base_url  => (is => 'ro', required => 0, isa => 'Str', default => 'https://manager.pgxn.org');
 has workdir   => (is => 'rw', required => 0, isa => 'Str', lazy => 1, default => sub {
     require PGXN::Manager;
     my $tmpdir = PGXN::Manager->new->config->{tmpdir}
@@ -201,6 +205,77 @@ sub reindex_all {
     return $self;
 }
 
+sub reset_password {
+    my ($self, @args) = @_;
+    my $pgxn = PGXN::Manager->instance;
+    my $exit = 0;
+    my $admin   = $self->admin;
+    my $expires = $self->expires;
+    my $uri     = URI->new($self->base_url);
+
+    my $msg = '';
+    if (my $reason  = $self->reason) {
+        $msg = <<EOF
+Hello %s,
+
+Your PGXN password has been disabled by an administrator because:
+
+  $reason
+
+Click the link below to reset your PGXN password. But do it soon! This
+link will expire in $expires:
+
+  %s
+
+Best,
+
+PGXN Management
+EOF
+    } else {
+        $msg = <<EOF
+Hello %s,
+
+Your password has been disabled by an administrator Click the link below to
+reset your PGXN password. But do it soon! This link will expire in $expires:
+
+  %s
+
+Best,
+
+PGXN Management
+EOF
+    }
+
+    for my $nick (@args) {
+        print "$nick... ";
+        my $token = $pgxn->conn->run(sub {
+            shift->selectcol_arrayref(
+                'SELECT clear_password(?, ?, ?)',
+                undef, $admin, $nick, $expires,
+            )->[0];
+        });
+        unless ($token) {
+            say '🚫 Error: Unknown nickname';
+            $exit += 1;
+            next;
+        }
+
+        # Create and send the email.
+        $uri->path("/account/reset/$token->[0]");
+        $pgxn->send_email({
+            from    => $pgxn->config->{admin_email},
+            to      => $token->[1],
+            subject => 'Reset Your PGXN Password',
+            body    => sprintf $msg, $nick, $uri
+        });
+        say '✅ Sent!';
+    }
+
+    # Exit with an error if any nicks were unknown.
+    $self->exitval($exit % 255 || 255) if $exit;
+    return $self;
+}
+
 sub _write_json_to {
     my ($self, $json, $fn) = @_;
     make_path dirname $fn;
@@ -235,10 +310,18 @@ sub _config {
 
     my %opts = (
         verbosity => 0,
+        admin     => '',
+        expires   => '2 days',
+        reason    => '',
+        base_url  => 'https://manager.pgxn.org',
     );
 
     Getopt::Long::GetOptions(
         'env|E=s'    => \my $env,
+        'admin|a=s'  => \$opts{admin},
+        'expires=s'  => \$opts{expires},
+        'reason=s'   => \$opts{reason},
+        'base-url=s' => \$opts{base_url},
         'verbose|V+' => \$opts{verbosity},
         'help|h'     => \$opts{help},
         'man|M'      => \$opts{man},
@@ -387,6 +470,15 @@ arguments, it reindexes every distribution in the system. That's not to be
 undertaken lightly if you have a lot of distributions. If you need to update
 only a few, pass their names. If you need to reindex only specific versions of
 a distribution, use C<reindex> instead.
+
+=head3 C<reset_password>
+
+  $maint->reset_password($nickname);
+  $maint->reset_password(@nicknames);
+
+Resets the password for the specified nickname or list of nicknames, setting each
+password to a random string and sending the user an email with a link to set a new
+password.
 
 =head2 Instance Accessors
 

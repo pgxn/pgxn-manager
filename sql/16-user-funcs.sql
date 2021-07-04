@@ -158,7 +158,7 @@ BEGIN
        AND users.status   = 'active';
     IF NOT FOUND THEN RETURN NULL; END IF; -- Should not happen
     
-    -- Update the token to last for the reset interval.
+    -- Update the token to expire after the reset interval.
     UPDATE tokens set expires_at = NOW() + reset_span WHERE token = reset[1];
     IF NOT FOUND THEN RETURN NULL; END IF; -- Should not happen
 
