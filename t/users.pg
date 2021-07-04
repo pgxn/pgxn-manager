@@ -1,5 +1,5 @@
 BEGIN;
-SELECT plan(232);
+SELECT plan(233);
 --SELECT * FROM no_plan();
 
 SELECT has_enum('status');
@@ -215,9 +215,9 @@ SELECT is(
 
 -- Try a too-short password.
 SELECT throws_ok(
-    $$ SELECT insert_user('foo', 'as', NULL) $$,
+    $$ SELECT insert_user('foo', 'ascan', NULL) $$,
     'P0001',
-    'Password must be at least four characters long',
+    'Password must be at least eight characters long',
     'Should get exception for a too-short password'
 );
 
@@ -736,6 +736,13 @@ SELECT is(
     '2010-08-23 11:01:03.306399+00',
     'Strongrrl visted_at should now be updated'
 ) FROM users WHERE nickname = 'strongrrl';
+
+-- Try a password using an older algorithm.
+UPDATE users SET password = crypt('winter is coming', gen_salt('des'));
+SELECT ok(
+    authenticate_user('strongrrl', 'winter is coming'),
+    'authenticate(user, pass) should return true for old hash'
+);
 
 /*****************************************************************************/
 -- Try with limited permission role.
