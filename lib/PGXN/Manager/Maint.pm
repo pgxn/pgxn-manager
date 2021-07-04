@@ -18,7 +18,7 @@ has expires   => (is => 'ro', required => 0, isa => 'Str', default => '2 days');
 has reason    => (is => 'ro', required => 0, isa => 'Str', default => '');
 has base_url  => (is => 'ro', required => 0, isa => 'Str', default => 'https://manager.pgxn.org');
 
-has admin     => (is => 'ro', required => 0, isa => 'Str', lazy => 1, default => sub {
+has admin  => (is => 'ro', required => 0, isa => 'Str', lazy => 1, default => sub {
     # Adapted from Sqitch.pm.
     require Encode::Locale;
     return Encode::decode( locale => getlogin )
@@ -32,7 +32,7 @@ has admin     => (is => 'ro', required => 0, isa => 'Str', lazy => 1, default =>
         };
 });
 
-has workdir   => (is => 'rw', required => 0, isa => 'Str', lazy => 1, default => sub {
+has workdir => (is => 'rw', required => 0, isa => 'Str', lazy => 1, default => sub {
     require PGXN::Manager;
     my $tmpdir = PGXN::Manager->new->config->{tmpdir}
         || File::Spec->catdir(File::Spec->tmpdir, 'pgxn');

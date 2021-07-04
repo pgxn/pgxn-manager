@@ -84,6 +84,7 @@ $class->new(
         'Email::Sender::Simple'             => '0.102370',
         'Email::Address'                    => '1.892',
         'Encode'                            => '2.40',
+        'Encode::Locale'                    => '1.05',
         'Exception::Class::DBI'             => '1.00',
         'File::Basename'                    => '2.77',
         'File::Copy'                        => '2.14',
