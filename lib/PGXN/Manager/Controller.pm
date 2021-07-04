@@ -227,7 +227,7 @@ sub register {
             $_->do(
                 q{SELECT insert_user(
                     nickname  := ?,
-                    password  := rand_str_of_len(5),
+                    password  := rand_str_of_len(64),
                     full_name := ?,
                     email     := ?,
                     why       := ?,

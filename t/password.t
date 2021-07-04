@@ -41,7 +41,7 @@ test_psgi $app => sub {
 test_psgi +PGXN::Manager::Router->app => sub {
     my $cb   = shift;
     my $user = TxnTest->user;
-    my $req  = GET $uri, Authorization => 'Basic ' . encode_base64("$user:****");
+    my $req  = GET $uri, Authorization => 'Basic ' . encode_base64("$user:test-passW0rd");
 
     ok my $res = $cb->($req), "Get $uri with auth token";
     ok $res->is_success, 'Response should be success';
@@ -145,9 +145,9 @@ test_psgi $app => sub {
     my $user   = TxnTest->user;
     ok my $res = $cb->(POST(
         $uri,
-        Authorization => 'Basic ' . encode_base64("$user:****"),
+        Authorization => 'Basic ' . encode_base64("$user:test-passW0rd"),
         Content       => [
-            old_pass  => '****',
+            old_pass  => 'test-passW0rd',
             new_pass  => 'whatevs',
             new_pass2 => 'whatevs',
         ],
@@ -200,7 +200,7 @@ test_psgi $app => sub {
         $uri,
         Authorization => 'Basic ' . encode_base64("$user:dood"),
         Content       => [
-            old_pass  => '****',
+            old_pass  => 'test-passW0rd',
             new_pass  => 'whatevs',
             new_pass2 => 'whatever',
         ],
@@ -241,7 +241,7 @@ test_psgi $app => sub {
         Authorization => 'Basic ' . encode_base64("$user:dood"),
         'X-Requested-With' => 'XMLHttpRequest',
         Content       => [
-            old_pass  => '****',
+            old_pass  => 'test-passW0rd',
             new_pass  => 'whatevs',
             new_pass2 => 'whatever',
         ],
@@ -268,7 +268,7 @@ test_psgi $app => sub {
         $uri,
         Authorization => 'Basic ' . encode_base64("$user:dood"),
         Content       => [
-            old_pass  => '****',
+            old_pass  => 'test-passW0rd',
             new_pass  => 'hi',
             new_pass2 => 'hi',
         ],
@@ -309,7 +309,7 @@ test_psgi $app => sub {
         Authorization => 'Basic ' . encode_base64("$user:dood"),
         'X-Requested-With' => 'XMLHttpRequest',
         Content       => [
-            old_pass  => '****',
+            old_pass  => 'test-passW0rd',
             new_pass  => 'hi',
             new_pass2 => 'hi',
         ],
@@ -336,7 +336,7 @@ test_psgi $app => sub {
         $uri,
         Authorization => 'Basic ' . encode_base64("$user:dood"),
         Content       => [
-            old_pass  => '****',
+            old_pass  => 'test-passW0rd',
             new_pass  => 'hihi',
             new_pass2 => 'hihi',
         ],
@@ -375,7 +375,7 @@ test_psgi $app => sub {
     my $user   = TxnTest->user;
     ok my $res = $cb->(POST(
         $uri,
-        Authorization => 'Basic ' . encode_base64("$user:****"),
+        Authorization => 'Basic ' . encode_base64("$user:test-passW0rd"),
         'X-Requested-With' => 'XMLHttpRequest',
         Content       => [
             old_pass  => 'dood',
@@ -392,7 +392,7 @@ test_psgi $app => sub {
     PGXN::Manager->conn->run(sub {
         ok $_->selectcol_arrayref(
             'SELECT authenticate_user(?, ?)',
-            undef, $user, '****'
+            undef, $user, 'test-passW0rd'
         )->[0], 'The password still should not have been changed';
     });
 };

@@ -170,7 +170,7 @@ SELECT throws_like(
 
 -- Try a different user and token.
 SELECT ok(
-    insert_user('strongrrl', 'whatevs', email := 'strongrrl@pgxn.org'),
+    insert_user('strongrrl', 'whatevs u say', email := 'strongrrl@pgxn.org'),
     'Insert user "strongrrl"'
 );
 UPDATE users SET status = 'active' WHERE nickname = 'strongrrl';
@@ -224,31 +224,31 @@ SELECT ok(
 );
 
 SELECT ok(
-    NOT reset_password('whatevs', '****'),
+    NOT reset_password('whatevs u say', 'test-passW0rd'),
     'Should get false from reset_password() for invalid token'
 );
 
 UPDATE users SET status = 'inactive' WHERE nickname = 'theory';
 SELECT ok(
-    NOT reset_password('foobar', '****'),
+    NOT reset_password('foobar', 'test-passW0rd'),
     'Should get false from reset_password() for inactive user'
 );
 
 UPDATE users SET status = 'deleted' WHERE nickname = 'theory';
 SELECT ok(
-    NOT reset_password('foobar', '****'),
+    NOT reset_password('foobar', 'test-passW0rd'),
     'Should get false from reset_password() for deleted user'
 );
 
 UPDATE users SET status = 'new' WHERE nickname = 'theory';
 SELECT ok(
-    NOT reset_password('foobar', '****'),
+    NOT reset_password('foobar', 'test-passW0rd'),
     'Should get false from reset_password() for new user'
 );
 
 UPDATE users SET status = 'active' WHERE nickname = 'theory';
 SELECT ok(
-    reset_password('foobar', '****'),
+    reset_password('foobar', 'test-passW0rd'),
     'Should get true from reset_password() for valid token and active user'
 );
 
@@ -258,7 +258,7 @@ SELECT is( count(*)::int, 0, 'The token should be gone')
 
 SELECT is(
     password,
-    crypt('****', password),
+    crypt('test-passW0rd', password),
     'And the password should have been chnaged'
 ) FROM users WHERE nickname = 'theory';
 
@@ -270,7 +270,7 @@ SELECT is( count(*)::int, 1, 'We should have a "howdy" token')
   FROM tokens WHERE token = 'howdy';
 
 SELECT is(
-    reset_password('howdy', '****'),
+    reset_password('howdy', 'test-passW0rd'),
     false,
     'Should get false from reset_password() for expired token'
 );
@@ -280,7 +280,7 @@ SELECT is( count(*)::int, 1, 'We should still have a "howdy" token')
 
 SELECT is(
     password,
-    crypt('whatevs', password),
+    crypt('whatevs u say', password),
     'And the password should have been changed'
 ) FROM users WHERE nickname = 'strongrrl';
 
@@ -297,7 +297,7 @@ SELECT is( count(*)::int, 1, 'We should still have a "booyah" token')
 
 SELECT is(
     password,
-    crypt('****', password),
+    crypt('test-passW0rd', password),
     'And the password should not have been chnaged'
 ) FROM users WHERE nickname = 'theory';
 

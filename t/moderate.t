@@ -44,7 +44,7 @@ test_psgi $app => sub {
 # Authenticate a non-admin user.
 test_psgi +PGXN::Manager::Router->app => sub {
     my $cb  = shift;
-    my $req = GET $uri, Authorization => 'Basic ' . encode_base64("$user:****");
+    my $req = GET $uri, Authorization => 'Basic ' . encode_base64("$user:test-passW0rd");
 
     ok my $res = $cb->($req), "Get $uri with auth token";
     is $res->code, 403, 'Should get 403 response';
@@ -73,18 +73,18 @@ PGXN::Manager->conn->run(sub {
     my $dbh = shift;
     $dbh->do(
         'SELECT insert_user(?, ?, email := ?, uri := ?, full_name := ?, why := ?)',
-        undef, 'joe', '****', 'joe@pgxn.org', 'http://foo.com/', 'Joe Dög', 'I am awesome',
+        undef, 'joe', 'test-passW0rd', 'joe@pgxn.org', 'http://foo.com/', 'Joe Dög', 'I am awesome',
     );
     $dbh->do(
         'SELECT insert_user(?, ?, email := ?, why := ?)',
-        undef, 'bob', '****', 'bob@pgxn.org', 'You want me',
+        undef, 'bob', 'test-passW0rd', 'bob@pgxn.org', 'You want me',
     );
 });
 
 # Authenticate an admin user.
 test_psgi +PGXN::Manager::Router->app => sub {
     my $cb  = shift;
-    my $req = GET $uri, Authorization => 'Basic ' . encode_base64("$admin:****");
+    my $req = GET $uri, Authorization => 'Basic ' . encode_base64("$admin:test-passW0rd");
 
     ok my $res = $cb->($req), "Get $uri with auth token";
     ok $res->is_success, 'Response should be success';
@@ -565,7 +565,7 @@ PGXN::Manager->conn->run(sub {
 # Send the request again.
 test_psgi +PGXN::Manager::Router->app => sub {
     my $cb  = shift;
-    my $req = GET $uri, Authorization => 'Basic ' . encode_base64("$admin:****");
+    my $req = GET $uri, Authorization => 'Basic ' . encode_base64("$admin:test-passW0rd");
 
     ok my $res = $cb->($req), "Get $uri with auth token again";
     ok $res->is_success, 'Response should be success';
@@ -602,7 +602,7 @@ test_psgi +PGXN::Manager::Router->app => sub {
     file_not_exists_ok $json, 'bob.json should not exist';
     my $req  = POST(
         '/admin/user/bob/status',
-        Authorization => 'Basic ' . encode_base64("$admin:****"),
+        Authorization => 'Basic ' . encode_base64("$admin:test-passW0rd"),
         Content => [ status => 'active' ],
     );
 
@@ -666,7 +666,7 @@ test_psgi +PGXN::Manager::Router->app => sub {
     my $req    = POST(
         '/admin/user/joe/status',
         'X-Requested-With' => 'XMLHttpRequest',
-        Authorization => 'Basic ' . encode_base64("$admin:****"),
+        Authorization => 'Basic ' . encode_base64("$admin:test-passW0rd"),
         Content => [status => 'deleted'],
     );
 

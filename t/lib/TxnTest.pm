@@ -51,14 +51,14 @@ sub admin {
     PGXN::Manager->conn->run(sub {
         $_->do(
             'SELECT insert_user(?, ?, email := ?)',
-            undef, 'tmpadmin', '****', 'tmp@pgxn.org',
+            undef, 'tmpadmin', 'test-passW0rd', 'tmp@pgxn.org',
         );
 
         $_->do('SELECT _test_set_admin(?)', undef, 'tmpadmin');
 
         $_->do(
             'SELECT insert_user(?, ?, email := ?)',
-            undef, 'admin', '****', 'admin@pgxn.org',
+            undef, 'admin', 'test-passW0rd', 'admin@pgxn.org',
         );
 
         $_->do('SELECT _test_set_admin(?)', undef, 'admin');
@@ -80,7 +80,7 @@ sub user {
         admin();
         $_->do(
             'SELECT insert_user(?, ?, email := ?)',
-            undef, 'user', '****', 'user@pgxn.org',
+            undef, 'user', 'test-passW0rd', 'user@pgxn.org',
         );
 
         $_->do(

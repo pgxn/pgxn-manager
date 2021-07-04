@@ -52,7 +52,7 @@ test_psgi $app => sub {
 # Connect as non-admin user.
 test_psgi +PGXN::Manager::Router->app => sub {
     my $cb  = shift;
-    my $req = GET $uri, Authorization => 'Basic ' . encode_base64("$user:****");
+    my $req = GET $uri, Authorization => 'Basic ' . encode_base64("$user:test-passW0rd");
 
     ok my $res = $cb->($req), "Get $uri with auth token";
     is $res->code, 403, 'Should get 403 response';
@@ -79,7 +79,7 @@ test_psgi +PGXN::Manager::Router->app => sub {
 # Request a new mirror form as an authenticated user.
 test_psgi +PGXN::Manager::Router->app => sub {
     my $cb  = shift;
-    my $req = GET $uri, Authorization => 'Basic ' . encode_base64("$admin:****");
+    my $req = GET $uri, Authorization => 'Basic ' . encode_base64("$admin:test-passW0rd");
 
     ok my $res = $cb->($req), "Get $uri with auth token";
     ok $res->is_success, 'Response should be success';
@@ -266,7 +266,7 @@ test_psgi $app => sub {
     my $cb = shift;
     my $req = POST(
         $uri,
-        Authorization => 'Basic ' . encode_base64("$admin:****"),
+        Authorization => 'Basic ' . encode_base64("$admin:test-passW0rd"),
         Content       => [
             uri          => 'http://pgxn.justatheory.com/',
             frequency    => 'daily',
@@ -322,7 +322,7 @@ test_psgi $app => sub {
     my $cb = shift;
     my $req = POST(
         $uri,
-        Authorization => 'Basic ' . encode_base64("$admin:****"),
+        Authorization => 'Basic ' . encode_base64("$admin:test-passW0rd"),
         'X-Requested-With' => 'XMLHttpRequest',
         Content       => [
             uri          => 'http://pgxn.kineticode.com/',
@@ -379,7 +379,7 @@ test_psgi $app => sub {
     my $cb = shift;
     my $req = POST(
         $uri,
-        Authorization => 'Basic ' . encode_base64("$admin:****"),
+        Authorization => 'Basic ' . encode_base64("$admin:test-passW0rd"),
         Content       => [
             uri          => 'http://pgxn.justatheory.com/',
             frequency    => 'daily',
@@ -462,7 +462,7 @@ test_psgi $app => sub {
     my $cb = shift;
     my $req = POST(
         $uri,
-        Authorization => 'Basic ' . encode_base64("$admin:****"),
+        Authorization => 'Basic ' . encode_base64("$admin:test-passW0rd"),
         Content       => [],
     );
 
@@ -531,7 +531,7 @@ test_psgi $app => sub {
     my $cb = shift;
     my $req = POST(
         $uri,
-        Authorization => 'Basic ' . encode_base64("$admin:****"),
+        Authorization => 'Basic ' . encode_base64("$admin:test-passW0rd"),
         'X-Requested-With' => 'XMLHttpRequest',
         Content       => [],
     );
@@ -553,7 +553,7 @@ test_psgi $app => sub {
     my $cb = shift;
     my $req = POST(
         $uri,
-        Authorization => 'Basic ' . encode_base64("$admin:****"),
+        Authorization => 'Basic ' . encode_base64("$admin:test-passW0rd"),
         Content       => [
             uri          => 'http://pgxn.justatheory.com/',
             frequency    => 'daily',
@@ -626,7 +626,7 @@ test_psgi $app => sub {
     my $cb = shift;
     my $req = POST(
         $uri,
-        Authorization => 'Basic ' . encode_base64("$admin:****"),
+        Authorization => 'Basic ' . encode_base64("$admin:test-passW0rd"),
         Content       => [
             uri          => 'http://pgxn.justatheory.com/',
             frequency    => 'daily',
@@ -709,7 +709,7 @@ test_psgi $app => sub {
     my $cb = shift;
     my $req = POST(
         $uri,
-        Authorization => 'Basic ' . encode_base64("$admin:****"),
+        Authorization => 'Basic ' . encode_base64("$admin:test-passW0rd"),
         Content       => [
             uri          => 'http://pgxn.justatheory.com/',
             frequency    => 'daily',
@@ -813,7 +813,7 @@ for my $field (qw(uri src rsync)) {
         $content{$field} = 'whatever man';
         my $req = POST(
             $uri,
-            Authorization => 'Basic ' . encode_base64("$admin:****"),
+            Authorization => 'Basic ' . encode_base64("$admin:test-passW0rd"),
             Content       => [%content],
         );
 
@@ -886,7 +886,7 @@ for my $field (qw(uri src rsync)) {
         my $cb = shift;
         my $req = POST(
             $uri,
-            Authorization => 'Basic ' . encode_base64("$admin:****"),
+            Authorization => 'Basic ' . encode_base64("$admin:test-passW0rd"),
             'X-Requested-With' => 'XMLHttpRequest',
             Content       => [%content],
         );

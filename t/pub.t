@@ -76,7 +76,7 @@ my $err_app = sub {
     $env->{'psgix.errordocument.PATH_INFO'} = '/';
     $env->{'psgix.errordocument.SCRIPT_NAME'} = '/foo';
     $env->{'psgix.errordocument.HTTP_HOST'} = 'localhost';
-    $env->{'psgix.errordocument.HTTP_AUTHORIZATION'} = 'Basic ' . encode_base64("user:****");
+    $env->{'psgix.errordocument.HTTP_AUTHORIZATION'} = 'Basic ' . encode_base64("user:test-passW0rd");
     $env->{'plack.stacktrace.text'} = 'This is the trace';
     $app->($env);
 };

@@ -50,7 +50,7 @@ test_psgi $app => sub {
 test_psgi +PGXN::Manager::Router->app => sub {
     my $cb  = shift;
     my $uri = '/admin/mirrors/http://pgxn.justatheory.com/';
-    my $req = GET $uri, Authorization => 'Basic ' . encode_base64("$user:****");
+    my $req = GET $uri, Authorization => 'Basic ' . encode_base64("$user:test-passW0rd");
 
     ok my $res = $cb->($req), "Get $uri with auth token";
     is $res->code, 403, 'Should get 403 response';
@@ -78,7 +78,7 @@ test_psgi +PGXN::Manager::Router->app => sub {
 test_psgi +PGXN::Manager::Router->app => sub {
     my $cb  = shift;
     my $uri = '/admin/mirrors/http://kineticode.com/pgxn/';
-    my $req = GET $uri, Authorization => 'Basic ' . encode_base64("$admin:****");
+    my $req = GET $uri, Authorization => 'Basic ' . encode_base64("$admin:test-passW0rd");
 
     ok my $res = $cb->($req), "Get $uri with auth token";
     is $res->code, 404, 'Should get 404 response';
@@ -108,7 +108,7 @@ create_mirrors();
 test_psgi +PGXN::Manager::Router->app => sub {
     my $cb  = shift;
     my $uri = '/admin/mirrors/http://kineticode.com/pgxn/';
-    my $req = GET $uri, Authorization => 'Basic ' . encode_base64("$admin:****");
+    my $req = GET $uri, Authorization => 'Basic ' . encode_base64("$admin:test-passW0rd");
 
     ok my $res = $cb->($req), "Get $uri with auth token";
     ok $res->is_success, 'Response should be success';
@@ -302,7 +302,7 @@ test_psgi $app => sub {
     my $cb = shift;
     my $req = POST(
         $uri,
-        Authorization => 'Basic ' . encode_base64("$admin:****"),
+        Authorization => 'Basic ' . encode_base64("$admin:test-passW0rd"),
         Content       => [
             uri          => 'http://pgxn.justatheory.com/',
             frequency    => 'daily',
@@ -347,7 +347,7 @@ test_psgi $app => sub {
     my $cb = shift;
     my $req = POST(
         $uri,
-        Authorization => 'Basic ' . encode_base64("$admin:****"),
+        Authorization => 'Basic ' . encode_base64("$admin:test-passW0rd"),
         Content       => [
             uri          => 'http://pgxn.justatheory.com/',
             frequency    => 'daily',
@@ -400,7 +400,7 @@ test_psgi $app => sub {
     my $cb = shift;
     my $req = POST(
         $uri,
-        Authorization => 'Basic ' . encode_base64("$admin:****"),
+        Authorization => 'Basic ' . encode_base64("$admin:test-passW0rd"),
         Content       => [
             uri          => 'http://pgxn.kineticode.com/',
             frequency    => 'daily',
@@ -460,7 +460,7 @@ test_psgi $app => sub {
     my $cb = shift;
     my $req = POST(
         $uri,
-        Authorization => 'Basic ' . encode_base64("$admin:****"),
+        Authorization => 'Basic ' . encode_base64("$admin:test-passW0rd"),
         'X-Requested-With' => 'XMLHttpRequest',
         Content       => [
             uri          => 'http://pgxn.kineticode.com/',
@@ -504,7 +504,7 @@ test_psgi $app => sub {
     my $cb = shift;
     my $req = POST(
         $uri,
-        Authorization => 'Basic ' . encode_base64("$admin:****"),
+        Authorization => 'Basic ' . encode_base64("$admin:test-passW0rd"),
         Content       => [
             uri          => 'http://pgxn.example.com/',
             frequency    => 'hourly',
@@ -592,7 +592,7 @@ test_psgi $app => sub {
     my $uri = '/admin/mirrors/http://kineticode.com/pgxn/?x-tunneled-method=put';
     my $req = POST(
         $uri,
-        Authorization => 'Basic ' . encode_base64("$admin:****"),
+        Authorization => 'Basic ' . encode_base64("$admin:test-passW0rd"),
         Content       => [],
     );
 
@@ -666,7 +666,7 @@ test_psgi $app => sub {
     my $uri = '/admin/mirrors/http://kineticode.com/pgxn/?x-tunneled-method=put';
     my $req = POST(
         $uri,
-        Authorization => 'Basic ' . encode_base64("$admin:****"),
+        Authorization => 'Basic ' . encode_base64("$admin:test-passW0rd"),
         Content       => [
             uri          => 'http://pgxn.justatheory.com/',
             frequency    => 'daily',

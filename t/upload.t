@@ -51,7 +51,7 @@ test_psgi $app => sub {
     my $cb = shift;
     ok my $res = $cb->(GET(
         '/upload',
-        Authorization => 'Basic ' . encode_base64("$user:****"),
+        Authorization => 'Basic ' . encode_base64("$user:test-passW0rd"),
     )), 'Fetch /upload';
     ok $res->is_success, 'Should get a successful response';
     is_well_formed_xml $res->content, 'The HTML should be well-formed';
@@ -166,7 +166,7 @@ test_psgi $app => sub {
     my $cb = shift;
     ok my $res = $cb->(POST(
         '/upload',
-        Authorization => 'Basic ' . encode_base64("$user:****"),
+        Authorization => 'Basic ' . encode_base64("$user:test-passW0rd"),
         Content_Type => 'form-data',
         Content => [ archive => [$distzip] ],
     )), 'POST zip archive to /upload';
@@ -189,7 +189,7 @@ test_psgi $app => sub {
     my $cb = shift;
     ok my $res = $cb->(POST(
         '/upload',
-        Authorization => 'Basic ' . encode_base64("$user:****"),
+        Authorization => 'Basic ' . encode_base64("$user:test-passW0rd"),
         'X-Requested-With' => 'XMLHttpRequest',
         Content_Type => 'form-data',
         Content => [ archive => [$distzip] ],
@@ -209,7 +209,7 @@ test_psgi $app => sub {
     my $cb = shift;
     ok my $res = $cb->(POST(
         '/upload',
-        Authorization => 'Basic ' . encode_base64("$user:****"),
+        Authorization => 'Basic ' . encode_base64("$user:test-passW0rd"),
         Content_Type => 'form-data',
         'X-Requested-With' => 'XMLHttpRequest',
         Accept => 'text/html',
@@ -231,7 +231,7 @@ test_psgi $app => sub {
     my $cb = shift;
     ok my $res = $cb->(POST(
         '/upload',
-        Authorization => 'Basic ' . encode_base64("$user:****"),
+        Authorization => 'Basic ' . encode_base64("$user:test-passW0rd"),
         'X-Requested-With' => 'XMLHttpRequest',
         Content_Type => 'form-data',
         Content => [ archive => [$distzip] ],
@@ -248,7 +248,7 @@ test_psgi $app => sub {
     my $cb = shift;
     ok my $res = $cb->(POST(
         '/upload',
-        Authorization => 'Basic ' . encode_base64(TxnTest->admin . ":****"),
+        Authorization => 'Basic ' . encode_base64(TxnTest->admin . ":test-passW0rd"),
         Content_Type => 'form-data',
         Content => [ archive => [$distzip] ],
     )), 'POST dupe zip with non-owner to /upload';
@@ -277,7 +277,7 @@ test_psgi $app => sub {
     my $cb = shift;
     ok my $res = $cb->(POST(
         '/upload',
-        Authorization => 'Basic ' . encode_base64("$user:****"),
+        Authorization => 'Basic ' . encode_base64("$user:test-passW0rd"),
         Content_Type => 'form-data',
         Content => [ archive => [] ],
     )), 'POST no archive to /upload again';
@@ -298,7 +298,7 @@ test_psgi $app => sub {
     my $cb = shift;
     ok my $res = $cb->(POST(
         '/upload',
-        Authorization => 'Basic ' . encode_base64("$user:****"),
+        Authorization => 'Basic ' . encode_base64("$user:test-passW0rd"),
         'X-Requested-With' => 'XMLHttpRequest',
         Content_Type => 'form-data',
         Content => [ archive => [] ],

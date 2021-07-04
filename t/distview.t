@@ -41,7 +41,7 @@ test_psgi $app => sub {
 # Connect as authenticated user.
 test_psgi $app => sub {
     my $cb  = shift;
-    my $req = GET $uri, Authorization => 'Basic ' . encode_base64("$user:****");
+    my $req = GET $uri, Authorization => 'Basic ' . encode_base64("$user:test-passW0rd");
 
     ok my $res = $cb->($req), "Get $uri with auth token";
     ok !$res->is_success, 'Response should not be success';
@@ -53,7 +53,7 @@ test_psgi $app => sub {
 test_psgi $app => sub {
     my $cb  = shift;
     (my $uri = $uri) =~ s{[^/]+$}{not-a-version};
-    my $req = GET $uri, Authorization => 'Basic ' . encode_base64("$user:****");
+    my $req = GET $uri, Authorization => 'Basic ' . encode_base64("$user:test-passW0rd");
 
     ok my $res = $cb->($req), "Get $uri with auth token";
     ok !$res->is_success, 'Response should not be success';
@@ -119,7 +119,7 @@ ok $dist->process, 'Process the pgTAP-0.35.0 distribution';
 # Okay, now have the user fetch her distribution.
 test_psgi $app => sub {
     my $cb  = shift;
-    my $req = GET $uri, Authorization => 'Basic ' . encode_base64("$user:****");
+    my $req = GET $uri, Authorization => 'Basic ' . encode_base64("$user:test-passW0rd");
 
     ok my $res = $cb->($req), "Get existing $uri with auth token";
     ok $res->is_success, 'Response should be success';
@@ -272,7 +272,7 @@ $uri = '/distributions/widget/0.2.6';
 
 test_psgi $app => sub {
     my $cb  = shift;
-    my $req = GET $uri, Authorization => 'Basic ' . encode_base64("$user:****");
+    my $req = GET $uri, Authorization => 'Basic ' . encode_base64("$user:test-passW0rd");
 
     ok my $res = $cb->($req), "Get $uri";
     ok $res->is_success, 'Response should be success';
@@ -308,7 +308,7 @@ test_psgi $app => sub {
 # Connect as user without permission.
 test_psgi $app => sub {
     my $cb  = shift;
-    my $req = GET $uri, Authorization => 'Basic ' . encode_base64("$admin:****");
+    my $req = GET $uri, Authorization => 'Basic ' . encode_base64("$admin:test-passW0rd");
 
     ok my $res = $cb->($req), "Get $uri as another user";
     ok !$res->is_success, 'Response should not be success';
@@ -320,7 +320,7 @@ test_psgi $app => sub {
 $uri = '/distributions/pgTAP/0.35.0';
 test_psgi $app => sub {
     my $cb  = shift;
-    my $req = GET $uri, Authorization => 'Basic ' . encode_base64("$admin:****");
+    my $req = GET $uri, Authorization => 'Basic ' . encode_base64("$admin:test-passW0rd");
 
     ok my $res = $cb->($req), "Get $uri";
     ok $res->is_success, 'Response should be success';
@@ -333,7 +333,7 @@ $mreq->mock( session => { success => 1 });
 
 test_psgi $app => sub {
     my $cb  = shift;
-    my $req = GET $uri, Authorization => 'Basic ' . encode_base64("$admin:****");
+    my $req = GET $uri, Authorization => 'Basic ' . encode_base64("$admin:test-passW0rd");
 
     ok my $res = $cb->($req), "Get $uri with success";
     ok $res->is_success, 'Response should be success';
