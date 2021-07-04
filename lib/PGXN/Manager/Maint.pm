@@ -14,10 +14,24 @@ our $VERSION = v0.20.3;
 
 has verbosity => (is => 'rw', required => 1, isa => 'Int', default => 0);
 has exitval   => (is => 'rw', required => 0, isa => 'Int', default => 0);
-has admin     => (is => 'ro', required => 0, isa => 'Str', default => '');
 has expires   => (is => 'ro', required => 0, isa => 'Str', default => '2 days');
 has reason    => (is => 'ro', required => 0, isa => 'Str', default => '');
 has base_url  => (is => 'ro', required => 0, isa => 'Str', default => 'https://manager.pgxn.org');
+
+has admin     => (is => 'ro', required => 0, isa => 'Str', lazy => 1, default => sub {
+    # Adapted from Sqitch.pm.
+    require Encode::Locale;
+    return Encode::decode( locale => getlogin )
+        || Encode::decode( locale => scalar getpwuid( $< ) )
+        || $ENV{ LOGNAME }
+        || $ENV{ USER }
+        || $ENV{ USERNAME }
+        || try {
+            require Win32;
+            Encode::decode( locale => Win32::LoginName() )
+        };
+});
+
 has workdir   => (is => 'rw', required => 0, isa => 'Str', lazy => 1, default => sub {
     require PGXN::Manager;
     my $tmpdir = PGXN::Manager->new->config->{tmpdir}
@@ -309,25 +323,23 @@ sub _config {
     Getopt::Long::Configure( qw(bundling) );
 
     my %opts = (
+        env       => 'development',
         verbosity => 0,
-        admin     => '',
-        expires   => '2 days',
-        reason    => '',
-        base_url  => 'https://manager.pgxn.org',
     );
 
     Getopt::Long::GetOptions(
-        'env|E=s'    => \my $env,
-        'admin|a=s'  => \$opts{admin},
-        'expires=s'  => \$opts{expires},
-        'reason=s'   => \$opts{reason},
-        'base-url=s' => \$opts{base_url},
-        'verbose|V+' => \$opts{verbosity},
-        'help|h'     => \$opts{help},
-        'man|M'      => \$opts{man},
-        'version|v'  => \$opts{version},
+        \%opts,
+        'env|E=s',
+        'admin|a=s',
+        'expires=s',
+        'reason=s',
+        'base-url=s',
+        'verbose|V+',
+        'help|h',
+        'man|M',
+        'version|v',
     ) or $self->_pod2usage;
-    $ENV{PLACK_ENV} = $env || 'development';
+    $ENV{PLACK_ENV} = delete $opts{env};
 
     # Handle documentation requests.
     $self->_pod2usage(

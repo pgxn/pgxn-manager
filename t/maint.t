@@ -59,20 +59,10 @@ END {
 ##############################################################################
 # Instantiate and test config.
 my $maint = new_ok $CLASS;
-my %defopts = (
-    admin     => '',
-    expires   => '2 days',
-    reason    => '',
-    base_url  => 'https://manager.pgxn.org',
-    help      => undef,
-    man       => undef,
-    verbosity => 0,
-    version   => undef,
-);
 
 DEFAULT: {
     local @ARGV;
-    is_deeply { $maint->_config }, \%defopts,
+    is_deeply { $maint->_config }, { verbosity => 0 },
         'Default options should be correct';
 }
 
