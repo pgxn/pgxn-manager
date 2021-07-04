@@ -1,6 +1,6 @@
 BEGIN;
-SELECT plan(112);
---SELECT * FROM no_plan();
+SELECT plan(135);
+-- SELECT * FROM no_plan();
 
 SELECT has_table('public', 'tokens', 'Should have table public.users');
 
@@ -72,8 +72,8 @@ SELECT is(
 CREATE SCHEMA mock;
 
 CREATE FUNCTION mock.set_rand_str(
-    string TEXT)
-RETURNS SETOF BOOLEAN LANGUAGE plperl AS $$
+    string TEXT
+) RETURNS SETOF BOOLEAN LANGUAGE plperl AS $$
     $_SHARED{random_string} = shift;
     return;
 $$;
@@ -145,7 +145,6 @@ SELECT is(
     'Should get NULL from forgot_password() for deleted user'
 );
 
-
 UPDATE users SET status = 'active' WHERE nickname = 'theory';
 SELECT is(
     forgot_password('theory'),
@@ -205,6 +204,115 @@ SELECT is(
     ROW('booyah', 'theory', NOW() + '1 day'::interval)::tokens,
     'Should have the third token record'
 ) FROM tokens WHERE token = 'booyah';
+
+/****************************************************************************/
+-- Test clear_password()
+SELECT has_function(    'clear_password' );
+SELECT has_function(    'clear_password', ARRAY['label', 'interval'] );
+SELECT is_definer(      'clear_password', ARRAY['label', 'interval'] );
+SELECT function_returns('clear_password', ARRAY['label', 'interval'], 'text[]' );
+SELECT function_lang_is('clear_password', ARRAY['label', 'interval'], 'plpgsql' );
+SELECT volatility_is(   'clear_password', ARRAY['label', 'interval'], 'volatile' );
+SELECT ok(
+    has_function_privilege(
+        'pgxn',
+        'clear_password(label, interval)',
+        'EXECUTE'
+    ),
+    'User "pgxn" should have EXECUTE priv on forgot_password()'
+);
+
+-- Try to clear password for non-existent user.
+SELECT is(
+    clear_password('foo', '1w'), NULL,
+    'Should get NULL from clear_password() for non-existent user'
+);
+
+-- Now insert a user.
+SELECT ok(
+    insert_user('kamala', 'test-passW0rd', email := 'kamala@pgxn.org'),
+    'Insert user "kamala"'
+);
+
+-- Make sure we have no tokens.
+SELECT is(COUNT(*)::int, 0, 'Should start with no tokens')
+  FROM tokens WHERE nickname = 'kamala';
+
+SELECT is(
+    clear_password('kamala', '1w'),
+    NULL,
+    'Should get NULL from clear_password() for new user'
+);
+
+UPDATE users SET status = 'inactive' WHERE nickname = 'kamala';
+SELECT is(
+    clear_password('kamala', '1w'),
+    NULL,
+    'Should get NULL from clear_password() for inactive user'
+);
+
+UPDATE users SET status = 'deleted' WHERE nickname = 'kamala';
+SELECT is(
+    clear_password('kamala', '1w'),
+    NULL,
+    'Should get NULL from clear_password() for deleted user'
+);
+
+-- Activate the user and make sure the password validates.
+UPDATE users SET status = 'active' WHERE nickname = 'kamala';
+SELECT ok(
+    authenticate_user('kamala', 'test-passW0rd'),
+    'User password should validate'
+);
+
+-- Update the mocked random string.
+SELECT * FROM set_rand_str('clanker');
+SELECT is(rand_str_of_len(NULL), 'clanker', 'Should get new mocked random string');
+
+-- Now clear the password.
+SELECT is(
+    clear_password('kamala', '1w'),
+    ARRAY['clanker', 'kamala@pgxn.org'],
+    'Should get random string and email from clear_password() for active user'
+);
+
+SELECT is(COUNT(*)::int, 1, 'Should now have 1 token')
+  FROM tokens WHERE nickname = 'kamala';
+
+SELECT is(
+    (tokens.*),
+    ROW('clanker', 'kamala', NOW() + '1w'::interval)::tokens,
+    'Should have the 1w token record now'
+) FROM tokens WHERE token = 'clanker';
+
+SELECT ok(
+    NOT authenticate_user('kamala', 'test-passW0rd'),
+    'User password should no longer validate'
+);
+
+-- Make sure we control for token overflow.
+SELECT throws_like(
+    $$ SELECT clear_password('kamala', '2d') $$,
+    '%30-character id requested; something is wrong%',
+    'Should get an error for token overflow'
+);
+
+-- Create another token for the same user.
+SELECT * FROM set_rand_str('mobius');
+SELECT is(
+    clear_password('kamala', '10 days'),
+    ARRAY['mobius','kamala@pgxn.org'],
+    'Should get random string from clear_password() again'
+);
+
+SELECT is(COUNT(*)::int, 2, 'Should now have 2 tokens')
+  FROM tokens WHERE nickname = 'kamala';
+
+SELECT is(
+    (tokens.*),
+    ROW('mobius', 'kamala', NOW() + '10d'::interval)::tokens,
+    'Should have the 10d token record now'
+) FROM tokens WHERE token = 'mobius';
 
 /****************************************************************************/
 -- Test reset_password()

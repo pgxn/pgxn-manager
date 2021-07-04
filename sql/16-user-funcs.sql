@@ -115,6 +115,48 @@ BEGIN
 END;
 $$;
 
+CREATE OR REPLACE FUNCTION clear_password(
+    nickname   LABEL,
+    reset_span INTERVAL
+) RETURNS TEXT[] LANGUAGE plpgsql SECURITY DEFINER AS $$
+/*
+
+    % SELECT clear_password('strongrrl', '1 week');
+     clear_password 
+    ────────────────────────────
+     {1bhAo,strongrrl@pgxn.org}
+
+Clears the password for the specified nickname and returns a password reset
+token that's good for the specified reset span. The user must be active. The
+return value is a two-element array. The first value is the token, and the
+second the email address of the user. The token will be set to expire 1 day from
+creation. Returns `NULL` if the token cannot be created (because no user exists
+for the specified nickname or the user is not ative).
+
+*/
+DECLARE
+    reset TEXT[] := forgot_password($1);
+BEGIN
+    -- Just bail if we have no reset data, because no active user found.
+    IF reset IS NULL THEN RETURN NULL; END IF;
+
+    -- Set the password to a randomish value.
+    UPDATE users
+       SET password         = rand_str_of_len(32),
+           updated_at       = NOW()
+     WHERE users.nickname   = $1
+       AND users.status     = 'active';
+    IF NOT FOUND THEN RETURN NULL; END IF; -- Should not happen
+    
+    -- Update the token to last for the reset interval.
+    UPDATE tokens set expires_at = NOW() + $2 WHERE token = reset[1];
+    IF NOT FOUND THEN RETURN NULL; END IF; -- Should not happen
+
+    -- Return the reset data.
+    RETURN reset;
+END;
+$$;
+
 CREATE OR REPLACE FUNCTION update_user(
     nickname   LABEL,
     full_name  TEXT   DEFAULT NULL,
