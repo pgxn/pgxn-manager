@@ -103,7 +103,7 @@ Uses these options:
 
 =item C<--admin>
 
-The nickanme of the admin user resetting the password. This user must exist in
+The nickname of the admin user resetting the password. This user must exist in
 the database and be an admin user. Defaults to the system username.
 
 =item C<--expires>
