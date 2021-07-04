@@ -31,7 +31,7 @@ Subclass of L<PGXN::Manager::Locale> providing French localization.
 
 =head1 Author
 
-David E. Wheeler <david.wheeler@pgexperts.com>
+David E. Wheeler <david@justatheory.com>
 
 =head1 Copyright and License
 
