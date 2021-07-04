@@ -116,40 +116,50 @@ END;
 $$;
 
 CREATE OR REPLACE FUNCTION clear_password(
+    setter     LABEL,
     nickname   LABEL,
     reset_span INTERVAL
 ) RETURNS TEXT[] LANGUAGE plpgsql SECURITY DEFINER AS $$
 /*
 
-    % SELECT clear_password('strongrrl', '1 week');
+    % SELECT clear_password('theory', 'strongrrl', '1 week');
      clear_password 
     ────────────────────────────
      {1bhAo,strongrrl@pgxn.org}
 
 Clears the password for the specified nickname and returns a password reset
-token that's good for the specified reset span. The user must be active. The
-return value is a two-element array. The first value is the token, and the
-second the email address of the user. The token will be set to expire 1 day from
-creation. Returns `NULL` if the token cannot be created (because no user exists
-for the specified nickname or the user is not ative).
+token that's good for the specified reset span. The `setter` must be an admin;
+an exception will be thrown if it is not. The user must be active. The return
+value is a two-element array. The first value is the token, and the second the
+email address of the user. The token will be set to expire 1 day from creation.
+Returns `NULL` if the token cannot be created (because no user exists for the
+specified nickname or the user is not ative).
 
 */
 DECLARE
-    reset TEXT[] := forgot_password($1);
+    reset TEXT[];
 BEGIN
+    -- Make sure we have an admin.
+    PERFORM TRUE FROM users WHERE users.nickname = setter AND is_admin;
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Permission denied: User “%” is not an administrator', setter;
+    END IF;
+
     -- Just bail if we have no reset data, because no active user found.
+    reset := forgot_password(nickname);
     IF reset IS NULL THEN RETURN NULL; END IF;
 
     -- Set the password to a randomish value.
     UPDATE users
-       SET password         = rand_str_of_len(32),
-           updated_at       = NOW()
-     WHERE users.nickname   = $1
-       AND users.status     = 'active';
+       SET password       = rand_str_of_len(32),
+           set_by         = setter,
+           updated_at     = NOW()
+     WHERE users.nickname = clear_password.nickname
+       AND users.status   = 'active';
     IF NOT FOUND THEN RETURN NULL; END IF; -- Should not happen
     
     -- Update the token to last for the reset interval.
-    UPDATE tokens set expires_at = NOW() + $2 WHERE token = reset[1];
+    UPDATE tokens set expires_at = NOW() + reset_span WHERE token = reset[1];
     IF NOT FOUND THEN RETURN NULL; END IF; -- Should not happen
 
     -- Return the reset data.
