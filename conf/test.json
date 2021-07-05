@@ -10,7 +10,7 @@
     ],
     "mirror_root": "/tmp/pgxn-root-test",
     "mirror_uri": "http://localhost/mirror",
-    "admin_email": "PGXN Admins <pgxn@pgexperts.com>",
+    "admin_email": "PGXN Admins <admin@pgxn.org>",
     "alert_email": "PGXN Admins <pgxn-admins@googlegroups.com>",
     "email_transport": "Email::Sender::Transport::SMTP",
     "email_transport_params": {

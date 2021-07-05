@@ -47,7 +47,7 @@ test_psgi $app => sub {
 test_psgi +PGXN::Manager::Router->app => sub {
     my $cb   = shift;
     my $user = TxnTest->user;
-    my $req  = GET $uri, Authorization => 'Basic ' . encode_base64("$user:****");
+    my $req  = GET $uri, Authorization => 'Basic ' . encode_base64("$user:test-passW0rd");
 
     ok my $res = $cb->($req), "Get $uri with auth token";
     ok $res->is_success, 'Response should be success';
@@ -170,7 +170,7 @@ test_psgi $app => sub {
 
     ok my $res = $cb->(POST(
         $uri,
-        Authorization => 'Basic ' . encode_base64("$user:****"),
+        Authorization => 'Basic ' . encode_base64("$user:test-passW0rd"),
         Content       => [
             full_name => 'Tom Lane',
             email     => 'tgl@pgxn.org',
@@ -214,7 +214,7 @@ test_psgi $app => sub {
 
     ok my $res = $cb->(POST(
         $uri,
-        Authorization => 'Basic ' . encode_base64("$user:****"),
+        Authorization => 'Basic ' . encode_base64("$user:test-passW0rd"),
         'X-Requested-With' => 'XMLHttpRequest',
         Content       => [
             full_name => 'Josh Berkus',
@@ -270,7 +270,7 @@ test_psgi $app => sub {
     # Okay, now make the request.
     ok my $res = $cb->(POST(
         $uri,
-        Authorization => 'Basic ' . encode_base64("$user:****"),
+        Authorization => 'Basic ' . encode_base64("$user:test-passW0rd"),
         Content       => [
             full_name => 'Tom Lane',
             email     => 'admin@pgxn.org',
@@ -313,7 +313,7 @@ test_psgi $app => sub {
     my $user   = TxnTest->user;
     ok my $res = $cb->(POST(
         $uri,
-        Authorization => 'Basic ' . encode_base64("$user:****"),
+        Authorization => 'Basic ' . encode_base64("$user:test-passW0rd"),
         Content       => [
             full_name => '',
             email     => 'getme at whatever dot com',
@@ -350,7 +350,7 @@ test_psgi $app => sub {
     my $user   = TxnTest->user;
     ok my $res = $cb->(POST(
         $uri,
-        Authorization => 'Basic ' . encode_base64("$user:****"),
+        Authorization => 'Basic ' . encode_base64("$user:test-passW0rd"),
         Content       => [
             full_name => '',
             uri       => 'http:\\foo.com/',
@@ -387,7 +387,7 @@ test_psgi $app => sub {
     my $user   = TxnTest->user;
     ok my $res = $cb->(POST(
         $uri,
-        Authorization => 'Basic ' . encode_base64("$user:****"),
+        Authorization => 'Basic ' . encode_base64("$user:test-passW0rd"),
         'X-Requested-With' => 'XMLHttpRequest',
         Content       => [
             full_name => '',

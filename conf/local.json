@@ -12,7 +12,7 @@
     ],
     "mirror_root": "/var/www/master.pgxn.org",
     "mirror_uri": "https://master.pgxn.org",
-    "admin_email": "PGXN Admins <pgxn@pgexperts.com>",
+    "admin_email": "PGXN Admins <admin@pgxn.org>",
     "alert_email": "PGXN Admins <pgxn-admins@googlegroups.com>",
     "uri_templates": {
         "download":  "/dist/{dist}/{version}/{dist}-{version}.zip",

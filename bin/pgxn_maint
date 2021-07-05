@@ -23,11 +23,15 @@ just specify the name of the task to execute and any required arguments.
 
 =head1 Options
 
-  -E --env     ENV    Specify the environment in which to run.
-  -V --verbose        Incremental verbosity to STDOUT.
-  -h --help           Print a usage statement and exit.
-  -m --man            Print the complete documentation and exit.
-  -v --version        Print the version number and exit.
+  -E --env      ENV      Specify the environment in which to run.
+  -a --admin    NICK     PGXN admin username.
+     --expires  INTERVAL Postgres interval for password reset expiration.
+     --reason   REASON   Reason for a password reset.
+     --base-url URL      Base URL for PGXN::Manager.
+  -V --verbose           Incremental verbosity to STDOUT.
+  -h --help              Print a usage statement and exit.
+  -m --man               Print the complete documentation and exit.
+  -v --version           Print the version number and exit.
 
 =head1 Maintenance Tasks
 
@@ -86,23 +90,57 @@ undertaken lightly if you have a lot of distributions. If you need to update
 only a few, pass their names. If you need to reindex only specific versions of
 a distribution, use C<reindex> instead.
 
+=head3 C<reset-password>
+
+  pgxn_maint reset-password --admin theory --reason 'You requested it' kamala
+  pgxn_maint reset-password -a theory --expires '1 week' kamala fred ginger joe
+
+Resets the passwords for one or more users by setting the password to a random
+string and then sending the user an email so they can enter a new password.
+Uses these options:
+
+=over
+
+=item C<--admin>
+
+The nickname of the admin user resetting the password. This user must exist in
+the database and be an admin user. Defaults to the system username.
+
+=item C<--expires>
+
+A timespan expressed in
+L<PostgreSQL interval format|https://www.postgresql.org/docs/current/datatype-datetime.html#DATATYPE-INTERVAL-INPUT>
+defining how long the reset token will be good for. The default is 2 days.
+
+=item C<--reason>
+
+A reason for the password reset. If not set, the user will be given no reason
+in the email.
+
+=item C<--base-url>
+
+The base URL used for the reset link in email. Defaults to
+C<https://manager.pgxn.org>.
+
+=back
+
 =head1 To-Do
 
 =over
 
 =item *
 
-Add `update-mirrors` task.
+Add C<update-mirrors> task.
 
 =item *
 
-Add `init-mirror` task.
+Add C<init-mirror> task.
 
 =back
 
 =head1 Author
 
-David E. Wheeler <david.wheeler@pgexperts.com>
+David E. Wheeler <david@justatheory.com>
 
 =head1 Copyright and License
 

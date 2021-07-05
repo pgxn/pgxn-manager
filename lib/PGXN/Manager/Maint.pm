@@ -3,6 +3,7 @@ package PGXN::Manager::Maint;
 use 5.10.0;
 use utf8;
 use Moose;
+use PGXN::Manager::Locale;
 use File::Spec;
 use File::Path qw(make_path remove_tree);
 use File::Basename qw(dirname basename);
@@ -14,7 +15,25 @@ our $VERSION = v0.20.3;
 
 has verbosity => (is => 'rw', required => 1, isa => 'Int', default => 0);
 has exitval   => (is => 'rw', required => 0, isa => 'Int', default => 0);
-has workdir   => (is => 'rw', required => 0, isa => 'Str', lazy => 1, default => sub {
+has expires   => (is => 'ro', required => 0, isa => 'Str', default => '2 days');
+has reason    => (is => 'ro', required => 0, isa => 'Str', default => '');
+has base_url  => (is => 'ro', required => 0, isa => 'Str', default => 'https://manager.pgxn.org');
+
+has admin  => (is => 'ro', required => 0, isa => 'Str', lazy => 1, default => sub {
+    # Adapted from Sqitch.pm.
+    require Encode::Locale;
+    return Encode::decode( locale => getlogin )
+        || Encode::decode( locale => scalar getpwuid( $< ) )
+        || $ENV{ LOGNAME }
+        || $ENV{ USER }
+        || $ENV{ USERNAME }
+        || try {
+            require Win32;
+            Encode::decode( locale => Win32::LoginName() )
+        };
+});
+
+has workdir => (is => 'rw', required => 0, isa => 'Str', lazy => 1, default => sub {
     require PGXN::Manager;
     my $tmpdir = PGXN::Manager->new->config->{tmpdir}
         || File::Spec->catdir(File::Spec->tmpdir, 'pgxn');
@@ -97,14 +116,16 @@ sub update_users {
     return $self;
 }
 
+my $l = PGXN::Manager::Locale->get_handle;
 sub _handle_error {
     my $self = shift;
-    my $l = PGXN::Manager::Locale->get_handle;
     my $err = $l->maketext(@_);
     $err =~ s{<br />}{}g;
     warn encode_utf8 $err, "\n";
     $self->exitval( $self->exitval + 1 );
 }
+
+sub _emit($) { print encode_utf8 $_[0] }
 
 sub reindex {
     my ($self, @args) = @_;
@@ -201,6 +222,83 @@ sub reindex_all {
     return $self;
 }
 
+sub _reset_message_template {
+    my $self = shift;
+    my $expires = $self->expires;
+    if (my $reason = $self->reason) {
+        # Include the reason in the message.
+        return <<EOF
+Hello %s,
+
+Your PGXN password has been disabled by an administrator because:
+
+  $reason
+
+Click the link below to reset your PGXN password. But do it soon! This
+link will expire in $expires:
+
+  %s
+
+Best,
+
+PGXN Management
+EOF
+    }
+    # Return a message with no reason.
+    return <<EOF
+Hello %s,
+
+Your password has been disabled by an administrator Click the link below to
+reset your PGXN password. But do it soon! This link will expire in $expires:
+
+  %s
+
+Best,
+
+PGXN Management
+EOF
+}
+
+sub reset_password {
+    my ($self, @args) = @_;
+    my $pgxn    = PGXN::Manager->instance;
+    my $exit    = 0;
+    my $admin   = $self->admin;
+    my $expires = $self->expires;
+    my $uri     = URI->new($self->base_url);
+    my $l       = PGXN::Manager::Locale->get_handle;
+    my $msg     = $self->_reset_message_template;
+
+    for my $who (@args) {
+        _emit "$who... ";
+        my $sql = $who =~ /@/
+            ? 'SELECT clear_password($1, nickname, $3) FROM users WHERE email = $2'
+            : 'SELECT clear_password($1, $2, $3)';
+        my $token = $pgxn->conn->run(sub {
+            $_->selectcol_arrayref($sql, undef, $admin, $who, $expires)->[0]
+        });
+        unless ($token) {
+            _emit $l->maketext('🚫 Error: Unknown nickname') . "\n";
+            $exit += 1;
+            next;
+        }
+
+        # Create and send the email.
+        $uri->path("/account/reset/$token->[0]");
+        $pgxn->send_email({
+            from    => $pgxn->config->{admin_email},
+            to      => $token->[1],
+            subject => 'Reset Your PGXN Password',
+            body    => sprintf $msg, $who, $uri
+        });
+        _emit $l->maketext('✅ Sent!') . "\n";
+    }
+
+    # Exit with an error if any nicks were unknown.
+    $self->exitval($exit % 255 || 255) if $exit;
+    return $self;
+}
+
 sub _write_json_to {
     my ($self, $json, $fn) = @_;
     make_path dirname $fn;
@@ -234,17 +332,23 @@ sub _config {
     Getopt::Long::Configure( qw(bundling) );
 
     my %opts = (
+        env       => 'development',
         verbosity => 0,
     );
 
     Getopt::Long::GetOptions(
-        'env|E=s'    => \my $env,
-        'verbose|V+' => \$opts{verbosity},
-        'help|h'     => \$opts{help},
-        'man|M'      => \$opts{man},
-        'version|v'  => \$opts{version},
+        \%opts,
+        'env|E=s',
+        'admin|a=s',
+        'expires=s',
+        'reason=s',
+        'base-url=s',
+        'verbose|V+',
+        'help|h',
+        'man|M',
+        'version|v',
     ) or $self->_pod2usage;
-    $ENV{PLACK_ENV} = $env || 'development';
+    $ENV{PLACK_ENV} = delete $opts{env};
 
     # Handle documentation requests.
     $self->_pod2usage(
@@ -388,6 +492,16 @@ undertaken lightly if you have a lot of distributions. If you need to update
 only a few, pass their names. If you need to reindex only specific versions of
 a distribution, use C<reindex> instead.
 
+=head3 C<reset_password>
+
+  $maint->reset_password($nickname);
+  $maint->reset_password($email);
+  $maint->reset_password(@nicknames, @emails);
+
+Resets the password for the specified list of nicknames or email addresses,
+setting each password to a random string and sending the user an email with a
+link to set a new password.
+
 =head2 Instance Accessors
 
 =head3 C<verbosity>
@@ -400,7 +514,7 @@ more verbosity the sync.
 
 =head1 Author
 
-David E. Wheeler <david.wheeler@pgexperts.com>
+David E. Wheeler <david@justatheory.com>
 
 =head1 Copyright and License
 

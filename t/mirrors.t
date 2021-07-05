@@ -43,7 +43,7 @@ test_psgi $app => sub {
 # Connect as non-admin user.
 test_psgi +PGXN::Manager::Router->app => sub {
     my $cb  = shift;
-    my $req = GET $uri, Authorization => 'Basic ' . encode_base64("$user:****");
+    my $req = GET $uri, Authorization => 'Basic ' . encode_base64("$user:test-passW0rd");
 
     ok my $res = $cb->($req), "Get $uri with auth token";
     is $res->code, 403, 'Should get 403 response';
@@ -70,7 +70,7 @@ test_psgi +PGXN::Manager::Router->app => sub {
 # Connect as authenticated user.
 test_psgi +PGXN::Manager::Router->app => sub {
     my $cb  = shift;
-    my $req = GET $uri, Authorization => 'Basic ' . encode_base64("$admin:****");
+    my $req = GET $uri, Authorization => 'Basic ' . encode_base64("$admin:test-passW0rd");
 
     ok my $res = $cb->($req), "Get $uri with auth token";
     ok $res->is_success, 'Response should be success';
@@ -252,7 +252,7 @@ PGXN::Manager->conn->run(sub {
 # Okay, fetch the list again.
 test_psgi +PGXN::Manager::Router->app => sub {
     my $cb  = shift;
-    my $req = GET $uri, Authorization => 'Basic ' . encode_base64("$admin:****");
+    my $req = GET $uri, Authorization => 'Basic ' . encode_base64("$admin:test-passW0rd");
 
     ok my $res = $cb->($req), "Get $uri with auth token";
     ok $res->is_success, 'Response should be success';
@@ -581,7 +581,7 @@ test_psgi $app => sub {
 test_psgi $app => sub {
     my $cb = shift;
     my $uri = '/admin/mirrors/http://kineticode.com/pgxn/?x-tunneled-method=delete';
-    my $req = POST $uri, Authorization => 'Basic ' . encode_base64("$user:****");
+    my $req = POST $uri, Authorization => 'Basic ' . encode_base64("$user:test-passW0rd");
     ok my $res = $cb->($req), "POST $uri";
 
     is $res->code, 403, 'Should get 403 response';
@@ -609,7 +609,7 @@ test_psgi $app => sub {
 test_psgi $app => sub {
     my $cb = shift;
     my $uri = '/admin/mirrors/http://kineticode.com/pgxn/';
-    my $req = POST $uri, Authorization => 'Basic ' . encode_base64("$admin:****");
+    my $req = POST $uri, Authorization => 'Basic ' . encode_base64("$admin:test-passW0rd");
     ok my $res = $cb->($req), "POST $uri";
 
     ok !$res->is_success, 'It should not be a success';
@@ -644,7 +644,7 @@ file_not_exists_ok $meta, "mirrors.json should not exist";
 test_psgi $app => sub {
     my $cb = shift;
     my $uri = '/admin/mirrors/http://kineticode.com/pgxn/?x-tunneled-method=delete';
-    my $req = POST $uri, Authorization => 'Basic ' . encode_base64("$admin:****");
+    my $req = POST $uri, Authorization => 'Basic ' . encode_base64("$admin:test-passW0rd");
 
     # Send the request.
     ok my $res = $cb->($req), "POST $uri";
@@ -678,7 +678,7 @@ test_psgi $app => sub {
 test_psgi $app => sub {
     my $cb = shift;
     my $uri = '/admin/mirrors/http://kineticode.com/pgxn/?x-tunneled-method=delete';
-    my $req = POST $uri, Authorization => 'Basic ' . encode_base64("$admin:****");
+    my $req = POST $uri, Authorization => 'Basic ' . encode_base64("$admin:test-passW0rd");
 
     # Send the request.
     ok my $res = $cb->($req), "POST $uri";
@@ -706,7 +706,7 @@ test_psgi $app => sub {
 test_psgi $app => sub {
     my $cb = shift;
     my $uri = '/admin/mirrors/http://kineticode.com/pgxn/?x-tunneled-method=delete';
-    my $req = POST $uri, Authorization => 'Basic ' . encode_base64("$admin:****"),
+    my $req = POST $uri, Authorization => 'Basic ' . encode_base64("$admin:test-passW0rd"),
         'X-Requested-With' => 'XMLHttpRequest';
 
     # Send the request.
@@ -721,7 +721,7 @@ test_psgi $app => sub {
 test_psgi $app => sub {
     my $cb = shift;
     my $uri = '/admin/mirrors/http://pgxn.justatheory.com?x-tunneled-method=delete';
-    my $req = POST $uri, Authorization => 'Basic ' . encode_base64("$admin:****"),
+    my $req = POST $uri, Authorization => 'Basic ' . encode_base64("$admin:test-passW0rd"),
         'X-Requested-With' => 'XMLHttpRequest';
 
     # Send the request.

@@ -31,7 +31,7 @@ test_psgi +PGXN::Manager::Router->app => sub {
     is $res->code, 200, 'Should get 200 response';
     like $res->content, qr/Welcome/, 'The body should look correct';
 
-    my $req = GET '/', Authorization => 'Basic ' . encode_base64("$admin:****");
+    my $req = GET '/', Authorization => 'Basic ' . encode_base64("$admin:test-passW0rd");
     ok $res = $cb->($req), 'Fetch / with auth token';
     is $res->code, 200, 'Should still get 200 response';
     like $res->content, qr/Welcome/, 'The body should again look correct';
@@ -46,7 +46,7 @@ test_psgi +PGXN::Manager::Router->app => sub {
     file_contents_is 'www/ui/css/screen.css', $res->content,
         'The file should have been served';
 
-    my $req = GET $uri, Authorization => 'Basic ' . encode_base64("$admin:****");
+    my $req = GET $uri, Authorization => 'Basic ' . encode_base64("$admin:test-passW0rd");
     ok $res = $cb->($req), "Fetch $uri with auth token";
     is $res->code, 200, 'Should still get 200 response';
     file_contents_is 'www/ui/css/screen.css', $res->content,
@@ -62,7 +62,7 @@ test_psgi +PGXN::Manager::Router->app => sub {
     like $res->content, qr/Authorization required/,
         'The body should indicate need for authentication';
 
-    my $req = GET $uri, Authorization => 'Basic ' . encode_base64("$admin:****");
+    my $req = GET $uri, Authorization => 'Basic ' . encode_base64("$admin:test-passW0rd");
     ok $res = $cb->($req), "Fetch $uri with auth token";
     is $res->code, 404, 'Should now get 404 response';
     like decode_utf8($res->content), qr/Where’d It Go\?/,
@@ -92,7 +92,7 @@ test_psgi +PGXN::Manager::Router->app => sub {
 my $user = TxnTest->user;
 test_psgi +PGXN::Manager::Router->app => sub {
     my $cb = shift;
-    my $req = GET '/', Authorization => 'Basic ' . encode_base64("$user:****");
+    my $req = GET '/', Authorization => 'Basic ' . encode_base64("$user:test-passW0rd");
     ok my $res = $cb->($req), 'Fetch / with user auth token';
     is $res->code, 200, 'Should get 200 response';
     like $res->content, qr/Welcome/,
@@ -107,7 +107,7 @@ test_psgi +PGXN::Manager::Router->app => sub {
     like $res->content, qr/Authorization required/,
         'The body should indicate need for authentication';
 
-    my $req = GET '/login', Authorization => 'Basic ' . encode_base64("$user:****");
+    my $req = GET '/login', Authorization => 'Basic ' . encode_base64("$user:test-passW0rd");
     ok $res = $cb->($req), 'Fetch /login with user auth token';
     is $res->code, 307, 'Should get 307 response';
     is $res->content, '', 'Should have no content';
@@ -124,7 +124,7 @@ PGXN::Manager->conn->run(sub {
 
 test_psgi +PGXN::Manager::Router->app => sub {
     my $cb = shift;
-    my $req = GET '/account', Authorization => 'Basic ' . encode_base64("$user:****");
+    my $req = GET '/account', Authorization => 'Basic ' . encode_base64("$user:test-passW0rd");
     ok my $res = $cb->($req), 'Fetch /account with invalid user auth token';
     is $res->code, 401, 'Should get 401 response';
     like $res->content, qr/Authorization required/,

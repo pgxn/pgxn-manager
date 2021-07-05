@@ -5,13 +5,15 @@ use strict;
 use warnings;
 use utf8;
 
-use Test::More tests => 113;
-#use Test::More 'no_plan';
+use Test::More tests => 144;
+# use Test::More 'no_plan';
 use Test::File;
 use File::Path qw(remove_tree);
 use File::Basename qw(basename);
 use Test::MockModule;
 use Test::File::Contents;
+use Test::Output;
+use Encode qw(encode_utf8);
 use JSON::XS;
 use Archive::Zip qw(:ERROR_CODES);
 use lib 't/lib';
@@ -34,6 +36,7 @@ can_ok $CLASS => qw(
     update_users
     reindex
     reindex_all
+    reset_password
     _write_json_to
     DEMOLISH
     _pod2usage
@@ -58,16 +61,10 @@ END {
 ##############################################################################
 # Instantiate and test config.
 my $maint = new_ok $CLASS;
-my %defopts = (
-    help      => undef,
-    man       => undef,
-    verbosity => 0,
-    version   => undef,
-);
 
 DEFAULT: {
     local @ARGV;
-    is_deeply { $maint->_config }, \%defopts,
+    is_deeply { $maint->_config }, { verbosity => 0 },
         'Default options should be correct';
 }
 
@@ -383,4 +380,155 @@ USERS: {
     file_exists_ok $json, 'user.json should now exist';
     file_contents_like $json, qr{"nickname": "user",},
         'And it should look like user JSON';
+}
+
+##############################################################################
+# Test _reset_message_template().
+TEMPLATE: {
+    # Start with default expires and no reason.
+    my $msg = <<EOF;
+Hello %s,
+
+Your password has been disabled by an administrator Click the link below to
+reset your PGXN password. But do it soon! This link will expire in 2 days:
+
+  %s
+
+Best,
+
+PGXN Management
+EOF
+    is $maint->_reset_message_template, $msg, 'Should get default message';
+
+    # Try with a custome expires and reason.
+    ok $maint = $CLASS->new(
+        expires => '1 week',
+    ), "Create Maint with custom expires";
+    $msg =~ s/2 days/1 week/;
+    is $maint->_reset_message_template, $msg,
+        'Should get message with custom expres';
+
+    # Try with a custome expires and reason.
+    ok $maint = $CLASS->new(
+        expires => '1 week',
+        reason  => 'You requested a reset',
+    ), "Create Maint with custom expires and reason";
+    is $maint->_reset_message_template, <<EOF, 'Should get message with custom expireas and reason';
+Hello %s,
+
+Your PGXN password has been disabled by an administrator because:
+
+  You requested a reset
+
+Click the link below to reset your PGXN password. But do it soon! This
+link will expire in 1 week:
+
+  %s
+
+Best,
+
+PGXN Management
+EOF
+}
+
+##############################################################################
+# Test reset_password().
+RESET: {
+    # Mock sending an email.
+    my $mgr_mock = Test::MockModule->new('PGXN::Manager');
+    my @email_params;
+    $mgr_mock->mock(send_email => sub { push @email_params => $_[1] });
+
+    # Mock the message template.
+    my $maint_mock = Test::MockModule->new($CLASS);
+    $maint_mock->mock(_reset_message_template => sub {
+        my $self = shift;
+        my $exp = $self->expires;
+        my $msg = "user: %s\nurl: %s\nexpires: $exp";
+        my $reason = $self->reason or return $msg;
+        return $msg . "\nreason: $reason";
+    });
+
+    # Reset the password for a user.
+    my $pgxn    = PGXN::Manager->instance;
+    my $admin = TxnTest->admin;
+    ok $maint = $CLASS->new(admin => $admin), "Create Maint for $admin";
+    my $l = PGXN::Manager::Locale->get_handle;
+    stdout_is { ok $maint->reset_password($user), "Reset $user password" }
+        encode_utf8 "$user... " . $l->maketext('✅ Sent!') . "\n",
+        "Output should show $user password reset";
+    is $maint->exitval, 0, 'Exit value should be 0';
+    is @email_params, 1, "Should have email params for $user";
+    my $body = delete $email_params[0]->{body};
+    is_deeply $email_params[0], {
+        from    => $pgxn->config->{admin_email},
+        to      => 'user@pgxn.org',
+        subject => 'Reset Your PGXN Password',
+    }, "Email should have been sent to $user";
+
+    my $base_url = $maint->base_url;
+    like $body, qr{\Auser: $user\nurl: $base_url/account/reset/\w+\nexpires: 2 days\z},
+        "Should have sent email to the user";
+
+    # Try an unknown user.
+    @email_params = ();
+    stdout_is { ok $maint->reset_password('nonesuch'), "Reset unknown user password" }
+        encode_utf8 "nonesuch... " . $l->maketext("🚫 Error: Unknown nickname\n"),
+        "Output should show unknown nickname";
+    is $maint->exitval, 1, 'Exit value should be 1';
+    is @email_params, 0, 'Should have no email params';
+
+    # Try multiple users with a custom expires, reason, and base URL.
+    $base_url = 'https://pgxn.example.com';
+    my $expires = '10 days';
+    my $reason = 'Because I said so';
+    ok $maint = $CLASS->new(
+        admin    => $admin,
+        expires  => $expires,
+        reason   => $reason,
+        base_url => $base_url,
+    ), "Create Maint for admin, expires, reason";
+
+    stdout_is { ok $maint->reset_password($user, $admin), "Reset $user and $admin passwords" }
+        encode_utf8 join("\n",
+            "$user... "  . $l->maketext('✅ Sent!'),
+            "$admin... " . $l->maketext('✅ Sent!'),
+        ) . "\n",
+        "Output should show $user and $admin password resets";
+    is $maint->exitval, 0, 'Exit value should be 0';
+
+    is @email_params, 2, "Should have sent two emails";
+    $body = delete $email_params[0]->{body};
+    is_deeply $email_params[0], {
+        from    => $pgxn->config->{admin_email},
+        to      => 'user@pgxn.org',
+        subject => 'Reset Your PGXN Password',
+    }, "Email should have been sent to $user";
+    like $body, qr{\Auser: $user\nurl: $base_url/account/reset/\w+\nexpires: $expires\nreason: $reason\z},
+        "Should have sent another email to $user";
+
+    $body = delete $email_params[1]->{body};
+    is_deeply $email_params[1], {
+        from    => $pgxn->config->{admin_email},
+        to      => 'admin@pgxn.org',
+        subject => 'Reset Your PGXN Password',
+    }, "Email should have been sent to $admin";
+    like $body, qr{\Auser: $admin\nurl: $base_url/account/reset/\w+\nexpires: $expires\nreason: $reason\z},
+        "Should have sent an email to $admin";
+
+    # Try an email address.
+    @email_params = ();
+    stdout_is { ok $maint->reset_password('user@pgxn.org'), 'Reset user@pgxn.org password' }
+        encode_utf8 'user@pgxn.org... ' . $l->maketext('✅ Sent!') . "\n",
+        'Output should show user@pgxn.org password reset';
+    is $maint->exitval, 0, 'Exit value should be 0';
+    ok $email_params[0], 'Should have email params for user@pgxn.org';
+    $body = delete $email_params[0]->{body};
+    is_deeply $email_params[0], {
+        from    => $pgxn->config->{admin_email},
+        to      => 'user@pgxn.org',
+        subject => 'Reset Your PGXN Password',
+    }, 'Email should have been sent to user@pgxn.org';
+    like $body, qr{\Auser: user\@pgxn.org\nurl: $base_url/account/reset/\w+\nexpires: $expires\nreason: $reason\z},
+        'Should have sent an email to user@pgxn.org';
 }

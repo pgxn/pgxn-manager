@@ -41,6 +41,7 @@ Reindexes
 repack
 SQL
 subrequests
+timespan
 tuples
 UI
 uploader

@@ -227,7 +227,7 @@ sub register {
             $_->do(
                 q{SELECT insert_user(
                     nickname  := ?,
-                    password  := rand_str_of_len(5),
+                    password  := rand_str_of_len(64),
                     full_name := ?,
                     email     := ?,
                     why       := ?,
@@ -1306,7 +1306,7 @@ Handles 404 and 405 errors from Router::Resource.
 
 =head1 Author
 
-David E. Wheeler <david.wheeler@pgexperts.com>
+David E. Wheeler <david@justatheory.com>
 
 =head1 Copyright and License
 

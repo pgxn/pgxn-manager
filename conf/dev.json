@@ -13,7 +13,7 @@
     ],
     "mirror_root": "/tmp/pgxn-root-dev",
     "mirror_uri": "http://localhost/mirror",
-    "admin_email": "PGXN Admins <pgxn@pgexperts.com>",
+    "admin_email": "PGXN Admins <admin@pgxn.org>",
     "alert_email": "PGXN Admins <david@justatheory.com>",
     "uri_templates": {
         "download":  "/dist/{dist}/{version}/{dist}-{version}.zip",

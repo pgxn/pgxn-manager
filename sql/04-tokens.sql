@@ -85,48 +85,4 @@ BEGIN
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION reset_password(
-    tok   TEXT,
-    pass  TEXT
-) RETURNS BOOLEAN LANGUAGE plpgsql SECURITY DEFINER AS $$
-/*
-
-    % SELECT reset_password('G8Gxz', 'whatever');
-     reset_password 
-    ────────────────
-     t
-
-Pass in a token and a new password to reset a user password. The token must
-exist and must not have expired and the associated user must be active. The
-password must be at least four characters long or an exception will be thrown.
-Returns `true` on success and `false` on failure.
-
-*/
-DECLARE
-    nick LABEL;
-BEGIN
-    IF char_length(pass) < 4 THEN
-       RAISE EXCEPTION 'Password must be at least four characters long';
-    END IF;
-
-    DELETE FROM tokens
-     USING users
-     WHERE token          = tok
-       AND expires_at    >= NOW()
-       AND users.nickname = tokens.nickname
-       AND users.status   = 'active'
-    RETURNING tokens.nickname INTO nick;
-
-    IF nick IS NULL THEN RETURN FALSE; END IF;
-
-    UPDATE users
-       SET password   = crypt(pass, gen_salt('des')),
-           updated_at = NOW()
-     WHERE nickname   = nick
-       AND status     = 'active';
-
-    RETURN TRUE;
-END;
-$$;
-
 COMMIT;
