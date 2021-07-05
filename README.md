@@ -141,7 +141,7 @@ Installation
            SET status   = 'active',
                is_admin = true,
                set_by   = 'fred',
-               password = crypt('change me!', gen_salt('des')) 
+               password = crypt('change me!', _salt())
          WHERE nickname = 'fred';
 
 *   Hit the "Log In" link and log yourself in.

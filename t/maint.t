@@ -523,7 +523,7 @@ RESET: {
         'Output should show user@pgxn.org password reset';
     is $maint->exitval, 0, 'Exit value should be 0';
     ok $email_params[0], 'Should have email params for user@pgxn.org';
-    my $body = delete $email_params[0]->{body};
+    $body = delete $email_params[0]->{body};
     is_deeply $email_params[0], {
         from    => $pgxn->config->{admin_email},
         to      => 'user@pgxn.org',
