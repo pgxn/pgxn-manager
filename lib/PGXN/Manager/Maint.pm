@@ -248,7 +248,7 @@ EOF
     return <<EOF
 Hello %s,
 
-Your password has been disabled by an administrator Click the link below to
+Your password has been disabled by an administrator. Click the link below to
 reset your PGXN password. But do it soon! This link will expire in $expires:
 
   %s
