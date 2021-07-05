@@ -5,7 +5,7 @@ use strict;
 use warnings;
 use utf8;
 
-use Test::More tests => 138;
+use Test::More tests => 144;
 # use Test::More 'no_plan';
 use Test::File;
 use File::Path qw(remove_tree);
@@ -457,14 +457,14 @@ RESET: {
     stdout_is { ok $maint->reset_password($user), "Reset $user password" }
         encode_utf8 "$user... " . $l->maketext('✅ Sent!') . "\n",
         "Output should show $user password reset";
-    ok $email_params[0], "Should have email params for $user";
+    is $maint->exitval, 0, 'Exit value should be 0';
+    is @email_params, 1, "Should have email params for $user";
     my $body = delete $email_params[0]->{body};
     is_deeply $email_params[0], {
         from    => $pgxn->config->{admin_email},
         to      => 'user@pgxn.org',
         subject => 'Reset Your PGXN Password',
     }, "Email should have been sent to $user";
-    is $maint->exitval, 0, 'Exit value should be 0';
 
     my $base_url = $maint->base_url;
     like $body, qr{\Auser: $user\nurl: $base_url/account/reset/\w+\nexpires: 2 days\z},
@@ -475,8 +475,8 @@ RESET: {
     stdout_is { ok $maint->reset_password('nonesuch'), "Reset unknown user password" }
         encode_utf8 "nonesuch... " . $l->maketext("🚫 Error: Unknown nickname\n"),
         "Output should show unknown nickname";
-    is @email_params, 0, 'Should have no email params';
     is $maint->exitval, 1, 'Exit value should be 1';
+    is @email_params, 0, 'Should have no email params';
 
     # Try multiple users with a custom expires, reason, and base URL.
     $base_url = 'https://pgxn.example.com';
@@ -515,4 +515,20 @@ RESET: {
     }, "Email should have been sent to $admin";
     like $body, qr{\Auser: $admin\nurl: $base_url/account/reset/\w+\nexpires: $expires\nreason: $reason\z},
         "Should have sent an email to $admin";
+
+    # Try an email address.
+    @email_params = ();
+    stdout_is { ok $maint->reset_password('user@pgxn.org'), 'Reset user@pgxn.org password' }
+        encode_utf8 'user@pgxn.org... ' . $l->maketext('✅ Sent!') . "\n",
+        'Output should show user@pgxn.org password reset';
+    is $maint->exitval, 0, 'Exit value should be 0';
+    ok $email_params[0], 'Should have email params for user@pgxn.org';
+    my $body = delete $email_params[0]->{body};
+    is_deeply $email_params[0], {
+        from    => $pgxn->config->{admin_email},
+        to      => 'user@pgxn.org',
+        subject => 'Reset Your PGXN Password',
+    }, 'Email should have been sent to user@pgxn.org';
+    like $body, qr{\Auser: user\@pgxn.org\nurl: $base_url/account/reset/\w+\nexpires: $expires\nreason: $reason\z},
+        'Should have sent an email to user@pgxn.org';
 }

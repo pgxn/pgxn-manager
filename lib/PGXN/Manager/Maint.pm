@@ -269,13 +269,13 @@ sub reset_password {
     my $l       = PGXN::Manager::Locale->get_handle;
     my $msg     = $self->_reset_message_template;
 
-    for my $nick (@args) {
-        _emit "$nick... ";
+    for my $who (@args) {
+        _emit "$who... ";
+        my $sql = $who =~ /@/
+            ? 'SELECT clear_password($1, nickname, $3) FROM users WHERE email = $2'
+            : 'SELECT clear_password($1, $2, $3)';
         my $token = $pgxn->conn->run(sub {
-            shift->selectcol_arrayref(
-                'SELECT clear_password(?, ?, ?)',
-                undef, $admin, $nick, $expires,
-            )->[0];
+            $_->selectcol_arrayref($sql, undef, $admin, $who, $expires)->[0]
         });
         unless ($token) {
             _emit $l->maketext('🚫 Error: Unknown nickname') . "\n";
@@ -289,7 +289,7 @@ sub reset_password {
             from    => $pgxn->config->{admin_email},
             to      => $token->[1],
             subject => 'Reset Your PGXN Password',
-            body    => sprintf $msg, $nick, $uri
+            body    => sprintf $msg, $who, $uri
         });
         _emit $l->maketext('✅ Sent!') . "\n";
     }
@@ -495,11 +495,12 @@ a distribution, use C<reindex> instead.
 =head3 C<reset_password>
 
   $maint->reset_password($nickname);
-  $maint->reset_password(@nicknames);
+  $maint->reset_password($email);
+  $maint->reset_password(@nicknames, @emails);
 
-Resets the password for the specified nickname or list of nicknames, setting each
-password to a random string and sending the user an email with a link to set a new
-password.
+Resets the password for the specified list of nicknames or email addresses,
+setting each password to a random string and sending the user an email with a
+link to set a new password.
 
 =head2 Instance Accessors
 
