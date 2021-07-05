@@ -3,6 +3,7 @@ package PGXN::Manager::Maint;
 use 5.10.0;
 use utf8;
 use Moose;
+use PGXN::Manager::Locale;
 use File::Spec;
 use File::Path qw(make_path remove_tree);
 use File::Basename qw(dirname basename);
@@ -115,14 +116,16 @@ sub update_users {
     return $self;
 }
 
+my $l = PGXN::Manager::Locale->get_handle;
 sub _handle_error {
     my $self = shift;
-    my $l = PGXN::Manager::Locale->get_handle;
     my $err = $l->maketext(@_);
     $err =~ s{<br />}{}g;
     warn encode_utf8 $err, "\n";
     $self->exitval( $self->exitval + 1 );
 }
+
+sub _emit($) { print encode_utf8 $_[0] }
 
 sub reindex {
     my ($self, @args) = @_;
@@ -219,17 +222,12 @@ sub reindex_all {
     return $self;
 }
 
-sub reset_password {
-    my ($self, @args) = @_;
-    my $pgxn = PGXN::Manager->instance;
-    my $exit = 0;
-    my $admin   = $self->admin;
+sub _reset_message_template {
+    my $self = shift;
     my $expires = $self->expires;
-    my $uri     = URI->new($self->base_url);
-
-    my $msg = '';
-    if (my $reason  = $self->reason) {
-        $msg = <<EOF
+    if (my $reason = $self->reason) {
+        # Include the reason in the message.
+        return <<EOF
 Hello %s,
 
 Your PGXN password has been disabled by an administrator because:
@@ -245,8 +243,9 @@ Best,
 
 PGXN Management
 EOF
-    } else {
-        $msg = <<EOF
+    }
+    # Return a message with no reason.
+    return <<EOF
 Hello %s,
 
 Your password has been disabled by an administrator Click the link below to
@@ -258,10 +257,20 @@ Best,
 
 PGXN Management
 EOF
-    }
+}
+
+sub reset_password {
+    my ($self, @args) = @_;
+    my $pgxn    = PGXN::Manager->instance;
+    my $exit    = 0;
+    my $admin   = $self->admin;
+    my $expires = $self->expires;
+    my $uri     = URI->new($self->base_url);
+    my $l       = PGXN::Manager::Locale->get_handle;
+    my $msg     = $self->_reset_message_template;
 
     for my $nick (@args) {
-        print "$nick... ";
+        _emit "$nick... ";
         my $token = $pgxn->conn->run(sub {
             shift->selectcol_arrayref(
                 'SELECT clear_password(?, ?, ?)',
@@ -269,7 +278,7 @@ EOF
             )->[0];
         });
         unless ($token) {
-            say '🚫 Error: Unknown nickname';
+            _emit $l->maketext('🚫 Error: Unknown nickname') . "\n";
             $exit += 1;
             next;
         }
@@ -282,7 +291,7 @@ EOF
             subject => 'Reset Your PGXN Password',
             body    => sprintf $msg, $nick, $uri
         });
-        say '✅ Sent!';
+        _emit $l->maketext('✅ Sent!') . "\n";
     }
 
     # Exit with an error if any nicks were unknown.
