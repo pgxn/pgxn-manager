@@ -5,7 +5,7 @@ use strict;
 use warnings;
 use utf8;
 
-use Test::More tests => 144;
+use Test::More tests => 149;
 # use Test::More 'no_plan';
 use Test::File;
 use File::Path qw(remove_tree);
@@ -66,6 +66,23 @@ DEFAULT: {
     local @ARGV;
     is_deeply { $maint->_config }, { verbosity => 0 },
         'Default options should be correct';
+    is $maint->verbosity, 0, 'Default verbosity is 0';
+    is $maint->expires, '2 days', 'Default expires is 2 days';
+    is $maint->reason, '', 'Default expires is empty string';
+    is $maint->base_url, 'https://manager.pgxn.org',
+        'Default base_url is manager.pgxn.org';
+    is $maint->admin, do {
+        require Encode::Locale;
+        Encode::decode( locale => getlogin )
+            || Encode::decode( locale => scalar getpwuid( $< ) )
+            || $ENV{ LOGNAME }
+            || $ENV{ USER }
+            || $ENV{ USERNAME }
+            || try {
+                require Win32;
+                Encode::decode( locale => Win32::LoginName() )
+            };
+    }, 'Default admin should be system username';
 }
 
 ##############################################################################

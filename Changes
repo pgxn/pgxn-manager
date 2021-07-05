@@ -3,9 +3,14 @@ Revision history for Perl extension PGXN::Manager
 0.20.3
        - Updated the password hashing to a much slower and therefor more
          secure algorithm (blowfish with 9 iterations).
-       - Changed the minimum password length to 8 characters.
-       - Added clear_password() SQL function.
-       - Added the `reset_password` command to pgxn_maint.
+       - Refactored the password algorithm selection into a function so
+         that it can more easily be changed in the future.
+       - Changed the minimum password length from 4 to 8 characters.
+       - Added clear_password() SQL function as a tool for admins to
+         set a user password to a random string and create a reset token.
+       - Added the `reset_password` command to pgxn_maint for admins to use
+         to clear one or more user passwords and send emails to those users
+         with links to create new passwords.
 
 0.20.2   2021-06-01T01:48:32Z
        - Switched to a more appropriate README icon in the distribution view,
