@@ -1,6 +1,6 @@
 Revision history for Perl extension PGXN::Manager
 
-0.20.3
+0.21.0   2021-07-05T22:30:54Z
        - Updated the password hashing to a much slower and therefor more
          secure algorithm (blowfish with 9 iterations).
        - Refactored the password algorithm selection into a function so

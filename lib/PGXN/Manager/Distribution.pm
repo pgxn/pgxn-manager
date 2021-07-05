@@ -19,7 +19,7 @@ use Digest::SHA1;
 use PGXN::Meta::Validator v0.12.0;
 use namespace::autoclean;
 
-our $VERSION = v0.20.3;
+our $VERSION = v0.21.0;
 
 my $TMPDIR = PGXN::Manager->new->config->{tmpdir}
           || File::Spec->catdir(File::Spec->tmpdir, 'pgxn');
