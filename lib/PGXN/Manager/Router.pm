@@ -9,7 +9,7 @@ use Plack::Session::Store::File;
 use PGXN::Manager::Controller;
 use PGXN::Manager;
 
-our $VERSION = v0.22.0;
+our $VERSION = v0.22.1;
 
 sub app {
     builder {
