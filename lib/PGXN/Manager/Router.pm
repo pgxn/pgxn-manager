@@ -181,7 +181,7 @@ STACKTRACE: {
             }
         }
         # Otherwise generate a new one.
-        return $StackTraceClass->new(@_, ignore_package => __PACKAGE__);
+        return $StackTraceClass->new(@_, ignore_package => __PACKAGE__, no_args => 1);
     }
 }
 

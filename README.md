@@ -131,7 +131,7 @@ Installation
 
 *   Now connect to the database:
 
-        /usr/local/pgsql/bin/psql -U postgres pgxn_manager
+        psql -U postgres pgxn_manager
 
     And approve your account, making yourself an admin while you're at it. Also,
     set your password using `crypt()`. Assuming you gave yourself the nickname
@@ -169,7 +169,7 @@ Here's how to run PGXN::Manager behind a reverse proxy server:
           ProxyPass / http://localhost:7496/
           ProxyPassReverse / http://localhost:7496/
           RequestHeader set X-Forwarded-HTTPS %{HTTPS}s
-          RequestHeader set X-Forwaded-Proto https
+          RequestHeader set X-Forwarded-Proto https
           RequestHeader set X-Forwarded-Port 443
           RequestHeader set X-Forwarded-Script-Name ""
         </VirtualHost>
