@@ -77,6 +77,7 @@ my $err_app = sub {
     $env->{'psgix.errordocument.SCRIPT_NAME'} = '/foo';
     $env->{'psgix.errordocument.HTTP_HOST'} = 'localhost';
     $env->{'psgix.errordocument.HTTP_AUTHORIZATION'} = 'Basic ' . encode_base64("user:test-passW0rd");
+    $env->{'plack.stacktrace.text'} = 'This is the trace';
     $env->{'plack.stacktrace.html'} = '<head><title>This is the &quot;error&quot;</title></head>';
     $app->($env);
 };
@@ -125,6 +126,10 @@ sub test_error_response {
     is $email->get_body, 'An error occurred during a request to http://localhost/foo/.
 
 Error: This is the "error"
+
+Trace:
+
+This is the trace
 
 Environment:
 

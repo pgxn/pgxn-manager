@@ -176,7 +176,9 @@ sub server_error {
             subject => "PGXN Manager Internal Server Error",
             body    => "An error occurred during a request to $uri.\n\n"
                      . "Error: $err\n\n"
-                     . "Environment:\n\n" . pp($err_env)
+                     . "Trace:\n\n"
+                     . ($env->{'plack.stacktrace.text'} || 'None found. :-(')
+                     . "\n\nEnvironment:\n\n" . pp($err_env)
                      . "\n",
         });
     }
@@ -1260,7 +1262,7 @@ production configuration file:
     "middleware": [
         ["ErrorDocument", 500, "/error", "subrequest", 1],
         ["HTTPExceptions"],
-        ["StackTrace"]
+        ["StackTrace", "no_print_errors", 1]
     ],
 
 =head2 Methods

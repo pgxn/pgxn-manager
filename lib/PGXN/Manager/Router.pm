@@ -8,7 +8,6 @@ use Plack::App::File;
 use Plack::Session::Store::File;
 use PGXN::Manager::Controller;
 use PGXN::Manager;
-use Encode;
 
 our $VERSION = v0.21.1;
 
@@ -142,15 +141,7 @@ sub app {
                 # Authenticate all requests that require authentication.
                 enable_if {
                     shift->{PATH_INFO} !~ m{^/(?:$|(?:error|about|contact|howto)$|account/(?:reset/|(?:register|changed|forgotten|thanks)$))}
-                } 'Auth::Basic', realm => 'PGXN Users Only', authenticator => sub {
-                    my ($username, $password) = map { decode 'UTF-8', $_ } @_;
-                    PGXN::Manager->conn->run(sub {
-                        return ($_->selectrow_array(
-                            'SELECT authenticate_user(?, ?)',
-                            undef, $username, $password
-                        ))[0];
-                    });
-                };
+                } '+PGXN::Manager::Middleware::BasicAuth';
                 sub { $router->dispatch(shift) };
             };
         };
@@ -178,10 +169,56 @@ STACKTRACE: {
             if (my $meth = $err->can('trace') || $err->can('stack_trace')) {
                 my $trace = $err->$meth;
                 $trace->{message} = $err->as_string; # Ack!
+                return $trace;
             }
         }
         # Otherwise generate a new one.
-        return $StackTraceClass->new(@_, ignore_package => __PACKAGE__, no_args => 1);
+        return $StackTraceClass->new(@_, ignore_package => __PACKAGE__);
+    }
+}
+
+BASICAUTH: {
+    # Dupe Plack's plugin to prevent the password from appearing in stack traces.
+    package PGXN::Manager::Middleware::BasicAuth;
+    use parent qw(Plack::Middleware);
+    use Encode;
+    use strict;
+    $INC{'PGXN/Manager/Middleware/BasicAuth.pm'} = __FILE__;
+
+    sub call {
+        my($self, $env) = @_;
+        my $auth = $env->{HTTP_AUTHORIZATION} or return $self->unauthorized;
+
+        # note the 'i' on the regex, as, according to RFC2617 this is a
+        # "case-insensitive token to identify the authentication scheme"
+        if ($auth =~ /^Basic (.*)$/i) {
+            use Test::More;
+            my ($user, $pass) = map { decode 'UTF-8', $_ // '' }
+                split /:/, (MIME::Base64::decode($1) || ":"), 2;
+            return $self->unauthorized unless PGXN::Manager->conn->txn(fixup => sub {
+                return ($_->selectrow_array(
+                    'SELECT authenticate_user(?, ?)',
+                    undef, $user, $pass
+                ))[0];
+            });
+            $env->{REMOTE_USER} = $user;
+            return $self->app->($env);
+        }
+        return $self->unauthorized;
+    }
+
+    sub unauthorized {
+        my $self = shift;
+        my $body = 'Authorization required';
+        return [
+            401,
+            [
+                'Content-Type' => 'text/plain',
+                'Content-Length' => length $body,
+                'WWW-Authenticate' => 'Basic realm="PGXN Users Only"',
+            ],
+            [ $body ],
+        ];
     }
 }
 
