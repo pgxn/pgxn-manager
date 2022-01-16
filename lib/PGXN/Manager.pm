@@ -94,7 +94,7 @@ to use pretty much anywhere.
 =cut
 
 has conn => (is => 'ro', lazy => 1, isa => 'DBIx::Connector', default => sub {
-    DBIx::Connector->new( @{ shift->config->{dbi} }{qw(dsn username password)}, {
+    my $c = DBIx::Connector->new( @{ shift->config->{dbi} }{qw(dsn username password)}, {
         PrintError        => 0,
         RaiseError        => 0,
         HandleError       => Exception::Class::DBI->handler,
@@ -102,6 +102,8 @@ has conn => (is => 'ro', lazy => 1, isa => 'DBIx::Connector', default => sub {
         pg_enable_utf8    => 1,
         pg_server_prepare => 0,
     });
+    $c->mode('fixup');
+    return $c;
 });
 
 =head3 C<uri_templates>

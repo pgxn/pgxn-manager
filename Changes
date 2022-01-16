@@ -3,6 +3,8 @@ Revision history for Perl extension PGXN::Manager
 0.21.1
        - Re-implemented the basic auth middleware to prevent passwords
          from appearing in stack traces.
+       - Enabled fixup mode for the database connection, so the service
+         can auto-recover from database downtimes.
 
 0.21.0   2021-07-05T22:30:54Z
        - Updated the password hashing to a much slower and therefor more

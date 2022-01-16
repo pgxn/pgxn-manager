@@ -195,7 +195,7 @@ BASICAUTH: {
             use Test::More;
             my ($user, $pass) = map { decode 'UTF-8', $_ // '' }
                 split /:/, (MIME::Base64::decode($1) || ":"), 2;
-            return $self->unauthorized unless PGXN::Manager->conn->txn(fixup => sub {
+            return $self->unauthorized unless PGXN::Manager->conn->run(sub {
                 return ($_->selectrow_array(
                     'SELECT authenticate_user(?, ?)',
                     undef, $user, $pass
