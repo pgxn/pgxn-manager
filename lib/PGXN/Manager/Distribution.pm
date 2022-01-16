@@ -109,7 +109,7 @@ sub extract {
             my $ae = do {
                 my $extract_dir = File::Spec->catdir($workdir, 'source');
                 local $Archive::Extract::WARN = 1;
-                local $Archive::Extract::PREFER_BIN = 1;
+                # local $Archive::Extract::PREFER_BIN = 1;
                 # local $Archive::Extract::DEBUG = 1;
                 local $SIG{__WARN__} = \&_ae_error_handler;
                 my $ae = Archive::Extract->new(
@@ -129,7 +129,7 @@ sub extract {
         }
         return $self;
     } catch {
-        die $_ unless ref $_ eq 'ARRAY';
+        die $_ unless ref $_ eq '::_ERR';
         $self->error([@{ $_ }, $self->basename]);
         return;
     };
@@ -352,16 +352,16 @@ sub DEMOLISH {
 sub _zip_error_handler {
     for (shift) {
         if (/format error: can't find EOCD signature/) {
-            die ['“[_1]” doesn’t look like a distribution archive'];
+            die bless ['“[_1]” doesn’t look like a distribution archive'], '::_ERR';
         }
-        die [$_];
+        die bless [$_], '::_ERR';
     }
 }
 
 my $CWD = cwd;
 sub _ae_error_handler {
     chdir $CWD; # Go back to where we belong.
-    die ['“[_1]” doesn’t look like a distribution archive'];
+    die bless ['“[_1]” doesn’t look like a distribution archive'], '::_ERR';
 }
 
 __PACKAGE__->meta->make_immutable(inline_constructor => 0);

@@ -110,7 +110,7 @@ is $dist->localized_error,
 # Try an invalid zip file.
 my $badzip = __FILE__ . '.zip';
 copy __FILE__, $badzip;
-END { unlink $badzip }
+END { unlink $badzip if $badzip }
 
 isa_ok $dist = new_dist($badzip), $CLASS, 'Bad zip distribution';
 ok !$dist->extract, 'Try to extract it';
@@ -122,7 +122,7 @@ is_deeply scalar $dist->error, [
 # Try an invalid tgz file.
 my $badtgz = __FILE__ . '.tgz';
 copy __FILE__, $badtgz;
-END { unlink $badtgz }
+END { unlink $badtgz if $badtgz }
 
 isa_ok $dist = new_dist($badtgz), $CLASS, 'Bad tgz distribution';
 ok !$dist->extract, 'Try to extract it';

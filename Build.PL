@@ -71,6 +71,11 @@ $class->new(
     requires => {
         'aliased'                           => '0.30',
         'Archive::Extract'                  => '0.88',
+        'Archive::Tar'                      => '2.32',
+        'Compress::Zlib'                    => '2.084',
+        'IO::Uncompress::Bunzip2'           => '2.084',
+        'IO::Uncompress::UnXz'              => '2.084',
+        'IO::Zlib'                          => '1.10',
         'Archive::Zip'                      => '1.30',
         'Class::ISA'                        => '0.36',
         'Cwd'                               => '3.33',

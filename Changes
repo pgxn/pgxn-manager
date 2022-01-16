@@ -5,6 +5,14 @@ Revision history for Perl extension PGXN::Manager
          from appearing in stack traces.
        - Enabled fixup mode for the database connection, so the service
          can auto-recover from database downtimes.
+       - Switched from command-line binaries to pure Perl modules for
+         extracting archives. Not sure why it preferred binaries up to now,
+         but preferring Pure Perl eliminates a lot of IO::Select warnings that
+         were really messing with things.
+       - Changed some internal error propagation to use blessed arrays
+         rather than plain arrays, to prevent confusing any doe that might
+         try to call isa() on them (as was happening when preferring
+         command-line tools for extraction).
 
 0.21.0   2021-07-05T22:30:54Z
        - Updated the password hashing to a much slower and therefor more
@@ -14,7 +22,7 @@ Revision history for Perl extension PGXN::Manager
        - Changed the minimum password length from 4 to 8 characters.
        - Added clear_password() SQL function as a tool for admins to
          set a user password to a random string and create a reset token.
-       - Added the `reset_password` command to pgxn_maint for admins to use
+       - Added the `reset_password` command to `pgxn_maint` for admins to use
          to clear one or more user passwords and send emails to those users
          with links to create new passwords.
 
