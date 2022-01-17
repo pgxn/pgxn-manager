@@ -94,10 +94,14 @@ SELECT col_default_is(    'coowners', 'created_at', 'now()' );
 
 -- Check privileges.
 SELECT ok(
+    has_table_privilege('pgxn', 'coowners', 'SELECT'),
+    'User "pgxn" should have SELECT priv on coowners table'
+);
+
+SELECT ok(
     NOT has_table_privilege('pgxn', 'coowners', priv),
     'User "pgxn" should not have ' || priv || ' priv on coowners table'
 ) FROM unnest(ARRAY[
-    'SELECT',
     'UPDATE',
     'INSERT',
     'DELETE',
