@@ -8,14 +8,14 @@ SELECT has_function(f)
       'is_admin_or_owns', 'grant_coownership', 'revoke_coownership', 'transfer_ownership'
   ]) AS f;
 
-SELECT has_function('is_admin_or_owns',   ARRAY['label', 'text[]']);
-SELECT has_function('grant_coownership',  ARRAY['label', 'label', 'text[]']);
-SELECT has_function('revoke_coownership', ARRAY['label', 'label', 'text[]']);
-SELECT has_function('transfer_ownership', ARRAY['label', 'label', 'text[]']);
+SELECT has_function('is_admin_or_owns',   ARRAY['label', 'term[]']);
+SELECT has_function('grant_coownership',  ARRAY['label', 'label', 'term[]']);
+SELECT has_function('revoke_coownership', ARRAY['label', 'label', 'term[]']);
+SELECT has_function('transfer_ownership', ARRAY['label', 'label', 'term[]']);
 
 -- User "pgxn" should not have access to is_admin_or_owns.
 SELECT ok(
-    NOT has_function_privilege('pgxn', 'is_admin_or_owns(label, text[])', 'EXECUTE'),
+    NOT has_function_privilege('pgxn', 'is_admin_or_owns(label, term[])', 'EXECUTE'),
     'User "pgxn" should not have EXECUTE priv on is_admin_or_owns()'
 );
 
@@ -23,9 +23,9 @@ SELECT ok(
     has_function_privilege('pgxn', f, 'EXECUTE'),
     'User "pgxn" should have EXECUTE priv on ' || f
 ) FROM unnest(ARRAY[
-    'grant_coownership(label, label, text[])',
-    'revoke_coownership(label, label, text[])',
-    'transfer_ownership(label, label, text[])'
+    'grant_coownership(label, label, term[])',
+    'revoke_coownership(label, label, term[])',
+    'transfer_ownership(label, label, term[])'
 ]) AS f;
 
 /****************************************************************************/
@@ -87,7 +87,7 @@ SELECT ok(
 );
 
 SELECT ok(
-    NOT is_admin_or_owns('strongrrl', '{foo}'),
+    NOT is_admin_or_owns('strongrrl', '{foo}'::term[]),
     'Should get false from is_admin_or_owns() for strongrrl and a theory extension'
 );
 
@@ -116,35 +116,35 @@ SELECT function_lang_is('grant_coownership', 'plpgsql' );
 SELECT volatility_is(   'grant_coownership', 'volatile' );
 
 SELECT throws_ok(
-    $$ SELECT grant_coownership('nobody', 'nobody', '{}') $$,
+    $$ SELECT grant_coownership('nobody', 'nobody', '{}'::term[]) $$,
     'P0001',
     'User “nobody” does not have permission to grant co-ownership to “”',
     'Should get error from grant_coownership() for non-existent owner'
 );
 
 SELECT throws_ok(
-    $$ SELECT grant_coownership('nobody', 'nobody', ARRAY['nothing']) $$,
+    $$ SELECT grant_coownership('nobody', 'nobody', ARRAY['nothing'::term]) $$,
     'P0001',
     'User “nobody” does not have permission to grant co-ownership to “nothing”',
     'Should get error from grant_coownership() for non-existent owner and extension'
 );
 
 SELECT throws_ok(
-    $$ SELECT grant_coownership('nobody', 'nobody', ARRAY['nothing', 'nohow']) $$,
+    $$ SELECT grant_coownership('nobody', 'nobody', ARRAY['nothing'::term, 'nohow']) $$,
     'P0001',
     'User “nobody” does not have permission to grant co-ownership to “nothing”, “nohow”',
     'Should get error from grant_coownership() for non-existent owner and extensions'
 );
 
 SELECT throws_ok(
-    $$ SELECT grant_coownership('theory', 'nobody', ARRAY['nothing', 'nohow']) $$,
+    $$ SELECT grant_coownership('theory', 'nobody', ARRAY['nothing'::term, 'nohow']) $$,
     'P0001',
     'User “theory” does not have permission to grant co-ownership to “nothing”, “nohow”',
     'Should get error from grant_coownership() for non-existent extensions'
 );
 
 SELECT throws_ok(
-    $$ SELECT grant_coownership('strongrrl', 'nobody', ARRAY['foo']) $$,
+    $$ SELECT grant_coownership('strongrrl', 'nobody', ARRAY['foo'::term]) $$,
     'P0001',
     'User “strongrrl” does not have permission to grant co-ownership to “foo”',
     'Should get error from grant_coownership() for non-owner'
@@ -154,7 +154,7 @@ SELECT is(COUNT(0)::int, 0, 'Should start with no co-owners') FROM coowners;
 
 -- Let theory give co-ownerhip of foo to strongrrl.
 SELECT ok(
-    grant_coownership('theory', 'strongrrl', ARRAY['bar']),
+    grant_coownership('theory', 'strongrrl', ARRAY['bar'::term]),
     'Let theory give co-ownership of "bar" to strongrrl'
 );
 
@@ -166,7 +166,7 @@ SELECT row_eq(
 );
 
 SELECT ok(
-    grant_coownership('theory', 'strongrrl', ARRAY['foo', 'bar']),
+    grant_coownership('theory', 'strongrrl', ARRAY['foo'::term, 'bar']),
     'Let theory give co-ownership of "bar" and "foo" to strongrrl'
 );
 
@@ -182,14 +182,14 @@ SELECT bag_eq(
 
 -- Do it again.
 SELECT ok(
-    NOT grant_coownership('theory', 'strongrrl', ARRAY['foo', 'bar']),
+    NOT grant_coownership('theory', 'strongrrl', ARRAY['foo'::term, 'bar']),
     'Should get false from grant_coownership() if user is already coowner'
 );
 SELECT is(COUNT(0)::int, 2, 'Should still have two co-owners') FROM coowners;
 
 -- Grant to self.
 SELECT ok(
-    NOT grant_coownership('theory', 'theory', ARRAY['foo', 'bar']),
+    NOT grant_coownership('theory', 'theory', ARRAY['foo'::term, 'bar']),
     'Should get false from grant_coownership() if user is already owner'
 );
 SELECT is(COUNT(0)::int, 2, 'Should still have two co-owners') FROM coowners;
@@ -202,7 +202,7 @@ SELECT ok(
 
 -- Have strongrrl try to grant co-ownership.
 SELECT throws_ok(
-    $$ SELECT grant_coownership('strongrrl', 'anna', ARRAY['foo']) $$,
+    $$ SELECT grant_coownership('strongrrl', 'anna', ARRAY['foo'::term]) $$,
     'P0001',
     'User “strongrrl” does not have permission to grant co-ownership to “foo”',
     'Should get error from grant_coownership() for co-owner but not-owner'
@@ -212,7 +212,7 @@ SELECT throws_ok(
 UPDATE users SET is_admin = TRUE where nickname = 'strongrrl';
 
 SELECT ok(
-    grant_coownership('strongrrl', 'anna', ARRAY['foo']),
+    grant_coownership('strongrrl', 'anna', ARRAY['foo'::term]),
     'Add co-owner as admin'
 );
 
@@ -228,14 +228,14 @@ SELECT bag_eq(
 );
 
 SELECT ok(
-    NOT grant_coownership('strongrrl', 'strongrrl', ARRAY['foo', 'bar']),
+    NOT grant_coownership('strongrrl', 'strongrrl', ARRAY['foo'::term, 'bar']),
     'Should get false from grant_coownership() when admin tries to add existing co-owner'
 );
 
 -- Remove strongrrl's co-ownership and try again.
 DELETE FROM coowners WHERE nickname = 'strongrrl';
 SELECT ok(
-    grant_coownership('strongrrl', 'strongrrl', ARRAY['foo', 'bar']),
+    grant_coownership('strongrrl', 'strongrrl', ARRAY['foo'::term, 'bar']),
     'Admmin should be able to add self as co-owner'
 );
 
@@ -325,7 +325,7 @@ SELECT bag_eq(
 
 -- Let the owner remove co-ownership.
 SELECT ok(
-    revoke_coownership('theory', 'strongrrl', ARRAY['foo', 'bar']),
+    revoke_coownership('theory', 'strongrrl', ARRAY['foo'::term, 'bar']),
     'Let owner remove co-ownership'
 );
 SELECT is(COUNT(0)::int, 0, 'Should now have no co-owners') FROM coowners;
@@ -337,7 +337,7 @@ VALUES ('foo', 'anna'), ('bar', 'anna');
 -- Let admin user revoke co-ownership.
 UPDATE users SET is_admin = TRUE where nickname = 'strongrrl';
 SELECT ok(
-    revoke_coownership('strongrrl', 'anna', ARRAY['foo', 'bar']),
+    revoke_coownership('strongrrl', 'anna', ARRAY['foo'::term, 'bar']),
     'Let admin remove co-ownership'
 );
 SELECT is(COUNT(0)::int, 0, 'Should again have no co-owners') FROM coowners;
@@ -350,28 +350,28 @@ SELECT function_lang_is('transfer_ownership', 'plpgsql' );
 SELECT volatility_is(   'transfer_ownership', 'volatile' );
 
 SELECT throws_ok(
-    $$ SELECT transfer_ownership('nobody', 'nobody', '{}') $$,
+    $$ SELECT transfer_ownership('nobody', 'nobody', '{}'::term[]) $$,
     'P0001',
     'User “nobody” does not have permission to transfer ownership of “”',
     'Should get error from transfer_ownership() for non-existent owner'
 );
 
 SELECT throws_ok(
-    $$ SELECT transfer_ownership('nobody', 'nobody', '{foo}') $$,
+    $$ SELECT transfer_ownership('nobody', 'nobody', '{foo}'::term[]) $$,
     'P0001',
     'User “nobody” does not have permission to transfer ownership of “foo”',
     'Should get error from transfer_ownership() for non-existent owner and extension'
 );
 
 SELECT throws_ok(
-    $$ SELECT transfer_ownership('nobody', 'nobody', '{foo,bar}') $$,
+    $$ SELECT transfer_ownership('nobody', 'nobody', '{foo,bar}'::term[]) $$,
     'P0001',
     'User “nobody” does not have permission to transfer ownership of “foo”, “bar”',
     'Should get error from transfer_ownership() for non-existent owner and extensions'
 );
 
 SELECT throws_ok(
-    $$ SELECT transfer_ownership('strongrrl', 'nobody', '{foo}') $$,
+    $$ SELECT transfer_ownership('strongrrl', 'nobody', '{foo}'::term[]) $$,
     'P0001',
     'User “strongrrl” does not have permission to transfer ownership of “foo”',
     'Should get error from transfer_ownership() for non-owner'
@@ -392,7 +392,7 @@ UPDATE extensions SET updated_at = NOW() - '1 day'::interval;
 
 -- Have theory transfer them to strongrrl.
 SELECT ok(
-    transfer_ownership('theory', 'strongrrl', ARRAY['foo', 'bar']),
+    transfer_ownership('theory', 'strongrrl', ARRAY['foo'::term, 'bar']),
     'Transfer two extensions to strongrrl'
 );
 
@@ -412,7 +412,7 @@ SELECT is(COUNT(0)::int, 0, 'And her co-ownerships should have been deleted') FR
 
 -- Try transfering to strongrrl again.
 SELECT throws_ok(
-    $$ SELECT transfer_ownership('theory', 'strongrrl', '{foo,bar}') $$,
+    $$ SELECT transfer_ownership('theory', 'strongrrl', '{foo,bar}'::term[]) $$,
     'P0001',
     'User “theory” does not have permission to transfer ownership of “foo”, “bar”',
     'Should get error from transfer_ownership() for old owner'
@@ -422,18 +422,18 @@ SELECT throws_ok(
 UPDATE extensions SET updated_at = NOW() - '1 day'::interval;
 
 SELECT ok(
-    NOT transfer_ownership('strongrrl', 'strongrrl', ARRAY['foo', 'bar']),
+    NOT transfer_ownership('strongrrl', 'strongrrl', ARRAY['foo'::term, 'bar']),
     'Transfer from strongrrl to strongrrl should return false'
 );
 
 SELECT is(
-    ARRAY(SELECT owner::text FROM extensions WHERE name in ('foo', 'bar')),
+    ARRAY(SELECT owner::text FROM extensions WHERE name in ('foo'::term, 'bar')),
     ARRAY['strongrrl', 'strongrrl'],
     'Now "strongrrl" should still own "foo" and "bar"'
 );
 
 SELECT is(
-    ARRAY(SELECT updated_at FROM extensions WHERE name in ('foo', 'bar')),
+    ARRAY(SELECT updated_at FROM extensions WHERE name in ('foo'::term, 'bar')),
     ARRAY[NOW() - '1 day'::INTERVAL, NOW() - '1 day'::interval],
     'And updated_at should not have been updated'
 );
