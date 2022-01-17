@@ -168,7 +168,7 @@ STACKTRACE: {
         if (blessed $err) {
             if (my $meth = $err->can('trace') || $err->can('stack_trace')) {
                 my $trace = $err->$meth;
-                $trace->{message} = $err->as_string; # Ack!
+                $trace->frame(0)->{message} = $err->as_string; # Ack!
                 return $trace;
             }
         }

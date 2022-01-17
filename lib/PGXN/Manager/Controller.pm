@@ -163,9 +163,6 @@ sub server_error {
     if (%{ $err_env }) {
         # Recdact the auth header and extract the error message.
         $err_env->{HTTP_AUTHORIZATION} = '[REDACTED]' if $err_env->{HTTP_AUTHORIZATION};
-        my ($err) = $env->{'plack.stacktrace.html'}
-            ? decode_entities($env->{'plack.stacktrace.html'} =~ m{<title>([^>]+)</title>})
-            : ('None found.:-(');
 
         # Send an email to the administrators.
         my $pgxn = PGXN::Manager->instance;
@@ -175,7 +172,6 @@ sub server_error {
             to      => $config->{alert_email},
             subject => "PGXN Manager Internal Server Error",
             body    => "An error occurred during a request to $uri.\n\n"
-                     . "Error: $err\n\n"
                      . "Trace:\n\n"
                      . ($env->{'plack.stacktrace.text'} || 'None found. :-(')
                      . "\n\nEnvironment:\n\n" . pp($err_env)
