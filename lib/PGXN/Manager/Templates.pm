@@ -147,7 +147,7 @@ BEGIN { create_wrapper wrapper => sub {
                         ($req->user ? (
                             [ '/upload',           'Upload a Distribution', 'upload'      ],
                             [ '/distributions',    'Your Distributions',    'dists'       ],
-                            [ '/permissions',      'Show Permissions',      'permissions' ],
+                            [ '/permissions',      'Permissions',           'permissions' ],
                             [ '/account',          'Edit Account',          'account'     ],
                             [ '/account/password', 'Change Password',       'passwd'      ],
                         ) : (
