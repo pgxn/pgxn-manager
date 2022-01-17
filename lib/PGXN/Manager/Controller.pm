@@ -833,7 +833,22 @@ sub update_password {
 
 sub show_perms {
     my $self = shift;
-    return $self->render('/show_perms', { env => shift });
+    my $req  = Request->new(shift);
+
+    my $sth = PGXN::Manager->conn->run(sub {
+        shift->prepare(q{
+            SELECT e.name AS name
+                 , e.owner AS owner
+                 , array_agg(o.nickname ORDER BY o.nickname) AS coowners
+              FROM extensions e
+              LEFT JOIN coowners o ON e.name = o.extension
+             WHERE $1 IN (e.owner, o.nickname)
+             GROUP BY e.name, e.owner
+             ORDER BY e.name ASC
+        });
+    });
+    $sth->execute($req->user);
+    $self->render('/show_perms', { req => $req, vars => { sth => $sth }});
 }
 
 sub show_users {

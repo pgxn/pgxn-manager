@@ -1146,6 +1146,64 @@ template show_perms => sub {
     } $req, { page_title => 'View and edit your extension permissions' };
 };
 
+template show_perms => sub {
+    my ($self, $req, $args) = @_;
+    wrapper {
+        h1 { T 'Your Extension Permissions' };
+        table {
+            id is 'distlist';
+            summary is T 'List of extensions owned or co-owned by [_1]', $req->user;
+            thead {
+                row {
+                    th { scope is 'col'; class is 'nobg'; T 'Extension' };
+                    th { scope is 'col'; T 'Owner'   };
+                    th { scope is 'col'; T 'Co-Owners' };
+                };
+            };
+            tbody {
+                my $i = 0;
+                my $forward = $req->uri_for('/ui/img/play.svg');
+                while (my $row = $args->{sth}->fetchrow_hashref) {
+                    row {
+                        class is ++$i % 2 ? 'spec' : 'specalt';
+                        th {
+                            scope is 'row';
+                            a {
+                                my $name = $row->{name};
+                                class is 'show';
+                                title is T q{See [_1]'s details}, $name;
+                                href  is $req->uri_for("/extensions/$name");
+                                img { src is $forward; };
+                                outs $name;
+                            };
+                        };
+                        cell { T $row->{owner} };
+                        cell { join ', ', @{ $row->{coowners} } };
+                    }
+                }
+                unless ($i) {
+                    # No distributions.
+                    row {
+                        class is 'spec';
+                        cell {
+                            colspan is 3;
+                            outs T q{You don’t own any extensions, yet.};
+                            a {
+                                id is 'iupload';
+                                href is $req->uri_for('/upload');
+                                T 'Release one now!';
+                            };
+                        };
+                    };
+                }
+            }
+        };
+    } $req, {
+        page_title => 'Your permissions',
+        $args ? %{ $args } : (),
+    };
+};
+
 template show_users => sub {
     my ($self, $req, $args) = @_;
     wrapper {
