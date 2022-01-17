@@ -839,7 +839,7 @@ sub show_perms {
         shift->prepare(q{
             SELECT e.name AS name
                  , e.owner AS owner
-                 , array_agg(o.nickname ORDER BY o.nickname) AS coowners
+                 , array_agg(o.nickname::TEXT ORDER BY o.nickname) AS coowners
               FROM extensions e
               LEFT JOIN coowners o ON e.name = o.extension
              WHERE $1 IN (e.owner, o.nickname)
