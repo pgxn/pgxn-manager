@@ -1149,13 +1149,13 @@ template show_perms => sub {
 template show_perms => sub {
     my ($self, $req, $args) = @_;
     wrapper {
-        h1 { T 'Your Extension Permissions' };
+        h1 { T 'View Permissions' };
         table {
-            id is 'distlist';
+            id is 'privlist';
             summary is T 'List of extensions owned or co-owned by [_1]', $req->user;
             thead {
                 row {
-                    th { scope is 'col'; class is 'nobg'; T 'Extension' };
+                    th { scope is 'col'; class is 'nobg'; T 'Extensions' };
                     th { scope is 'col'; T 'Owner'   };
                     th { scope is 'col'; T 'Co-Owners' };
                 };
@@ -1172,13 +1172,13 @@ template show_perms => sub {
                                 my $name = $row->{name};
                                 class is 'show';
                                 title is T q{See [_1]'s details}, $name;
-                                href  is $req->uri_for("/extensions/$name");
+                                href  is $req->uri_for("/permissions/$name");
                                 img { src is $forward; };
                                 outs $name;
                             };
                         };
                         cell { T $row->{owner} };
-                        cell { join ', ', @{ $row->{coowners} } };
+                        cell { join ', ', @{ $row->{coowners} || [] } };
                     }
                 }
                 unless ($i) {
@@ -1199,7 +1199,7 @@ template show_perms => sub {
             }
         };
     } $req, {
-        page_title => 'Your permissions',
+        page_title => 'View permissions',
         $args ? %{ $args } : (),
     };
 };

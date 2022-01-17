@@ -5,8 +5,8 @@ use strict;
 use warnings;
 use utf8;
 
-use Test::More tests => 117;
-#use Test::More 'no_plan';
+# use Test::More tests => 117;
+use Test::More 'no_plan';
 use Plack::Test;
 use HTTP::Request::Common;
 use Test::File::Contents;
