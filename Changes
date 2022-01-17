@@ -7,6 +7,9 @@ Revision history for Perl extension PGXN::Manager
          CDNs.
        - Fixed an error when a the forgotten password form is submitted
          with an invalid label value.
+       - Changed the ownership function signatures in the database to
+         properly use the term type for extension names.
+       - Implemented the UX for permissions.
 
 0.22.1   2022-01-16T20:32:34Z
        - Re-implemented the basic auth middleware to prevent passwords

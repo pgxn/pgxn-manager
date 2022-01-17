@@ -5,8 +5,8 @@ use strict;
 use warnings;
 use utf8;
 
-# use Test::More tests => 304;
-use Test::More 'no_plan';
+use Test::More tests => 470;
+# use Test::More 'no_plan';
 use Plack::Test;
 use HTTP::Request::Common;
 use PGXN::Manager;
@@ -306,6 +306,317 @@ test_psgi +PGXN::Manager::Router->app => sub {
                         'Should have user in second cell'
                     );
                     $tx->is('./td[2]', '', 'Should have empty third cell');
+                });
+            });
+        });
+    });
+};
+
+##################################################################################
+# Great! Now have a look at admin's extensions.
+test_psgi +PGXN::Manager::Router->app => sub {
+    my $cb  = shift;
+    my $req = GET $uri, Authorization => 'Basic ' . encode_base64("$admin:test-passW0rd");
+
+    ok my $res = $cb->($req), "Get $uri with auth token";
+    ok $res->is_success, 'Response should be success';
+    is_well_formed_xml $res->content, 'The HTML should be well-formed';
+    my $tx = Test::XPath->new( xml => $res->content, is_html => 1 );
+
+    $req = PGXN::Manager::Request->new(req_to_psgi($req));
+    $req->env->{REMOTE_USER} = $admin;
+    XPathTest->test_basics($tx, $req, $mt, {
+        h1 => 'View Permissions',
+        page_title => 'View permissions',
+    });
+
+    $tx->ok('/html/body/div[@id="content"]', 'Look at the content', sub {
+        $tx->is('count(./*)', 2, '... Should have two subelements');
+        $tx->ok('./table[@id="privlist"]', '... Test privlist table', sub {
+            $tx->is(
+                './@summary',
+                $mt->maketext('List of extensions owned or co-owned by [_1]', $admin),
+                '...... Summary should be correct'
+            );
+            $tx->is('count(./*)', 2, '...... Should have two subelements');
+            $tx->ok('./thead', '...... Test thead', sub {
+                $tx->is('count(./*)', 1, '......... Should have one subelement');
+                $tx->ok('./tr', '......... Should be a row', sub {
+                    $tx->is('count(./*)', 3, '............ Should have three subelements');
+                    $tx->is('count(./th)', 3, '........... All should be th');
+                    $tx->ok('./th[1]', '............ Test first th', sub {
+                        $tx->is('./@scope', 'col', '............... Should be row scope');
+                        $tx->is('./@class', 'nobg', '............... Should be class nobg');
+                        $tx->is(
+                            './text()',
+                            $mt->maketext('Extensions'),
+                            '............... Should be "Extensions" th'
+                        );
+                    });
+                    $tx->ok('./th[2]', '............ Test second th', sub {
+                        $tx->is('./@scope', 'col', '............... Should be row scope');
+                        $tx->is(
+                            './text()',
+                            $mt->maketext('Owner'),
+                            '............... Should be "Owner" th'
+                        );
+                    });
+                    $tx->ok('./th[3]', '............ Test third th', sub {
+                        $tx->is('./@scope', 'col', '............... Should be row scope');
+                        $tx->is(
+                            './text()',
+                            $mt->maketext('Co-Owners'),
+                            '............... Should be "Co-Owners" th'
+                        );
+                    });
+                });
+            });
+            $tx->ok('./tbody', '...... Test tbody', sub {
+                $tx->is('count(./*)', 1, '......... Should have one subelement');
+                $tx->ok('./tr', '......... Should be a row', sub {
+                    $tx->is('./@class', 'spec', '............ Class should be "spec"');
+                    $tx->is('count(./*)', 3, '............ Should have three subelements');
+                    $tx->ok('./th[@scope="row"]', '............ Test th', sub {
+                        $tx->is('count(./*)', 1, '............... Should have 1 subelement');
+                        $tx->ok('./a[@class="show"]', '............... Test anchor', sub {
+                            $tx->is(
+                                './@title',
+                                $mt->maketext(q{See [_1]'s details}, 'pgtap'),
+                                '.................. Should have link title'
+                            );
+                            $tx->is(
+                                './@href',
+                                $req->uri_for('/permissions/pgtap'),
+                                '.................. Should have href'
+                            );
+                            $tx->is(
+                                './img/@src',
+                                $req->uri_for('/ui/img/play.svg'),
+                                'It should have an image link'
+                            );
+                            $tx->like(
+                                './text()',
+                                qr/\bpgtap\b/,
+                                'Should have link text'
+                            )
+                        });
+                    });
+                    $tx->is(
+                        './td[1]', $admin,
+                        'Should have admin user in second cell'
+                    );
+                    $tx->is('./td[2]', '', 'Should have empty third cell');
+                });
+            });
+        });
+    });
+};
+
+##################################################################################
+# Now grant co-ownership on pgTAP to the user.
+PGXN::Manager->conn->run(sub {
+    ok shift->selectcol_arrayref(
+        'SELECT grant_coownership($1, $2, $3)',
+        undef, $admin, $user, ['pgTAP'],
+    )->[0], "Grant co-ownership on pgTAP to $user";
+});
+
+# Now we should have three items listed for the user.
+test_psgi +PGXN::Manager::Router->app => sub {
+    my $cb  = shift;
+    my $req = GET $uri, Authorization => 'Basic ' . encode_base64("$user:test-passW0rd");
+
+    ok my $res = $cb->($req), "Get $uri with auth token";
+    ok $res->is_success, 'Response should be success';
+    is_well_formed_xml $res->content, 'The HTML should be well-formed';
+    my $tx = Test::XPath->new( xml => $res->content, is_html => 1 );
+
+    $req = PGXN::Manager::Request->new(req_to_psgi($req));
+    $req->env->{REMOTE_USER} = $user;
+    XPathTest->test_basics($tx, $req, $mt, {
+        h1 => 'View Permissions',
+        page_title => 'View permissions',
+    });
+
+    $tx->ok('/html/body/div[@id="content"]', 'Look at the content', sub {
+        $tx->is('count(./*)', 2, '... Should have two subelements');
+        $tx->ok('./table[@id="privlist"]', '... Test privlist table', sub {
+            $tx->is(
+                './@summary',
+                $mt->maketext('List of extensions owned or co-owned by [_1]', $user),
+                '...... Summary should be correct'
+            );
+            $tx->ok('./tbody', '...... Test tbody', sub {
+                $tx->is('count(./*)', 3, '......... Should have three subelements');
+                $tx->is('count(./tr)', 3, '......... All three should be tr');
+                $tx->ok('./tr[1]', '......... Test first tr', sub {
+                    $tx->is('./@class', 'spec', '............ Class should be "spec"');
+                    $tx->is('count(./*)', 3, '............ Should have three subelements');
+                    $tx->ok('./th[@scope="row"]', '............ Test th', sub {
+                        $tx->is('count(./*)', 1, '............... Should have 1 subelement');
+                        $tx->ok('./a[@class="show"]', '............... Test anchor', sub {
+                            $tx->is(
+                                './@title',
+                                $mt->maketext(q{See [_1]'s details}, 'pair'),
+                                '.................. Should have link title'
+                            );
+                            $tx->is(
+                                './@href',
+                                $req->uri_for('/permissions/pair'),
+                                '.................. Should have href'
+                            );
+                            $tx->is(
+                                './img/@src',
+                                $req->uri_for('/ui/img/play.svg'),
+                                'It should have an image link'
+                            );
+                            $tx->like(
+                                './text()',
+                                qr/\bpair\b/,
+                                'Should have link text'
+                            )
+                        });
+                    });
+                    $tx->is(
+                        './td[1]',
+                        $user,
+                        'Should have user in second cell'
+                    );
+                    $tx->is('./td[2]', '', 'Should have empty third cell');
+                });
+                $tx->ok('./tr[2]', '......... Test second tr', sub {
+                    $tx->is('./@class', 'specalt', '............ Class should be "specalt"');
+                    $tx->is('count(./*)', 3, '............ Should have three subelements');
+                    $tx->ok('./th[@scope="row"]', '............ Test th', sub {
+                        $tx->is('count(./*)', 1, '............... Should have 1 subelement');
+                        $tx->ok('./a[@class="show"]', '............... Test anchor', sub {
+                            $tx->is(
+                                './@title',
+                                $mt->maketext(q{See [_1]'s details}, 'pgtap'),
+                                '.................. Should have link title'
+                            );
+                            $tx->is(
+                                './@href',
+                                $req->uri_for('/permissions/pgtap'),
+                                '.................. Should have href'
+                            );
+                            $tx->is(
+                                './img/@src',
+                                $req->uri_for('/ui/img/play.svg'),
+                                'It should have an image link'
+                            );
+                            $tx->like(
+                                './text()',
+                                qr/\bpgtap\b/,
+                                'Should have link text'
+                            )
+                        });
+                    });
+                    $tx->is(
+                        './td[1]', $admin,
+                        'Should have admin user in second cell'
+                    );
+                    $tx->is('./td[2]', $user, 'Should have user in third cell');
+                });
+                $tx->ok('./tr[3]', '......... Test third tr', sub {
+                    $tx->is('./@class', 'spec', '............ Class should be "spec"');
+                    $tx->is('count(./*)', 3, '............ Should have three subelements');
+                    $tx->ok('./th[@scope="row"]', '............ Test th', sub {
+                        $tx->is('count(./*)', 1, '............... Should have 1 subelement');
+                        $tx->ok('./a[@class="show"]', '............... Test anchor', sub {
+                            $tx->is(
+                                './@title',
+                                $mt->maketext(q{See [_1]'s details}, 'widget'),
+                                '.................. Should have link title'
+                            );
+                            $tx->is(
+                                './@href',
+                                $req->uri_for('/permissions/widget'),
+                                '.................. Should have href'
+                            );
+                            $tx->is(
+                                './img/@src',
+                                $req->uri_for('/ui/img/play.svg'),
+                                'It should have an image link'
+                            );
+                            $tx->like(
+                                './text()',
+                                qr/\bwidget\b/,
+                                'Should have link text'
+                            )
+                        });
+                    });
+                    $tx->is(
+                        './td[1]', $user,
+                        'Should have user in second cell'
+                    );
+                    $tx->is('./td[2]', '', 'Should have empty third cell');
+                });
+            });
+        });
+    });
+};
+
+# $admin's view should still show one extension, but now list $user as co-owner.
+test_psgi +PGXN::Manager::Router->app => sub {
+    my $cb  = shift;
+    my $req = GET $uri, Authorization => 'Basic ' . encode_base64("$admin:test-passW0rd");
+
+    ok my $res = $cb->($req), "Get $uri with auth token";
+    ok $res->is_success, 'Response should be success';
+    is_well_formed_xml $res->content, 'The HTML should be well-formed';
+    my $tx = Test::XPath->new( xml => $res->content, is_html => 1 );
+
+    $req = PGXN::Manager::Request->new(req_to_psgi($req));
+    $req->env->{REMOTE_USER} = $admin;
+    XPathTest->test_basics($tx, $req, $mt, {
+        h1 => 'View Permissions',
+        page_title => 'View permissions',
+    });
+
+    $tx->ok('/html/body/div[@id="content"]', 'Look at the content', sub {
+        $tx->is('count(./*)', 2, '... Should have two subelements');
+        $tx->ok('./table[@id="privlist"]', '... Test privlist table', sub {
+            $tx->is(
+                './@summary',
+                $mt->maketext('List of extensions owned or co-owned by [_1]', $admin),
+                '...... Summary should be correct'
+            );
+            $tx->ok('./tbody', '...... Test tbody', sub {
+                $tx->is('count(./*)', 1, '......... Should have one subelement');
+                $tx->ok('./tr', '......... Should be a row', sub {
+                    $tx->is('./@class', 'spec', '............ Class should be "spec"');
+                    $tx->is('count(./*)', 3, '............ Should have three subelements');
+                    $tx->ok('./th[@scope="row"]', '............ Test th', sub {
+                        $tx->is('count(./*)', 1, '............... Should have 1 subelement');
+                        $tx->ok('./a[@class="show"]', '............... Test anchor', sub {
+                            $tx->is(
+                                './@title',
+                                $mt->maketext(q{See [_1]'s details}, 'pgtap'),
+                                '.................. Should have link title'
+                            );
+                            $tx->is(
+                                './@href',
+                                $req->uri_for('/permissions/pgtap'),
+                                '.................. Should have href'
+                            );
+                            $tx->is(
+                                './img/@src',
+                                $req->uri_for('/ui/img/play.svg'),
+                                'It should have an image link'
+                            );
+                            $tx->like(
+                                './text()',
+                                qr/\bpgtap\b/,
+                                'Should have link text'
+                            )
+                        });
+                    });
+                    $tx->is(
+                        './td[1]', $admin,
+                        'Should have admin user in second cell'
+                    );
+                    $tx->is('./td[2]', $user, 'Should have user in third cell');
                 });
             });
         });
