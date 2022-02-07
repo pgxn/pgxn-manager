@@ -877,25 +877,21 @@ sub nicknames_beginning_with {
     }));
 }
 
-sub show_extension_perms {
-    my $self = shift;
-    my $req  = Request->new(shift);
-    my $name = shift->{ext};
+# Select name, description, owner, co-owners. Current user must be owner,
+# co-owner, or admin.
 
-    # Select name, description, owner, co-owners. Current user must be owner,
-    # co-owner, or admin.
-
-    # Template should show actions:
-    # *   Owner or Admin:
-    #     *   Add co-owner
-    #     *   Remove co-owner
-    #     *   Transfer ownership
-    # *   Co-Owner:
-    #     *   Remove self as co-owner
-
-
-
-}
+# Template should show actions:
+# *   Owner or Admin:
+#     *   Add co-owner
+#     *   Remove co-owner
+#     *   Transfer ownership
+# *   Co-Owner:
+#     *   Remove self as co-owner
+# sub show_extension_perms {
+#     my $self = shift;
+#     my $req  = Request->new(shift);
+#     my $name = shift->{ext};
+# }
 
 sub show_users {
     my $self = shift;
@@ -1362,6 +1358,10 @@ included in the body of the response. The currently-supported responses are:
   $controller->missing($env, $data);
 
 Handles 404 and 405 errors from Router::Resource.
+
+=head3 C<nicknames_beginning_with>
+
+JSON API for getting a list of nicknames beginning with specified letters.
 
 =over
 
