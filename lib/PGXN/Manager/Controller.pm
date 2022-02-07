@@ -851,6 +851,52 @@ sub show_perms {
     $self->render('/show_perms', { req => $req, vars => { sth => $sth }});
 }
 
+sub _send_json {
+    my ($self, $status, $json) = @_;
+    return [
+        $code_for{$code},
+        ['Content-Type' => 'application/json', 'Content-Length' => length $json],
+        [$json],
+    ];
+}
+
+sub nicknames_beginning_with {
+    my $self = shift;
+    my $req  = Request->new(shift);
+    my $letters = $req->query_parameters->{l};
+    return $self->_send_json('success', '[]') if length $letters < 2;
+
+    # LIKE against (CITEXT-based) nickname with LIKE chars escaped.
+    return $self->_send_json('success', PGXN::Manager->conn->run(sub {
+        shift->selectrow_arrayref(q{
+            SELECT COALESCE(json_agg(nickname::TEXT ORDER BY nickname), '[]')
+              FROM users
+             WHERE nickname LIKE $1
+             LIMIT 12
+        }, undef, ($letters =~ s/([_%])/\\$1/gr) . '%')
+    }));
+}
+
+sub show_extension_perms {
+    my $self = shift;
+    my $req  = Request->new(shift);
+    my $name = shift->{ext};
+
+    # Select name, description, owner, co-owners. Current user must be owner,
+    # co-owner, or admin.
+
+    # Template should show actions:
+    # *   Owner or Admin:
+    #     *   Add co-owner
+    #     *   Remove co-owner
+    #     *   Transfer ownership
+    # *   Co-Owner:
+    #     *   Remove self as co-owner
+
+
+
+}
+
 sub show_users {
     my $self = shift;
     return $self->render('/show_users', { env => shift });

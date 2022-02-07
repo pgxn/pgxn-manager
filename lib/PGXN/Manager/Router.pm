@@ -93,6 +93,10 @@ sub app {
                     POST { $controller->upload(@_)      };
                 };
 
+                resource '/permissions/:ext' => sub {
+                    GET { $controller->show_extension_perms(@_) };
+                };
+
                 resource '/permissions' => sub {
                     GET { $controller->show_perms(@_) };
                 };
