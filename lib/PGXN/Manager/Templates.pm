@@ -86,9 +86,9 @@ BEGIN { create_wrapper wrapper => sub {
             };
             if ($args->{js} || $args->{with_jquery} || $args->{validate_form}) {
                 script {
-                    # https://docs.jquery.com/Downloading_jQuery#CDN_Hosted_jQuery
+                    # https://jquery.com/download/
                     type is 'text/javascript';
-                    src is 'https://code.jquery.com/jquery-1.6.min.js';
+                    src  is $req->uri_for('/ui/js/jquery-3.6.0.min.js');
                 };
                 script {
                     type is 'text/javascript';
@@ -102,9 +102,9 @@ BEGIN { create_wrapper wrapper => sub {
                 }
                 if (my $id = $args->{validate_form}) {
                     script {
-                        # https://bassistance.de/jquery-plugins/jquery-plugin-validation/
+                        # https://github.com/jquery-validation/jquery-validation/releases/tag/
                         type is 'text/javascript';
-                        src  is 'https://ajax.microsoft.com/ajax/jquery.validate/1.7/jquery.validate.pack.js';
+                        src  is $req->uri_for('/ui/js/jquery.validate.min.js');
                     };
                     script {
                         type is 'text/javascript';

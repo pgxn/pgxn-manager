@@ -92,7 +92,7 @@ sub test_basics {
         if ($p->{with_jquery} || $p->{validate_form}) {
             $_->is(
                 './script[1][@type="text/javascript"]/@src',
-                'https://code.jquery.com/jquery-1.6.min.js',
+                $req->uri_for('/ui/js/jquery-3.6.0.min.js'),
                 'Should load jQuery'
             );
             $_->is(
@@ -103,7 +103,7 @@ sub test_basics {
             if (my $id = $p->{validate_form}) {
                 $_->is(
                     './script[3][@type="text/javascript"]/@src',
-                    'https://ajax.microsoft.com/ajax/jquery.validate/1.7/jquery.validate.pack.js',
+                    $req->uri_for('/ui/js/jquery.validate.min.js'),
                     'Should load load jQuery Validate plugin'
                 );
             }
