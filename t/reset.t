@@ -6,7 +6,7 @@ use warnings;
 use utf8;
 BEGIN { $ENV{EMAIL_SENDER_TRANSPORT} = 'Test' }
 
-use Test::More tests => 355;
+use Test::More tests => 360;
 #use Test::More 'no_plan';
 use Plack::Test;
 use HTTP::Request::Common;
@@ -166,6 +166,31 @@ test_psgi $app => sub {
 
     is +Email::Sender::Simple->default_transport->deliveries,
         0, 'But no email should have been sent'
+};
+
+# Now submit an invalid label value.
+test_psgi $app => sub {
+    my $cb = shift;
+
+    my $mock = Test::MockModule->new('PGXN::Manager::Request');
+    my $sess = {};
+    $mock->mock( session => sub { $sess });
+
+    ok my $res = $cb->(POST '/account/forgotten', [
+        who => "(sElEct/**_**/concaT())",
+    ]), 'POST exploit attempt to /account/forgotten';
+
+    ok $res->is_redirect, 'Should get a redirect response';
+    my $req = PGXN::Manager::Request->new(req_to_psgi($res->request));
+    is $res->headers->header('location'), $req->uri_for('/'),
+        "Should redirect to home";
+    ok $sess->{reset_sent},
+        'The "reset_sent" key should have been set in the session';
+
+    is +Email::Sender::Simple->default_transport->deliveries,
+        0, 'But no email should have been sent';
+    # Triggered a rollback, so restart the transaction.
+    TxnTest->restart;
 };
 
 # Now submit for an actual user.
@@ -502,5 +527,3 @@ test_psgi $app => sub {
         );
     });
 };
-
-

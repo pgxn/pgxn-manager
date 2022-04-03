@@ -5,6 +5,8 @@ Revision history for Perl extension PGXN::Manager
        - Switched to serve jQuery and jquery.validate locally rather than
          from CDNs. This eliminates a vector for data collection by the
          CDNs.
+       - Fixed an error when a the forgotten password form is submitted
+         with an invalid label value.
 
 0.22.1   2022-01-16T20:32:34Z
        - Re-implemented the basic auth middleware to prevent passwords

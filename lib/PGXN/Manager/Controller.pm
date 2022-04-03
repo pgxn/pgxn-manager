@@ -369,12 +369,18 @@ sub send_reset {
         })
     }
 
-    my $token = $pgxn->conn->run(sub {
-        my $sql = $who =~ /@/
-            ? 'SELECT forgot_password(nickname) FROM users WHERE email = ?'
-            : 'SELECT forgot_password(?)';
-        shift->selectcol_arrayref($sql, undef, $who)->[0];
-    });
+    my $token = try {
+        $pgxn->conn->run(sub {
+            my $sql = $who =~ /@/
+                ? 'SELECT forgot_password(nickname) FROM users WHERE email = ?'
+                : 'SELECT forgot_password(?)';
+            shift->selectcol_arrayref($sql, undef, $who)->[0];
+        });
+    } catch {
+        # Ignore domain lable violation.
+        my $err = shift;
+        die $err if $err->state ne '23514';
+    };
 
     if ($token) {
         my $uri = $req->uri_for("/account/reset/$token->[0]");
