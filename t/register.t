@@ -6,8 +6,8 @@ use warnings;
 use utf8;
 BEGIN { $ENV{EMAIL_SENDER_TRANSPORT} = 'Test' }
 
-use Test::More tests => 716;
-#use Test::More 'no_plan';
+# use Test::More tests => 716;
+use Test::More 'no_plan';
 use Plack::Test;
 use HTTP::Request::Common;
 use PGXN::Manager;
@@ -15,6 +15,7 @@ use PGXN::Manager::Router;
 use HTTP::Message::PSGI;
 use Test::XML;
 use Test::XPath;
+use Encode;
 use lib 't/lib';
 use TxnTest;
 use XPathTest;
@@ -109,7 +110,7 @@ test_psgi $app => sub {
                 },
                 {
                     id    => 'twitter',
-                    title => $mt->maketext('Got a Twitter account? Tell us the username and your uploads will be tweeted!'),
+                    title => $mt->maketext('Got a Twitter account?'),
                     label => $mt->maketext('Twitter'),
                     type  => 'text',
                     phold => '@barackobama',
@@ -180,7 +181,7 @@ test_psgi $app => sub {
 test_psgi $app => sub {
     my $cb = shift;
     ok my $res = $cb->(POST '/account/register', [
-        full_name => 'Tom Lane',
+        full_name => 'Tom Lane 🐘',
         email     => 'tgl@pgxn.org',
         uri       => '',
         nickname  => 'tgl',
@@ -198,7 +199,7 @@ test_psgi $app => sub {
               FROM users
              WHERE nickname = ?
         }, undef, 'tgl'), [
-            'Tom Lane', 'tgl@pgxn.org', '', '',
+            'Tom Lane 🐘', 'tgl@pgxn.org', '', '',
             "In short, +1 from me.\n\nRegards, Tom Lane", 'new'
         ], 'TGL should exist';
     });
@@ -216,19 +217,20 @@ test_psgi $app => sub {
         'From header should be set';
     is $email->get_header('To'), PGXN::Manager->config->{alert_email},
         'To header should be set';
-    is $email->get_body, 'A new PGXN account has been requested from 127.0.0.1:
+    my $tom = encode_utf8 'Tom Lane 🐘';
+    is $email->get_body, "A new PGXN account has been requested from 127.0.0.1:
 
-     Name: Tom Lane
+     Name: $tom
  Nickname: tgl
-    Email: tgl@pgxn.org
+    Email: tgl\@pgxn.org
    Reason:
 
 > In short, +1 from me.
 > 
 > Regards, Tom Lane
 
-Moderate at ' . $req->uri_for('admin/moderate') . ".\n",
-    'The body should be correct';
+Moderate at " . $req->uri_for('admin/moderate') . ".\n",
+    'The body should be correctly encoded';
     Email::Sender::Simple->default_transport->clear_deliveries;
 };
 

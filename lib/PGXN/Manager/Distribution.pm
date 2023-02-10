@@ -19,7 +19,7 @@ use Digest::SHA1;
 use PGXN::Meta::Validator v0.12.0;
 use namespace::autoclean;
 
-our $VERSION = v0.22.1;
+our $VERSION = v0.30.0;
 
 my $TMPDIR = PGXN::Manager->new->config->{tmpdir}
           || File::Spec->catdir(File::Spec->tmpdir, 'pgxn');
@@ -580,7 +580,7 @@ David E. Wheeler <david@justatheory.com>
 
 =head1 Copyright and License
 
-Copyright (c) 2010-2021 David E. Wheeler.
+Copyright (c) 2010-2023 David E. Wheeler.
 
 This module is free software; you can redistribute it and/or modify it under
 the L<PostgreSQL License|https://www.opensource.org/licenses/postgresql>.

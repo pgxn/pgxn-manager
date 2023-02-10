@@ -1,0 +1,168 @@
+#!/usr/local/bin/perl -w
+
+use 5.10.0;
+use utf8;
+
+use lib 'lib';
+use PGXN::Manager::Consumer;
+exit PGXN::Manager::Consumer->go;
+
+=head1 Name
+
+pgxn_consumer - Consume and handle PGXN event notifications
+
+=head1 Usage
+
+  pgxn_consumer [OPTIONS]
+
+=head1 Description
+
+This program consumes and handles PGXN Manager event notifications published
+on the PostgreSQL LISTEN/NOTIFY queue.
+
+=head1 Options
+
+  -E --env      ENV      Specify the environment in which to run.
+  -p --pid      PIDFILE  PID file path; used with --daemonize.
+  -D --daemonize         Run in the background as a daemon.
+  -i --interval SECONDS  Interval to sleep between consuming events.
+  -V --verbose           Incremental verbosity to STDOUT.
+  -h --help              Print a usage statement and exit.
+  -m --man               Print the complete documentation and exit.
+  -v --version           Print the version number and exit.
+
+=head1 Configuration
+
+In the configuration file that corresponds to the environment (C<-env>
+add a C<consumers> key that contains configuration for each consumer,
+like so:
+
+  "consumers": [
+      {
+          "type": "mastodon",
+          "events": ["release"],
+          "server": "https://mstdn.example.org",
+          "token": "ABCDefgh123456789x0x0x0x0x0x0x0x0x0x0x0"
+      },
+      {
+          "type": "twitter",
+          "events": ["release"],
+          "consumer_key": "",
+          "consumer_secret": "",
+          "access_token": "",
+          "access_token_secret": ""
+      }
+  }
+
+Each consumer object must contain at least two keys: C<type>, identifying
+the type of consumer, and C<events>, an array of the event types for the
+consumer to process. The current list of events is:
+
+=over
+
+=item C<release>
+
+Sent when a a new release is uploaded.
+
+=item C<new_user>
+
+Sent when a new user has been approved by an admin.
+
+=item C<new_mirror>
+
+Sent when a new mirror has been added.
+
+=back
+
+Each object requires additional keys specific to the type of consumer.
+The current list of consumer types and their configurations is:
+
+=over
+
+=item C<mastodon>
+
+Posts messages to Mastodon. This object corresponds to the configuration for
+a registered application on your Mastodon server, which you'll find under
+Preferences -> Development, or the URI C</settings/applications>. The
+supported keys are:
+
+=over
+
+=item C<server>
+
+The base URL for the Mastodon server, e.g., C<https://botsin.space>. Required.
+
+=item C<token>
+
+The Mastodon API access token, something like
+C<ABCDefgh123456789x0x0x0x0x0x0x0x0x0x0x0>. Required.
+
+=item C<delay>
+
+The number of seconds to delay posting the status. Defaults to 0, and otherwise
+must be at least 300. Optional.
+
+=back
+
+=item C<twitter>
+
+Posts messages to Twitter. The object corresponds to the authentication
+tokens and secrets for an app registered on the
+L<Twitter Developer Portal|https://developer.twitter.com/>. The simplest
+way to create this object is to use C<get_twitter_token>. The supported
+keys are:
+
+=over
+
+=item C<consumer_key>
+
+Identifies the Twitter I<application> to connect to Twitter as. Required.
+
+=item C<consumer_secret>
+
+The randomly-generated secret string that authenticates the C<consumer_key>
+application. Required.
+
+=item C<access_token>
+
+An access token is a user-specific credential used to authenticate OAuth 1.0a
+API requests. It specify the Twitter I<account> the request is made on behalf
+of. Required.
+
+=item C<access_token_secret>
+
+The randomly-generated secret that authenticates the C<access_token> account.
+Required.
+
+=back
+
+=back
+
+=head1 Author
+
+David E. Wheeler <david@justatheory.com>
+
+=head1 Copyright and License
+
+Copyright (c) 2011-2023 David E. Wheeler.
+
+This module is free software; you can redistribute it and/or modify it under
+the L<PostgreSQL License|https://www.opensource.org/licenses/postgresql>.
+
+Permission to use, copy, modify, and distribute this software and its
+documentation for any purpose, without fee, and without a written agreement is
+hereby granted, provided that the above copyright notice and this paragraph
+and the following two paragraphs appear in all copies.
+
+In no event shall David E. Wheeler be liable to any party for direct,
+indirect, special, incidental, or consequential damages, including lost
+profits, arising out of the use of this software and its documentation, even
+if David E. Wheeler has been advised of the possibility of such damage.
+
+David E. Wheeler specifically disclaims any warranties, including, but not
+limited to, the implied warranties of merchantability and fitness for a
+particular purpose. The software provided hereunder is on an "as is" basis,
+and David E. Wheeler has no obligations to provide maintenance, support,
+updates, enhancements, or modifications.
+
+=cut

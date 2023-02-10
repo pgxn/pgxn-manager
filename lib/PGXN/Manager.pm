@@ -16,9 +16,10 @@ use Email::MIME::Creator;
 use Try::Tiny;
 use Net::Twitter::Lite::WithAPIv1_1;
 use Email::Sender::Simple;
+use Encode;
 use namespace::autoclean;
 
-our $VERSION = v0.22.1;
+our $VERSION = v0.30.0;
 
 =head1 Name
 
@@ -94,6 +95,12 @@ to use pretty much anywhere.
 =cut
 
 has conn => (is => 'ro', lazy => 1, isa => 'DBIx::Connector', default => sub {
+    $_[0]->_connect;
+});
+
+# Utility method for connecting, so that other classes can add parameters. For
+# example see Consumer.pm passing callback configuration.
+sub _connect {
     my $c = DBIx::Connector->new( @{ shift->config->{dbi} }{qw(dsn username password)}, {
         PrintError        => 0,
         RaiseError        => 0,
@@ -101,10 +108,11 @@ has conn => (is => 'ro', lazy => 1, isa => 'DBIx::Connector', default => sub {
         AutoCommit        => 1,
         pg_enable_utf8    => 1,
         pg_server_prepare => 0,
+        @_,
     });
     $c->mode('fixup');
     return $c;
-});
+}
 
 =head3 C<uri_templates>
 
@@ -235,73 +243,6 @@ sub move_file {
     chmod 0644, $dest;
 }
 
-=head3 C<send_tweet>
-
-  $pgxn->send_tweet({
-      body => '@theory just uploaded pgTAP-0.35.0',
-      whom => '@theory',
-  });
-
-Send a tweet. The C<body> parameter should be the body of the tweet, not to
-exceed 140 characters. The C<whom> parameter is an optional name for the
-person about whom the tweet should be sent. It may be any string, though
-should usually be something like C<@nickname>, corresponding to a Twitter
-nick.
-
-If the Twitter token is not configured, no tweet will be sent and this method
-will simply return. Configure the Twitter token in your configuration file
-like so:
-
-    "twitter": {
-        "consumer_key": "DA-KEY",
-        "consumer_secret": "OMG-S3KR!T-LOLZ",
-        "access_token": "DA-TOKEN",
-        "access_token_secret": "TOKEN-SEKR!T-LOLZ"
-    }
-
-Register for the consumer key and secret
-L<here|https://dev.twitter.com/apps/new>. To get the access token and access
-secret, use the C<get_twitter_token> utility included with PGXN::Manager. It
-will guide you through the configuration process and emit the JSON you need to
-paste into the configuration file.
-
-On failure, C<send_tweet()> will send an email to the administrator address.
-
-=cut
-
-# XXX Fork this off?
-sub send_tweet {
-    my ($self, $p) = @_;
-    my $config = $self->config;
-
-    # Just return if there's no Twitter authentication token.
-    my $tok = $config->{twitter} or return $self;
-    return $self if grep { !defined $tok->{$_} } qw(
-        consumer_key
-        consumer_secret
-        access_token
-        access_token_secret
-    );
-
-    try {
-        my $nt = Net::Twitter::Lite::WithAPIv1_1->new(
-            ssl              => 1,
-            legacy_lists_api => 0,
-            %{ $tok }
-        );
-        $nt->update($p->{body});
-    } catch {
-        $self->send_email({
-            from    => $config->{admin_email},
-            to      => $config->{alert_email},
-            subject => "Error Tweeting About $p->{whom}",
-            body    => "An error occurred tweeting about $p->{whom}:\n\n"
-                     . "Tweet: $p->{body}\n\nError: $_\n"
-        });
-    };
-    return $self;
-}
-
 =head3 C<send_email>
 
     $pgxn->send_email({
@@ -320,15 +261,15 @@ sub send_email {
     my ($self, $p) = @_;
     my $email = Email::MIME->create(
         header     => [
-            From    => $p->{from},
-            To      => $p->{to},
-            Subject => $p->{subject}
+            From    => encode_utf8 $p->{from},
+            To      => encode_utf8 $p->{to},
+            Subject => encode_utf8 $p->{subject}
         ],
         attributes => {
             content_type => 'text/plain',
             charset      => 'UTF-8',
         },
-        body => $p->{body},
+        body => encode_utf8 $p->{body},
     );
 
     Email::Sender::Simple->send($email, {
@@ -345,7 +286,7 @@ David E. Wheeler <david@justatheory.com>
 
 =head1 Copyright and License
 
-Copyright (c) 2010-2021 David E. Wheeler.
+Copyright (c) 2010-2023 David E. Wheeler.
 
 This module is free software; you can redistribute it and/or modify it under
 the L<PostgreSQL License|https://www.opensource.org/licenses/postgresql>.

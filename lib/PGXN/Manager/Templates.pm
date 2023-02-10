@@ -7,7 +7,7 @@ use Template::Declare::Tags;
 use PGXN::Manager;
 use PGXN::Manager::Locale;
 
-our $VERSION = v0.22.1;
+our $VERSION = v0.30.0;
 
 my $l = PGXN::Manager::Locale->get_handle('en');
 sub T {
@@ -1046,7 +1046,7 @@ template essentials => sub {
             [qw(email     Email    email), 'you@example.com', T('Where can we get hold of you?'), 'required email' ],
             [qw(uri       URI      url),   'https://blog.example.com/', T 'Got a blog or personal site?'  ],
             ($args->{nonick} ? () : [qw(nickname  Nickname text),  'bobama', T('By what user name would you like to be known? ASCII letters, numbers, and dashes only, please.'), 'required' ]),
-            [qw(twitter   Twitter   text),   '@barackobama', T 'Got a Twitter account? Tell us the username and your uploads will be tweeted!'  ],
+            [qw(twitter   Twitter   text),   '@barackobama', T 'Got a Twitter account?'  ],
         ) {
             label {
                 attr { for => $spec->[0], title => $spec->[4] };
@@ -1413,7 +1413,7 @@ David E. Wheeler <david@justatheory.com>
 
 =head1 Copyright and License
 
-Copyright (c) 2010-2021 David E. Wheeler.
+Copyright (c) 2010-2023 David E. Wheeler.
 
 This module is free software; you can redistribute it and/or modify it under
 the L<PostgreSQL License|https://www.opensource.org/licenses/postgresql>.

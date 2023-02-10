@@ -1,5 +1,5 @@
 BEGIN;
-SELECT plan(233);
+SELECT plan(239);
 --SELECT * FROM no_plan();
 
 SELECT has_enum('status');
@@ -101,6 +101,14 @@ SELECT col_type_is(       'users', 'visited_at', 'timestamp with time zone' );
 SELECT col_not_null(      'users', 'visited_at' );
 SELECT col_has_default(   'users', 'visited_at' );
 SELECT col_default_is(    'users', 'visited_at', 'now()' );
+
+-- Check triggers.
+SELECT triggers_are( 'users', ARRAY['notify_new_user']);
+SELECT trigger_is(   'users', 'notify_new_user', 'notify_new_user');
+SELECT has_function('notify_new_user');
+SELECT has_function('notify_new_user', '{}'::name[]);
+SELECT volatility_is('notify_new_user', '{}'::name[], 'volatile');
+SELECT function_returns('notify_new_user', '{}'::name[], 'trigger');
 
 -- Check privileges.
 SELECT ok(

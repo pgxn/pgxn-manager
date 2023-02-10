@@ -18,7 +18,7 @@ use Try::Tiny;
 use SemVer;
 use namespace::autoclean;
 
-our $VERSION = v0.22.1;
+our $VERSION = v0.30.0;
 
 Template::Declare->init( dispatch_to => ['PGXN::Manager::Templates'] );
 
@@ -574,31 +574,10 @@ sub upload {
     );
 
     if ($dist->process) {
-        # Success! Tweet it?
-        my $meta = $dist->distmeta;
-        my $pgxn = PGXN::Manager->instance;
-
-        my $nick = $pgxn->conn->run(sub {
-            shift->selectcol_arrayref(
-                'SELECT twitter FROM users WHERE nickname = ?',
-                undef, $req->user
-            )->[0];
-        });
-
-        $nick = $nick ? "\@$nick" : $req->user;
-
-        my $url = URI::Template->new($pgxn->config->{release_permalink})->process({
-            dist    => lc $meta->{name},
-            version => lc $meta->{version},
-        });
-        $pgxn->send_tweet({
-            whom => $nick,
-            body => "$meta->{name} $meta->{version} released by $nick: $url"
-        });
-
-        # And now back to our regular programming.
+        # Success!
         return $self->respond_with('success', $req) if $req->is_xhr;
         $req->session->{success} = 1;
+        my $meta = $dist->distmeta;
         return $self->redirect(
             "/distributions/$meta->{name}/$meta->{version}",
             $req
@@ -1322,7 +1301,7 @@ David E. Wheeler <david@justatheory.com>
 
 =head1 Copyright and License
 
-Copyright (c) 2010-2021 David E. Wheeler.
+Copyright (c) 2010-2023 David E. Wheeler.
 
 This module is free software; you can redistribute it and/or modify it under
 the L<PostgreSQL License|https://www.opensource.org/licenses/postgresql>.

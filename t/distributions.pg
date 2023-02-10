@@ -1,5 +1,5 @@
 BEGIN;
-SELECT plan(91);
+SELECT plan(97);
 --SELECT * FROM no_plan();
 
 SELECT has_enum('relstatus');
@@ -75,6 +75,14 @@ SELECT col_type_is(       'distributions', 'created_at', 'timestamp with time zo
 SELECT col_not_null(      'distributions', 'created_at' );
 SELECT col_has_default(   'distributions', 'created_at' );
 SELECT col_default_is(    'distributions', 'created_at', 'now()' );
+
+-- Check triggers.
+SELECT triggers_are( 'distributions', ARRAY['notify_release']);
+SELECT trigger_is(   'distributions', 'notify_release', 'notify_release');
+SELECT has_function('notify_release');
+SELECT has_function('notify_release', '{}'::name[]);
+SELECT volatility_is('notify_release', '{}'::name[], 'volatile');
+SELECT function_returns('notify_release', '{}'::name[], 'trigger');
 
 -- Check privileges.
 SELECT ok(

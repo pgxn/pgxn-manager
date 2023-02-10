@@ -117,7 +117,7 @@ test_psgi +PGXN::Manager::Router->app => sub {
                 },
                 {
                     id    => 'twitter',
-                    title => $mt->maketext('Got a Twitter account? Tell us the username and your uploads will be tweeted!'),
+                    title => $mt->maketext('Got a Twitter account?'),
                     label => $mt->maketext('Twitter'),
                     type  => 'text',
                     phold => '@barackobama',

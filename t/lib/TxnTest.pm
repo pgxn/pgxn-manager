@@ -14,6 +14,11 @@ BEGIN {
     $dbi_mock->mock(rollback   => sub { $rollback++ });
 }
 
+sub allow_commit {
+    $dbi_mock->unmock_all;
+    PGXN::Manager->conn->dbh->rollback;
+}
+
 END {
     $dbi_mock->unmock('rollback');
     PGXN::Manager->conn->dbh->rollback;
@@ -79,8 +84,8 @@ sub user {
     PGXN::Manager->conn->run(sub {
         admin();
         $_->do(
-            'SELECT insert_user(?, ?, email := ?)',
-            undef, 'user', 'test-passW0rd', 'user@pgxn.org',
+            'SELECT insert_user(?, ?, email := ?, twitter := ?)',
+            undef, 'user', 'test-passW0rd', 'user@pgxn.org', 'notHere',
         );
 
         $_->do(

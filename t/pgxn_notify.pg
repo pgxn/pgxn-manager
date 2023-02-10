@@ -1,0 +1,11 @@
+BEGIN;
+SELECT plan(4);
+-- SELECT * FROM no_plan();
+
+SELECT has_function('pgxn_notify');
+SELECT has_function('pgxn_notify', ARRAY['text', 'text']);
+SELECT volatility_is('pgxn_notify', ARRAY['text', 'text'], 'volatile');
+SELECT function_returns('pgxn_notify', ARRAY['text', 'text'], 'void');
+
+SELECT * FROM finish();
+ROLLBACK;

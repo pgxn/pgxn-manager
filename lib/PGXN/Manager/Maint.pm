@@ -11,7 +11,7 @@ use Encode qw(encode_utf8);
 use Carp;
 use namespace::autoclean;
 
-our $VERSION = v0.22.1;
+our $VERSION = v0.30.0;
 
 has verbosity => (is => 'rw', required => 1, isa => 'Int', default => 0);
 has exitval   => (is => 'rw', required => 0, isa => 'Int', default => 0);
@@ -321,7 +321,7 @@ sub _pod2usage {
         '-verbose'  => 99,
         '-sections' => '(?i:(Usage|Options))',
         '-exitval'  => 1,
-        '-input'    => __FILE__,
+        '-input'    => $0,
         @_
     );
 }
@@ -518,7 +518,7 @@ David E. Wheeler <david@justatheory.com>
 
 =head1 Copyright and License
 
-Copyright (c) 2011-2021 David E. Wheeler.
+Copyright (c) 2011-2023 David E. Wheeler.
 
 This module is free software; you can redistribute it and/or modify it under
 the L<PostgreSQL License|https://www.opensource.org/licenses/postgresql>.

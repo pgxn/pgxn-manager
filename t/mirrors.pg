@@ -1,5 +1,5 @@
 BEGIN;
-SELECT plan(123);
+SELECT plan(129);
 --SELECT * FROM no_plan();
 
 SELECT has_table('public', 'mirrors', 'Should have table public.mirrors');
@@ -114,6 +114,15 @@ SELECT ok(
     'REFERENCES',
     'TRIGGER'
 ]) AS priv;
+
+-- Check triggers.
+SELECT triggers_are( 'mirrors', ARRAY['notify_new_mirror']);
+SELECT trigger_is(   'mirrors', 'notify_new_mirror', 'notify_new_mirror');
+SELECT has_function('notify_new_mirror');
+SELECT has_function('notify_new_mirror', '{}'::name[]);
+SELECT volatility_is('notify_new_mirror', '{}'::name[], 'volatile');
+SELECT function_returns('notify_new_mirror', '{}'::name[], 'trigger');
+
 
 /****************************************************************************/
 -- Test is_admin().

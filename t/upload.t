@@ -5,8 +5,8 @@ use strict;
 use warnings;
 use utf8;
 
-use Test::More tests => 198;
-#use Test::More 'no_plan';
+use Test::More tests => 195;
+# use Test::More 'no_plan';
 use Test::File;
 use Test::MockModule;
 use Plack::Test;
@@ -137,17 +137,6 @@ END {
     remove_tree $tmpdir, $root;
 }
 
-# Make sure we don't try to send any tweets.
-my $mock_pgxn = Test::MockModule->new('PGXN::Manager');
-my %tweet_params = (
-    body => 'widget 0.2.5 released by user: https://pgxn.org/dist/widget/',
-    whom => 'user',
-);
-$mock_pgxn->mock(send_tweet => sub {
-    shift;
-    is_deeply shift, \%tweet_params, 'A tweet should have been sent';
-});
-
 # Make sure the expected files don't exist yet.
 my %files = map { join('/', @{ $_ }) => File::Spec->catfile($root, @{ $_ } ) } (
    ['user',      'user.json'],
@@ -159,7 +148,7 @@ my %files = map { join('/', @{ $_ }) => File::Spec->catfile($root, @{ $_ } ) } (
    ['dist',      'widget', '0.2.5', 'widget-0.2.5.zip'],
    ['tag',       'full text search.json'],
 );
-file_not_exists_ok $files{$_}, "File $_ should not yet exist" for keys %files;
+file_not_exists_ok $files{$_}, "File $_ should not yet exist" for sort keys %files;
 
 # Now upload it!
 test_psgi $app => sub {

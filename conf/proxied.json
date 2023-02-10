@@ -29,10 +29,20 @@
         "spec":      "/meta/spec.{format}"
     },
     "release_permalink": "https://pgxn.org/dist/{dist}/",
-    "twitter": {
-        "consumer_key": "",
-        "consumer_secret": "",
-        "access_token": "",
-        "access_token_secret": ""
-    }
+    "consumers": [
+        {
+            "type": "mastodon",
+            "events": ["release"],
+            "server": "https://mstdn.example.org",
+            "token": "ABCDefgh123456789x0x0x0x0x0x0x0x0x0x0x0"
+        },
+        {
+            "type": "twitter",
+            "events": ["release"],
+            "consumer_key": "",
+            "consumer_secret": "",
+            "access_token": "",
+            "access_token_secret": ""
+        }
+    ]
 }

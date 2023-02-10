@@ -1,12 +1,17 @@
 Revision history for Perl extension PGXN::Manager
 
-0.22.1
+0.30.0
        - Upgraded jQuery to v3.6.0 and the jquery.validate plugin to 1.19.3.
        - Switched to serve jQuery and jquery.validate locally rather than
          from CDNs. This eliminates a vector for data collection by the
          CDNs.
        - Fixed an error when a the forgotten password form is submitted
          with an invalid label value.
+       - Replaced the Twitter posting hack with an extensible, event-oriented
+         system based on PostgreSQL LISTEN/NOTIFY queues, and a new client,
+         `pgxn_consumer` to process events and post them to Twitter and
+         Mastodon. Requires a configuration change to enable event handlers.
+       - Fixed character encoding in emails.
 
 0.22.1   2022-01-16T20:32:34Z
        - Re-implemented the basic auth middleware to prevent passwords
