@@ -12,7 +12,7 @@ use warnings;
 use constant name => 'twitter';
 use namespace::autoclean;
 
-our $VERSION = v0.30.0;
+our $VERSION = v0.30.1;
 
 subtype MaybeTwitterAPI => as maybe_type class_type 'Net::Twitter::Lite';
 

@@ -15,7 +15,7 @@ use Proc::Daemon;
 use Cwd;
 use namespace::autoclean;
 
-our $VERSION = v0.30.0;
+our $VERSION = v0.30.1;
 use constant CHANNELS => qw(release new_user new_mirror);
 sub _emit($) { say encode_utf8 $_[0] }
 
