@@ -6,13 +6,27 @@ use warnings;
 use utf8;
 use Encode qw(encode_utf8);
 use JSON::XS;
+use File::Temp ();
 
-use Test::More tests => 94;
+use Test::More tests => 98;
 # use Test::More 'no_plan';
 use Test::Output;
 use Test::MockModule;
 use Test::Exception;
+use Test::File::Contents;
 
+##############################################################################
+# Mock time.
+my (@gmtime, $time);
+BEGIN {
+    $time = CORE::time();
+    @gmtime = CORE::gmtime($time);
+    *CORE::GLOBAL::time = sub() { return $time };
+    *CORE::GLOBAL::gmtime = sub (;$) { return @gmtime }
+}
+
+##############################################################################
+# Load the class.
 my $CLASS;
 
 BEGIN {
@@ -44,23 +58,44 @@ DEFAULTS: {
     is $consumer->verbose, 0, 'Default verbosity is 0';
     is $consumer->interval, 5, 'Default interval is 5';
     is $consumer->continue, 1, 'Defaault continue is 1';
+    ok $consumer->log_fh, 'Should have log file handle';
 }
+
+# Grab the timestamp that will appear in logs.
+my $logtime = POSIX::strftime '%Y-%m-%dT%H:%M:%SZ', gmtime $time;
+is time, $time, 'Should have mocked time';
+is POSIX::strftime('%Y-%m-%dT%H:%M:%SZ', gmtime), $logtime,
+    'Should have mocked gmtime';
 
 ##############################################################################
-# Test and then mock _emit
-stdout_is { ok PGXN::Manager::Consumer::_emit("Hello there 😀"), '_emit' }
-    encode_utf8 "Hello there 😀" . "\n",
-    "_emit should encode text";
-
-# Mock emit.
-my $mock = Test::MockModule->new($CLASS);
-my @said;
-$mock->mock(_emit => sub { push @said => @_ });
-sub output {
-    my @ret = @said;
-    @said = ();
-    return \@ret;
+# Test and then mock log
+STDOUT: {
+    my $consumer = $CLASS->new();
+    stdout_is { ok $consumer->log("Hello there 😀"), 'log' }
+        encode_utf8 "$logtime - Hello there 😀\n",
+        "log should encode text";
 }
+
+LOGFILE: {
+    my $tmp = File::Temp->new;
+    my $consumer = $CLASS->new(log_fh => PGXN::Manager::Consumer::_log_fh($tmp->filename));
+    ok $consumer->log("Hello there 😀"), 'log to file';
+    file_contents_eq $tmp->filename, "$logtime - Hello there 😀\n",
+        { encoding => 'UTF-8' },
+        'Should have written message to log file';
+}
+
+# Mock log file.
+my $log_output = '';
+my $log_fh = IO::File->new(\$log_output, 'w');
+$log_fh->binmode(':utf8');
+sub output {
+    my $ret = $log_output;
+    $log_fh->seek(0, 0);
+    $log_output = '';
+    return $ret // '';
+}
+my $chans = join(', ', PGXN::Manager::Consumer::CHANNELS);
 
 ##############################################################################
 # Load the test environment configuration.
@@ -79,13 +114,15 @@ CONFIG: {
         --pid pid.txt
         --interval 2.2
         --verbose
+        --log-file log.txt
     );
     my $opts = $CLASS->_config;
     is_deeply $opts, {
-        daemonize => 1,
-        pid       => 'pid.txt',
-        interval  => 2.2,
-        verbose   => 1,
+        daemonize  => 1,
+        pid        => 'pid.txt',
+        interval   => 2.2,
+        verbose    => 1,
+        'log-file' => 'log.txt',
     }, 'Should have long option config';
     is delete $ENV{PLACK_ENV}, 'dev', 'Should have set env to "dev"';
 
@@ -108,7 +145,7 @@ CONFIG: {
 # Test load_consumers.
 LOAD: {
     my $conf = load_config;
-    my $consumer = $CLASS->new();
+    my $consumer = $CLASS->new(log_fh => $log_fh);
     my $handlers = $consumer->load_consumers($conf->{consumers});
     is_deeply [keys %{ $handlers }], ["release"], 'Should have one key';
     is @{ $handlers->{release} }, 2, 'Should have two release handlers';
@@ -116,7 +153,7 @@ LOAD: {
     isa_ok $masto, 'PGXN::Manager::Consumer::mastodon', 'First handler';
     isa_ok $twtr, 'PGXN::Manager::Consumer::twitter', 'Second handler';
     is $masto->server, $conf->{consumers}[0]{"server"},
-        'Mastdone handler should have server configured';
+        'Mastodon handler should have server configured';
     ok defined $twtr->client, 'Twitter client should be present';
 
     # Test no type.
@@ -167,7 +204,7 @@ DAEMONIZE: {
     local @ARGV = qw(--env test --daemonize);
     is $CLASS->go, 0, 'Should get zero from go';
     ok $ran, 'Should have run';
-    is_deeply output(), [], 'Should have no output';
+    is output(), '', 'Should have no output';
     ok defined delete $SIG{TERM}, 'Should have set term signal';
     is delete $ENV{PLACK_ENV}, 'test', 'Should have set test env';
 
@@ -175,9 +212,9 @@ DAEMONIZE: {
     $mock_proc->mock(Init => 42);
     $ran = 0;
     @ARGV = qw(-D);
-    is $CLASS->go, 0, 'Should get zero from go';
+    stdout_is { is $CLASS->go, 0, 'Should get zero from go' }
+        "$logtime - INFO: Forked PID 42\n", 'Should have emitted PID';
     ok !$ran, 'Should not have run';
-    is_deeply output(), [42], 'Should emitted the PID';
     is $SIG{TERM}, undef, 'Should not ahve set term signal';
     is delete $ENV{PLACK_ENV}, 'development', 'Should have set development env';
     $mocker->unmock('run');
@@ -190,7 +227,7 @@ GO: {
     $mocker->mock(run => sub { $ran = 1; 0 });
     is $CLASS->go, 0, 'Should get zero from go';
     ok $ran, 'Should have run';
-    is_deeply output(), [], 'Should have no output';
+    is_deeply output(), '', 'Should have no output';
     ok defined delete $SIG{TERM}, 'Should have set term signal';
     is delete $ENV{PLACK_ENV}, 'development', 'Should have set development env';
     $mocker->unmock('run');
@@ -218,13 +255,16 @@ RUN: {
 
     # Run it.
     local @ARGV = qw(--env test --interval 0);
-    my $consumer = $CLASS->new($CLASS->_config);
+    my $cfg = $CLASS->_config;
+    $cfg->{log_fh} = $log_fh;
+    my $consumer = $CLASS->new($cfg);
     is $consumer->interval, 0, 'Should have interval 0';
     is $consumer->continue, 1, 'Should have default continue 1';
     is $consumer->verbose, 0, 'Should have default verbose 0';
     is $consumer->run, 0, 'Run consumer';
 
-    is_deeply output(), [], 'Should have no output';
+    is_deeply output(), "$logtime - INFO: Shutting down\n",
+        'Should have shutdown log entry';
     is_deeply \@done, $exp_done, 'Should have listened to all channels';
     ok $consumer->conn->dbh->{Callbacks}{connected},
         'Should have configured listening in connected callback';
@@ -236,7 +276,7 @@ RUN: {
     isa_ok $masto, 'PGXN::Manager::Consumer::mastodon', 'First handler';
     isa_ok $twtr, 'PGXN::Manager::Consumer::twitter', 'Second handler';
     is $masto->server, $conf->{consumers}[0]{"server"},
-        'Mastdone handler should have server configured';
+        'Mastodon handler should have server configured';
     ok defined $twtr->client, 'Twitter client should be present';
 
     # Remove consumer config.
@@ -244,8 +284,10 @@ RUN: {
     $consumer->continue(1);
     $params = undef;
     is $consumer->run, 0, 'Run consumer';
-    is_deeply output(), ['No consumers configured; messages will be dropped'],
-        'Should have warning about no consumers';
+    is_deeply output(), join("", map { "$logtime - $_" }
+        "WARN: No consumers configured; messages will be dropped\n",
+        "INFO: Shutting down\n",
+    ), 'Should have warning about no consumers';
     is @{ $params }, 1, 'Should have passed one param to consume';
     is_deeply [keys %{ $params->[0] }], [], 'Should have no key in param';
 
@@ -253,12 +295,16 @@ RUN: {
     PGXN::Manager->instance->config->{consumers} = $conf->{consumers};
     $consumer->continue(1);
     $params = undef;
-    $consumer = $CLASS->new(interval => 0, verbose => 1);
+    $db_mocker->mock(selectcol_arrayref => sub {
+        [PGXN::Manager::Consumer::CHANNELS]
+    });
+    $consumer = $CLASS->new(interval => 0, verbose => 1, log_fh => $log_fh);
     is $consumer->verbose, 1, 'Should have verbosity 1';
     is $consumer->run, 0, 'Run consumer';
-    is_deeply output(), [
-        "Listening on " . join(', ', PGXN::Manager::Consumer::CHANNELS),
-    ], 'Should have verbose output';
+    is_deeply output(), join("", map { "$logtime - $_" }
+        "INFO: Listening on $chans\n",
+        "INFO: Shutting down\n",
+    ), 'Should have verbose output';
     $mocker->unmock('consume');
 };
 
@@ -278,7 +324,7 @@ CONSUME: {
     # Wrap the constuctor to listen for our test handlers.
     my @channels = keys %{ $handlers };
     my $new_consumer = sub {
-        my $c = $CLASS->new(@_);
+        my $c = $CLASS->new(@_, log_fh => $log_fh);
         $c->conn->run(sub { $_[0]->do("LISTEN pgxn_$_") for @channels });
         $c;
     };
@@ -286,7 +332,7 @@ CONSUME: {
     # Set up a notification.
     my $json1 = '{"name": "Julie ❤️"}';
     my $payload1 = {name => 'Julie ❤️'};
-    my $consumer = $new_consumer->(verbose => 2);
+    my $consumer = $new_consumer->(verbose => 2, log_fh => $log_fh);
     $consumer->conn->run(sub {
         $_->do("SELECT pg_notify(?, ?)", undef, 'pgxn_release', $json1);
     });
@@ -294,13 +340,12 @@ CONSUME: {
     # Make it so.
     ok $consumer->consume($handlers), 'Consume';
     my $pid = $consumer->conn->dbh->{pg_pid};
-    is_deeply output(), [
-        'Listening on ' . join(', ', PGXN::Manager::Consumer::CHANNELS),
-        'Consuming',
-        "Received “pgxn_release” event from PID $pid",
-        'Sending to tc handler',
-        'Sending to tc handler',
-    ], 'Should have verbose output';
+    is_deeply output(), encode_utf8 join("\n", map { "$logtime - $_" }
+        'INFO: Listening on ' . join(', ', PGXN::Manager::Consumer::CHANNELS),
+        "INFO: Received “pgxn_release” event from PID $pid",
+        'INFO: Sending to tc handler',
+        'INFO: Sending to tc handler' . "\n",
+    ), 'Should have verbose output';
 
     # Make sure the release handlers processed it.
     is_deeply $h1->args, [['release', $payload1]],
@@ -316,12 +361,11 @@ CONSUME: {
         $_->do("SELECT pg_notify(?, ?)", undef, 'pgxn_report', $json2);
     });
     ok $consumer->consume($handlers), 'Consume';
-    is_deeply output(), [
-        'Consuming',
-        "Received “pgxn_report” event from PID $pid",
-        'Sending to tc handler',
-        'Sending to tc handler',
-    ], 'Should have verbose output again';
+    is_deeply output(), encode_utf8 join("\n",  map { "$logtime - $_" }
+        "INFO: Received “pgxn_report” event from PID $pid",
+        'INFO: Sending to tc handler',
+        'INFO: Sending to tc handler' . "\n",
+    ), 'Should have verbose output again';
     is_deeply $h1->args, [['report', $payload2]],
         'Should have passed report to h1';
     is_deeply $h3->args, [['report', $payload2]],
@@ -331,12 +375,12 @@ CONSUME: {
     # Go quiet, send a drop.
     my $json3 = '{"drop": "out"}';
     my $payload3 = {drop => 'out'};
-    $consumer = $new_consumer->(verbose => 0);
+    $consumer = $new_consumer->(verbose => 0, log_fh => $log_fh);
     $consumer->conn->run(sub {
         $_->do("SELECT pg_notify(?, ?)", undef, 'pgxn_drop', $json3);
     });
     ok $consumer->consume($handlers), 'Consume';
-    is_deeply output(), [], 'Should have no output';
+    is_deeply output(), "", 'Should have no log output';
     is_deeply $h1->args, [], 'Should have not called h1';
     is_deeply $h2->args, [['drop', $payload3]],
         'Should have passed drop to h2';
@@ -348,8 +392,9 @@ CONSUME: {
         $_->do("SELECT pg_notify(?, ?)", undef, 'nope', $json2);
     });
     ok $consumer->consume($handlers), 'Consume';
-    is_deeply output(), ["Unknown channel “nope”; skipping"],
-        'Should have skipped event';
+    is_deeply output(), encode_utf8 join("\n", map { "$logtime - $_" }
+        'WARN: Unknown channel “nope”; skipping' . "\n",
+    ), 'Should have skipped event';
     is_deeply $h1->args, [], 'Should have not called h1';
     is_deeply $h2->args, [], 'Should have not called h2';
     is_deeply $h3->args, [], 'Should have not called h3';
@@ -359,9 +404,7 @@ CONSUME: {
         $_->do("SELECT pg_notify(?, ?)", undef, 'pgxn_drop', '{"foo: "bar"}');
     });
     ok $consumer->consume($handlers), 'Consume';
-    my $out = output();
-    is @{ $out }, 1, 'Should have one output';
-    like $out->[0], qr/^Cannot decode JSON:/, 'Should have json error';
+    like output(), qr/^$logtime - ERORR: Cannot decode JSON:/, 'Should have JSON error';
     is_deeply $h1->args, [], 'Should have not called h1';
     is_deeply $h2->args, [], 'Should have not called h2';
     is_deeply $h3->args, [], 'Should have not called h3';
@@ -374,11 +417,11 @@ CONSUME: {
     });
     ok $consumer->consume($handlers), 'Consume';
     $pid = $consumer->conn->dbh->{pg_pid};
-    is_deeply output(), [
-        'Listening on ' . join(', ', PGXN::Manager::Consumer::CHANNELS),
-        "Received “pgxn_drop” event from PID $pid",
-        "No handlers configured for pgxn_drop channel; skipping",
-    ], 'Should have skipped event';
+    is_deeply output(), encode_utf8 join("\n", map { "$logtime - $_" }
+        "INFO: Listening on $chans",
+        "INFO: Received “pgxn_drop” event from PID $pid",
+        "INFO: No handlers configured for pgxn_drop channel; skipping\n",
+    ), 'Should have skipped event';
     is_deeply $h1->args, [], 'Should have not called h1';
     is_deeply $h2->args, [], 'Should have not called h2';
     is_deeply $h3->args, [], 'Should have not called h3';

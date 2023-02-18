@@ -26,6 +26,7 @@ on the PostgreSQL LISTEN/NOTIFY queue.
   -p --pid      PIDFILE  PID file path; used with --daemonize.
   -D --daemonize         Run in the background as a daemon.
   -i --interval SECONDS  Interval to sleep between consuming events.
+  -l --log-file FILE     Path to a log file.
   -V --verbose           Incremental verbosity to STDOUT.
   -h --help              Print a usage statement and exit.
   -m --man               Print the complete documentation and exit.
