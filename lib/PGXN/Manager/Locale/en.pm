@@ -4,7 +4,7 @@ use 5.10.0;
 use utf8;
 use parent 'PGXN::Manager::Locale';
 
-our $VERSION = v0.30.1;
+our $VERSION = v0.30.2;
 
 our %Lexicon = (
 );
