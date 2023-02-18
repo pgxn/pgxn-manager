@@ -101,14 +101,20 @@ has conn => (is => 'ro', lazy => 1, isa => 'DBIx::Connector', default => sub {
 # Utility method for connecting, so that other classes can add parameters. For
 # example see Consumer.pm passing callback configuration.
 sub _connect {
-    my $c = DBIx::Connector->new( @{ shift->config->{dbi} }{qw(dsn username password)}, {
+    my ($self, $params) = @_;
+    $params ||= {};
+    my $name = $params->{pg_application_name} || 'pgxn_manager';
+    my @conn_args = @{ $self->config->{dbi} }{ qw(dsn username password) };
+    $conn_args[0] .= ";application_name=$name";
+
+    my $c = DBIx::Connector->new(@conn_args, {
         PrintError        => 0,
         RaiseError        => 0,
         HandleError       => Exception::Class::DBI->handler,
         AutoCommit        => 1,
         pg_enable_utf8    => 1,
         pg_server_prepare => 0,
-        @_,
+        %{ $params },
     });
     $c->mode('fixup');
     return $c;

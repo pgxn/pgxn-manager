@@ -49,7 +49,7 @@ isa_ok $dbh, 'DBI::db', 'The handle';
 
 # What are we connected to, and how?
 is $dbh->{Username}, 'pgxn', 'Should be connected as "postgres"';
-is $dbh->{Name}, 'dbname=pgxn_manager_test',
+is $dbh->{Name}, 'dbname=pgxn_manager_test;application_name=pgxn_manager',
     'Should be connected to "pgxn_manager_test"';
 ok !$dbh->{PrintError}, 'PrintError should be disabled';
 ok !$dbh->{RaiseError}, 'RaiseError should be disabled';

@@ -41,7 +41,10 @@ has conn     => (is => 'ro', isa => 'DBIx::Connector', lazy => 1, default => sub
         return;
     };
     # Once connected or reconnected, listen for NOTIFY messages.
-    PGXN::Manager->instance->_connect( Callbacks => { connected => $cb } );
+    PGXN::Manager->instance->_connect({
+        pg_application_name => 'pgxn_consumer',
+        Callbacks => { connected => $cb },
+    });
 });
 
 sub _log_fh {
