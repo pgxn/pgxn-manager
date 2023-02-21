@@ -10,14 +10,14 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
     - name: Check out the repo
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
     - name: Setup Perl
       uses: shogo82148/actions-setup-perl@v1
     - name: Install Module::Build
       run: cpanm Module::Build
     - name: Package the Release
       id: package
-      run: perl Build.PL && ./Build manifest && ./Build dist && echo "::set-output name=tarball::$(./Build tarball_name )"
+      run: perl Build.PL && ./Build manifest && ./Build dist && echo "tarball=$(./Build tarball_name )" >> $GITHUB_OUTPUT
     - name: Generate Release Changes
       run: ./Build latest_changes
     - name: Create GitHub Release
