@@ -126,7 +126,7 @@ application. Required.
 
 =item C<access_token>
 
-An access token is a user-specific credential used to authenticate OAuth 1.0a
+An access token is a user-specific credential used to authenticate OAuth C<1.0a>
 API requests. It specify the Twitter I<account> the request is made on behalf
 of. Required.
 

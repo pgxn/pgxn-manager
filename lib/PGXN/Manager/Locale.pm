@@ -519,7 +519,7 @@ Like C<list()> but quotes each item in the list. Locales can specify the
 quotation characters to be used via the C<openquote> and C<shutquote> entries
 in their C<%Lexicon>s.
 
-head1 Author
+=head1 Author
 
 David E. Wheeler <david@justatheory.com>
 
