@@ -24,6 +24,7 @@ use constant CHANNELS => qw(release new_user new_mirror);
 has verbose  => (is => 'ro', isa => 'Int', required => 1, default => 0);
 has interval => (is => 'ro', isa => 'Num', required => 1, default => 5);
 has continue => (is => 'rw', isa => 'Bool', required => 1, default => 1);
+has pid_file => (is => 'rw', isa => 'Str');
 has log_fh   => (is => 'ro', isa => 'IO::Handle', required => 1, default => sub {
     _log_fh()
 });
@@ -64,7 +65,7 @@ sub go {
         my $daemon = Proc::Daemon->new(
             work_dir     => getcwd,
             dont_close_fh => [qw(STDERR STDOUT)],
-            pid_file     => $cfg->{pid},
+            pid_file     => $cfg->{pid_file},
         );
         if (my $pid = $daemon->Init) {
             _log(_log_fh($cfg->{'log-file'}), "INFO: Forked PID $pid");
@@ -74,9 +75,17 @@ sub go {
 
     # In the child process. Set up log file handle and go.
     $cfg->{log_fh} = _log_fh delete $cfg->{'log-file'};
+    $cfg->{pid_file} = delete $cfg->{'pid-file'} if exists $cfg->{'pid-file'};
     my $cmd = $class->new( $cfg );
     $SIG{TERM} = sub { $cmd->continue(0) };
     $cmd->run(@ARGV);
+}
+
+sub DEMOLISH {
+    my $self = shift;
+    if (my $path = $self->pid_file) {
+        unlink $path;
+    }
 }
 
 sub run {
@@ -199,7 +208,7 @@ sub _config {
         \%opts,
         'env|E=s',
         'daemonize|D',
-        'pid=s',
+        'pid-file|pid=s',
         'log-file|l=s',
         'interval|i=s',
         'verbose|V+',

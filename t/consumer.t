@@ -8,11 +8,12 @@ use Encode qw(encode_utf8);
 use JSON::XS;
 use File::Temp ();
 
-use Test::More tests => 98;
+use Test::More tests => 103;
 # use Test::More 'no_plan';
 use Test::Output;
 use Test::MockModule;
 use Test::Exception;
+use Test::File;
 use Test::File::Contents;
 
 ##############################################################################
@@ -57,7 +58,8 @@ DEFAULTS: {
     my $consumer = new_ok $CLASS;
     is $consumer->verbose, 0, 'Default verbosity is 0';
     is $consumer->interval, 5, 'Default interval is 5';
-    is $consumer->continue, 1, 'Defaault continue is 1';
+    is $consumer->continue, 1, 'Default continue is 1';
+    is $consumer->pid_file, undef, 'Default pid file is undef';
     ok $consumer->log_fh, 'Should have log file handle';
 }
 
@@ -98,6 +100,18 @@ sub output {
 my $chans = join(', ', PGXN::Manager::Consumer::CHANNELS);
 
 ##############################################################################
+# Test pid file cleanup.
+PID: {
+    my $tmp = File::Temp->new(UNLINK => 0);
+    my $fn = $tmp->filename;
+    do {
+        my $consumer = $CLASS->new(pid_file => $fn);
+        file_exists_ok $fn, 'PID file should exist';
+    };
+    file_not_exists_ok $fn, 'PID file be gone';
+}
+
+##############################################################################
 # Load the test environment configuration.
 sub load_config {
     open my $fh, '<:raw', 'conf/test.json' or die "Cannot open conf/test.json: $!\n";
@@ -119,7 +133,7 @@ CONFIG: {
     my $opts = $CLASS->_config;
     is_deeply $opts, {
         daemonize  => 1,
-        pid        => 'pid.txt',
+        'pid-file' => 'pid.txt',
         interval   => 2.2,
         verbose    => 1,
         'log-file' => 'log.txt',
@@ -195,18 +209,23 @@ LOAD: {
 ##############################################################################
 # Test go.
 DAEMONIZE: {
-    # Mock Proc::Daemon
+    my $tmp = File::Temp->new(UNLINK => 0);
+    my $pid_file = $tmp->filename;
+    file_exists_ok $pid_file, 'PID file should exist';
+
+   # Mock Proc::Daemon
     my $mock_proc = Test::MockModule->new('Proc::Daemon');
     $mock_proc->mock(Init => 0);
     my $mocker = Test::MockModule->new($CLASS);
     my $ran;
     $mocker->mock(run => sub { $ran = 1; 0 });
-    local @ARGV = qw(--env test --daemonize);
+    local @ARGV = (qw(--env test --daemonize --pid-file), $pid_file);
     is $CLASS->go, 0, 'Should get zero from go';
     ok $ran, 'Should have run';
     is output(), '', 'Should have no output';
     ok defined delete $SIG{TERM}, 'Should have set term signal';
     is delete $ENV{PLACK_ENV}, 'test', 'Should have set test env';
+    file_not_exists_ok $pid_file, 'Should have deleted pid file';
 
     # Now make a pid.
     $mock_proc->mock(Init => 42);
@@ -215,7 +234,7 @@ DAEMONIZE: {
     stdout_is { is $CLASS->go, 0, 'Should get zero from go' }
         "$logtime - INFO: Forked PID 42\n", 'Should have emitted PID';
     ok !$ran, 'Should not have run';
-    is $SIG{TERM}, undef, 'Should not ahve set term signal';
+    is $SIG{TERM}, undef, 'Should not have set term signal';
     is delete $ENV{PLACK_ENV}, 'development', 'Should have set development env';
     $mocker->unmock('run');
 }
