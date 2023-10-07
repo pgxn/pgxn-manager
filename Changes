@@ -1,6 +1,6 @@
 Revision history for Perl extension PGXN::Manager
 
-0.30.2
+0.31.0   2023-10-07T19:02:24Z
        - Added the application names (pgxn_manager and pgxn_consumer) to the
          Postgres connections.
        - Updated pgxn_consumer to delete the PID file on exit.
