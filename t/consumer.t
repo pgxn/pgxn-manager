@@ -8,7 +8,7 @@ use Encode qw(encode_utf8);
 use JSON::XS;
 use File::Temp ();
 
-use Test::More tests => 108;
+use Test::More tests => 113;
 # use Test::More 'no_plan';
 use Test::Output;
 use Test::MockModule;
@@ -210,10 +210,6 @@ LOAD: {
 ##############################################################################
 # Test go.
 DAEMONIZE: {
-    my $tmp = File::Temp->new(UNLINK => 0);
-    my $pid_file = $tmp->filename;
-    file_exists_ok $pid_file, 'PID file should exist';
-
    # Mock Proc::Daemon
     my $mock_proc = Test::MockModule->new('Proc::Daemon');
     $mock_proc->mock(Init => 0);
@@ -228,28 +224,45 @@ DAEMONIZE: {
     my $mocker = Test::MockModule->new($CLASS);
     my $ran;
     $mocker->mock(run => sub { $ran = 1; 0 });
-    local @ARGV = (qw(--env test --daemonize --pid-file), $pid_file);
+    local @ARGV = (qw(--env test --daemonize --pid-file foo));
     stdout_is { is $CLASS->go, 0, 'Should get zero from go' }
-        "$logtime - INFO: PID written to $pid_file\n",
-        'Should have logged PID file location';
+        "", 'Should have logged nothing';
     is_deeply \%pd_params, {
             work_dir      => Cwd::getcwd,
             dont_close_fh => [qw(STDERR STDOUT)],
-            pid_file      => $pid_file,
+            pid_file      => 'foo',
     }, 'Should have passed params to Proc::Daemon->new';
 
     ok $ran, 'Should have run';
     is output(), '', 'Should have no output';
     ok defined delete $SIG{TERM}, 'Should have set term signal';
     is delete $ENV{PLACK_ENV}, 'test', 'Should have set test env';
-    file_not_exists_ok $pid_file, 'Should have deleted pid file';
 
     # Now make a pid.
+    my $tmp = File::Temp->new(UNLINK => 0);
+    my $pid_file = $tmp->filename;
+    file_exists_ok $pid_file, 'PID file should exist';
     $mock_proc->mock(Init => 42);
+    $ran = 0;
+    @ARGV = (qw(-D --pid-file), $pid_file);
+    stdout_is { is $CLASS->go, 0, 'Should get zero from go' }
+        "$logtime - INFO: Forked PID 42 written to $pid_file\n",
+        'Should have emitted PID';
+    ok !$ran, 'Should not have run';
+    is $SIG{TERM}, undef, 'Should not have set term signal';
+    is delete $ENV{PLACK_ENV}, 'development', 'Should have set development env';
+     is_deeply \%pd_params, {
+            work_dir      => Cwd::getcwd,
+            dont_close_fh => [qw(STDERR STDOUT)],
+            pid_file      => $pid_file,
+    }, 'Should have passed params to Proc::Daemon->new';
+
+    # Try with no PID file (shoud log it was written to STDOUT).
     $ran = 0;
     @ARGV = qw(-D);
     stdout_is { is $CLASS->go, 0, 'Should get zero from go' }
-        "$logtime - INFO: Forked PID 42\n", 'Should have emitted PID';
+        "$logtime - INFO: Forked PID 42 written to STDOUT\n",
+        'Should have emitted PID';
     ok !$ran, 'Should not have run';
     is $SIG{TERM}, undef, 'Should not have set term signal';
     is delete $ENV{PLACK_ENV}, 'development', 'Should have set development env';
@@ -267,9 +280,8 @@ GO: {
     my $mocker = Test::MockModule->new($CLASS);
     my $ran;
     $mocker->mock(run => sub { $ran = 1; 0 });
-    stdout_is { is $CLASS->go, 0, 'Should get zero from go' }
-        "$logtime - INFO: PID written to STDOUT\n",
-        'Should have logged PID written to STDOUT';
+    stdout_is { is $CLASS->go, 0, 'Should get zero from go' } '',
+        'Should have logged nothing';
     ok $ran, 'Should have run';
     is_deeply output(), '', 'Should have no output';
     ok defined delete $SIG{TERM}, 'Should have set term signal';

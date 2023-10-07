@@ -68,14 +68,17 @@ sub go {
             pid_file      => $cfg->{'pid-file'},
         );
         if (my $pid = $daemon->Init) {
-            _log(_log_fh($cfg->{'log-file'}), "INFO: Forked PID $pid");
+            my $pid_file = $cfg->{'pid-file'} || 'STDOUT';
+            _log(
+                _log_fh($cfg->{'log-file'}),
+                "INFO: Forked PID $pid written to $pid_file",
+            );
             return 0;
         }
     }
 
     # In the child process. Set up log file handle and go.
     $cfg->{log_fh} = _log_fh delete $cfg->{'log-file'};
-    _log($cfg->{log_fh}, "INFO: PID written to " . ($cfg->{'pid-file'} || 'STDOUT'));
     $cfg->{pid_file} = delete $cfg->{'pid-file'} if exists $cfg->{'pid-file'};
     my $cmd = $class->new( $cfg );
     $SIG{TERM} = sub { $cmd->continue(0) };
