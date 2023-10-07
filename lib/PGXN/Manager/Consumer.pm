@@ -18,7 +18,7 @@ use Fcntl qw(:flock);
 use Cwd;
 use namespace::autoclean;
 
-our $VERSION = v0.31.1;
+our $VERSION = v0.31.2;
 use constant CHANNELS => qw(release new_user new_mirror);
 
 has verbose  => (is => 'ro', isa => 'Int', required => 1, default => 0);

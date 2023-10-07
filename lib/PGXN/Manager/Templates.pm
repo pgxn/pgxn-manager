@@ -7,7 +7,7 @@ use Template::Declare::Tags;
 use PGXN::Manager;
 use PGXN::Manager::Locale;
 
-our $VERSION = v0.31.1;
+our $VERSION = v0.31.2;
 
 my $l = PGXN::Manager::Locale->get_handle('en');
 sub T {

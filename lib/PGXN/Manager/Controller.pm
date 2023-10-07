@@ -18,7 +18,7 @@ use Try::Tiny;
 use SemVer;
 use namespace::autoclean;
 
-our $VERSION = v0.31.1;
+our $VERSION = v0.31.2;
 
 Template::Declare->init( dispatch_to => ['PGXN::Manager::Templates'] );
 

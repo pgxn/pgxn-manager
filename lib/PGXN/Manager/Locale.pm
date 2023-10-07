@@ -5,7 +5,7 @@ use utf8;
 use parent 'Locale::Maketext';
 use I18N::LangTags::Detect;
 
-our $VERSION = v0.31.1;
+our $VERSION = v0.31.2;
 
 # Allow unknown phrases to just pass-through.
 our %Lexicon = (

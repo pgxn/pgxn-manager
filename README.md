@@ -1,4 +1,4 @@
-PGXN/Manager version 0.31.1
+PGXN/Manager version 0.31.2
 ===========================
 
 [![Test Status](https://github.com/pgxn/pgxn-manager/workflows/CI/badge.svg)](https://github.com/pgxn/pgxn-manager/actions)
