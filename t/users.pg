@@ -232,17 +232,13 @@ SELECT throws_ok(
 /*****************************************************************************/
 -- Mock NOW().
 CREATE SCHEMA mock;
-
-CREATE FUNCTION set_now(timestamptz) RETURNS SETOF boolean LANGUAGE plperl AS $$
-    $_SHARED{now} = shift;
-    return;
-$$;
+SET SESSION mock.time = '2010-08-19 11:01:03.306399+00';
 
 -- Won't be used by table defaults, which seem to be linked to
 -- pg_catalog.now() at creation time.
-CREATE FUNCTION mock.now() RETURNS timestamptz LANGUAGE plperl AS '$_SHARED{now}';
-
-SELECT * FROM set_now('2010-08-19 11:01:03.306399+00');
+CREATE FUNCTION mock.now() RETURNS timestamptz IMMUTABLE PARALLEL SAFE LANGUAGE sql AS $$
+    SELECT current_setting('mock.time')::timestamptz
+$$;
 
 DO LANGUAGE plpgsql $$
 BEGIN
@@ -375,7 +371,7 @@ SELECT is(
     'Password should be unchanged'
 ) FROM users WHERE nickname = 'theory';
 
-SELECT * FROM set_now('2010-08-19 14:01:03.306399+00');
+SET SESSION mock.time = '2010-08-19 14:01:03.306399+00';
 
 SELECT isnt(updated_at, '2010-08-19 14:01:03.306399+00', 'updated_at should be default')
   FROM users WHERE nickname = 'theory';
@@ -464,7 +460,7 @@ SELECT ok(
 );
 
 -- Update now().
-SELECT * FROM set_now('2010-08-20 14:01:03.306399+00');
+SET SESSION mock.time = '2010-08-20 14:01:03.306399+00';
 
 SELECT ok(
     update_user(
@@ -636,7 +632,7 @@ SELECT ok(
 
 
 UPDATE users SET updated_at = pg_catalog.now() WHERE nickname IN ('theory', 'strongrrl');
-SELECT * FROM set_now('2010-08-21 22:01:03.306399+00');
+SET SESSION mock.time = '2010-08-21 22:01:03.306399+00';
 
 SELECT ok(is_admin, nickname || ' should be an admin')
   FROM users WHERE nickname IN ('theory', 'strongrrl');
@@ -706,7 +702,7 @@ SELECT is(
     'User visted_at should be updated'
 ) FROM users WHERE nickname = 'theory';
 
-SELECT * FROM set_now('2010-08-23 11:01:03.306399+00');
+SET SESSION mock.time = '2010-08-23 11:01:03.306399+00';
 
 -- Invalid password.
 SELECT ok(

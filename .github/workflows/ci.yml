@@ -9,7 +9,7 @@ jobs:
   build:
     strategy:
       matrix:
-        pg: [15, 14, 13, 12]
+        pg: [16, 15, 14, 13, 12]
     name: 🐘 PostgreSQL ${{ matrix.pg }}
     runs-on: ubuntu-latest
     container: pgxn/pgxn-tools
@@ -19,7 +19,7 @@ jobs:
       - name: Start PostgreSQL ${{ matrix.pg }}
         run: |-
           pg-start ${{ matrix.pg }} postgresql-plperl-${{ matrix.pg }} libxml-parser-perl libarchive-zip-perl libarchive-extract-perl libaliased-perl libsoftware-license-perl libtap-parser-sourcehandler-pgtap-perl libtest-file-perl libtest-file-contents-perl libtest-harness-perl libtest-mockmodule-perl libtest-nowarnings-perl libtest-xml-perl libtest-xpath-perl libclass-isa-perl libdata-dump-perl libdata-validate-uri-perl libdbi-perl libdbix-connector-perl libemail-valid-perl libemail-mime-perl libemail-address-perl libencode-perl libexception-class-dbi-perl libhttp-body-perl libhttp-negotiate-perl libjson-xs-perl libmoose-perl libmoosex-singleton-perl libnamespace-autoclean-perl libplack-perl libplack-middleware-session-perl libplack-middleware-methodoverride-perl libsemver-perl libtemplate-declare-perl libtry-tiny-perl liburi-template-perl libplack-middleware-debug-perl libplack-middleware-reverseproxy-perl libtest-pod-perl libtest-pod-coverage-perl libtest-spelling-perl cpanminus
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Build PGXN Manager
         run: |-
           perl Build.PL

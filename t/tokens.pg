@@ -70,18 +70,12 @@ SELECT is(
 /****************************************************************************/
 -- Now mock rand_str_of_len()
 CREATE SCHEMA mock;
-
-CREATE FUNCTION mock.set_rand_str(
-    string TEXT
-) RETURNS SETOF BOOLEAN LANGUAGE plperl AS $$
-    $_SHARED{random_string} = shift;
-    return;
-$$;
+SET SESSION mock.random_string = 'foobar';
 
 CREATE FUNCTION mock.rand_str_of_len(
     INTEGER
-) RETURNS TEXT LANGUAGE plperl AS $$
-    return $_SHARED{random_string};
+) RETURNS TEXT LANGUAGE sql AS $$
+    SELECT current_setting('mock.random_string')
 $$;
 
 DO LANGUAGE plpgsql $$
@@ -90,7 +84,6 @@ BEGIN
 END;
 $$;
 
-SELECT * FROM set_rand_str('foobar');
 SELECT is(rand_str_of_len(NULL), 'foobar', 'Should get mocked random string');
 
 /****************************************************************************/
@@ -174,7 +167,7 @@ SELECT ok(
 );
 UPDATE users SET status = 'active' WHERE nickname = 'strongrrl';
 
-SELECT * FROM set_rand_str('howdy');
+SET SESSION mock.random_string = 'howdy';
 SELECT is(
     forgot_password('strongrrl'),
     ARRAY['howdy', 'strongrrl@pgxn.org'],
@@ -190,7 +183,7 @@ SELECT is(
 ) FROM tokens WHERE token = 'howdy';
 
 -- Create another token for the same user.
-SELECT * FROM set_rand_str('booyah');
+SET SESSION mock.random_string = 'booyah';
 SELECT is(
     forgot_password('theory'),
     ARRAY['booyah','theory@pgxn.org'],
@@ -276,7 +269,7 @@ SELECT is(set_by, 'kamala', 'New user should have been set by self')
   FROM users WHERE nickname = 'kamala';
 
 -- Update the mocked random string.
-SELECT * FROM set_rand_str('clanker');
+SET SESSION mock.random_string = 'clanker';
 SELECT is(rand_str_of_len(NULL), 'clanker', 'Should get new mocked random string');
 
 -- Now clear the password.
@@ -311,7 +304,7 @@ SELECT throws_like(
 );
 
 -- Create another token for the same user.
-SELECT * FROM set_rand_str('mobius');
+SET SESSION mock.random_string = 'mobius';
 SELECT is(
     clear_password('theory', 'kamala', '10 days'),
     ARRAY['mobius','kamala@pgxn.org'],

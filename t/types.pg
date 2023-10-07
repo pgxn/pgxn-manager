@@ -162,19 +162,19 @@ SELECT is( 'foo'::term, 'FOO'::term, 'terms should be case-insensitive' );
 SELECT is( NULL::term, NULL, 'terms should be NULLable' );
 
 SELECT throws_like(
-    'SELECT ' || quote_literal(bad) || '::term',
+    'SELECT ' || quote_literal(term) || '::term',
     '%"term_check"%',
-    'Should get invalid term exception for "' || bad || '"'
+    'Should get invalid term exception due to "' || err || '"'
 ) FROM unnest(ARRAY[
-    'foo/bar',    -- slash
-    'foo\bar',    -- backslash
-    'foo	bar', -- tab
-    'f',          -- length
-    E'foo\nbar',  -- newline
-    E'foo\rbar',  -- return
-    E'foo\fbar',  -- feed
-    E'foo\x0abar' -- unprintable
-]) AS bad;
+    ('foo/bar'::text,       'slash'::text),
+    ('foo\bar'::text,       'backslash'::text),
+    (E'foo\tbar'::text,     'tab'::text),
+    ('f'::text,             'shortness'::text),
+    ('foo\nbar'::text,      'newline'::text),
+    ('foo\rbar'::text,      'return'::text),
+    (E'foo\fbar'::text,     'feed'::text),
+    (E'foo\x09bar'::text,   'unprintable'::text)
+]) AS bad (term text, err text);
 
 SELECT lives_ok(
     'SELECT ' || quote_literal(good) || '::term',
@@ -195,17 +195,17 @@ SELECT is( NULL::tag, NULL, 'tags should be NULLable' );
 SELECT throws_like(
     'SELECT ' || quote_literal(bad) || '::tag',
     '%"tag_check"%',
-    'Should get invalid tag exception for "' || bad || '"'
+    'Should get invalid tag exception due to "' || err || '"'
 ) FROM unnest(ARRAY[
-    'foo/bar',       -- slash
-    'foo\bar',       -- backslash
-    'foo	bar',    -- tab
-    E'foo\nbar',     -- newline
-    E'foo\rbar',     -- return
-    E'foo\fbar',     -- feed
-    E'foo\x0abar',   -- unprintable
-    repeat('x', 257) -- too long
-]) AS bad;
+    ('foo/bar'::text,       'slash'::text),
+    ('foo\bar'::text,       'backslash'::text),
+    (E'foo\tbar'::text,     'tab'::text),
+    ('foo\nbar'::text,      'newline'::text),
+    ('foo\rbar'::text,      'return'::text),
+    (E'foo\fbar'::text,     'feed'::text),
+    (E'foo\x09bar'::text,   'unprintable'::text),
+    (repeat('x', 257),      'length'::text)
+]) AS bad (term text, err text);
 
 SELECT lives_ok(
     'SELECT ' || quote_literal(good) || '::tag',

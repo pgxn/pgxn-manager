@@ -644,12 +644,12 @@ VALUES
        ('pair', '0.0.1',   'foo'),
        ('pair', '0.0.2-a1', 'foo'),
        ('pair', '0.0.2',   'foo'),
-       ('trip', '0.2.5',   'foo'),
+       ('trip', '0.2.5',   'Foo'),
        ('pair', '0.0.10',  'foo'),
 
        -- bar for two latest pairs.
-       ('pair', '0.0.2',   'bar'),
-       ('pair', '0.0.10',  'bar')
+       ('pair', '0.0.2',   'Bar'),
+       ('pair', '0.0.10',  'Bar')
 ;
 
 SELECT is_empty(
@@ -760,7 +760,7 @@ SELECT results_eq(
 SELECT results_eq(
     $$ SELECT * FROM tag_json('pair', '0.0.10') ORDER BY tag $$,
     $$ VALUES ('bar'::tag, '{
-   "tag": "bar",
+   "tag": "Bar",
    "releases": {
       "pair": {
          "stable": [

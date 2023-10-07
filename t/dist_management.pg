@@ -826,7 +826,7 @@ SELECT bag_eq(
       {"tag": "foo", "dists": 2},
       {"tag": "bar", "dists": 1},
       {"tag": "baz", "dists": 1},
-      {"tag": "PAIR", "dists": 1}
+      {"tag": "pair", "dists": 1}
    ]
 }
 '), ('stats','user','{
@@ -1116,11 +1116,11 @@ SELECT bag_eq(
 '), ('stats','tag','{
    "count": 6,
    "popular": [
-      {"tag": "Foo", "dists": 2},
+      {"tag": "foo", "dists": 2},
       {"tag": "bar", "dists": 1},
       {"tag": "baz", "dists": 1},
       {"tag": "heavy", "dists": 1},
-      {"tag": "PAIR", "dists": 1},
+      {"tag": "pair", "dists": 1},
       {"tag": "words", "dists": 1}
    ]
 }
@@ -1534,7 +1534,7 @@ SELECT bag_eq(
       {"tag": "foo", "dists": 2},
       {"tag": "bar", "dists": 1},
       {"tag": "baz", "dists": 1},
-      {"tag": "PAIR", "dists": 1},
+      {"tag": "pair", "dists": 1},
       {"tag": "wang", "dists": 1},
       {"tag": "words", "dists": 1},
       {"tag": "yo", "dists": 1}
@@ -1877,7 +1877,7 @@ SELECT bag_eq(
       {"tag": "foo", "dists": 2},
       {"tag": "bar", "dists": 1},
       {"tag": "baz", "dists": 1},
-      {"tag": "PAIR", "dists": 1},
+      {"tag": "pair", "dists": 1},
       {"tag": "wang", "dists": 1},
       {"tag": "words", "dists": 1},
       {"tag": "yo", "dists": 1}

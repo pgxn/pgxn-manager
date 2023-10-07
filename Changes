@@ -1,9 +1,14 @@
 Revision history for Perl extension PGXN::Manager
 
 0.30.2
-      - Added the application names (pgxn_manager and pgxn_consumer) to the
-        Postgres connections.
-      - Updated pgxn_consumer to delete the PID file on exit.
+       - Added the application names (pgxn_manager and pgxn_consumer) to the
+         Postgres connections.
+       - Updated pgxn_consumer to delete the PID file on exit.
+       - Updated tag stats to lowercase the tag name, both for consistency
+         across updates for this case-insensitive value, as well as for test
+         consistency.
+       - Fixed test failures on Postgres 16 by replacing PL/Perl-based mocks
+         with pure SQL.
 
 0.30.1   2023-02-18T23:15:06Z
        - Added the --log-file option to `pgxn_consumer`.

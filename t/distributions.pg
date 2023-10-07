@@ -110,13 +110,13 @@ SELECT throws_like(
     $$ INSERT INTO distributions (name, version, creator, sha1, meta)
        VALUES($$ || quote_literal(bad) || $$, '1.0.0', 'theory', 'bar', 'baz')$$,
     '%"term_check"%',
-    'Should get exception for name "' || bad || '"'
+    'Should get exception for name ' || quote_ident(bad)
 ) FROM unnest(ARRAY[
     'f',           -- too short
     'foo/bar',     -- slash
     'foo\bar',     -- backslash
     'foo bar',     -- whitespace
-    E'foo\x0abar'  -- unprintable
+    E'foo\x09bar'  -- unprintable
 ]) AS bad;
 
 /****************************************************************************/
