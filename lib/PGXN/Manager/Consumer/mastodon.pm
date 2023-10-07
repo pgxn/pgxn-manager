@@ -14,7 +14,7 @@ use warnings;
 use constant name => 'mastodon';
 use namespace::autoclean;
 
-our $VERSION = v0.31.0;
+our $VERSION = v0.31.1;
 
 has server  => (is => 'ro', required => 1, isa => 'Str');
 has ua      => (is => 'ro', required => 1, isa => 'LWP::UserAgent');

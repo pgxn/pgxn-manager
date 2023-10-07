@@ -1,5 +1,7 @@
 Revision history for Perl extension PGXN::Manager
 
+0.31.1
+
 0.31.0   2023-10-07T19:02:24Z
        - Added the application names (pgxn_manager and pgxn_consumer) to the
          Postgres connections.
