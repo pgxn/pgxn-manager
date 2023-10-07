@@ -8,7 +8,7 @@ use Encode qw(encode_utf8);
 use JSON::XS;
 use File::Temp ();
 
-use Test::More tests => 103;
+use Test::More tests => 108;
 # use Test::More 'no_plan';
 use Test::Output;
 use Test::MockModule;
@@ -105,10 +105,11 @@ PID: {
     my $tmp = File::Temp->new(UNLINK => 0);
     my $fn = $tmp->filename;
     do {
-        my $consumer = $CLASS->new(pid_file => $fn);
+        my $consumer = $CLASS->new(log_fh => $log_fh, pid_file => $fn);
         file_exists_ok $fn, 'PID file should exist';
     };
     file_not_exists_ok $fn, 'PID file be gone';
+    is output(), '', 'Should have no output';
 }
 
 ##############################################################################
@@ -216,11 +217,27 @@ DAEMONIZE: {
    # Mock Proc::Daemon
     my $mock_proc = Test::MockModule->new('Proc::Daemon');
     $mock_proc->mock(Init => 0);
+    my %pd_params;
+    $mock_proc->mock(new => sub {
+        my $pkg = shift;
+        %pd_params = @_;
+        my $pd_new = $mock_proc->original('new');
+        $pkg->$pd_new(@_);
+    });
+
     my $mocker = Test::MockModule->new($CLASS);
     my $ran;
     $mocker->mock(run => sub { $ran = 1; 0 });
     local @ARGV = (qw(--env test --daemonize --pid-file), $pid_file);
-    is $CLASS->go, 0, 'Should get zero from go';
+    stdout_is { is $CLASS->go, 0, 'Should get zero from go' }
+        "$logtime - INFO: PID written to $pid_file\n",
+        'Should have logged PID file location';
+    is_deeply \%pd_params, {
+            work_dir      => Cwd::getcwd,
+            dont_close_fh => [qw(STDERR STDOUT)],
+            pid_file      => $pid_file,
+    }, 'Should have passed params to Proc::Daemon->new';
+
     ok $ran, 'Should have run';
     is output(), '', 'Should have no output';
     ok defined delete $SIG{TERM}, 'Should have set term signal';
@@ -236,7 +253,13 @@ DAEMONIZE: {
     ok !$ran, 'Should not have run';
     is $SIG{TERM}, undef, 'Should not have set term signal';
     is delete $ENV{PLACK_ENV}, 'development', 'Should have set development env';
-    $mocker->unmock('run');
+     is_deeply \%pd_params, {
+            work_dir      => Cwd::getcwd,
+            dont_close_fh => [qw(STDERR STDOUT)],
+            pid_file      => undef,
+    }, 'Should have passed params to Proc::Daemon->new';
+
+   $mocker->unmock('run');
 }
 
 GO: {
@@ -244,7 +267,9 @@ GO: {
     my $mocker = Test::MockModule->new($CLASS);
     my $ran;
     $mocker->mock(run => sub { $ran = 1; 0 });
-    is $CLASS->go, 0, 'Should get zero from go';
+    stdout_is { is $CLASS->go, 0, 'Should get zero from go' }
+        "$logtime - INFO: PID written to STDOUT\n",
+        'Should have logged PID written to STDOUT';
     ok $ran, 'Should have run';
     is_deeply output(), '', 'Should have no output';
     ok defined delete $SIG{TERM}, 'Should have set term signal';
@@ -282,8 +307,11 @@ RUN: {
     is $consumer->verbose, 0, 'Should have default verbose 0';
     is $consumer->run, 0, 'Run consumer';
 
-    is_deeply output(), "$logtime - INFO: Shutting down\n",
-        'Should have shutdown log entry';
+    is_deeply output(), join("\n",
+        "$logtime - INFO: Starting $CLASS " . $CLASS->VERSION,
+        "$logtime - INFO: Shutting down",
+        '',
+    ), 'Should have startup and shutdown log entries';
     is_deeply \@done, $exp_done, 'Should have listened to all channels';
     ok $consumer->conn->dbh->{Callbacks}{connected},
         'Should have configured listening in connected callback';
@@ -303,9 +331,10 @@ RUN: {
     $consumer->continue(1);
     $params = undef;
     is $consumer->run, 0, 'Run consumer';
-    is_deeply output(), join("", map { "$logtime - $_" }
-        "WARN: No consumers configured; messages will be dropped\n",
-        "INFO: Shutting down\n",
+    is_deeply output(), join("", map { "$logtime - $_\n" }
+        "INFO: Starting $CLASS " . $CLASS->VERSION,
+        "WARN: No consumers configured; messages will be dropped",
+        "INFO: Shutting down",
     ), 'Should have warning about no consumers';
     is @{ $params }, 1, 'Should have passed one param to consume';
     is_deeply [keys %{ $params->[0] }], [], 'Should have no key in param';
@@ -320,9 +349,10 @@ RUN: {
     $consumer = $CLASS->new(interval => 0, verbose => 1, log_fh => $log_fh);
     is $consumer->verbose, 1, 'Should have verbosity 1';
     is $consumer->run, 0, 'Run consumer';
-    is_deeply output(), join("", map { "$logtime - $_" }
-        "INFO: Listening on $chans\n",
-        "INFO: Shutting down\n",
+    is_deeply output(), join("", map { "$logtime - $_\n" }
+        "INFO: Starting $CLASS " . $CLASS->VERSION,
+        "INFO: Listening on $chans",
+        "INFO: Shutting down",
     ), 'Should have verbose output';
     $mocker->unmock('consume');
 };

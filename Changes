@@ -1,6 +1,8 @@
 Revision history for Perl extension PGXN::Manager
 
 0.31.1
+       - Restored the writing of the PID file, accidentally removed in v0.31.0.
+         Added tests to ensure continues to be passed properly.
 
 0.31.0   2023-10-07T19:02:24Z
        - Added the application names (pgxn_manager and pgxn_consumer) to the
