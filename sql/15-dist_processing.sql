@@ -74,7 +74,7 @@ $$;
 -- Disallow end-user from using this function.
 REVOKE ALL ON FUNCTION check_dist_version(TERM, SEMVER) FROM PUBLIC;
 
--- Drop old funtions.
+-- Drop old functions.
 SET client_min_messages TO warning;
 DROP FUNCTION IF EXISTS check_prev_versions(TEXT[][], TIMESTAMPTZ);
 DROP FUNCTION IF EXISTS check_later_versions(TEXT[][], TIMESTAMPTZ);

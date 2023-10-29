@@ -81,7 +81,7 @@ sub go {
     $cfg->{log_fh} = _log_fh delete $cfg->{'log-file'};
     $cfg->{pid_file} = delete $cfg->{'pid-file'} if exists $cfg->{'pid-file'};
     my $cmd = $class->new( $cfg );
-    $SIG{TERM} = sub { $cmd->continue(0) };
+    $SIG{QUIT} = $SIG{INT} = $SIG{TERM} = sub { $cmd->continue(0) };
     $cmd->run(@ARGV);
 }
 

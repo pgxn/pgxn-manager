@@ -8,7 +8,7 @@ use Encode qw(encode_utf8);
 use JSON::XS;
 use File::Temp ();
 
-use Test::More tests => 113;
+use Test::More tests => 121;
 # use Test::More 'no_plan';
 use Test::Output;
 use Test::MockModule;
@@ -236,6 +236,8 @@ DAEMONIZE: {
     ok $ran, 'Should have run';
     is output(), '', 'Should have no output';
     ok defined delete $SIG{TERM}, 'Should have set term signal';
+    ok defined delete $SIG{QUIT}, 'Should have set quit signal';
+    ok defined delete $SIG{INT}, 'Should have set int signal';
     is delete $ENV{PLACK_ENV}, 'test', 'Should have set test env';
 
     # Now make a pid.
@@ -250,6 +252,8 @@ DAEMONIZE: {
         'Should have emitted PID';
     ok !$ran, 'Should not have run';
     is $SIG{TERM}, undef, 'Should not have set term signal';
+    is $SIG{QUIT}, undef, 'Should not have set quit signal';
+    is $SIG{INT}, undef, 'Should not have set int signal';
     is delete $ENV{PLACK_ENV}, 'development', 'Should have set development env';
      is_deeply \%pd_params, {
             work_dir      => Cwd::getcwd,
@@ -265,6 +269,8 @@ DAEMONIZE: {
         'Should have emitted PID';
     ok !$ran, 'Should not have run';
     is $SIG{TERM}, undef, 'Should not have set term signal';
+    is $SIG{QUIT}, undef, 'Should not have set quit signal';
+    is $SIG{INT}, undef, 'Should not have set int signal';
     is delete $ENV{PLACK_ENV}, 'development', 'Should have set development env';
      is_deeply \%pd_params, {
             work_dir      => Cwd::getcwd,
@@ -285,6 +291,8 @@ GO: {
     ok $ran, 'Should have run';
     is_deeply output(), '', 'Should have no output';
     ok defined delete $SIG{TERM}, 'Should have set term signal';
+    ok defined delete $SIG{QUIT}, 'Should have set quit signal';
+    ok defined delete $SIG{INT}, 'Should have set int signal';
     is delete $ENV{PLACK_ENV}, 'development', 'Should have set development env';
     $mocker->unmock('run');
 }
