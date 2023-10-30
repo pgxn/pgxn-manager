@@ -81,8 +81,16 @@ sub go {
     $cfg->{log_fh} = _log_fh delete $cfg->{'log-file'};
     $cfg->{pid_file} = delete $cfg->{'pid-file'} if exists $cfg->{'pid-file'};
     my $cmd = $class->new( $cfg );
-    $SIG{QUIT} = $SIG{INT} = $SIG{TERM} = sub { $cmd->continue(0) };
+    $SIG{$_} = $cmd->_signal_handler($_) for qw(TERM INT QUIT);
     $cmd->run(@ARGV);
+}
+
+sub _signal_handler {
+    my ($self, $sig) = @_;
+    return sub {
+        $self->log("INFO: $sig signal caught; flagging shutdown for next loop");
+        $self->continue(0);
+    };
 }
 
 sub DEMOLISH {
