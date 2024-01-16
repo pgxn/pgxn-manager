@@ -2,7 +2,8 @@ BEGIN;
 
 -- Utilityt function to create the password salt, so it can be quickly swapped
 -- for new algorithms in the future.
-CREATE OR REPLACE FUNCTION _salt() RETURNS TEXT LANGUAGE SQL AS $$
+CREATE OR REPLACE FUNCTION _salt(
+) RETURNS TEXT LANGUAGE SQL AS $$
     SELECT gen_salt('bf', 9);
 $$;
 

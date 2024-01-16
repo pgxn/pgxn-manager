@@ -1,5 +1,9 @@
 #!/usr/bin/env perl -w
 
+# cpanm --notest Text::MultiMarkdown
+# plenv rehash
+# /bin/gendoc --title 'PGXN Manager Database API' --toc sql/*.sql | MultiMarkdown.pl pbcopy
+
 use 5.10.0;
 use Getopt::Long;
 our $VERSION = '0.02';
