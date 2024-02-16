@@ -89,13 +89,6 @@ sub _signal_handler {
     };
 }
 
-sub DEMOLISH {
-    my $self = shift;
-    if (my $path = $self->pid_file) {
-        unlink $path;
-    }
-}
-
 sub run {
     my $self = shift;
     $self->log(INFO => sprintf "Starting %s %s", __PACKAGE__, __PACKAGE__->VERSION);
@@ -112,6 +105,11 @@ sub run {
     while ($self->continue) {
         $self->consume($consumers_for);
         sleep($self->interval);
+    }
+
+    if (my $path = $self->pid_file) {
+        $self->log(DEBUG => "Unlinking PID file ", $self->pid_file);
+        unlink $path;
     }
 
     $self->log(INFO => 'Shutting down');

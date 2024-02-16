@@ -110,19 +110,6 @@ LOGFILE: {
 my $chans = join(', ', PGXN::Manager::Consumer::CHANNELS);
 
 ##############################################################################
-# Test pid file cleanup.
-PID: {
-    my $tmp = File::Temp->new(UNLINK => 0);
-    my $fn = $tmp->filename;
-    do {
-        my $consumer = $CLASS->new(logger => $logger, pid_file => $fn);
-        file_exists_ok $fn, 'PID file should exist';
-    };
-    file_not_exists_ok $fn, 'PID file be gone';
-    is output(), '', 'Should have no output';
-}
-
-##############################################################################
 # Load the test environment configuration.
 sub load_config {
     open my $fh, '<:raw', 'conf/test.json' or die "Cannot open conf/test.json: $!\n";
@@ -327,22 +314,41 @@ RUN: {
     $db_mocker->mock(do => sub { shift; push @done => \@_ });
     my $exp_done = [map { ["LISTEN pgxn_$_"] } PGXN::Manager::Consumer::CHANNELS ];
 
-    # Run it.
+    # Set up a PID file.
+    my $tmp = File::Temp->new(UNLINK => 0);
+    my $fn = $tmp->filename;
+
+    # Set up the config.
     local @ARGV = qw(--env test --interval 0);
     my $cfg = $CLASS->_config;
     $cfg->{logger} = $logger;
+    $cfg->{pid_file} = $fn;
+
+    # Instantiate.
     my $consumer = $CLASS->new($cfg);
     is $consumer->interval, 0, 'Should have interval 0';
     is $consumer->continue, 1, 'Should have default continue 1';
     is $consumer->verbose, 0, 'Should have default verbose 0';
     is $consumer->logger, $logger, 'Should have set logger';
+    is $consumer->pid_file, $fn, 'Should have set pid_file';
+    file_exists_ok $fn, 'PID file should exist';
+
+    # Run it.
+    $logger->{verbose} = 2;
     is $consumer->run, 0, 'Run consumer';
+    file_not_exists_ok $fn, 'PID file should no longer exist';
+    $logger->{verbose} = 1;
 
     is_deeply output(), join("\n",
         "$logtime - INFO: Starting $CLASS " . $CLASS->VERSION,
+        "$logtime - DEBUG: Loading PGXN::Manager::Consumer::mastodon",
+        "$logtime - DEBUG: Configuring PGXN::Manager::Consumer::mastodon for release",
+        "$logtime - DEBUG: Loading PGXN::Manager::Consumer::twitter",
+        "$logtime - DEBUG: Configuring PGXN::Manager::Consumer::twitter for release",
+        "$logtime - DEBUG: Unlinking PID file $fn",
         "$logtime - INFO: Shutting down",
         '',
-    ), 'Should have startup and shutdown log entries';
+    ), 'Should have startup, loading, PID, and shutdown log entries';
     is_deeply \@done, $exp_done, 'Should have listened to all channels';
     ok $consumer->conn->dbh->{Callbacks}{connected},
         'Should have configured listening in connected callback';
@@ -412,7 +418,7 @@ CONSUME: {
     # Set up a notification.
     my $json1 = '{"name": "Julie ❤️"}';
     my $payload1 = {name => 'Julie ❤️'};
-    my $consumer = $new_consumer->(verbose => 2, logger => $logger);
+    my $consumer = $new_consumer->(verbose => 2);
     $consumer->conn->run(sub {
         $_->do("SELECT pg_notify(?, ?)", undef, 'pgxn_release', $json1);
     });
@@ -456,7 +462,7 @@ CONSUME: {
     my $json3 = '{"drop": "out"}';
     my $payload3 = {drop => 'out'};
     $logger->{verbose} = 0;
-    $consumer = $new_consumer->(verbose => 0, logger => $logger);
+    $consumer = $new_consumer->(verbose => 0);
     $consumer->conn->run(sub {
         $_->do("SELECT pg_notify(?, ?)", undef, 'pgxn_drop', $json3);
     });
