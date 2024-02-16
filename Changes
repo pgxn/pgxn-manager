@@ -12,6 +12,8 @@ Revision history for Perl extension PGXN::Manager
          where it should always execute. This will hopefully fix the issue
          where the consumer mysteriously ceases running and doesn't remove its
          PID file, so never restarts.
+       - Replaced use of the deprecated `given`/`when` syntax with plain old
+         `if`/`elsif`/`else`.
 
 0.31.1   2023-10-07T21:40:53Z
        - Restored the writing of the pgxn_consumer PID file, accidentally

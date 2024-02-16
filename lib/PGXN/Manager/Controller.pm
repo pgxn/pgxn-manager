@@ -107,24 +107,21 @@ sub respond_with {
 
     my $type;
     no if $] >= 5.017011, warnings => 'experimental::smartmatch';
-    given (scalar $req->respond_with) {
-        when ('html') {
-            $msg = '<p class="error">' . encode('UTF-8', encode_entities($msg)) . '</p>';
-            $type = 'text/html; charset=UTF-8';
-        } when ('json') {
-            $msg = encode_json { message => $msg };
-            $type = 'application/json';
-        }
-        when ('atom') {
-            # XXX WTF to do here?
-            $type = 'text/plain; charset=UTF-8';
-            $msg = encode 'UTF-8', $msg;
-        }
-        default {
-            # Text is just text.
-            $type = 'text/plain';
-            $msg = encode 'UTF-8', $msg;
-        }
+    my $with = scalar $req->respond_with;
+    if ($with eq 'html') {
+        $msg = '<p class="error">' . encode('UTF-8', encode_entities($msg)) . '</p>';
+        $type = 'text/html; charset=UTF-8';
+    } elsif ($with eq 'json') {
+        $msg = encode_json { message => $msg };
+        $type = 'application/json';
+    } elsif ($with eq 'atom') {
+        # XXX WTF to do here?
+        $type = 'text/plain; charset=UTF-8';
+        $msg = encode 'UTF-8', $msg;
+    } else {
+        # Text is just text.
+        $type = 'text/plain';
+        $msg = encode 'UTF-8', $msg;
     }
     return [
         $code,
@@ -284,57 +281,54 @@ sub register {
         my $err = shift;
         my ($msg, $highlight, $status);
         no if $] >= 5.017011, warnings => 'experimental::smartmatch';
-        given (try { $err->state }) {
-            when ('23505') {
-                # Unique constraint violation.
-                $status = 'conflict';
-                if ($err->errstr =~ /\busers_pkey\b/) {
-                    $highlight = 'nickname';
+        my $state = try { $err->state };
+        if ($state eq '23505') {
+            # Unique constraint violation.
+            $status = 'conflict';
+            if ($err->errstr =~ /\busers_pkey\b/) {
+                $highlight = 'nickname';
+                $msg = [
+                    'The Nickname “[_1]” is already taken. Sorry about that.',
+                    delete $params->{nickname}
+                ];
+            } else {
+                if ($req->respond_with eq 'html') {
                     $msg = [
-                        'The Nickname “[_1]” is already taken. Sorry about that.',
-                        delete $params->{nickname}
+                        'Looks like you might already have an account. Need to <a href="[_1]">reset your password</a>?',
+                        $req->uri_for('/reset', email => delete $params->{email}),
                     ];
                 } else {
-                    if ($req->respond_with eq 'html') {
-                        $msg = [
-                            'Looks like you might already have an account. Need to <a href="[_1]">reset your password</a>?',
-                            $req->uri_for('/reset', email => delete $params->{email}),
-                        ];
-                    } else {
-                        $msg = ['Looks like you might already have an account. Need to reset your password?'];
-                        delete $params->{email},
-                    }
-                }
-            } when ('23514') {
-                # Domain label violation.
-                $status = 'badrequest';
-                given ($err->errstr) {
-                    when (/\blabel_check\b/) {
-                    $highlight = 'nickname';
-                        $msg = [
-                            'Sorry, the nickname “[_1]” is invalid. Your nickname must start with an ASCII letter (a-z), end with an ASCII letter or digit, and otherwise contain only ASCII letters, digits, or hyphen. Sorry to be so strict.',
-                            encode_entities delete $params->{nickname},
-                        ];
-                    } when (/\bemail_check\b/) {
-                        $highlight = 'email';
-                        $msg = [
-                            q{Hrm, “[_1]” doesn't look like an email address. Care to try again?},
-                            encode_entities delete $params->{email},
-                        ];
-                    } when (/\buri_check\b/) {
-                        $highlight = 'uri';
-                        $msg = [
-                            q{Hrm, “[_1]” doesn't look like a URI. Care to try again?},
-                            encode_entities delete $params->{uri},
-                        ];
-                    } default {
-                        die $err;
-                    }
+                    $msg = ['Looks like you might already have an account. Need to reset your password?'];
+                    delete $params->{email},
                 }
             }
-            default {
+        } elsif ($state eq '23514') {
+            # Domain label violation.
+            $status = 'badrequest';
+            my $errstr = $err->errstr;
+            if ($errstr =~ /\blabel_check\b/) {
+                $highlight = 'nickname';
+                $msg = [
+                    'Sorry, the nickname “[_1]” is invalid. Your nickname must start with an ASCII letter (a-z), end with an ASCII letter or digit, and otherwise contain only ASCII letters, digits, or hyphen. Sorry to be so strict.',
+                    encode_entities delete $params->{nickname},
+                ];
+            } elsif ($errstr =~ /\bemail_check\b/) {
+                $highlight = 'email';
+                $msg = [
+                    q{Hrm, “[_1]” doesn't look like an email address. Care to try again?},
+                    encode_entities delete $params->{email},
+                ];
+            } elsif ($errstr =~ /\buri_check\b/) {
+                $highlight = 'uri';
+                $msg = [
+                    q{Hrm, “[_1]” doesn't look like a URI. Care to try again?},
+                    encode_entities delete $params->{uri},
+                ];
+            } else {
                 die $err;
             }
+        } else {
+            die $err;
         }
 
         # Respond with error code for XHR request.
@@ -710,42 +704,39 @@ sub update_account {
         my $err = shift;
         my ($msg, $highlight);
         no if $] >= 5.017011, warnings => 'experimental::smartmatch';
-        given ($err->state) {
-            when ('23505') {
-                # Unique constraint violation.
+        my $state = $err->state;
+        if ($state eq '23505') {
+            # Unique constraint violation.
+            $msg = [
+                'Do you have two accounts? Because the email address “[_1]” is associated with another account.',
+                delete $params->{email}
+            ];
+            $params->{email} = PGXN::Manager->conn->run(sub{
+                shift->selectcol_arrayref(
+                    'SELECT email FROM users WHERE nickname = ?',
+                    undef, $req->user
+                )->[0];
+            });
+        } elsif ($state eq '23514') {
+            # Domain label violation.
+            my $errstr = $err->errstr;
+            if ($errstr =~ /\bemail_check\b/) {
+                $highlight = 'email';
                 $msg = [
-                    'Do you have two accounts? Because the email address “[_1]” is associated with another account.',
-                    delete $params->{email}
+                    q{Hrm, “[_1]” doesn't look like an email address. Care to try again?},
+                    encode_entities delete $params->{email},
                 ];
-                $params->{email} = PGXN::Manager->conn->run(sub{
-                    shift->selectcol_arrayref(
-                        'SELECT email FROM users WHERE nickname = ?',
-                        undef, $req->user
-                    )->[0];
-                });
-            } when ('23514') {
-                # Domain label violation.
-                given ($err->errstr) {
-                    when (/\bemail_check\b/) {
-                        $highlight = 'email';
-                        $msg = [
-                            q{Hrm, “[_1]” doesn't look like an email address. Care to try again?},
-                            encode_entities delete $params->{email},
-                        ];
-                    } when (/\buri_check\b/) {
-                        $highlight = 'uri';
-                        $msg = [
-                            q{Hrm, “[_1]” doesn't look like a URI. Care to try again?},
-                            encode_entities delete $params->{uri},
-                        ];
-                    } default {
-                        die $err;
-                    }
-                }
-            }
-            default {
+            } elsif ($errstr =~ /\buri_check\b/) {
+                $highlight = 'uri';
+                $msg = [
+                    q{Hrm, “[_1]” doesn't look like a URI. Care to try again?},
+                    encode_entities delete $params->{uri},
+                ];
+            } else {
                 die $err;
             }
+        } else {
+            die $err;
         }
 
         # Respond with error code for XHR request.
@@ -960,49 +951,47 @@ sub _do_mirror {
         my $err = shift;
         my ($msg, $highlight);
         no if $] >= 5.017011, warnings => 'experimental::smartmatch';
-        given (eval { $err->state }) {
-            when ('23505') {
-                # Unique constraint violation.
-                $highlight = ['uri'];
+        my $state = try { $err->state };
+        if ($state eq '23505') {
+            # Unique constraint violation.
+            $highlight = ['uri'];
+            $msg = [
+                'Looks like [_1] is already registered as a mirror.',
+                delete $params->{uri},
+            ];
+            # Show the original URL for updates.
+            $params->{uri} = $old_uri if $update;
+        } elsif ($state eq '23514') {
+            # Domain label violation.
+            my $errstr = $err->errstr;
+            if ($errstr =~ /\btimezone\b/) {
+                $highlight = ['timezone'];
                 $msg = [
-                    'Looks like [_1] is already registered as a mirror.',
-                    delete $params->{uri},
+                    'Sorry, the time zone “[_1]” is invalid.',
+                    delete $params->{timezone},
                 ];
-                # Show the original URL for updates.
-                $params->{uri} = $old_uri if $update;
-            } when ('23514') {
-                # Domain label violation.
-                given ($err->errstr) {
-                    when (/\btimezone\b/) {
-                        $highlight = ['timezone'];
-                        $msg = [
-                            'Sorry, the time zone “[_1]” is invalid.',
-                            delete $params->{timezone},
-                        ];
-                    }
-                    when (/\bemail_check\b/) {
-                        $highlight = ['email'];
-                        $msg = [
-                            q{Hrm, “[_1]” doesn't look like an email address. Care to try again?},
-                            delete $params->{email},
-                        ];
-                    } when (/\buri_check\b/) {
-                        my $field = !is_uri($params->{src})   ? 'src'
-                                  : !is_uri($params->{rsync}) ? 'rsync'
-                                                              : 'uri';
-                        $highlight = [$field];
-                        $msg = [
-                            q{Hrm, “[_1]” doesn't look like a URI. Care to try again?},
-                            delete $params->{$field},
-                        ];
-                        $params->{$field} = $old_uri if $update && $field eq 'uri';
-                    } default {
-                        die $err;
-                    }
-                }
-            } default {
-               die $err;
             }
+            elsif ($errstr =~ /\bemail_check\b/) {
+                $highlight = ['email'];
+                $msg = [
+                    q{Hrm, “[_1]” doesn't look like an email address. Care to try again?},
+                    delete $params->{email},
+                ];
+            } elsif ($errstr =~ /\buri_check\b/) {
+                my $field = !is_uri($params->{src})   ? 'src'
+                            : !is_uri($params->{rsync}) ? 'rsync'
+                                                        : 'uri';
+                $highlight = [$field];
+                $msg = [
+                    q{Hrm, “[_1]” doesn't look like a URI. Care to try again?},
+                    delete $params->{$field},
+                ];
+                $params->{$field} = $old_uri if $update && $field eq 'uri';
+            } else {
+                die $err;
+            }
+        } else {
+            die $err;
         }
 
         # Respond with error code for XHR request.

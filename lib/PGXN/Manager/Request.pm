@@ -116,12 +116,12 @@ value in the `X-Forwarded-Script-Name` header and set the configuration to
 
 =head3 C<respond_with>
 
-  given ($req->respond_with) {
-      say '<h1>Hi</h1>'                    when 'html';
-      say 'Hi'                             when 'text';
-      say '<feed><title>hi</title></feed>' when 'atom';
-      say '{ "title": "hi" }'              when 'json';
-  }
+  my $type = $req->respond_with;
+  say   $type eq 'html' ? '<h1>Hi</h1>'
+      : $type eq 'text' ? 'Hi' 
+      : $type eq 'atom' ? '<feed><title>hi</title></feed>'
+      : $type eq 'json' ? '{ "title": "hi" }'
+      :                   die "Unknown type $type";
 
 This method uses L<HTTP::Negotiate> to select and return a preferred response
 type based on the request accept headers. It supports and can return one of
