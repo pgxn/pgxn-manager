@@ -111,7 +111,7 @@ RUN: {
     ok $maint->run('update-stats', 'now'), 'Run update-stats';
     is_deeply $params, ['now'], 'Should have called update_stats';
 
-    # Make sure we croak for an unknown command.
+    # Make sure we die for an unknown command.
     local $@;
     eval { $maint->run('nonexistent') };
     like $@, qr{PGXN Maint: "nonexistent" is not a command},

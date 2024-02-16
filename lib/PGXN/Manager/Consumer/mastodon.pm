@@ -19,6 +19,7 @@ our $VERSION = v0.31.2;
 has server  => (is => 'ro', required => 1, isa => 'Str');
 has ua      => (is => 'ro', required => 1, isa => 'LWP::UserAgent');
 has delay   => (is => 'ro', required => 0, isa => 'Int', default => 0);
+has logger  => (is => 'ro', required => 1, isa => 'PGXN::Manager::Consumer::Log');
 
 around BUILDARGS => sub {
     my ($orig, $class, %args) = @_;
@@ -50,7 +51,13 @@ my %EMOJI = (
 
 sub handle {
     my ($self, $type, $meta) = @_;
-    return unless $type eq 'release';
+    if ($type ne 'release') {
+        $self->logger->log(DEBUG => "Mastodon skiping $type notification");
+        return;
+    };
+
+    my $release = lc "$meta->{name}-$meta->{version}";
+    $self->logger->log(INFO => "Posting $release to Mastodon");
 
     my $link = PGXN::Manager->instance->config->{release_permalink};
     my $url = URI::Template->new($link)->process({
@@ -59,7 +66,7 @@ sub handle {
     });
 
     my %emo = map { $_ => $EMOJI{$_}[rand @{ $EMOJI{$_} }] } keys %EMOJI;
-    $self->toot(join("\n\n",
+    $self->toot($release, join("\n\n",
         "$emo{send} Released: $meta->{name} $meta->{version}",
         "$emo{info} $meta->{abstract}",
         "$emo{user} By $meta->{user}",
@@ -68,7 +75,7 @@ sub handle {
 }
 
 sub toot {
-    my ($self, $body) = @_;
+    my ($self, $release, $body) = @_;
 
     my $res = $self->ua->post(
         $self->server . '/api/v1/statuses',
@@ -78,7 +85,10 @@ sub toot {
         },
     );
     return 1 if $res->is_success;
-    die "Error posting to Mastodon: " . $res->decoded_content . "\n";
+
+    $self->logger->log(ERROR =>
+        "Error posting $release to Mastodon: " . $res->decoded_content
+    );
 }
 
 sub scheduled_at {

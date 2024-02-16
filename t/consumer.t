@@ -8,7 +8,7 @@ use Encode qw(encode_utf8);
 use JSON::XS;
 use File::Temp ();
 
-use Test::More tests => 121;
+use Test::More tests => 122;
 # use Test::More 'no_plan';
 use Test::Output;
 use Test::MockModule;
@@ -48,6 +48,24 @@ can_ok $CLASS => qw(
 );
 
 ##############################################################################
+# Mock log destination.
+my $log_output = '';
+my $log_fh = IO::File->new(\$log_output, 'w');
+$log_fh->binmode(':utf8');
+sub output {
+    my $ret = $log_output;
+    $log_fh->seek(0, 0);
+    $log_output = '';
+    return $ret // '';
+}
+
+# Set up a logger.
+my $logger = PGXN::Manager::Consumer::Log->new(
+    verbose => 1,
+    log_fh  => $log_fh,
+);
+
+##############################################################################
 # Instantiate and test config.
 DEFAULTS: {
     local @ARGV;
@@ -55,12 +73,12 @@ DEFAULTS: {
         'Default options should be correct';
 
     local $ENV{PLACK_ENV} = 'test';
-    my $consumer = new_ok $CLASS;
+    my $consumer = new_ok $CLASS, [ logger => $logger ];
     is $consumer->verbose, 0, 'Default verbosity is 0';
     is $consumer->interval, 5, 'Default interval is 5';
     is $consumer->continue, 1, 'Default continue is 1';
     is $consumer->pid_file, undef, 'Default pid file is undef';
-    ok $consumer->log_fh, 'Should have log file handle';
+    is $consumer->logger, $logger, 'Should have logger';
 }
 
 # Grab the timestamp that will appear in logs.
@@ -73,30 +91,22 @@ is POSIX::strftime('%Y-%m-%dT%H:%M:%SZ', gmtime), $logtime,
 # Test and then mock log
 STDOUT: {
     my $consumer = $CLASS->new();
-    stdout_is { ok $consumer->log("Hello there 😀"), 'log' }
-        encode_utf8 "$logtime - Hello there 😀\n",
+    stdout_is { ok $consumer->log(WARN => "Hello there 😀"), 'log' }
+        encode_utf8 "$logtime - WARN: Hello there 😀\n",
         "log should encode text";
 }
 
 LOGFILE: {
     my $tmp = File::Temp->new;
-    my $consumer = $CLASS->new(log_fh => PGXN::Manager::Consumer::_log_fh($tmp->filename));
-    ok $consumer->log("Hello there 😀"), 'log to file';
-    file_contents_eq $tmp->filename, "$logtime - Hello there 😀\n",
+    my $consumer = $CLASS->new(
+        logger => PGXN::Manager::Consumer::Log->new(file => $tmp->filename),
+    );
+    ok $consumer->log(WARN => "Hello there 😀"), 'log to file';
+    file_contents_eq $tmp->filename, "$logtime - WARN: Hello there 😀\n",
         { encoding => 'UTF-8' },
         'Should have written message to log file';
 }
 
-# Mock log file.
-my $log_output = '';
-my $log_fh = IO::File->new(\$log_output, 'w');
-$log_fh->binmode(':utf8');
-sub output {
-    my $ret = $log_output;
-    $log_fh->seek(0, 0);
-    $log_output = '';
-    return $ret // '';
-}
 my $chans = join(', ', PGXN::Manager::Consumer::CHANNELS);
 
 ##############################################################################
@@ -105,7 +115,7 @@ PID: {
     my $tmp = File::Temp->new(UNLINK => 0);
     my $fn = $tmp->filename;
     do {
-        my $consumer = $CLASS->new(log_fh => $log_fh, pid_file => $fn);
+        my $consumer = $CLASS->new(logger => $logger, pid_file => $fn);
         file_exists_ok $fn, 'PID file should exist';
     };
     file_not_exists_ok $fn, 'PID file be gone';
@@ -160,7 +170,7 @@ CONFIG: {
 # Test load_consumers.
 LOAD: {
     my $conf = load_config;
-    my $consumer = $CLASS->new(log_fh => $log_fh);
+    my $consumer = $CLASS->new(logger => $logger);
     my $handlers = $consumer->load_consumers($conf->{consumers});
     is_deeply [keys %{ $handlers }], ["release"], 'Should have one key';
     is @{ $handlers->{release} }, 2, 'Should have two release handlers';
@@ -246,7 +256,7 @@ DAEMONIZE: {
     file_exists_ok $pid_file, 'PID file should exist';
     $mock_proc->mock(Init => 42);
     $ran = 0;
-    @ARGV = (qw(-D --pid-file), $pid_file);
+    @ARGV = (qw(-VD --pid-file), $pid_file);
     stdout_is { is $CLASS->go, 0, 'Should get zero from go' }
         "$logtime - INFO: Forked PID 42 written to $pid_file\n",
         'Should have emitted PID';
@@ -263,7 +273,7 @@ DAEMONIZE: {
 
     # Try with no PID file (shoud log it was written to STDOUT).
     $ran = 0;
-    @ARGV = qw(-D);
+    @ARGV = qw(-VD);
     stdout_is { is $CLASS->go, 0, 'Should get zero from go' }
         "$logtime - INFO: Forked PID 42 written to STDOUT\n",
         'Should have emitted PID';
@@ -320,11 +330,12 @@ RUN: {
     # Run it.
     local @ARGV = qw(--env test --interval 0);
     my $cfg = $CLASS->_config;
-    $cfg->{log_fh} = $log_fh;
+    $cfg->{logger} = $logger;
     my $consumer = $CLASS->new($cfg);
     is $consumer->interval, 0, 'Should have interval 0';
     is $consumer->continue, 1, 'Should have default continue 1';
     is $consumer->verbose, 0, 'Should have default verbose 0';
+    is $consumer->logger, $logger, 'Should have set logger';
     is $consumer->run, 0, 'Run consumer';
 
     is_deeply output(), join("\n",
@@ -366,7 +377,7 @@ RUN: {
     $db_mocker->mock(selectcol_arrayref => sub {
         [PGXN::Manager::Consumer::CHANNELS]
     });
-    $consumer = $CLASS->new(interval => 0, verbose => 1, log_fh => $log_fh);
+    $consumer = $CLASS->new(interval => 0, verbose => 1, logger => $logger);
     is $consumer->verbose, 1, 'Should have verbosity 1';
     is $consumer->run, 0, 'Run consumer';
     is_deeply output(), join("", map { "$logtime - $_\n" }
@@ -393,7 +404,7 @@ CONSUME: {
     # Wrap the constuctor to listen for our test handlers.
     my @channels = keys %{ $handlers };
     my $new_consumer = sub {
-        my $c = $CLASS->new(@_, log_fh => $log_fh);
+        my $c = $CLASS->new(@_, logger => $logger);
         $c->conn->run(sub { $_[0]->do("LISTEN pgxn_$_") for @channels });
         $c;
     };
@@ -401,7 +412,7 @@ CONSUME: {
     # Set up a notification.
     my $json1 = '{"name": "Julie ❤️"}';
     my $payload1 = {name => 'Julie ❤️'};
-    my $consumer = $new_consumer->(verbose => 2, log_fh => $log_fh);
+    my $consumer = $new_consumer->(verbose => 2, logger => $logger);
     $consumer->conn->run(sub {
         $_->do("SELECT pg_notify(?, ?)", undef, 'pgxn_release', $json1);
     });
@@ -444,7 +455,8 @@ CONSUME: {
     # Go quiet, send a drop.
     my $json3 = '{"drop": "out"}';
     my $payload3 = {drop => 'out'};
-    $consumer = $new_consumer->(verbose => 0, log_fh => $log_fh);
+    $logger->{verbose} = 0;
+    $consumer = $new_consumer->(verbose => 0, logger => $logger);
     $consumer->conn->run(sub {
         $_->do("SELECT pg_notify(?, ?)", undef, 'pgxn_drop', $json3);
     });
@@ -480,6 +492,7 @@ CONSUME: {
 
     # Remove a handlers.
     delete $handlers->{drop};
+    $logger->{verbose} = 1;
     $consumer = $new_consumer->(verbose => 1);
     $consumer->conn->run(sub {
         $_->do("SELECT pg_notify(?, ?)", undef, 'pgxn_drop', $json3);

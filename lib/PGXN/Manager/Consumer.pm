@@ -8,32 +8,34 @@ use Moose;
 use JSON::XS;
 use Try::Tiny;
 use Encode qw(encode_utf8);
-use Carp;
 use Time::HiRes qw(sleep);
 use PGXN::Manager;
 use Proc::Daemon;
 use IO::File;
-use POSIX ();
-use Fcntl qw(:flock);
 use Cwd;
 use namespace::autoclean;
 
 our $VERSION = v0.31.2;
 use constant CHANNELS => qw(release new_user new_mirror);
 
-has verbose  => (is => 'ro', isa => 'Int', required => 1, default => 0);
-has interval => (is => 'ro', isa => 'Num', required => 1, default => 5);
+has verbose  => (is => 'ro', isa => 'Int',  required => 1, default => 0);
+has interval => (is => 'ro', isa => 'Num',  required => 1, default => 5);
 has continue => (is => 'rw', isa => 'Bool', required => 1, default => 1);
 has pid_file => (is => 'rw', isa => 'Str');
-has log_fh   => (is => 'ro', isa => 'IO::Handle', required => 1, default => sub {
-    _log_fh()
-});
+has logger   => (
+    is       => 'ro',
+    isa      => 'PGXN::Manager::Consumer::Log',
+    required => 1,
+    lazy     => 1,
+    default  => sub { PGXN::Manager::Consumer::Log->new(verbose => $_[0]->verbose) },
+);
+
 has conn     => (is => 'ro', isa => 'DBIx::Connector', lazy => 1, default => sub {
     # Use our own connetion instead of $pgxn->conn in order to add the callback.
     my $self = shift;
     my $cb = $self->verbose ? sub {
         $_[0]->do("LISTEN pgxn_$_") for CHANNELS;
-        $self->log("INFO: Listening on ", join ', ', map { s/^pgxn_//r } @{
+        $self->log(INFO => 'Listening on ', join ', ', map { s/^pgxn_//r } @{
             $_[0]->selectcol_arrayref('SELECT * FROM pg_listening_channels()')
         });
         return;
@@ -48,15 +50,6 @@ has conn     => (is => 'ro', isa => 'DBIx::Connector', lazy => 1, default => sub
     });
 });
 
-sub _log_fh {
-    my $fn = shift;
-    my $fh = $fn ? IO::File->new($fn, '>>:utf8')
-                 : IO::Handle->new_from_fd(fileno STDOUT, 'w');
-    binmode $fh, ":utf8";
-    $fh->autoflush(1);
-    $fh;
-}
-
 sub go {
     my $class = shift;
     my $cfg = $class->_config;
@@ -69,16 +62,19 @@ sub go {
         );
         if (my $pid = $daemon->Init) {
             my $pid_file = $cfg->{'pid-file'} || 'STDOUT';
-            _log(
-                _log_fh($cfg->{'log-file'}),
-                "INFO: Forked PID $pid written to $pid_file",
-            );
+            PGXN::Manager::Consumer::Log->new(
+                verbose => $cfg->{verbose},
+                file    => $cfg->{'log-file'},
+            )->log(INFO => "Forked PID $pid written to $pid_file");
             return 0;
         }
     }
 
-    # In the child process. Set up log file handle and go.
-    $cfg->{log_fh} = _log_fh delete $cfg->{'log-file'};
+    # In the child process. Set up logger and go.
+    $cfg->{logger} = PGXN::Manager::Consumer::Log->new(
+        verbose => $cfg->{verbose},
+        file    => delete $cfg->{'log-file'},
+    );
     $cfg->{pid_file} = delete $cfg->{'pid-file'} if exists $cfg->{'pid-file'};
     my $cmd = $class->new( $cfg );
     $SIG{$_} = $cmd->_signal_handler($_) for qw(TERM INT QUIT);
@@ -88,7 +84,7 @@ sub go {
 sub _signal_handler {
     my ($self, $sig) = @_;
     return sub {
-        $self->log("INFO: $sig signal caught; flagging shutdown for next loop");
+        $self->log(INFO => "$sig signal caught; flagging shutdown for next loop");
         $self->continue(0);
     };
 }
@@ -102,10 +98,10 @@ sub DEMOLISH {
 
 sub run {
     my $self = shift;
-    $self->log(sprintf "INFO: Starting %s %s", __PACKAGE__, __PACKAGE__->VERSION);
+    $self->log(INFO => sprintf "Starting %s %s", __PACKAGE__, __PACKAGE__->VERSION);
     my $pgxn = PGXN::Manager->instance;
     my $cfg = $pgxn->config->{consumers} || do {
-        $self->log("WARN: No consumers configured; messages will be dropped");
+        $self->log(WARN => 'No consumers configured; messages will be dropped');
         undef
     };
 
@@ -118,7 +114,7 @@ sub run {
         sleep($self->interval);
     }
 
-    $self->log("INFO: Shutting down");
+    $self->log(INFO => 'Shutting down');
     return 0;
 }
 
@@ -129,17 +125,17 @@ sub load_consumers {
         my $type = delete $cfg->{type}
             or die "No type specified for event consumer\n";
         my $pkg = __PACKAGE__ . "::$type";
-        $self->log("INFO: Loading $pkg") if $self->verbose > 1;
+        $self->log(DEBUG => "Loading $pkg");
         eval "use $pkg";
         die "Error loading $pkg: $@\n" if $@;
         my $events = delete $cfg->{events};
         my $consumer = $pkg->new(
-            verbose => $self->verbose,
-            config  => $cfg,
+            logger => $self->logger,
+            config => $cfg,
         );
 
         for my $e (@{ $events }) {
-            $self->log("INFO: Configuring $pkg for $e") if $self->verbose > 1;
+            $self->log(DEBUG => "Configuring $pkg for $e");
             push @{ $consumers{$e} ||= [] } => $consumer;
         }
     }
@@ -154,20 +150,18 @@ sub consume {
             # Notify payload treated as UTF-8 text, so already decoded from UTF-8 bytes.
             my $json = JSON::XS->new->utf8(0);
             my $dbh = shift;
-            $self->log("INFO: Consuming") if $self->verbose > 2;
+            $self->log(DEBUG => 'Consuming');
             while (my $notify = $dbh->pg_notifies) {
                 my ($name, $pid, $msg) = @{ $notify };
-                $self->log("INFO: Received “$name” event from PID $pid")
-                    if $self->verbose;
+                $self->log(INFO => "Received “$name” event from PID $pid");
                 unless ($name =~ s/^pgxn_//) {
-                    $self->log("WARN: Unknown channel “$name”; skipping");
+                    $self->log(WARN => "Unknown channel “$name”; skipping");
                     next;
                 }
                 my $handlers = $consumers_for->{$name} || do {
-                    $self->log(
-                        "INFO: No handlers configured for ",
-                        "pgxn_$name channel; skipping",
-                    )if $self->verbose;
+                    $self->log(INFO =>
+                        "No handlers configured for pgxn_$name channel; skipping",
+                    );
                     next;
                 };
 
@@ -175,36 +169,26 @@ sub consume {
                 my $meta = try {
                     $json->decode($msg);
                 } catch {
-                    $self->log("ERORR: Cannot decode JSON: $_");
+                    $self->log(ERORR => "Cannot decode JSON: $_");
                     undef;
                 };
                 next unless $meta;
 
                 # Run all the handlers.
                 for my $h (@{ $handlers }) {
-                    $self->log("INFO: Sending to ", $h->name, " handler")
-                        if $self->verbose;
+                    $self->log(INFO => 'Sending to ', $h->name, " handler");
                     try { $h->handle($name, $meta) }
-                    catch { $self->log("ERROR: $_") };
+                    catch { $self->log(ERROR => $_) };
                 }
             }
         });
     } catch {
-        $self->log("ERROR: $_");
+        $self->log(ERROR => $_);
     };
     return 1;
 }
 
-sub log {
-    _log(shift->log_fh, @_);
-}
-
-sub _log {
-    my $fh = shift;
-    flock $fh, LOCK_EX;
-    say {$fh}  POSIX::strftime('%Y-%m-%dT%H:%M:%SZ - ', gmtime), join '', @_;
-    flock $fh, LOCK_UN;
-}
+sub log { shift->logger->log(@_) }
 
 sub _config {
     my $self = shift;
@@ -260,6 +244,46 @@ sub _pod2usage {
         '-input'    => $0,
         @_
     );
+}
+
+package
+    PGXN::Manager::Consumer::Log;
+
+use 5.10.0;
+use strict;
+use warnings;
+use utf8;
+use Moose;
+use Fcntl qw(:flock);
+
+has verbose => (is => 'ro', isa => 'Int',        required => 1, default => 0);
+has log_fh  => (is => 'ro', isa => 'FileHandle', required => 1, default => sub {
+    _log_fh()
+});
+
+around BUILDARGS => sub {
+    my ($orig, $class, %args) = @_;
+    my $fn = delete $args{file} or return $class->$orig(%args);
+    return $class->$orig(%args, log_fh => _log_fh($fn));
+};
+
+sub log {
+    my ($self, $level) = (shift, shift);
+    return if $level eq 'INFO' && $self->verbose < 1;
+    return if $level eq 'DEBUG' && $self->verbose < 2;
+    my $fh = $self->log_fh;
+    flock $fh, LOCK_EX;
+    say {$fh}  POSIX::strftime("%Y-%m-%dT%H:%M:%SZ - $level: ", gmtime), join '', @_;
+    flock $fh, LOCK_UN;
+}
+
+sub _log_fh {
+    my $fn = shift;
+    my $fh = $fn ? IO::File->new($fn, '>>:utf8')
+                 : IO::Handle->new_from_fd(fileno STDOUT, 'w');
+    binmode $fh, ":utf8";
+    $fh->autoflush(1);
+    $fh;
 }
 
 1;

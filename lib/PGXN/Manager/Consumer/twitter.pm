@@ -16,8 +16,8 @@ our $VERSION = v0.31.2;
 
 subtype MaybeTwitterAPI => as maybe_type class_type 'Net::Twitter::Lite';
 
-has verbose => (is => 'ro', required => 1, isa => 'Int', default => 0);
 has client  => (is => 'ro', required => 1, isa => 'Net::Twitter::Lite');
+has logger  => (is => 'ro', required => 1, isa => 'PGXN::Manager::Consumer::Log');
 
 around BUILDARGS => sub {
     my ($orig, $class, %args) = @_;
@@ -45,11 +45,16 @@ around BUILDARGS => sub {
 };
 
 sub handle {
-    my ($self, $channel, $meta) = @_;
-    return unless $channel eq 'release';
+    my ($self, $type, $meta) = @_;
+    if ($type ne 'release') {
+        $self->logger->log(DEBUG => "Twitter skiping $type notification");
+        return;
+    };
+
     my $client = $self->client or return;
     my $pgxn = PGXN::Manager->instance;
 
+    $self->logger->log(DEBUG => "Fetching Twitter username for $meta->{user}");
     my $nick = $pgxn->conn->run(sub {
         shift->selectcol_arrayref(
             'SELECT twitter FROM users WHERE nickname = ?',
@@ -59,11 +64,18 @@ sub handle {
 
     $nick = $nick ? "\@$nick" : $meta->{user};
 
+    my $release = lc "$meta->{name}-$meta->{version}";
+    $self->logger->log(INFO => "Posting $release to Twitter");
+
     my $url = URI::Template->new($pgxn->config->{release_permalink})->process({
         dist    => lc $meta->{name},
         version => lc $meta->{version},
     });
-    $client->update( "$meta->{name} $meta->{version} released by $nick: $url" );
+    try {
+        $client->update( "$meta->{name} $meta->{version} released by $nick: $url" );
+    } catch {
+        $self->logger->log(ERROR => "Error posting $release to Twitter: $_");
+    };
 }
 
 1;

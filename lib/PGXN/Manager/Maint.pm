@@ -8,7 +8,6 @@ use File::Spec;
 use File::Path qw(make_path remove_tree);
 use File::Basename qw(dirname basename);
 use Encode qw(encode_utf8);
-use Carp;
 use namespace::autoclean;
 
 our $VERSION = v0.31.2;
@@ -50,7 +49,7 @@ sub run {
     my ($self, $command) = (shift, shift);
     $command =~ s/-/_/g;
     my $meth = $self->can($command)
-        or croak qq{PGXN Maint: "$command" is not a command};
+        or die qq{PGXN Maint: "$command" is not a command};
     require PGXN::Manager;
     $self->$meth(@_);
 }

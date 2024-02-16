@@ -5,6 +5,9 @@ Revision history for Perl extension PGXN::Manager
          output.
        - Configured handlers for INT, TERM, and QUIT signals to log flagging
          for shutdown in the next loop.
+       - Fixed invalid license example in the META spec.
+       - Added a logger to the Consumer and the Mastodon and Twitter handlers,
+         so that they now log debug and info messages about what's being sent.
 
 0.31.1   2023-10-07T21:40:53Z
        - Restored the writing of the pgxn_consumer PID file, accidentally
