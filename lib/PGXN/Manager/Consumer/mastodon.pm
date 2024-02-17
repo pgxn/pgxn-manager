@@ -14,7 +14,7 @@ use warnings;
 use constant name => 'mastodon';
 use namespace::autoclean;
 
-our $VERSION = v0.31.2;
+our $VERSION = v0.32.0;
 
 has server  => (is => 'ro', required => 1, isa => 'Str');
 has ua      => (is => 'ro', required => 1, isa => 'LWP::UserAgent');
@@ -217,7 +217,7 @@ David E. Wheeler <david@justatheory.com>
 
 =head1 Copyright and License
 
-Copyright (c) 2011-2023 David E. Wheeler.
+Copyright (c) 2011-2024 David E. Wheeler.
 
 This module is free software; you can redistribute it and/or modify it under
 the L<PostgreSQL License|https://www.opensource.org/licenses/postgresql>.

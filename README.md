@@ -1,5 +1,5 @@
-PGXN/Manager version 0.31.2
-===========================
+PGXN/Manager
+============
 
 [![Test Status](https://github.com/pgxn/pgxn-manager/workflows/CI/badge.svg)](https://github.com/pgxn/pgxn-manager/actions)
 
@@ -279,7 +279,7 @@ system.
 Copyright and License
 ---------------------
 
-Copyright (c) 2010-2023 David E. Wheeler.
+Copyright (c) 2010-2024 David E. Wheeler.
 
 This module is free software; you can redistribute it and/or modify it under
 the [PostgreSQL License](https://www.opensource.org/licenses/postgresql).

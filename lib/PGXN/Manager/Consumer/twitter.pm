@@ -12,7 +12,7 @@ use warnings;
 use constant name => 'twitter';
 use namespace::autoclean;
 
-our $VERSION = v0.31.2;
+our $VERSION = v0.32.0;
 
 subtype MaybeTwitterAPI => as maybe_type class_type 'Net::Twitter::Lite';
 
@@ -161,7 +161,7 @@ David E. Wheeler <david@justatheory.com>
 
 =head1 Copyright and License
 
-Copyright (c) 2011-2023 David E. Wheeler.
+Copyright (c) 2011-2024 David E. Wheeler.
 
 This module is free software; you can redistribute it and/or modify it under
 the L<PostgreSQL License|https://www.opensource.org/licenses/postgresql>.

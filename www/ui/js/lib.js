@@ -2,7 +2,7 @@
  * PGXN JavaScript Library
  * https://pgxn.org/
  *
- * Copyright (c) 2010-2021 David E. Wheeler.
+ * Copyright (c) 2010-2024 David E. Wheeler.
  *
  */
 

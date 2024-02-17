@@ -10,7 +10,7 @@ use File::Basename qw(dirname basename);
 use Encode qw(encode_utf8);
 use namespace::autoclean;
 
-our $VERSION = v0.31.2;
+our $VERSION = v0.32.0;
 
 has verbosity => (is => 'rw', required => 1, isa => 'Int', default => 0);
 has exitval   => (is => 'rw', required => 0, isa => 'Int', default => 0);
@@ -517,7 +517,7 @@ David E. Wheeler <david@justatheory.com>
 
 =head1 Copyright and License
 
-Copyright (c) 2011-2023 David E. Wheeler.
+Copyright (c) 2011-2024 David E. Wheeler.
 
 This module is free software; you can redistribute it and/or modify it under
 the L<PostgreSQL License|https://www.opensource.org/licenses/postgresql>.

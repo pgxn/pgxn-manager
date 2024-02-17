@@ -9,7 +9,7 @@ use Plack::Session::Store::File;
 use PGXN::Manager::Controller;
 use PGXN::Manager;
 
-our $VERSION = v0.31.2;
+our $VERSION = v0.32.0;
 
 sub app {
     builder {
@@ -259,7 +259,7 @@ David E. Wheeler <david@justatheory.com>
 
 =head1 Copyright and License
 
-Copyright (c) 2010-2023 David E. Wheeler.
+Copyright (c) 2010-2024 David E. Wheeler.
 
 This module is free software; you can redistribute it and/or modify it under
 the L<PostgreSQL License|https://www.opensource.org/licenses/postgresql>.
