@@ -153,7 +153,7 @@ $ua_mock->mock(post => sub {
 });
 ok !$mastodon->toot("release_name", $toot), 'Toot send should fail';
 is output(),
-    "$logtime - ERROR: Error posting release_name to Mastodon: oops\n",
+    "$logtime - ERROR: Error posting release_name to Mastodon (status 404): oops\n",
     'Should have error log message';
 
 # Test handler.

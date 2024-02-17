@@ -86,9 +86,10 @@ sub toot {
     );
     return 1 if $res->is_success;
 
-    $self->logger->log(ERROR =>
-        "Error posting $release to Mastodon: " . $res->decoded_content
-    );
+    $self->logger->log(ERROR => sprintf(
+        "Error posting %s to Mastodon (status %d): %s",
+        $release, $res->code, $res->decoded_content,
+    ));
 }
 
 sub scheduled_at {
