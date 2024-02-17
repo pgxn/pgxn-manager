@@ -170,7 +170,7 @@ sub consume {
             # Notify payload treated as UTF-8 text, so already decoded from UTF-8 bytes.
             my $json = JSON::XS->new->utf8(0);
             my $dbh = shift;
-            $self->log(DEBUG => 'Consuming');
+            $self->log(TRACE => 'Consuming');
             while (my $notify = $dbh->pg_notifies) {
                 my ($name, $pid, $msg) = @{ $notify };
                 $self->log(INFO => "Received “$name” event from PID $pid");
@@ -291,6 +291,7 @@ sub log {
     my ($self, $level) = (shift, shift);
     return if $level eq 'INFO' && $self->verbose < 1;
     return if $level eq 'DEBUG' && $self->verbose < 2;
+    return if $level eq 'TRACE' && $self->verbose < 3;
     my $fh = $self->log_fh;
     flock $fh, LOCK_EX;
     say {$fh}  POSIX::strftime("%Y-%m-%dT%H:%M:%SZ - $level: ", gmtime), join '', @_;
