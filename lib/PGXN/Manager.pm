@@ -244,7 +244,7 @@ sub move_file {
         # D'oh! Move failed. Try to clean up.
         my $err = $!;
         remove_tree $dest;
-        die qq{Failed to move "$src" to "dest": $!\n};
+        die qq{Failed to move "$src" to "$dest": $!\n};
     };
     chmod 0644, $dest;
 }
