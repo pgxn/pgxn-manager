@@ -1,5 +1,7 @@
 Revision history for Perl extension PGXN::Manager
 
+0.32.1
+
 0.32.0   2024-02-17T17:25:24Z
        - Combined the pgxn_consumer PID number and file location into one
          output.
