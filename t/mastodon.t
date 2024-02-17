@@ -5,7 +5,7 @@ use strict;
 use warnings;
 use utf8;
 
-use Test::More tests => 37;
+use Test::More tests => 41;
 # use Test::More 'no_plan';
 use JSON::XS;
 use Test::Exception;
@@ -179,9 +179,19 @@ SEND: {
     my $mock_masto = Test::MockModule->new('PGXN::Manager::Consumer::mastodon');
     my ($rel, $msg);
     $mock_masto->mock(toot => sub { ($rel, $msg) = ($_[1], $_[2]) });
+    $meta->{release_status} = 'stable';
     ok $mastodon->handle(release => $meta), 'Should send release message';
     is $rel, lc("$meta->{name}-$meta->{version}"), 'Release should have been passed';
     like $msg, qr/\S+ \QReleased: $meta->{name} $meta->{version}\E\n\n\S+ \Q$meta->{abstract}\E\n\n\S+ \QBy $meta->{user}\E\n\n$url/ms,
+        'Should have sent the formatted message';
+    is output(), "$logtime - INFO: Posting pgtap-1.3.5 to Mastodon\n",
+        'Should have info log message';
+
+    # Try non-stable.
+    $meta->{release_status} = 'testing';
+    ok $mastodon->handle(release => $meta), 'Should send release message';
+    is $rel, lc("$meta->{name}-$meta->{version}"), 'Release should have been passed';
+    like $msg, qr/\S+ \QReleased: $meta->{name} $meta->{version} ($meta->{release_status})\E\n\n\S+ \Q$meta->{abstract}\E\n\n\S+ \QBy $meta->{user}\E\n\n$url/ms,
         'Should have sent the formatted message';
     is output(), "$logtime - INFO: Posting pgtap-1.3.5 to Mastodon\n",
         'Should have info log message';

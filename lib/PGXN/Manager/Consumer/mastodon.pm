@@ -65,9 +65,12 @@ sub handle {
         version => lc $meta->{version},
     });
 
+    my $status = $meta->{release_status} eq 'stable' ? ''
+        : " ($meta->{release_status})";
+
     my %emo = map { $_ => $EMOJI{$_}[rand @{ $EMOJI{$_} }] } keys %EMOJI;
     $self->toot($release, join("\n\n",
-        "$emo{send} Released: $meta->{name} $meta->{version}",
+        "$emo{send} Released: $meta->{name} $meta->{version}$status",
         "$emo{info} $meta->{abstract}",
         "$emo{user} By $meta->{user}",
         $url,

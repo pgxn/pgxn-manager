@@ -21,6 +21,8 @@ Revision history for Perl extension PGXN::Manager
          ridiculous waste of memory, and also prevents it from being processed
          by Locale::Maketext, which requires tildes to escape brackets and
          trailing backslashes (#76).
+       - Added the release status to Twitter and Mastodon toots for testing and
+         unstable releases (#72).
 
 0.31.1   2023-10-07T21:40:53Z
        - Restored the writing of the pgxn_consumer PID file, accidentally

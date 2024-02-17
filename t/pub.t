@@ -66,7 +66,7 @@ test_psgi $app => sub {
         page_title => 'howto_page_title',
     });
 
-    my $content = quotemeta $mt->maketext('howto_body');
+    my $content = quotemeta $mt->from_file('howto.html');
     like $res->decoded_content, qr/$content/, 'Content should match locale section data';
 };
 

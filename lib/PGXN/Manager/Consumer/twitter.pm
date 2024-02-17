@@ -65,6 +65,8 @@ sub handle {
     $nick = $nick ? "\@$nick" : $meta->{user};
 
     my $release = lc "$meta->{name}-$meta->{version}";
+    my $status = $meta->{release_status} eq 'stable' ? ''
+        : " ($meta->{release_status})";
     $self->logger->log(INFO => "Posting $release to Twitter");
 
     my $url = URI::Template->new($pgxn->config->{release_permalink})->process({
@@ -72,7 +74,7 @@ sub handle {
         version => lc $meta->{version},
     });
     try {
-        $client->update( "$meta->{name} $meta->{version} released by $nick: $url" );
+        $client->update( "$meta->{name} $meta->{version}$status released by $nick: $url" );
     } catch {
         $self->logger->log(ERROR => "Error posting $release to Twitter: $_");
     };

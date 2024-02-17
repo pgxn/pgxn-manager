@@ -30,6 +30,7 @@ JSON
 merchantability
 metadata
 middlewares
+multimarkdown
 OAuth
 PGXN
 Plack

@@ -117,6 +117,7 @@ my $meta = {
     user    => 'theory',
     name    => 'pgTAP',
     version => '1.3.5',
+    release_status => 'stable',
 };
 my $pgxn = PGXN::Manager->instance;
 my $url = URI::Template->new($pgxn->config->{release_permalink})->process({
@@ -153,8 +154,9 @@ is output(),
 
 # Look up the Twitter username in the database.
 $logger->{verbose} = 1;
+$meta->{release_status} = 'testing';
 $meta->{user} = TxnTest->user;
-$tweet = "$meta->{name} $meta->{version} released by \@notHere: $url";
+$tweet = "$meta->{name} $meta->{version} (testing) released by \@notHere: $url";
 ok $twitter->handle(release => $meta), 'Should send message with Twitter nick';
 is output(),
     "$logtime - INFO: Posting \L$meta->{name}-$meta->{version}\E to Twitter\n",
