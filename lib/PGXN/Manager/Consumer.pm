@@ -131,7 +131,7 @@ sub run {
     # Continuously listen for NOTIFY messgages.
     while ($self->continue) {
         $self->consume($consumers_for);
-        sleep($self->interval);
+        sleep($self->interval) if $self->continue;
     }
 
     $self->_shutdown;
