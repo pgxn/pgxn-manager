@@ -9,9 +9,9 @@ Revision history for Perl extension PGXN::Manager
        - Added a logger to the Consumer and the Mastodon and Twitter handlers,
          so that they now log debug and info messages about what's being sent.
        - Moved PID file cleanup from the `DEMOLISH` method to the `run` method,
-         where it should always execute. This will hopefully fix the issue
-         where the consumer mysteriously ceases running and doesn't remove its
-         PID file, so never restarts.
+         and the signal handlers, where it should always execute at least once.
+         This will hopefully fix the issue where the consumer mysteriously
+         ceases running and doesn't remove its PID file, so never restarts.
        - Replaced use of the deprecated `given`/`when` syntax with plain old
          `if`/`elsif`/`else`.
 

@@ -77,16 +77,43 @@ sub go {
     );
     $cfg->{pid_file} = delete $cfg->{'pid-file'} if exists $cfg->{'pid-file'};
     my $cmd = $class->new( $cfg );
-    $SIG{$_} = $cmd->_signal_handler($_) for qw(TERM INT QUIT);
+    $cmd->_signal_handlers;
     $cmd->run(@ARGV);
 }
 
-sub _signal_handler {
+sub _signal_handlers {
     my ($self, $sig) = @_;
-    return sub {
-        $self->log(INFO => "$sig signal caught; flagging shutdown for next loop");
+    for my $sig (qw(TERM INT QUIT)) {
+        my $handler = sub {
+            $self->log(INFO => "$sig signal caught");
+            $self->_shutdown;
+        };
+        if (my $code = $SIG{$sig}) {
+            $SIG{$sig} = sub { $handler->(); $code->(); };
+        } else {
+            $SIG{$sig} = $handler;
+        }
+    }
+    return 1;
+}
+
+sub _shutdown {
+    my $self = shift;
+
+    # Always try to delete the PID file.
+    if (my $path = $self->pid_file) {
+        $self->log(DEBUG => "Unlinked PID file ", $self->pid_file)
+            if unlink $path;
+        $self->pid_file('');
+    }
+
+    if ($self->continue) {
+        # Tell the loop to stop on the next iteration.
         $self->continue(0);
-    };
+        $self->log(INFO => 'Shutting down') ;
+    }
+
+    return 1;
 }
 
 sub run {
@@ -107,12 +134,7 @@ sub run {
         sleep($self->interval);
     }
 
-    if (my $path = $self->pid_file) {
-        $self->log(DEBUG => "Unlinking PID file ", $self->pid_file);
-        unlink $path;
-    }
-
-    $self->log(INFO => 'Shutting down');
+    $self->_shutdown;
     return 0;
 }
 

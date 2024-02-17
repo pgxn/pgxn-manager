@@ -8,7 +8,7 @@ use Encode qw(encode_utf8);
 use JSON::XS;
 use File::Temp ();
 
-use Test::More tests => 122;
+use Test::More tests => 190;
 # use Test::More 'no_plan';
 use Test::Output;
 use Test::MockModule;
@@ -345,8 +345,7 @@ RUN: {
         "$logtime - DEBUG: Configuring PGXN::Manager::Consumer::mastodon for release",
         "$logtime - DEBUG: Loading PGXN::Manager::Consumer::twitter",
         "$logtime - DEBUG: Configuring PGXN::Manager::Consumer::twitter for release",
-        "$logtime - DEBUG: Unlinking PID file $fn",
-        "$logtime - INFO: Shutting down",
+        "$logtime - DEBUG: Unlinked PID file $fn",
         '',
     ), 'Should have startup, loading, PID, and shutdown log entries';
     is_deeply \@done, $exp_done, 'Should have listened to all channels';
@@ -371,7 +370,6 @@ RUN: {
     is_deeply output(), join("", map { "$logtime - $_\n" }
         "INFO: Starting $CLASS " . $CLASS->VERSION,
         "WARN: No consumers configured; messages will be dropped",
-        "INFO: Shutting down",
     ), 'Should have warning about no consumers';
     is @{ $params }, 1, 'Should have passed one param to consume';
     is_deeply [keys %{ $params->[0] }], [], 'Should have no key in param';
@@ -389,10 +387,130 @@ RUN: {
     is_deeply output(), join("", map { "$logtime - $_\n" }
         "INFO: Starting $CLASS " . $CLASS->VERSION,
         "INFO: Listening on $chans",
-        "INFO: Shutting down",
     ), 'Should have verbose output';
     $mocker->unmock('consume');
 };
+
+##############################################################################
+# Test shutdown.
+SHUTDOWN: {
+    # Set up a PID file.
+    my $tmp = File::Temp->new(UNLINK => 0);
+    my $fn = $tmp->filename;
+
+    # Set up the consumer.
+    my $consumer = new_ok $CLASS, [logger => $logger, pid_file => $fn];
+    is $consumer->continue, 1, 'Should have default continue 1';
+    is $consumer->logger, $logger, 'Should have set logger';
+    is $consumer->pid_file, $fn, 'Should have set pid_file';
+    file_exists_ok $fn, 'PID file should exist';
+
+    # Start with the PID file and shutdown.
+    local $logger->{verbose} = 2;
+    ok $consumer->_shutdown, 'Shutdown';
+    is $consumer->continue, 0, 'Should have unset continue';
+    is $consumer->logger, $logger, 'Should still have logger';
+    is $consumer->pid_file, '', 'Should have unset pid_file';
+    file_not_exists_ok $fn, 'PID file should be gone';
+
+    # Should have debug output.
+    is output(), join("\n",
+        "$logtime - DEBUG: Unlinked PID file $fn",
+        "$logtime - INFO: Shutting down",
+        '',
+    ), 'Should have debug and info logs';
+
+    # Try again with pid_file unset and continue false.
+    ok $consumer->_shutdown, 'Shutdown again';
+    is $consumer->continue, 0, 'Should still have continue 0';
+    is $consumer->logger, $logger, 'Should still have logger';
+    is $consumer->pid_file, '', 'Should still have no pid_file';
+    file_not_exists_ok $fn, 'PID file should still be gone';
+    is output(), '', 'Should have no output';
+
+    # Try with a pid file again.
+    $consumer->pid_file($fn);
+    is $consumer->pid_file, $fn, 'Should have set pid_file again';
+    ok $consumer->_shutdown, 'Shutdown three';
+    is $consumer->continue, 0, 'Should again have continue 0';
+    is $consumer->pid_file, '', 'Should have unset pid_file again';
+    file_not_exists_ok $fn, 'PID file should still be gone';
+    is output(), '', 'Should have no output';
+
+    # Now create another PID file.
+    $tmp = File::Temp->new(UNLINK => 0);
+    $fn = $tmp->filename;
+    file_exists_ok $fn, 'PID file should exist';
+    $consumer->pid_file($fn);
+    is $consumer->pid_file, $fn, 'Should have set pid_file once again';
+    ok $consumer->_shutdown, 'Shutdown four';
+    is $consumer->continue, 0, 'Should once more have continue 0';
+    is $consumer->pid_file, '', 'Should have unset pid_file three';
+    file_not_exists_ok $fn, 'PID file should again be gone';
+    is output(), "$logtime - DEBUG: Unlinked PID file $fn\n",
+        'Should have only PID file log item';
+
+    # Set continue to true again.
+    $consumer->continue(1);
+    ok $consumer->_shutdown, 'Shutdown five';
+    is $consumer->continue, 0, 'Should again have unset continue';
+    is $consumer->pid_file, '', 'Should still have unset pid_file three';
+    is output(), "$logtime - INFO: Shutting down\n",
+        'Should have just the shutdown log item';
+}
+
+##############################################################################
+# Test signals.
+SIGNALS: {
+    # Set up a PID file.
+    my $tmp = File::Temp->new(UNLINK => 0);
+    my $fn = $tmp->filename;
+
+    # Set up the consumer.
+    my $consumer = new_ok $CLASS, [logger => $logger, pid_file => $fn];
+    is $consumer->continue, 1, 'Should have default continue 1';
+    is $consumer->logger, $logger, 'Should have set logger';
+    is $consumer->pid_file, $fn, 'Should have set pid_file';
+    file_exists_ok $fn, 'PID file should exist';
+
+    # Should have set no sigals.
+    my @sigs = qw(TERM INT QUIT);
+    is $SIG{$_}, undef, "$_ signal should not be set" for @sigs;
+
+    # Set them up.
+    ok $consumer->_signal_handlers, 'Set up signal handlers';
+    isa_ok $SIG{$_}, 'CODE', "$_ signal should be set" for @sigs;
+
+    # Let's execute them. Mock _shutdown.
+    my $mock = Test::MockModule->new($CLASS);
+    my $shutdown_called;
+    $mock->mock(_shutdown => sub { $shutdown_called = 1 });
+
+    # Now try them.
+    for my $sig (@sigs) {
+        ok $SIG{$sig}->(), "Call $sig";
+        ok $shutdown_called, "$sig should have called shutdown";
+        is output(), "$logtime - INFO: $sig signal caught\n",
+            "Should have logged the $sig signal";
+        $shutdown_called = 0;
+    }
+
+    # Make sure they nest. Call _signal_handlers again.
+    ok $consumer->_signal_handlers, 'Set up signal handlers again';
+    isa_ok $SIG{$_}, 'CODE', "$_ signal should still be set" for @sigs;
+
+    # Now try them again.
+    for my $sig (@sigs) {
+        ok $SIG{$sig}->(), "Call $sig again";
+        ok $shutdown_called, "$sig should have again called shutdown";
+        is output(), join("\n",
+            "$logtime - INFO: $sig signal caught",
+            "$logtime - INFO: $sig signal caught",
+            '',
+        ), "Should have logged the $sig signal twice";
+        $shutdown_called = 0;
+    }
+}
 
 ##############################################################################
 # Test consume.
