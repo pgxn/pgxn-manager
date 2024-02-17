@@ -419,7 +419,7 @@ template howto => sub {
     my ($self, $req, $args) = @_;
     wrapper {
         h1 { T 'PGXN How To' };
-        outs_raw T 'howto_body';
+        outs_raw $l->from_file('howto.html');
     } $req, { page_title => 'howto_page_title', $args ? %{ $args } : () };
 };
 

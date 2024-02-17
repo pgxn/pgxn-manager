@@ -1,0 +1,24 @@
+#!/usr/bin/env perl -w
+
+# Find all .md files in lib, run them through multimarkdown, and write
+# to .html.
+#
+# brew install multimarkdown
+
+use 5.10.0;
+use strict;
+use warnings;
+use utf8;
+use File::Find;
+use File::Basename qw(basename);
+
+find({
+    no_chdir => 1,
+    wanted => sub {
+        return unless /\.md$/;
+        my $src = $File::Find::name;
+        my $dst = $src =~ s/\.md$/.html/r;
+        my @cmd = ('multimarkdown', $src, '-o', $dst);
+        system(@cmd) == 0  or die "system @cmd failed: $?\n"
+    },
+}, 'lib');

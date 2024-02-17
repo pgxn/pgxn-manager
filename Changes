@@ -14,6 +14,13 @@ Revision history for Perl extension PGXN::Manager
          ceases running and doesn't remove its PID file, so never restarts.
        - Replaced use of the deprecated `given`/`when` syntax with plain old
          `if`/`elsif`/`else`.
+       - Moved `doc/howto.md` to `lib/PGXN/Manager/Locale/en`, added
+         `bin/format_l10n_docs` to convert it to HTML, and added `from_file`
+         to PGXN::Manager::Locale to find and returns its contents. This
+         allows it to be removed from the Locale `%Lexicon`, which was a
+         ridiculous waste of memory, and also prevents it from being processed
+         by Locale::Maketext, which requires tildes to escape brackets and
+         trailing backslashes (#76).
 
 0.31.1   2023-10-07T21:40:53Z
        - Restored the writing of the pgxn_consumer PID file, accidentally
