@@ -484,12 +484,12 @@ SIGNALS: {
     # Let's execute them. Mock _shutdown.
     my $mock = Test::MockModule->new($CLASS);
     my $shutdown_called;
-    $mock->mock(_shutdown => sub { $shutdown_called = 1 });
+    $mock->mock(_shutdown => sub { ++$shutdown_called });
 
     # Now try them.
     for my $sig (@sigs) {
         ok $SIG{$sig}->(), "Call $sig";
-        ok $shutdown_called, "$sig should have called shutdown";
+        is $shutdown_called, 1, "$sig should have called shutdown";
         is output(), "$logtime - INFO: $sig signal caught\n",
             "Should have logged the $sig signal";
         $shutdown_called = 0;
@@ -502,7 +502,7 @@ SIGNALS: {
     # Now try them again.
     for my $sig (@sigs) {
         ok $SIG{$sig}->(), "Call $sig again";
-        ok $shutdown_called, "$sig should have again called shutdown";
+        is $shutdown_called, 2, "$sig should have called shutdown twice";
         is output(), join("\n",
             "$logtime - INFO: $sig signal caught",
             "$logtime - INFO: $sig signal caught",
