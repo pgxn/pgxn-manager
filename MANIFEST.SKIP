@@ -5,7 +5,7 @@
 \B\.svn\b
 \B\.git
 
-# Avoid Makemaker generated and utility files.
+# Avoid MakeMaker generated and utility files.
 ^Makefile$
 \bblib
 \bMakeMaker-\d
@@ -28,6 +28,8 @@
 
 # Avoid build files.
 ^PGXN-Manager
+^bin/format_l10n_docs
+^bin/gendoc
 
 # Avoid Pod tests.
 t/pod[^.]*\.t

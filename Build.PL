@@ -15,6 +15,9 @@ my $class = $build_pkg->subclass(
                 $self->tap_harness_args->{sources}{pgTAP}{username}
                     ||= $self->$meth
             }
+
+            # Add html files in lib.
+            $self->add_build_element('html');
             return $self;
         }
         sub ACTION_tarball_name { print shift->dist_dir . ".tar.gz\n" }
@@ -40,7 +43,7 @@ my $class = $build_pkg->subclass(
     },
 );
 
-my $build = $class->new(
+$class->new(
     module_name        => 'PGXN::Manager',
     license            => 'postgresql',
     script_files       => 'bin',
@@ -159,8 +162,4 @@ my $build = $class->new(
             repository => 'https://github.com/pgxn/pgxn-manager/',
         }
     },
-);
-
-# Add html files in lib.
-$build->add_build_element('html');
-$build->create_build_script;
+)->create_build_script;
