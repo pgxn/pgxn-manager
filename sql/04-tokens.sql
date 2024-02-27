@@ -54,7 +54,7 @@ Creates a password reset token for the specified nickname. The user must be
 active. The return value is a two-element array. The first value is the token,
 and the second the email address of the user. The token will be set to expire
 1 day from creation. Returns `NULL` if the token cannot be created (because no
-user exists for the specified nickname or the user is not ative).
+user exists for the specified nickname or the user is not active).
 
 */
 DECLARE

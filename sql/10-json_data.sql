@@ -348,7 +348,7 @@ CREATE OR REPLACE FUNCTION tag_json(
 For a given distribution and version, returns a set of tags and the JSON to
 describe them. In this example, pair 0.1.0 has two tags. The tag "key value "
 is associated with pgtap 0.1.1 and trip 0.0.1. The tag "ordered pair", on the
-other hand, is associcated with three versions of the "pair" distribution, as
+other hand, is associated with three versions of the "pair" distribution, as
 well.
 
 */
@@ -604,7 +604,7 @@ Returns a JSON string containing extension statitics. These include:
 
 * `count`: A count of the number of extensions in the database.
 * `recent`: A list of recently-released extensions sorted in reverse
-  chronlogical order.
+  chronological order.
 
 Pass in the optional `num_recent` parameter to limit the number of extensions
 that appear in the recent list. The default limit is 56.
@@ -673,12 +673,12 @@ CREATE OR REPLACE FUNCTION dist_stats_json(
         ]                                                                         ↵
      }                                                                            ↵
 
-Returns a JSON string containing distribution statitics. These include:
+Returns a JSON string containing distribution statistics. These include:
 
 * `count`: A count of the number of distributions in the database.
 * `releases`: A count of all releases of all distributions in the database.
 * `recent`: A list of recently-released distributions sorted in reverse
-  chronlogical order.
+  chronological order.
 
 Pass in the optional `num_recent` parameter to limit the number of
 distributions that appear in the recent list. The default limit is 56.

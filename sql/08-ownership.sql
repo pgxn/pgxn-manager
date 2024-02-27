@@ -36,7 +36,7 @@ CREATE OR REPLACE FUNCTION grant_coownership(
      t
 
 Grants co-ownership to one or more extensions. The first argument is the
-nickname of the uesr inserting the co-owner. Said user must either be and
+nickname of the user inserting the co-owner. Said user must either be and
 admin or own *all* of the specified extensions. The second argument is the
 nickname of the user being granted co-ownership. This name must not be the
 same name as the owner. The third argument is an array of the names of the
@@ -109,11 +109,11 @@ CREATE OR REPLACE FUNCTION transfer_ownership(
      t
 
 Transfer ownership of the specified extensions to a new owner. The first
-argument is the nickname of the uesr performing the transfer. Said user must
+argument is the nickname of the user performing the transfer. Said user must
 either be and admin or own *all* of the specified extensions. The second
 argument is the nickname of the user being given ownership. This name must not
 be the same name as the owner. The third argument is an array of the names of
-the extensions to which ownership is to be transfered.
+the extensions to which ownership is to be transferred.
 
 */
 BEGIN

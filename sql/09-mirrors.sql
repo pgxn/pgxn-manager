@@ -73,7 +73,7 @@ CREATE OR REPLACE FUNCTION insert_mirror(
 
 Inserts a mirror. The user specified as the first parameter must be an
 administrator or else an exception will be thrown. All arguments are required
-except `rsync` and `notes`. Returns true on succesful insert and false on
+except `rsync` and `notes`. Returns true on successful insert and false on
 failure (probably impossible, normally an exception will be thrown on
 failure).
 
@@ -129,7 +129,7 @@ CREATE OR REPLACE FUNCTION update_mirror(
 ) RETURNS BOOLEAN LANGUAGE plpgsql SECURITY DEFINER AS $$
 /*
 
-    % SELECT udpate_mirror(
+    % SELECT update_mirror(
         admin        := 'theory',
         old_uri      := 'https://kineticode.com/pgxn/',
         uri          := 'https://pgxn.kineticode.com/',
@@ -151,7 +151,7 @@ CREATE OR REPLACE FUNCTION update_mirror(
 Updates a mirror. The user specified as the first parameter must be an
 administrator or else an exception will be thrown. The `old_uri` parameter
 must contain the existing URI of the mirror and is required. All other
-paramters are optional. Returns true on succesful update and false on failure,
+parameters are optional. Returns true on successful update and false on failure,
 which will happen if the existing URI cannot be found in the database.
 
 */

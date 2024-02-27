@@ -1,6 +1,6 @@
 BEGIN;
 
--- Utilityt function to create the password salt, so it can be quickly swapped
+-- Utility function to create the password salt, so it can be quickly swapped
 -- for new algorithms in the future.
 CREATE OR REPLACE FUNCTION _salt(
 ) RETURNS TEXT LANGUAGE SQL AS $$
@@ -98,7 +98,7 @@ CREATE OR REPLACE FUNCTION change_password(
 
 Changes a user's password. The user must be active, and the old password must
 match the existing password for the nickname or the password will not be set.
-The password must be at least four charcters long or an exception will be
+The password must be at least four characters long or an exception will be
 thrown. Returns true if the password was changed and false if it was not.
 
 */
@@ -134,7 +134,7 @@ an exception will be thrown if it is not. The user must be active. The return
 value is a two-element array. The first value is the token, and the second the
 email address of the user. The token will be set to expire 1 day from creation.
 Returns `NULL` if the token cannot be created (because no user exists for the
-specified nickname or the user is not ative).
+specified nickname or the user is not active).
 
 */
 DECLARE
