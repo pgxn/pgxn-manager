@@ -1,5 +1,7 @@
 Revision history for Perl extension PGXN::Manager
 
+0.32.2
+
 0.32.1   2024-08-15T21:02:40Z
        - Added a TRACE log level to PGXN::Manager::Consumer.
        - Removed doc generation scripts from the release bundle.
