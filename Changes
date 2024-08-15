@@ -1,6 +1,10 @@
 Revision history for Perl extension PGXN::Manager
 
-0.32.1
+0.32.1   2024-08-15T21:02:40Z
+       - Added a TRACE log level to PGXN::Manager::Consumer.
+       - Removed doc generation scripts from the release bundle.
+       - Taught `bin/format_l10n_docs` to to parse `.md` or `.mmd` files.
+       - Fixed various typos.
        - Converged inline links in `doc/spec.txt` to reference links for
          slightly better legibility as plain text.
        - Fixed import quoted version warning with Perl 5.40.

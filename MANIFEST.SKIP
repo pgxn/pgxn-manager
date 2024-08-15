@@ -1,9 +1,10 @@
-# Avoid version control files.
+# Avoid version control and editor files.
 \bRCS\b
 \bCVS\b
 ,v$
 \B\.svn\b
 \B\.git
+\.vscode
 
 # Avoid MakeMaker generated and utility files.
 ^Makefile$
