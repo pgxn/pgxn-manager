@@ -28,6 +28,14 @@ Installation
 
         ./Build installdeps
 
+    If Compress-Raw-Lzma fails to install because it cannot find `lzma.h`,
+    even with `PERL_MM_OPT` and `PERL_MB_OPT` pointing to the correct
+    directory, set `LIBLZMA_INCLUDE` instead:
+
+        env LIBLZMA_INCLUDE=/opt/homebrew/include ./Build installdeps
+        # or
+        env LIBLZMA_INCLUDE=/opt/homebrew/include cpanm -v --notest Compress::Raw::Lzma
+
 *   Configure the PostgreSQL server to pre-load modules used by PL/Perl
     functions. Just add these lines to the end of your `postgresql.conf` file:
 
@@ -229,6 +237,30 @@ Here's how to run PGXN::Manager behind a reverse proxy server:
     routing and writing of URLs to be correct and so that clients can't spoof
     them. Also, be sure to disable `merge_slashes` or else the mirror management
     interface will not work.
+
+*   If the proxy service includes a [content security
+    policy](https://content-security-policy.com) header (a.k.a. CSP), it will
+    need the following configuration to allow any images, local JavaScript,
+    and specific inline JavaScript in `<script>` elements to function:
+
+    ```
+    Content-Security-Policy: default-src 'self'; img-src *; script-src 'self' 'sha256-C3v/abgU7GuNO8EfzYDFmryoploCskBljphPWnpJ0po=' 'sha256-QELwtyyu4lxId+yoW1ljK+y138CYTwHC227Tc8LvVgQ=' 'sha256-q0V4Ot8L8YlUzZm2BytfHTK0KQLzCyqZrdSpnyAci3E=' 'sha256-RXOpCJp6UcKxmxWS3RRnMIv2fHaWnBuOwWmfvAHGnHo=' 'sha256-n9f9UVAruXN1NnhRiCfpqgcPxLngJaTutVulqcDjmr8=' 'sha256-yqqMPK8onoDpDcwg2+lqdbbOlOg8LH8MuO7NHEgua2c=' 
+    ```
+
+    This header was created by the following shell script:
+
+    ``` sh
+    printf "Content-Security-Policy: default-src 'self'; img-src *; script-src 'self' "
+    for js in "PGXN.validate_form('#reqform')" \
+        "PGXN.validate_form('#accform')" \
+        "PGXN.validate_form('#passform')" \
+        "PGXN.validate_form('#mirrorform')" \
+        "PGXN.init_moderate()" \
+        "PGXN.init_mirrors()"; do
+        printf "'sha256-%s' " "$(echo -n "$js" | openssl sha256 -binary | openssl base64)"
+    done
+    printf "\n"
+    ```
 
 *   Install
     [Plack::Middleware::ReverseProxy](https://metacpan.org/pod/Plack::Middleware::ReverseProxy)

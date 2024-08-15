@@ -102,7 +102,7 @@ BEGIN { create_wrapper wrapper => sub {
                 }
                 if (my $id = $args->{validate_form}) {
                     script {
-                        # https://github.com/jquery-validation/jquery-validation/releases/tag/
+                        # https://github.com/jquery-validation/jquery-validation/releases/
                         type is 'text/javascript';
                         src  is $req->uri_for('/ui/js/jquery.validate.min.js');
                     };
@@ -1295,8 +1295,8 @@ template show_mirror => sub {
                     [qw(location Location text),   'city, (area?, )country, continent (lon lat)', T('Where can we find this mirror, geographically speaking?'), 'required' ],
                     ['timezone', 'TZ', 'text',   'area/Location zoneinfo tz', T('In what time zone can we find the mirror?'), 'required' ],
                     [qw(bandwidth Bandwidth text),   '1Gbps, 100Mbps, DSL, etc.', T('How big is the pipe?'), 'required' ],
-                    [qw(src Source url),   'rsync://from.which.host/is/this/site/mirroring/from/', T('From what source is the mirror syncing?'), 'required' ],
-                    [qw(rsync Rsync url),   'rsync://where.your.host/is/offering/a/mirror/', T('Is there a public rsync interface from which other hosts can mirror?') ],
+                    [qw(src Source rsync),   'rsync://from.which.host/is/this/site/mirroring/from/', T('From what source is the mirror syncing?'), 'required' ],
+                    [qw(rsync Rsync rsync),   'rsync://where.your.host/is/offering/a/mirror/', T('Is there a public rsync interface from which other hosts can mirror?') ],
                 ) {
                     label {
                         attr { for => $spec->[0], title => $spec->[4] };

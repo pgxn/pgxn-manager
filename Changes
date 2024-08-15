@@ -3,6 +3,11 @@ Revision history for Perl extension PGXN::Manager
 0.32.1
        - Updated `doc/spec.txt` to v1.0.1, from it new home in
          https://github.com/pgxn/pgxn-meta-spec.
+       - Fixed import quoted version warning with Perl 5.40.
+       - Fixed validation of rsync URLs in the mirror editor.
+       - Added Content Security Policy notes to the README to ensure that
+         inline JavaScript works properly.
+       - Added a type about building Compress::Raw::Lzma to the README.
 
 0.32.0   2024-02-17T17:25:24Z
        - Combined the pgxn_consumer PID number and file location into one
