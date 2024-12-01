@@ -91,7 +91,7 @@ supported keys are:
 
 =item C<server>
 
-The base URL for the Mastodon server, e.g., C<https://botsin.space>. Required.
+The base URL for the Mastodon server, e.g., C<https://mastodone.social>. Required.
 
 =item C<token>
 
