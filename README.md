@@ -45,7 +45,7 @@ Installation
     If you would also like those modules to load in the parent PostgreSQL process,
     rather than for each connection, add:
 
-        shared_preload_libraries = '$libdir/plperl'
+        shared_preload_libraries = 'plperl'
 
 *   Install these PostgreSQL core
     [extensions](https://www.postgresql.org/docs/current/static/contrib.html):

@@ -178,7 +178,7 @@ example from the [semver distribution][semver] named `semver.control`:
 # semver extension
 comment = 'A semantic version data type'
 default_version = '0.2.1'
-module_pathname = '$libdir/semver'
+module_pathname = 'semver'
 relocatable = true
 ```
 

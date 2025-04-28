@@ -1,6 +1,9 @@
 Revision history for Perl extension PGXN::Manager
 
 0.32.2
+      - Removed the `$libdir/` prefix from examples of the `module_pathname`
+        control file parameter and from the `shared_preload_libraries`
+        Postgres configuration variable.
 
 0.32.1   2024-08-15T21:02:40Z
        - Added a TRACE log level to PGXN::Manager::Consumer.
