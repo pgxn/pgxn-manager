@@ -21,16 +21,8 @@ jobs:
     - name: Generate Release Changes
       run: ./Build latest_changes
     - name: Create GitHub Release
-      id: release
-      uses: actions/create-release@v1
+      uses: softprops/action-gh-release@v2
       with:
-        tag_name: ${{ github.ref }}
-        release_name: Release ${{ github.ref }}
+        name: Release ${{ github.ref_name }}
         body_path: latest_changes.md
-    - name: Upload Release Asset
-      uses: actions/upload-release-asset@v1
-      with:
-        upload_url: ${{ steps.release.outputs.upload_url }}
-        asset_path: ./${{ steps.package.outputs.tarball }}
-        asset_name: ${{ steps.package.outputs.tarball }}
-        asset_content_type: application/gzip
+        files: ${{ steps.package.outputs.tarball }}
