@@ -156,6 +156,25 @@ Installation
 
 *   Profit!
 
+Upgrading to PostgreSQL 17
+--------------------------
+
+PostgreSQL 17 added `json_value()` and made `json` a reserved word,
+conflicting with the PGXN::Manager database schema prior to v0.33.1.
+For an existing database, to upgrade to PostgreSQL 17 or later, follow these
+steps:
+
+1.  Upgrade to PGXN::Manager v0.33.1 and run `./Build db` to upgrade the
+    database. `SELECT value FROM metadata WHERE label = 'schema_version'`
+    should return 21.
+2.  Dump the database with the `--quote-all-identifiers` option to `pg_dump`.
+3.  Load the PostgreSQL 17+ database from the dump file.
+
+The upgrade requires these steps because otherwise the term `json` is not
+properly quoted as `"json"` in PostgreSQL 16, so the upgrade will fail. Thus
+the database must be dumped with full quoting and then loaded from the dump
+file.
+
 Running a Proxy Server
 ----------------------
 

@@ -19,7 +19,7 @@ use Email::Sender::Simple;
 use Encode;
 use namespace::autoclean;
 
-our $VERSION = v0.33.0;
+our $VERSION = v0.33.1;
 
 =head1 Name
 

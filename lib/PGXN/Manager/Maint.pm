@@ -10,7 +10,7 @@ use File::Basename qw(dirname basename);
 use Encode qw(encode_utf8);
 use namespace::autoclean;
 
-our $VERSION = v0.33.0;
+our $VERSION = v0.33.1;
 
 has verbosity => (is => 'rw', required => 1, isa => 'Int', default => 0);
 has exitval   => (is => 'rw', required => 0, isa => 'Int', default => 0);

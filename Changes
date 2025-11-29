@@ -1,5 +1,10 @@
 Revision history for Perl extension PGXN::Manager
 
+0.33.1 2025-11-29T22:22:43Z
+     - Added `sql/21-cleanup-json.sql` to remove deleted functions from
+       PostgreSQL 16 or earlier.
+     - Added notes for upgrading to PostgreSQL 17+ to the README.
+
 0.33.0  2025-11-29T20:45:07Z
       - Removed the `$libdir/` prefix from examples of the `module_pathname`
         control file parameter and from the `shared_preload_libraries`
