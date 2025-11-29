@@ -63,16 +63,16 @@ objects. All the required fields will be present, and the optional fields
 */
     SELECT E'[\n   ' || array_to_string(ARRAY(
         SELECT E'{\n      ' || array_to_string(ARRAY[
-            json_key('uri')          || ': ' || json_value(uri),
-            json_key('frequency')    || ': ' || json_value(frequency),
-            json_key('location')     || ': ' || json_value(location),
-            json_key('organization') || ': ' || json_value(organization),
-            json_key('timezone')     || ': ' || json_value(timezone),
-            json_key('email')        || ': ' || json_value(munge_email(email)),
-            json_key('bandwidth')    || ': ' || json_value(bandwidth),
-            json_key('src')          || ': ' || json_value(src),
-            json_key('rsync')        || ': ' || json_value(rsync, NULL),
-            json_key('notes')        || ': ' || json_value(notes, NULL)
+            json_key('uri')          || ': ' || into_json(uri),
+            json_key('frequency')    || ': ' || into_json(frequency),
+            json_key('location')     || ': ' || into_json(location),
+            json_key('organization') || ': ' || into_json(organization),
+            json_key('timezone')     || ': ' || into_json(timezone),
+            json_key('email')        || ': ' || into_json(munge_email(email)),
+            json_key('bandwidth')    || ': ' || into_json(bandwidth),
+            json_key('src')          || ': ' || into_json(src),
+            json_key('rsync')        || ': ' || into_json(rsync, NULL),
+            json_key('notes')        || ': ' || into_json(notes, NULL)
         ], E',\n      '
         ) || E'\n   }' FROM mirrors
          ORDER BY created_at
@@ -84,7 +84,7 @@ CREATE OR REPLACE FUNCTION extension_json(
    version   SEMVER
 ) RETURNS TABLE (
     extension TERM,
-    json      TEXT
+    "json"    TEXT
 ) LANGUAGE plpgsql STABLE STRICT AS $$
 /*
 
@@ -171,8 +171,8 @@ BEGIN
     LOOP
         IF (prev IS NOT NULL AND prev <> LOWER(ext)) OR ext IS NULL THEN
             extension := LOWER(prev);
-            json := E'{\n   "extension": ' || json_value(prev)
-                 || E',\n   "latest": ' || json_value(latest)
+            json := E'{\n   "extension": ' || into_json(prev)
+                 || E',\n   "latest": ' || into_json(latest)
                  || COALESCE(E',\n   "stable":'   || stable, '')
                  || COALESCE(E',\n   "testing":'  || testing, '')
                  || COALESCE(E',\n   "unstable":' || unstable, '')
@@ -192,29 +192,29 @@ BEGIN
         BEGIN
             FOR dist IN SELECT * FROM unnest(dists) LOOP
                 myjson := array_append(myjson,
-                          '         { "dist": ' || json_value(dist->'dist')
-                       || ', "version": ' || json_value(dist->'version')
+                          '         { "dist": ' || into_json(dist->'dist')
+                       || ', "version": ' || into_json(dist->'version')
                        || CASE dist->'relstatus'
                               WHEN 'stable' THEN ''
-                              ELSE ', "status": ' || json_value(dist->'relstatus')
+                              ELSE ', "status": ' || into_json(dist->'relstatus')
                           END
                        || E' }');
                 IF latest IS NULL THEN latest := dist->'relstatus'; END IF;
                 CASE dist->'relstatus'
                     WHEN 'stable' THEN IF stable IS NULL THEN
-                        stable := ' { "dist": ' || json_value(dist->'dist')
-                        || ', "version": ' || json_value(dist->'version')
-                        || ', "sha1": ' || json_value(dist->'sha1') || ' }';
+                        stable := ' { "dist": ' || into_json(dist->'dist')
+                        || ', "version": ' || into_json(dist->'version')
+                        || ', "sha1": ' || into_json(dist->'sha1') || ' }';
                     END IF;
                     WHEN 'testing' THEN IF testing IS NULL THEN
-                        testing := ' { "dist": ' || json_value(dist->'dist')
-                        || ', "version": ' || json_value(dist->'version')
-                        || ', "sha1": ' || json_value(dist->'sha1') || ' }';
+                        testing := ' { "dist": ' || into_json(dist->'dist')
+                        || ', "version": ' || into_json(dist->'version')
+                        || ', "sha1": ' || into_json(dist->'sha1') || ' }';
                     END IF;
                     WHEN 'unstable' THEN IF unstable IS NULL THEN
-                        unstable := ' { "dist": ' || json_value(dist->'dist')
-                        || ', "version": ' || json_value(dist->'version')
-                        || ', "sha1": ' || json_value(dist->'sha1') || ' }';
+                        unstable := ' { "dist": ' || into_json(dist->'dist')
+                        || ', "version": ' || into_json(dist->'version')
+                        || ', "sha1": ' || into_json(dist->'sha1') || ' }';
                     END IF;
                 END CASE;
             END LOOP;
@@ -266,7 +266,7 @@ Returns a JSON string describing a distribution, including all of its released
 versions and their dates.
 
 */
-    SELECT E'{\n   "name": ' || json_value($1)
+    SELECT E'{\n   "name": ' || into_json($1)
            || E',\n   "releases": {\n      '
            || array_to_string(ARRAY[
                '"stable": '   || stable,
@@ -305,8 +305,8 @@ CREATE OR REPLACE FUNCTION tag_json(
    dist      TERM,
    version   SEMVER
 ) RETURNS TABLE (
-    tag  TAG,
-    json TEXT
+    tag    TAG,
+    "json" TEXT
 ) LANGUAGE sql STABLE STRICT AS $$
 /*
 
@@ -384,7 +384,7 @@ well.
           FROM ds
          GROUP BY tag, distribution
     )
-    SELECT LOWER(tag)::tag, E'{\n   "tag": ' || json_value(tag) || E',\n   "releases": {\n      '
+    SELECT LOWER(tag)::tag, E'{\n   "tag": ' || into_json(tag) || E',\n   "releases": {\n      '
         || string_agg(json_key(distribution) || E': {\n         '
         || array_to_string(relv, E',\n         '), E'\n      },\n      ')
         || E'\n      }\n   }\n}\n'
@@ -454,11 +454,11 @@ user and thus not included in the JSON.
         GROUP BY name, creator
     )
     SELECT E'{\n   ' || array_to_string(ARRAY[
-        '"nickname": ' || json_value(u.nickname),
-        '"name": '     || json_value(u.full_name),
-        '"email": '    || json_value(u.email),
-        '"uri": '      || json_value(CASE uri WHEN '' THEN NULL ELSE uri END, NULL),
-        '"twitter": '  || json_value(CASE u.twitter WHEN '' THEN NULL ELSE u.twitter END, NULL)
+        '"nickname": ' || into_json(u.nickname),
+        '"name": '     || into_json(u.full_name),
+        '"email": '    || into_json(u.email),
+        '"uri": '      || into_json(CASE uri WHEN '' THEN NULL ELSE uri END, NULL),
+        '"twitter": '  || into_json(CASE u.twitter WHEN '' THEN NULL ELSE u.twitter END, NULL)
     ], E',\n   ') || COALESCE(E',\n   "releases": {\n' ||
            string_agg(
                  '      "' || dv.distribution
@@ -505,7 +505,7 @@ appear in the popular list. The default limit is 56.
 */
     SELECT E'{\n   "count": ' || COUNT(DISTINCT tag) || E',\n   "popular": [\n'
         || array_to_string(ARRAY(
-        SELECT '      {"tag": ' || json_value(tag)
+        SELECT '      {"tag": ' || into_json(tag)
             || ', "dists": ' || COUNT(DISTINCT distribution) || E'}'
           FROM distribution_tags
          GROUP BY tag
@@ -545,8 +545,8 @@ appear in the prolific list. The default limit is 56.
 */
     SELECT E'{\n   "count": ' || COUNT(*) || E',\n   "prolific": [\n'
         || array_to_string(ARRAY(
-        SELECT '      {"nickname": ' || json_value(u.nickname)
-            || ', "name": '     || json_value(u.full_name)
+        SELECT '      {"nickname": ' || into_json(u.nickname)
+            || ', "name": '     || into_json(u.full_name)
             || ', "dists": '    || COUNT(DISTINCT d.name)
             || ', "releases": ' || COUNT(d.name) || E'}'
           FROM users u
@@ -613,14 +613,14 @@ that appear in the recent list. The default limit is 56.
     SELECT E'{\n   "count": ' || COUNT(*) || E',\n   "recent": [\n'
         || array_to_string(ARRAY(
         SELECT E'      {\n'
-            || '         "extension": '   || json_value(de.extension) || E',\n'
-            || '         "abstract": '    || json_value(de.abstract) || E',\n'
-            || '         "ext_version": ' || json_value(de.ext_version::text) || E',\n'
-            || '         "dist": '        || json_value(d.name) || E',\n'
-            || '         "version": '     || json_value(d.version::text) || E',\n'
-            || '         "date": '        || json_value(utc_date(d.created_at)) || E',\n'
-            || '         "user": '        || json_value(d.creator) || E',\n'
-            || '         "user_name": '   || json_value(u.full_name)
+            || '         "extension": '   || into_json(de.extension) || E',\n'
+            || '         "abstract": '    || into_json(de.abstract) || E',\n'
+            || '         "ext_version": ' || into_json(de.ext_version::text) || E',\n'
+            || '         "dist": '        || into_json(d.name) || E',\n'
+            || '         "version": '     || into_json(d.version::text) || E',\n'
+            || '         "date": '        || into_json(utc_date(d.created_at)) || E',\n'
+            || '         "user": '        || into_json(d.creator) || E',\n'
+            || '         "user_name": '   || into_json(u.full_name)
             || E'\n      }'
           FROM distributions d
           JOIN distribution_extensions de
@@ -688,12 +688,12 @@ distributions that appear in the recent list. The default limit is 56.
         || E',\n   "releases": ' || COUNT(*) || E',\n   "recent": [\n'
         || array_to_string(ARRAY(
         SELECT E'      {\n'
-            || '         "dist": '      || json_value(d.name) || E',\n'
-            || '         "version": '   || json_value(d.version::text) || E',\n'
-            || '         "abstract": '  || json_value(d.abstract) || E',\n'
-            || '         "date": '      || json_value(utc_date(d.created_at)) || E',\n'
-            || '         "user": '      || json_value(d.creator) || E',\n'
-            || '         "user_name": ' || json_value(u.full_name)
+            || '         "dist": '      || into_json(d.name) || E',\n'
+            || '         "version": '   || into_json(d.version::text) || E',\n'
+            || '         "abstract": '  || into_json(d.abstract) || E',\n'
+            || '         "date": '      || into_json(utc_date(d.created_at)) || E',\n'
+            || '         "user": '      || into_json(d.creator) || E',\n'
+            || '         "user_name": ' || into_json(u.full_name)
             || E'\n      }'
           FROM distributions d
           JOIN users u ON d.creator = u.nickname
@@ -746,7 +746,7 @@ CREATE OR REPLACE FUNCTION all_stats_json(
     num_to_list INT DEFAULT 56
 ) RETURNS TABLE (
     stats_name TEXT,
-    json       TEXT
+    "json"     TEXT
 ) LANGUAGE sql STABLE STRICT SECURITY DEFINER AS $$
 /*
 

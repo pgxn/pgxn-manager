@@ -5,8 +5,8 @@ SELECT plan(164);
 /****************************************************************************/
 -- Assertion function for validating JSON.
 CREATE OR REPLACE FUNCTION json_ok(
-    json  TEXT,
-    descr TEXT
+    "json" TEXT,
+    descr  TEXT
 ) RETURNS TEXT LANGUAGE plperl AS $$
     eval { JSON::XS->new->decode(shift) };
     my $ok = sub {

@@ -3,7 +3,7 @@
 CREATE OR REPLACE FUNCTION setup_meta(
     IN  nick        LABEL,
     IN  sha1        TEXT,
-    IN  json        TEXT,
+    IN  "json"      TEXT,
     OUT name        TERM,
     OUT version     SEMVER,
     OUT relstatus   RELSTATUS,
@@ -11,7 +11,7 @@ CREATE OR REPLACE FUNCTION setup_meta(
     OUT description TEXT,
     OUT provided    TEXT[][],
     OUT tags        CITEXT[],
-    OUT json        TEXT
+    OUT "json"      TEXT
 ) LANGUAGE plperl IMMUTABLE AS $$
     my ($user, $sha1) = (shift, shift);
     my $meta = JSON::XS->new->utf8(0)->decode(shift);
@@ -125,7 +125,7 @@ CREATE OR REPLACE FUNCTION get_distribution(
 ) RETURNS TABLE (
     template TEXT,
     subject  TEXT,
-    json     TEXT
+    "json"   TEXT
 ) LANGUAGE plpgsql STRICT STABLE SECURITY DEFINER AS $$
 /*
 

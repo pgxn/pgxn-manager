@@ -10,6 +10,7 @@ use Test::More tests => 41;
 use JSON::XS;
 use Test::Exception;
 use Test::MockModule;
+use POSIX ();
 use lib 't/lib';
 use TxnTest;
 

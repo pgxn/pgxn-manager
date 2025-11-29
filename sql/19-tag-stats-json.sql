@@ -37,7 +37,7 @@ appear in the popular list. The default limit is 56.
 */
     SELECT E'{\n   "count": ' || COUNT(DISTINCT tag) || E',\n   "popular": [\n'
         || array_to_string(ARRAY(
-        SELECT '      {"tag": ' || json_value(LOWER(tag))
+        SELECT '      {"tag": ' || into_json(LOWER(tag))
             || ', "dists": ' || COUNT(DISTINCT distribution) || E'}'
           FROM distribution_tags
          GROUP BY tag

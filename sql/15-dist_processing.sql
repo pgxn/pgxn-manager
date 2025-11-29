@@ -87,7 +87,7 @@ CREATE OR REPLACE FUNCTION add_distribution(
 ) RETURNS TABLE (
     template TEXT,
     subject  TEXT,
-    json     TEXT
+    "json"   TEXT
 ) LANGUAGE plpgsql STRICT SECURITY DEFINER AS $$
 /*
 
@@ -409,7 +409,7 @@ CREATE OR REPLACE FUNCTION update_distribution(
 ) RETURNS TABLE (
     template TEXT,
     subject  TEXT,
-    json     TEXT
+    "json"   TEXT
 ) LANGUAGE plpgsql STRICT SECURITY DEFINER AS $$
 /*
 
