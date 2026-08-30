@@ -15,7 +15,7 @@ SELECT has_function('add_distribution', ARRAY['label', 'text', 'text']);
 SELECT has_function('get_distribution', ARRAY['term', 'semver']);
 SELECT has_function('update_distribution', ARRAY['label', 'text', 'text']);
 
--- User "pgxn" should not have access to private fnctions.
+-- User "pgxn" should not have access to private functions.
 SELECT ok(
     NOT has_function_privilege('pgxn', f, 'EXECUTE'),
     'User "pgxn" should not have EXECUTE priv on ' || f
@@ -1693,7 +1693,7 @@ SELECT row_eq(
       "homepage": "https://pgxn.org/dist/pair/"
    }
 }
-', ARRAY[['Trip', '0.2.1'],['pair','0.2.2']],
+', ARRAY[['pair','0.2.2'],['Trip', '0.2.1']],
    ARRAY['bar', 'baz', 'foo'])::distribution_details,
    'Should get proper dist details for pair 0.0.1'
 );

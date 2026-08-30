@@ -257,7 +257,7 @@ test_psgi $app => sub {
     my $user   = TxnTest->user;
 
     # Need to mock the fetching of original email address.
-    my $dmock = Test::MockModule->new(ref PGXN::Manager->conn->dbh);
+    my $dmock = Test::MockModule->new(ref PGXN::Manager->conn->dbh, no_auto => 1);
     $dmock->mock(selectcol_arrayref => sub {
         shift;
         is_deeply \@_, [

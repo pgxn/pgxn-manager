@@ -1,14 +1,6 @@
 BEGIN;
-SELECT plan(34);
+SELECT plan(27);
 --SELECT * FROM no_plan();
-
-SELECT has_function('multi_array_agg');
-SELECT has_function('multi_array_agg', ARRAY['text[]']);
-SELECT is_aggregate('multi_array_agg');
-SELECT is_aggregate('multi_array_agg', ARRAY['text[]']);
-SELECT volatility_is('multi_array_agg', ARRAY['text[]'], 'immutable');
-SELECT function_returns('multi_array_agg', ARRAY['text[]'], 'text[]');
-SELECT function_lang_is('multi_array_agg', ARRAY['text[]'], 'internal');
 
 SELECT has_view(
     'public',

@@ -16,7 +16,7 @@ use Cwd;
 use namespace::autoclean;
 
 our $VERSION = v0.33.1;
-use constant CHANNELS => qw(release new_user new_mirror);
+use constant CHANNELS => qw(new_mirror new_user release);
 
 has verbose  => (is => 'ro', isa => 'Int',  required => 1, default => 0);
 has interval => (is => 'ro', isa => 'Num',  required => 1, default => 5);
@@ -36,7 +36,7 @@ has conn     => (is => 'ro', isa => 'DBIx::Connector', lazy => 1, default => sub
     my $cb = $self->verbose ? sub {
         $_[0]->do("LISTEN pgxn_$_") for CHANNELS;
         $self->log(INFO => 'Listening on ', join ', ', map { s/^pgxn_//r } @{
-            $_[0]->selectcol_arrayref('SELECT * FROM pg_listening_channels()')
+            $_[0]->selectcol_arrayref('SELECT * FROM pg_listening_channels() x ORDER BY x')
         });
         return;
     } : sub {

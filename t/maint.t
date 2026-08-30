@@ -119,7 +119,7 @@ RUN: {
 };
 
 ##############################################################################
-# Tetst go().
+# Test go().
 GO: {
     my $mocker = Test::MockModule->new($CLASS);
     my $params;
@@ -269,6 +269,8 @@ file_exists_ok $files{$_}, "File $_ should now exist" for keys %files;
 ##############################################################################
 # Test reindex(). First, we need some distributions.
 REINDEX: {
+    require PGXN::Manager::Distribution;
+    PGXN::Manager::Distribution->meta->make_mutable;
     my $mocker = Test::MockModule->new('PGXN::Manager::Distribution');
     my $zip = File::Spec->catfile($root, qw(dist pair 0.0.1 pair-0.0.1.zip));
     $mocker->mock(reindex => sub {
@@ -452,6 +454,8 @@ EOF
 # Test reset_password().
 RESET: {
     # Mock sending an email.
+    require PGXN::Manager;
+    PGXN::Manager->meta->make_mutable;
     my $mgr_mock = Test::MockModule->new('PGXN::Manager');
     my @email_params;
     $mgr_mock->mock(send_email => sub { push @email_params => $_[1] });
