@@ -1,18 +1,22 @@
 Revision history for Perl extension PGXN::Manager
 
-0.33.2
-     - Added Postgres 19 testing, fixed test failures with newer Perl modules
-       database ordering with different collations.
-     - Removed a custom aggregate not needed on more recent versions of
-       Postgres that know how to aggregate arrays.
-     - Fixed the sort ordering of the `extensions` column of the
-       `distribution_details` view to consistently sort in case-insensitive
-       order.
+0.33.2  2026-08-30T19:38:44Z
+      - Added Postgres 19 testing, fixed test failures with newer Perl modules
+        database ordering with different collations.
+      - Removed a custom aggregate not needed on more recent versions of
+        Postgres that know how to aggregate arrays.
+      - Fixed the sort ordering of the `extensions` column of the
+        `distribution_details` view to consistently sort in case-insensitive
+        order.
+      - Fixed a bug in the stripping of `x_` fields in `setup_meta()` that
+        caused uploads to fail when such fields were in the `resources` object.
+        Thanks to John Burns for sending me the `MEAT.json` to help track down
+        this bug.
 
 0.33.1 2025-11-29T22:22:43Z
-     - Added `sql/21-cleanup-json.sql` to remove deleted functions from
-       PostgreSQL 16 or earlier.
-     - Added notes for upgrading to PostgreSQL 17+ to the README.
+      - Added `sql/21-cleanup-json.sql` to remove deleted functions from
+        PostgreSQL 16 or earlier.
+      - Added notes for upgrading to PostgreSQL 17+ to the README.
 
 0.33.0  2025-11-29T20:45:07Z
       - Removed the `$libdir/` prefix from examples of the `module_pathname`

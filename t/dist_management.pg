@@ -97,6 +97,7 @@ SELECT results_eq(
         "maintainer": "theory",
         "abstract": "Ordered pair",
         "description": "An ordered pair for PostgreSQL",
+        "x_": "skip me",
         "tags": ["foo", "bar", "baz"],
         "prereqs": {
           "runtime": {
@@ -110,7 +111,7 @@ SELECT results_eq(
           }
         },
         "provides": {
-            "pair": { "file": "pair.sql.in", "version": "0.2.2" },
+            "pair": { "file": "pair.sql.in", "version": "0.2.2", "x_": 1 },
             "trip": { "file": "trip.sql.in", "version": "0.2.1" }
         },
         "meta-spec": {
@@ -119,6 +120,7 @@ SELECT results_eq(
         },
         "release_status": "testing",
         "resources": {
+          "x_original": { "note": "lol" },
           "homepage": "https://pgxn.org/dist/pair/"
         }
     }') $$,

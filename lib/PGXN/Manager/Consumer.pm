@@ -15,7 +15,7 @@ use IO::File;
 use Cwd;
 use namespace::autoclean;
 
-our $VERSION = v0.33.1;
+our $VERSION = v0.33.2;
 use constant CHANNELS => qw(new_mirror new_user release);
 
 has verbose  => (is => 'ro', isa => 'Int',  required => 1, default => 0);
